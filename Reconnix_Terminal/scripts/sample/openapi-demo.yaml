@@ -1,0 +1,44 @@
+openapi: 3.0.3
+info:
+  title: Orders API
+  version: 1.2.0
+  description: A small demo specification for api.example.com (fake data only).
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /orders:
+    get:
+      summary: List the caller's orders
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Place an order
+      responses:
+        "201":
+          description: Created
+  /orders/{id}:
+    get:
+      summary: Read one order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /auth/login:
+    post:
+      summary: Sign in
+      responses:
+        "200":
+          description: OK
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []

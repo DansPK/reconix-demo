@@ -1,0 +1,36 @@
+# dependencies / envs / build caches (also covered by each subproject's .gitignore)
+**/node_modules/
+**/.venv/
+**/venv/
+**/.next/
+**/out/
+**/dist/
+**/build/
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache/
+*.pyc
+*.egg-info/
+*.tsbuildinfo
+
+# secrets / local state
+**/.env
+**/.env.*
+!**/.env.example
+*.key
+*.pem
+**/.reconix/
+**/data/
+**/certs/
+*.db
+
+# artifacts
+*.vsix
+**/reports/
+**/playwright-report/
+**/test-results/
+**/.vscode-test/
+
+# os / editor
+.DS_Store

@@ -1,0 +1,67 @@
+/* The Findings view (findings-view.tsx, findings-list.tsx, finding-detail.tsx). Colours only
+   from the tokens (tokens.css); meanings from lib/status.ts.
+
+   The view is a column: the header, the filters, a notice, then the list / detail split
+   (components/ui/list-detail.tsx, styles/ui.css .ui-split) and the footnote. The list pane holds
+   ten rows and the pager; the detail pane the chosen finding with its header first.
+
+   Scrolling (the README's rule): below the fixed desktop frame the window scrolls and nothing
+   here scrolls inside. On the fixed frame (≥1280×760) the view fills the content area, so the
+   page never scrolls because of the list: the rows scroll under the filters with the pager kept
+   in reach, and the detail keeps its header in view and scrolls its body only when the finding
+   is taller than the frame. */
+
+/* ---- The column ---- */
+.dash-findings { display: flex; flex-direction: column; min-height: 0; }
+.dash-findings > * { flex: none; }
+.dash-findings > .ui-split { flex: 1 1 auto; min-height: 0; }
+
+/* ---- The list pane: the rows, then the pager ---- */
+.dash-findings-list { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.dash-findings-rows { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.dash-findings-pager { flex: none; }
+/* a row is the shared .ui-row (ui.css) */
+
+/* ---- The detail pane: the header, then the body ---- */
+.dash-finding { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+.dash-finding-head { display: flex; flex-direction: column; gap: 8px; flex: none; }
+.dash-finding-body { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+
+/* ---- Phones and tablets (<1024): one pane at a time; the filters belong to the list ---- */
+@media (max-width: 1023.98px) {
+  .dash-findings[data-pane="detail"] .dash-findings-filters,
+  .dash-findings[data-pane="detail"] .dash-findings-notice { display: none; }
+}
+
+/* ---- The fixed desktop frame: the view fills the content area and the panes scroll inside ----
+   The breakpoint is the frame's (frame.css) and ui.css's .ui-split uses the same one: change
+   them together. The first rule reaches the plain <div hidden={…}> the viewer (viewer.tsx)
+   wraps each view in, which has no class of its own: the height chain from .dash-content down
+   to the panes needs it to be 100% tall too. */
+@media (min-width: 1280px) and (min-height: 760px) {
+  .dash-content > div:has(> .dash-findings) { height: 100%; }
+  .dash-findings { height: 100%; }
+  .dash-findings-list { height: 100%; }
+  .dash-findings-rows {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior-y: contain; /* its scrollbar is hidden (below) */
+    /* room for the rows' focus ring and hover border inside the scroller's clip */
+    padding: 2px;
+    margin: -2px;
+    scroll-padding-block: 2px;
+  }
+  .dash-finding { max-height: 100%; }
+  .dash-finding-body { flex: 1 1 auto; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: thin; }
+}
+
+/* ---- The list pane's scrollbars, hidden ----
+   The list pane (ui.css .ui-split-list) and its rows scroll as before, by wheel, touch,
+   trackpad and the keys (the rows are buttons: focus one and the arrows, Page Up / Down, Home
+   and End move the list), with no scrollbar drawn, down the side or along the bottom. Only this
+   list: the detail pane and the page keep theirs. `scrollbar-width` for Firefox and Chromium,
+   the pseudo-element for Safari. */
+.dash-findings .ui-split-list,
+.dash-findings .dash-findings-rows { scrollbar-width: none; }
+.dash-findings .ui-split-list::-webkit-scrollbar,
+.dash-findings .dash-findings-rows::-webkit-scrollbar { display: none; }

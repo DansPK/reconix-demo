@@ -1,0 +1,99 @@
+/* Shared controls (components/ui) and the shared row: the text link, the empty note, the pager,
+   the checkbox, the list/detail split and .ui-row (a finding in the Findings list, a run on the
+   Assessments view). Buttons are components/ui/button.tsx (Tailwind). Colours only from the
+   tokens. */
+
+/* ---- A text link, in prose or as a button that reads like one ---- */
+.ui-link { border-radius: 4px; color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.ui-link:hover { color: var(--primary-strong); }
+.ui-link:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+/* a box that scrolls inside itself (components/ui/scroll-region.tsx): a tab stop while it does */
+.ui-scroll-region:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+/* ---- An empty list (empty-note.tsx) ---- */
+.ui-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+/* ---- A row in a list: a card-like, selectable surface (findings-list.tsx, assessments-rows.tsx) ---- */
+.ui-row {
+  width: 100%;
+  text-align: left;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--card), var(--card-2));
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.ui-row:hover { border-color: color-mix(in oklab, var(--primary) 30%, var(--border)); }
+.ui-row[aria-current="true"] {
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+  background: color-mix(in oklab, var(--primary) 6%, var(--card));
+}
+
+/* ---- Pager (pagination.tsx; its buttons are the outline xs Button) ---- */
+.ui-pager { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ui-pager-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); text-align: center; }
+
+/* ---- Checkbox (checkbox.tsx) ---- */
+/* position: relative keeps the 1px input inside the label, so focusing it never scrolls away */
+.ui-check { position: relative; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--foreground); cursor: pointer; }
+.ui-check.is-disabled { color: var(--muted-foreground); cursor: not-allowed; }
+.ui-check-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.ui-check-box {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.ui-check-input:checked + .ui-check-box { border-color: var(--primary); background: var(--primary); }
+.ui-check-input:checked + .ui-check-box::after {
+  content: "";
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid var(--primary-foreground);
+  border-bottom: 2px solid var(--primary-foreground);
+  transform: translateY(-1px) rotate(-45deg);
+}
+.ui-check-input:focus-visible + .ui-check-box { outline: 2px solid var(--ring); outline-offset: 2px; }
+.ui-check-input:disabled + .ui-check-box { opacity: 0.5; }
+
+/* ---- List / detail split (list-detail.tsx) ----
+   ≥1024 wide: two columns, both shown. Below: one pane at a time (data-pane). On the fixed
+   desktop frame (frame.css) the split fills the content area and each pane scrolls on its own;
+   elsewhere the window scrolls and the panes grow with their content. */
+.ui-split { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.ui-split-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.ui-split-back:hover { color: var(--primary); }
+.ui-split-back:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+@media (max-width: 1023.98px) {
+  .ui-split[data-pane="list"] .ui-split-detail { display: none; }
+  .ui-split[data-pane="detail"] .ui-split-list { display: none; }
+}
+@media (min-width: 1024px) {
+  .ui-split { grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); align-items: start; }
+  .ui-split-back { display: none; }
+}
+@media (min-width: 1280px) and (min-height: 760px) {
+  .ui-split { height: 100%; min-height: 0; align-items: stretch; }
+  .ui-split-list, .ui-split-detail { min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: thin; }
+}

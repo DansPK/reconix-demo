@@ -1,0 +1,331 @@
+{
+  "tokens": [
+    {
+      "input": "SQL Injection in the Search API!",
+      "expected": [
+        "sql",
+        "injection",
+        "search",
+        "api"
+      ]
+    },
+    {
+      "input": "A an the of to",
+      "expected": []
+    },
+    {
+      "input": "CVE-2021-44228 log4j RCE",
+      "expected": [
+        "cve",
+        "2021",
+        "44228",
+        "log4j",
+        "rce"
+      ]
+    },
+    {
+      "input": "Don't reuse passwords!!!",
+      "expected": [
+        "don",
+        "reuse",
+        "passwords"
+      ]
+    },
+    {
+      "input": "x y ab 12 999",
+      "expected": [
+        "ab",
+        "12",
+        "999"
+      ]
+    },
+    {
+      "input": "Café résumé naïve 🚀 façade",
+      "expected": [
+        "caf",
+        "sum",
+        "na",
+        "ve",
+        "fa",
+        "ade"
+      ]
+    },
+    {
+      "input": "ÀÉÎÕÜ ñ ß 東京 2024 v2.1-rc",
+      "expected": [
+        "2024",
+        "v2",
+        "rc"
+      ]
+    }
+  ],
+  "corpus": [
+    {
+      "name": "runbook.md",
+      "chunks": [
+        "The staging environment uses a shared database for all the test accounts.",
+        "SQL injection was found in the search endpoint.",
+        "The report lists each finding ranked by severity."
+      ]
+    },
+    {
+      "name": "policy.txt",
+      "chunks": [
+        "Scope approval requires a signed authorization from the system owner.",
+        "High risk actions need a double confirmation before the scanner runs.",
+        "Never store plaintext passwords in the findings or the exported report."
+      ]
+    },
+    {
+      "name": "alert.md",
+      "chunks": [
+        "Firewall blocks outbound DNS traffic on the staging host."
+      ]
+    },
+    {
+      "name": "alpha.md",
+      "chunks": [
+        "Kerberos ticket renewal runs nightly on every domain controller."
+      ]
+    },
+    {
+      "name": "Beta.md",
+      "chunks": [
+        "Kerberos ticket renewal runs nightly on every domain controller.",
+        "Kerberos ticket renewal runs nightly on every domain controller."
+      ]
+    },
+    {
+      "name": "notes-é.md",
+      "chunks": [
+        "Café résumé naïve: the 🚀 rollout uses the façade service behind the proxy."
+      ]
+    },
+    {
+      "name": "gateway-long.md",
+      "chunks": [
+        "The vpn gateway terminates every remote tunnel, logs each session to the central collector, rotates its certificates monthly and keeps a warm standby in the second region for failover during maintenance windows."
+      ]
+    },
+    {
+      "name": "gateway-short.md",
+      "chunks": [
+        "The vpn gateway is patched."
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "query": "severity",
+      "expected": [
+        {
+          "source": "runbook.md",
+          "index": 2,
+          "score": 2.5353
+        }
+      ]
+    },
+    {
+      "query": "firewall dns",
+      "expected": [
+        {
+          "source": "alert.md",
+          "index": 0,
+          "score": 4.8068
+        }
+      ]
+    },
+    {
+      "query": "sql injection severity",
+      "expected": [
+        {
+          "source": "runbook.md",
+          "index": 1,
+          "score": 5.3651
+        }
+      ]
+    },
+    {
+      "query": "scope approval authorization owner",
+      "expected": [
+        {
+          "source": "policy.txt",
+          "index": 0,
+          "score": 9.6137
+        }
+      ]
+    },
+    {
+      "query": "test accounts database staging",
+      "expected": [
+        {
+          "source": "runbook.md",
+          "index": 0,
+          "score": 8.6158
+        }
+      ]
+    },
+    {
+      "query": "kerberos ticket",
+      "expected": [
+        {
+          "source": "Beta.md",
+          "index": 0,
+          "score": 2.8359
+        },
+        {
+          "source": "Beta.md",
+          "index": 1,
+          "score": 2.8359
+        },
+        {
+          "source": "alpha.md",
+          "index": 0,
+          "score": 2.8359
+        }
+      ]
+    },
+    {
+      "query": "firewall firewall DNS dns",
+      "expected": [
+        {
+          "source": "alert.md",
+          "index": 0,
+          "score": 4.8068
+        }
+      ]
+    },
+    {
+      "query": "what is the and of",
+      "expected": []
+    },
+    {
+      "query": "façade rollout 🚀",
+      "expected": [
+        {
+          "source": "notes-é.md",
+          "index": 0,
+          "score": 5.9683
+        }
+      ]
+    },
+    {
+      "query": "vpn gateway",
+      "expected": [
+        {
+          "source": "gateway-short.md",
+          "index": 0,
+          "score": 4.6817
+        },
+        {
+          "source": "gateway-long.md",
+          "index": 0,
+          "score": 2.0233
+        }
+      ]
+    }
+  ],
+  "budget": [
+    {
+      "budget": 100,
+      "passages": [
+        "alpha",
+        "beta"
+      ],
+      "expected": [
+        "alpha",
+        "beta"
+      ]
+    },
+    {
+      "budget": 10,
+      "passages": [
+        "0123456789",
+        "x"
+      ],
+      "expected": [
+        "0123456789"
+      ]
+    },
+    {
+      "budget": 300,
+      "passages": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "expected": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb…"
+      ]
+    },
+    {
+      "budget": 299,
+      "passages": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "expected": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "budget": 250,
+      "passages": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "cccccccccc"
+      ],
+      "expected": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "budget": 500,
+      "passages": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "cccccccccc"
+      ],
+      "expected": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb…"
+      ]
+    },
+    {
+      "budget": 210,
+      "passages": [
+        "🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word"
+      ],
+      "expected": [
+        "🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word wor…"
+      ]
+    },
+    {
+      "budget": 210,
+      "passages": [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx🚀🚀yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+      ],
+      "expected": [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx🚀…"
+      ]
+    },
+    {
+      "budget": 200,
+      "passages": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \t\n\r bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "expected": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…"
+      ]
+    },
+    {
+      "budget": 200,
+      "passages": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "expected": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa …"
+      ]
+    }
+  ]
+}

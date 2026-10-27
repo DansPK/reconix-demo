@@ -1,0 +1,243 @@
+/* Motion: the sidebar and its AI item, the AI Assistant's stage (its layers, the open and close
+   animation's resting states, the carried globe), the breathing loops and a live mark's glow.
+   Owner: animation and navigation. */
+
+/* ---- Sidebar ---- */
+.dash-navbtn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: var(--muted-foreground);
+  /* the active state's own fade: one short transition, never a loop (the marker is ::after below) */
+  transition:
+    color 0.2s ease,
+    background-color 0.2s var(--ease-in-out),
+    border-color 0.2s var(--ease-in-out),
+    box-shadow 0.2s var(--ease-in-out);
+}
+.dash-navbtn:hover { color: var(--foreground); background: color-mix(in oklab, var(--foreground) 5%, transparent); }
+.dash-navbtn[data-active="true"] {
+  background: var(--surface);
+  border-color: color-mix(in oklab, var(--primary) 25%, transparent);
+  color: var(--primary);
+  box-shadow: 0 0 18px -4px color-mix(in oklab, var(--primary) 45%, transparent);
+}
+/* tooltip (right side) */
+.dash-tip {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  translate: 0 -50%;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 11px;
+  opacity: 0;
+  transform: translateX(-4px);
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 40;
+}
+.dash-navbtn:hover .dash-tip,
+.dash-navbtn:focus-visible .dash-tip { opacity: 1; transform: translateX(0); }
+
+/* The active view's marker: a bar on the sidebar's edge that slides and fades in
+   once, over 0.2 s, when the view changes (under the strip on phones). It moves only the bar,
+   never the icon or the label, and it never loops. */
+.dash-navbtn::after {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  width: 3px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 0 3px 3px 0;
+  background: var(--primary);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--primary) 70%, transparent);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: transform 0.2s var(--ease-out-expo), opacity 0.2s ease;
+}
+.dash-navbtn[data-active="true"]::after { opacity: 1; transform: none; }
+@media (max-width: 767.98px) {
+  .dash-navbtn::after {
+    left: 50%;
+    top: auto;
+    bottom: -6px;
+    width: 18px;
+    height: 3px;
+    margin: 0 0 0 -9px;
+    border-radius: 3px 3px 0 0;
+    transform: translateY(4px);
+  }
+  .dash-navbtn[data-active="true"]::after { transform: none; }
+}
+
+/* The sidebar's AI icon: centred in its button; it breathes (size and a halo) while the
+   assistant is open. Only the icon scales: the button and its click area stay put. */
+.dash-ai-icon {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  transform-origin: 50% 50%;
+}
+.dash-ai-halo {
+  position: absolute;
+  inset: -5px;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--primary) 30%, transparent), transparent);
+  box-shadow: 0 0 12px 2px color-mix(in oklab, var(--primary) 30%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---- AI Assistant (components/assistant/*) --------------------------------------------
+   stage   — over the top bar and the content, beside the sidebar (never covers it)
+   surface — the box the open/close animation grows out of the hero and back (motion.ts):
+             fill (the stage's background) and card (the chat panel's frame and glow)
+   globe   — the dashboard's globe, carried in from the hero (motion-globe.ts), on the card and
+             behind the welcome text; a teal halo sits behind it
+   front   — the chat itself (AssistantView), always full size; it must stay transparent where
+             the globe shows through
+   The card and the panel are two layers drawn as one: the same box. Neither breathes: they hold
+   the chat's text, and text never moves (only the globe and the sidebar's icon loop). */
+.dash-assistant-surface { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.dash-assistant-fill {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(55% 45% at 50% 0%, color-mix(in oklab, var(--globe-glow) 13%, transparent), transparent 70%),
+    radial-gradient(45% 45% at 100% 100%, color-mix(in oklab, var(--page-glow) 45%, transparent), transparent 70%),
+    var(--background);
+}
+.dash-assistant-card,
+.dash-assistant-panel {
+  position: absolute;
+  inset: 14px; /* room for the glow: nothing clips, nothing scrolls */
+  border-radius: 18px;
+  transform-origin: 50% 50%;
+}
+.dash-assistant-card {
+  border: 1px solid color-mix(in oklab, var(--primary) 18%, var(--border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--card) 90%, transparent),
+    color-mix(in oklab, var(--card-2) 94%, transparent)
+  );
+}
+.dash-assistant-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: 0 0 64px -12px color-mix(in oklab, var(--primary) 55%, transparent);
+  opacity: 0.5; /* steady: it sits around the chat's text, so it never pulses */
+  pointer-events: none;
+}
+/* clipped to the stage: on phones the stage starts below the top bar and the views strip, and the
+   globe (following a welcome scrolled up) must never draw over them */
+.dash-assistant-globe { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.dash-assistant-globe-breath { position: absolute; inset: 0; }
+.dash-assistant-halo { position: absolute; border-radius: 50%; opacity: 0; }
+.dash-assistant-halo-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--globe-glow) 18%, transparent), transparent);
+  opacity: 0.7;
+}
+.dash-assistant-front { position: absolute; inset: 0; pointer-events: auto; }
+/* The panel doesn't clip: the card layer under it draws the rounded frame, the conversation scrolls
+   (and clips) inside itself, and the History menu can drop below the header in full. */
+.dash-assistant-panel { display: flex; flex-direction: column; }
+@media (max-width: 767.98px) {
+  .dash-assistant-card, .dash-assistant-panel { inset: 8px; }
+}
+
+/* The globe's carrier (made by components/dashboard/globe.tsx): it fills its place in the hero;
+   carried into the assistant it is placed in px and moved with a transform. */
+.dash-globe-carrier { position: absolute; inset: 0; }
+/* In the stage nothing covers the canvas's edges any more (the hero's cards did), so its masks
+   hide them and the bloom's haze: a thin fade on every edge from the moment it is lifted, and a
+   round vignette (--globe-mask, MOTION.globeMask: wide at the hero) that closes in as it travels. */
+.dash-assistant-globe .dash-globe-carrier {
+  inset: auto;
+  --globe-round: radial-gradient(
+    closest-side circle at 50% 50%,
+    var(--foreground) calc(var(--globe-mask, 100%) * 0.78),
+    transparent var(--globe-mask, 100%)
+  );
+  --globe-rows: linear-gradient(to bottom, transparent, var(--foreground) 4%, var(--foreground) 96%, transparent);
+  --globe-cols: linear-gradient(to right, transparent, var(--foreground) 4%, var(--foreground) 96%, transparent);
+  -webkit-mask-image: var(--globe-round), var(--globe-rows), var(--globe-cols);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--globe-round), var(--globe-rows), var(--globe-cols);
+  mask-composite: intersect;
+}
+
+/* While the assistant is open: the Overview stays laid out under it (unseen, inert) so the close
+   can grow back into it; without the fixed-height frame it is taken out instead, so the stage
+   keeps a screen's height. The top bar sits under the open assistant (the sidebar stays). */
+[data-assistant-backdrop] { opacity: 0; pointer-events: none; }
+@media (max-width: 1279.98px), (max-height: 759.98px) {
+  [data-assistant-backdrop] { display: none; }
+}
+@media (min-width: 768px) { .dash-frame[data-assistant-open] > header { visibility: hidden; } }
+
+/* ---- Breathing: one cycle (BREATH_MS, breath.ts) for the AI icon and the globe, on [data-breath]
+   elements the transition never animates. Nothing that holds text breathes: the chat panel and its
+   card stay still (transform none) from the moment the open lands. It runs once the open has settled
+   (.dash-frame[data-breathing]): a first swell (--breath-in) from rest to the page clock's next
+   peak, then the loop from that peak (its keyframes start at the peak), so every loop is in phase
+   and nothing jumps. Transforms and opacity only: no repaint, no layout, low CPU. ---- */
+.dash-frame[data-breathing] [data-breath] {
+  animation-duration: var(--breath-in, 3s), var(--breath-period, 6s);
+  animation-delay: 0ms, var(--breath-in, 3s);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: 1, infinite;
+}
+.dash-frame[data-breathing] .dash-ai-icon { animation-name: dash-breath-icon-in, dash-breath-icon; }
+.dash-frame[data-breathing] .dash-ai-halo { animation-name: dash-breath-icon-halo-in, dash-breath-icon-halo; }
+.dash-frame[data-breathing] .dash-assistant-globe-breath { animation-name: dash-breath-globe-in, dash-breath-globe; }
+.dash-frame[data-breathing] .dash-assistant-halo-glow { animation-name: dash-breath-globe-glow-in, dash-breath-globe-glow; }
+/* faded out behind a conversation (use-globe-aim.ts sets data-idle): no loop runs unseen */
+.dash-frame[data-breathing] .dash-assistant-globe-breath[data-idle],
+.dash-frame[data-breathing] .dash-assistant-globe-breath[data-idle] .dash-assistant-halo-glow { animation: none; }
+/* each pair: the first swell (rest → peak), then the loop (peak → trough → peak) */
+@keyframes dash-breath-icon-in { from { transform: scale(1); } to { transform: scale(1.1); } }
+@keyframes dash-breath-icon { 0%, 100% { transform: scale(1.1); } 50% { transform: scale(1); } }
+@keyframes dash-breath-icon-halo-in { from { opacity: 0; } to { opacity: 0.9; } }
+@keyframes dash-breath-icon-halo { 0%, 100% { opacity: 0.9; } 50% { opacity: 0; } }
+@keyframes dash-breath-globe-in { from { transform: scale(1); } to { transform: scale(1.02); } }
+@keyframes dash-breath-globe { 0%, 100% { transform: scale(1.02); } 50% { transform: scale(0.98); } }
+@keyframes dash-breath-globe-glow-in { from { opacity: 0.7; } to { opacity: 1; } }
+@keyframes dash-breath-globe-glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+/* A live Reconix mark (ui/reconix-mark.tsx with data-live: the avatar of a reply being written,
+   message.tsx) glows on the same cycle (useBreathPhase puts it in phase with the page clock). A
+   glow only: the mark never scales, and a written reply's mark and the header's hold still. */
+[data-reconix-mark][data-live] { animation: dash-mark-live var(--breath-period, 6s) ease-in-out infinite; }
+@keyframes dash-mark-live {
+  0%, 100% { filter: drop-shadow(0 0 2px color-mix(in oklab, var(--globe-glow) 30%, transparent)); }
+  50% { filter: drop-shadow(0 0 10px color-mix(in oklab, var(--globe-glow) 70%, transparent)); }
+}
+
+/* Reduced motion: no breathing scale and no loops; a still halo marks the open assistant (and a
+   still glow the reply being written). */
+@media (prefers-reduced-motion: reduce) {
+  .dash-frame[data-breathing] [data-breath], [data-reconix-mark][data-live] { animation: none; }
+  .dash-frame[data-breathing] .dash-ai-halo { opacity: 0.6; }
+  .dash-frame[data-breathing] .dash-assistant-halo-glow { opacity: 0.85; }
+  [data-reconix-mark][data-live] { filter: drop-shadow(0 0 6px color-mix(in oklab, var(--globe-glow) 55%, transparent)); }
+  .dash-navbtn, .dash-navbtn::after { transition: none; }
+}

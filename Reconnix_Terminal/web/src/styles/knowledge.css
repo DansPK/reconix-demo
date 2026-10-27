@@ -1,0 +1,167 @@
+/* The Security knowledge view (components/knowledge/): the header's controls, the table (stacked
+   into blocks on a phone), the cards, a file's actions and its remove question, and the upload
+   dialog. Colours only from the tokens (tokens.css); the card chrome is .dash-card
+   (dashboard.css), an empty list the shared .ui-empty (ui.css). Nothing here scrolls sideways at
+   360 px. */
+
+/* ---- Header ---- */
+.kn-back { margin-left: -8px; }
+.kn-search { width: 100%; }
+@media (min-width: 640px) { .kn-search { width: 240px; } }
+
+/* Table / Grid */
+.kn-switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+}
+.kn-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.kn-switch-btn:hover { color: var(--foreground); }
+.kn-switch-btn[aria-pressed="true"] { color: var(--foreground); background: color-mix(in oklab, var(--primary) 14%, transparent); }
+.kn-switch-btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+
+/* what was just added or removed, and errors */
+.kn-notice { font-size: 12.5px; color: var(--success); }
+.kn-notice:empty { margin-bottom: -12px; } /* no text: no room (the view's 12px gap taken back) */
+.kn-error { font-size: 12px; line-height: 1.45; color: var(--danger); overflow-wrap: anywhere; }
+.kn-state { font-size: 13px; color: var(--muted-foreground); }
+.kn-card:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.kn-empty { flex-direction: column; align-items: flex-start; }
+.kn-empty > p { max-width: 62ch; line-height: 1.55; }
+
+/* ---- A file's type ---- */
+.kn-kind {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in oklab, var(--primary) 25%, var(--border));
+  background: color-mix(in oklab, var(--primary) 8%, var(--card));
+  color: var(--primary);
+}
+.kn-kind > svg { width: 15px; height: 15px; }
+.kn-kind.is-large { width: 34px; height: 34px; border-radius: 9px; }
+.kn-kind.is-large > svg { width: 18px; height: 18px; }
+
+/* ---- The table ---- */
+.kn-name-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.kn-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--foreground); font-weight: 500; }
+.kn-table tbody th { max-width: 0; width: 38%; } /* the name gives way, the other columns keep their text */
+.kn-col-actions { text-align: right; white-space: nowrap; }
+/* wide: room for Open and Remove side by side, and for the remove question in their place
+   (narrower, they stack in the cell) */
+@media (min-width: 1024px) {
+  .kn-table .kn-col-actions { width: 250px; }
+  .kn-col-actions .kn-action-row, .kn-col-actions .kn-confirm { flex-wrap: nowrap; justify-content: flex-end; }
+}
+
+/* a phone: each row a block, its cells labelled */
+@media (max-width: 639.98px) {
+  .kn-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .kn-table, .kn-table tbody, .kn-table tr, .kn-table tbody th, .kn-table td { display: block; width: auto; max-width: none; }
+  .kn-table tbody tr { padding: 10px 0; border-top: 1px solid var(--border); }
+  .kn-table tbody tr:first-child { border-top: 0; padding-top: 0; }
+  .kn-table tbody th, .kn-table td { padding: 2px 0; border-top: 0; text-align: left; white-space: normal; }
+  .kn-table td[data-label]::before { content: attr(data-label) ": "; color: var(--muted-foreground); }
+  .kn-table .kn-col-actions { padding-top: 8px; }
+}
+
+/* ---- The cards ---- */
+.kn-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); margin: 0; padding: 0; list-style: none; }
+.kn-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--card), var(--card-2));
+  transition: border-color 0.2s ease;
+}
+.kn-tile:hover { border-color: color-mix(in oklab, var(--primary) 30%, var(--border)); }
+.kn-tile-head { display: flex; align-items: center; gap: 10px; min-width: 0; margin-bottom: 2px; }
+.kn-tile-name {
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+.kn-tile-meta { font-size: 12px; color: var(--muted-foreground); }
+.kn-tile .kn-actions { margin-top: auto; padding-top: 6px; }
+
+/* ---- A file's actions, and the remove question ---- */
+.kn-actions { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.kn-col-actions .kn-actions { align-items: flex-end; }
+.kn-action-row, .kn-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.kn-remove:not([aria-disabled="true"]):hover { color: var(--danger); background: color-mix(in oklab, var(--danger) 10%, transparent); }
+.kn-confirm-text { font-size: 12px; color: var(--foreground); }
+.kn-danger { color: var(--foreground); background: color-mix(in oklab, var(--danger) 70%, var(--card)); }
+.kn-danger:not(:disabled):hover { background: var(--danger); }
+@media (max-width: 639.98px) { .kn-col-actions .kn-actions { align-items: flex-start; } }
+
+/* ---- The upload dialog ---- */
+.kn-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 24px 60px color-mix(in oklab, var(--background) 70%, transparent);
+}
+.kn-dialog::backdrop { background: color-mix(in oklab, var(--background) 72%, transparent); }
+.kn-dialog-body { display: flex; flex-direction: column; gap: 14px; padding: 16px 18px 18px; }
+.kn-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.kn-dialog-title { font-size: 15px; font-weight: 500; }
+.kn-dialog-text { font-size: 12.5px; line-height: 1.5; color: var(--muted-foreground); }
+.kn-dialog-foot { display: flex; justify-content: flex-end; gap: 8px; padding-top: 2px; }
+.kn-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.kn-label { font-size: 12px; font-weight: 500; }
+.kn-hint { font-size: 11.5px; line-height: 1.45; color: var(--muted-foreground); }
+.kn-chosen { font-size: 12px; color: var(--muted-foreground); overflow-wrap: anywhere; }
+.kn-chosen-name { color: var(--foreground); }
+
+.kn-file { width: 100%; min-width: 0; font-size: 12px; color: var(--muted-foreground); border-radius: 8px; }
+.kn-file::file-selector-button {
+  height: 30px;
+  margin-right: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--foreground);
+  font: inherit;
+  cursor: pointer;
+}
+.kn-file:hover::file-selector-button { border-color: color-mix(in oklab, var(--primary) 40%, var(--border)); }
+.kn-file:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.kn-file:disabled { opacity: 0.5; }
+
+.kn-progress { appearance: none; width: 100%; height: 6px; border: 0; border-radius: 999px; overflow: hidden; background: var(--muted); }
+.kn-progress::-webkit-progress-bar { background: var(--muted); border-radius: 999px; }
+.kn-progress::-webkit-progress-value { background: var(--primary); border-radius: 999px; transition: width 0.2s ease; }
+.kn-progress::-moz-progress-bar { background: var(--primary); border-radius: 999px; }

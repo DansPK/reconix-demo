@@ -1,0 +1,68 @@
+# Non-secret defaults. Secrets live in .env (see .env.example).
+
+app:
+  theme: dark
+
+# Which MCP tools run for each scan profile, in order.
+# nmap (recon) -> nuclei (vuln) -> sqlmap (active injection confirmation).
+profiles:
+  recon:
+    - nmap
+  standard:
+    - nmap
+    - nuclei
+  full:
+    - nmap
+    - nuclei
+    - sqlmap
+  # Broad web assessment: fingerprint -> templates -> server DAST -> injections.
+  web-deep:
+    - whatweb
+    - nuclei
+    - nikto
+    - sqlmap
+    - commix
+  # Active fuzzing: nuclei DAST (SSRF/LFI/injections via OAST) + file-upload probe.
+  dast:
+    - nuclei-dast
+    - upload
+  # OWASP ZAP (via MCP): spider + passive scan alerts.
+  zap:
+    - zap
+  # Everything, ending with a ZAP crawl + passive pass.
+  web-deep+zap:
+    - whatweb
+    - nuclei
+    - nikto
+    - sqlmap
+    - commix
+    - zap
+
+scanners:
+  nmap:
+    options: "-sV -T4"      # service/version detection
+  nuclei:
+    # Targeted template dirs -> reliable, fast hits (tech/misconfig/exposed files).
+    options: "-jsonl -t http/technologies/ -t http/misconfiguration/ -t http/exposures/"
+  nuclei-dast:
+    # Active parameter fuzzing + interactsh/OAST -> blind SSRF, LFI, injections.
+    options: "-dast -jsonl"
+  upload:
+    # host-side probe; override endpoints if the target differs, e.g.
+    # "upload=/files name=filename retrieve=/files file=name"
+    options: ""
+  sqlmap:
+    options: "--batch --level 1 --risk 1"
+  nikto:
+    options: "-maxtime 120s"
+  whatweb:
+    options: "-a 3"         # aggressive fingerprinting
+  commix:
+    options: "--batch"
+  gobuster:
+    options: "-q"
+  zap:
+    options: "180"          # spider timeout (seconds)
+
+reporting:
+  output_dir: ./harness-reports

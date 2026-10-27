@@ -1,0 +1,39 @@
+[project]
+name = "reconix-tui"
+version = "0.4.0"
+description = "Reconix — AI-Powered Security Testing Assistant (interactive TUI demo)"
+requires-python = ">=3.9"
+dependencies = [
+    "textual>=8.2,<9",
+    "rich>=13.7",
+    "litellm>=1.40",          # flexible LLM: unified model interface
+    "cryptography>=42",       # flexible LLM: Fernet-encrypted API keys
+    "python-dotenv>=1.0",     # flexible LLM: load .env
+    "python-docx>=1.1",       # the DOCX report (PDF, JSON, DOCX)
+    "PyYAML>=6.0",            # OpenAPI specs (safe loading only)
+    "pypdf>=6.0",             # /add-on knowledge files: PDF page text
+]
+
+[project.scripts]
+reconix = "reconix.app:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = [
+    "reconix", "reconix.commands", "reconix.flow", "reconix.knowledge", "reconix.llm",
+    "reconix.models",
+    "reconix.screens", "reconix.screens.forms", "reconix.shell", "reconix.store",
+    "reconix.store.knowledge", "reconix.store.templates", "reconix.widgets",
+]
+
+[tool.setuptools.package-data]
+reconix = ["reconix.tcss"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--durations=10"
+pythonpath = ["."]

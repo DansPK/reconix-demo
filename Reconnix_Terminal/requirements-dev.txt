@@ -1,0 +1,5 @@
+-r requirements.txt
+pytest>=8
+pytest-asyncio>=0.23
+# weasyprint>=61         # optional one-click PDF export (needs system libs: pango, cairo)
+pytest-xdist>=3          # optional: `pytest -n 4` runs the suite in ~1 min instead of ~3

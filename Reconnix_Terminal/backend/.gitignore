@@ -1,0 +1,19 @@
+.env
+.env.*
+!.env.example
+*.db
+.key
+.idea/
+harness-reports/
+
+# generated pentest report artifacts (contain target details)
+pentest-*.md
+*-pentest-report.md
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+build/
+dist/

@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+/* Colour tokens: GENERATED into src/styles/tokens.css from reconix/theme.py (WEB_TOKENS) by
+   scripts/export_tokens.py; add or change a colour there, never here. Meanings (src/lib/status.ts):
+   teal --primary for AI activity, interaction and progress; --success done; --warning waiting or
+   to review; --danger errors and blocked; --info informational; --sev-* the TUI's severity
+   scale. */
+@import "../styles/tokens.css";
+/* The app's styles, one file per area: frame (page and scrolling, the docs' too), dashboard,
+   motion (sidebar, transition, breathing), assistant, ui (shared controls and the
+   shared row), findings, assessments, reports, knowledge and docs. Order matters for the cascade. */
+@import "../styles/frame.css";
+@import "../styles/dashboard.css";
+@import "../styles/motion.css";
+@import "../styles/assistant.css";
+@import "../styles/ui.css";
+@import "../styles/findings.css";
+@import "../styles/assessments.css";
+@import "../styles/reports.css";
+@import "../styles/knowledge.css";
+@import "../styles/docs.css";
+
+:root {
+  /* Easing curves — the GSAP equivalents are noted so CSS and JS stay in step. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1); /* GSAP expo.out */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1); /* GSAP power3.out */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* GSAP power2.inOut */
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-page-glow: var(--page-glow);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-card-foreground: var(--card-foreground);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-dim: var(--primary-dim);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-sev-critical: var(--sev-critical);
+  --color-sev-high: var(--sev-high);
+  --color-sev-medium: var(--sev-medium);
+  --color-sev-low: var(--sev-low);
+  --color-ring: var(--ring);
+  --color-globe-dot: var(--globe-dot);
+  --color-globe-glow: var(--globe-glow);
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+/* Smooth anchors (the docs' "On this page" below the fixed frame); reduced-motion users get none. */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  background: var(--page);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  /* clip, not hidden: hidden would make body a scroll container (breaks sticky) */
+  overflow-x: clip;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}

@@ -1,0 +1,521 @@
+/* The dashboard's content: the Overview grid (summary strip, hero, Findings by Severity and the
+   two timelines), cards, charts, legends, tooltips, chips, popovers, the hero and its globe, the
+   viewer views and their rows, the intro's hidden-before-animate state. Colours only from the
+   tokens (tokens.css); severity uses the TUI's scale (--sev-*). Owner: the dashboard. */
+
+/* ---- Overview grid -------------------------------------------------------------------
+   ≥1280 wide: the summary strip across the top; the hero with Findings by Severity on its
+   right; the Activity and Execution timelines side by side under the hero. 768–1279: one
+   column. Phones: everything stacked. Rows never shrink below their content.
+   The fixed-height frame (frame.css: ≥1280 wide and ≥760 tall) fills the content area and the
+   hero takes what is left (the content area scrolls when even that doesn't fit). A wide but
+   short window has no fixed frame (the window scrolls), so the hero keeps a roomy height. */
+.dash-overview {
+  padding: 0 16px 16px 4px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "top" "hero" "right" "bottom";
+}
+.dash-summary { grid-area: top; }
+.dash-hero { grid-area: hero; }
+.dash-right { grid-area: right; display: flex; flex-direction: column; min-width: 0; }
+.dash-bottom { grid-area: bottom; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); min-width: 0; }
+
+@media (min-width: 1280px) {
+  .dash-overview {
+    grid-template-columns: minmax(0, 1fr) clamp(300px, 24vw, 390px);
+    grid-template-rows: auto minmax(min-content, auto) auto;
+    grid-template-areas: "top top" "hero right" "bottom right";
+  }
+  .dash-bottom { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+}
+@media (min-width: 1280px) and (min-height: 760px) {
+  .dash-overview {
+    min-height: 100%;
+    /* min-content, not auto: a fixed max (36vh) would clamp an auto minimum below the content */
+    grid-template-rows: auto minmax(min-content, 1fr) minmax(min-content, 36vh);
+  }
+}
+/* The short fixed frame (≥1280 wide, 760–859 tall: 1366×768, 1280×760): the same content in
+   less room, so the Overview fits without scrolling. Tighter gaps, a lower floor for the hero
+   (its title sits higher), a compact summary strip and compact run rows in the Execution
+   Timeline; nothing is clipped or left out. Scoped to the Overview: the other views scroll. */
+@media (min-width: 1280px) and (min-height: 760px) and (max-height: 859.98px) {
+  .dash-overview { gap: 10px; padding-bottom: 10px; }
+  .dash-overview .dash-bottom { gap: 10px; }
+  .dash-overview .dash-card { padding: 12px; }
+  .dash-overview .dash-card > header { margin-bottom: 8px; }
+  .dash-overview .dash-stat { padding: 8px 12px; gap: 4px; min-height: 0; }
+  .dash-overview .dash-stat-value { font-size: 24px; }
+  /* the hero's floor is about its content: the title, the gap and the Ask bar */
+  .dash-overview .dash-hero { min-height: 180px; gap: 12px; }
+  .dash-overview .dash-hero-title { padding-top: 12px; }
+  .dash-overview .dash-askbar { margin-bottom: 0; }
+  .dash-overview .dash-phases { row-gap: 2px; }
+  .dash-overview .dash-runs { gap: 0; }
+  .dash-overview .dash-run { padding-block: 2px; }
+  .dash-overview .dash-run > span:first-child > span { line-height: 1.2; }
+}
+@media (max-width: 767.98px) {
+  .dash-overview { padding: 12px 16px 16px; }
+}
+
+/* ---- Shared card ---- */
+.dash-card {
+  position: relative;
+  isolation: isolate;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--card), var(--card-2));
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 4%, transparent);
+  padding: 14px;
+  min-width: 0;
+  transition: border-color 0.3s var(--ease-out-quart);
+}
+@media (min-width: 1536px) { .dash-card { padding: 16px; } }
+/* cursor-following soft light (--mx/--my set by card-cursor-light.tsx) */
+.dash-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--primary) 7%, transparent), transparent 70%);
+  transition: opacity 0.3s var(--ease-out-quart);
+}
+.dash-card:hover { border-color: color-mix(in oklab, var(--primary) 22%, var(--border)); }
+.dash-card:hover::before { opacity: 1; }
+
+/* Glass variant: what sits over the globe (the Ask bar). */
+.dash-glass {
+  background: color-mix(in oklab, var(--card) 72%, transparent);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+}
+
+/* Card header: title left, "open in docs" icon right. */
+.dash-card-open { color: var(--muted-foreground); transition: color 0.2s ease; }
+.dash-card-open:hover { color: var(--primary); }
+
+/* The three analytics panels: never squeezed below a readable height; their rows adapt to the
+   panel's own width (container queries). */
+.dash-panel { min-height: 250px; container-type: inline-size; }
+
+/* Inner surface tile (icon wells, evidence). */
+.dash-tile { background: var(--surface); border-radius: 10px; }
+
+/* ---- Summary strip ---- */
+.dash-summary { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 1024px) { .dash-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.dash-stat { display: flex; flex-direction: column; gap: 5px; padding: 11px 14px; min-height: 100px; }
+.dash-stat-value { font-size: 28px; line-height: 1; color: var(--foreground); white-space: nowrap; }
+.dash-stat-note { font-size: 11px; line-height: 1.35; color: var(--muted-foreground); }
+@media (max-width: 479.98px) {
+  .dash-stat { padding: 10px 12px; }
+  .dash-stat-value { font-size: 24px; }
+}
+
+/* A thin progress / share bar. */
+.dash-meter { display: block; height: 6px; border-radius: 999px; background: var(--muted); overflow: hidden; }
+.dash-meter > span { display: block; height: 100%; border-radius: inherit; }
+
+/* ---- Charts: shared ---- */
+/* Below its minimum width a chart scrolls sideways inside its card (marks stay ≥ 18 px apart).
+   It grows with its card but never shrinks below its content (the card grows instead). */
+.dash-chart-scroll { display: flex; flex-direction: column; min-width: 0; flex: 1 0 auto; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: thin; }
+
+.dash-axis { position: relative; height: 15px; font-family: var(--font-mono); font-size: 10px; color: var(--muted-foreground); }
+.dash-axis > span { position: absolute; top: 1px; white-space: nowrap; transform: translateX(-50%); }
+.dash-axis > span[data-edge="start"] { transform: none; }
+.dash-axis > span[data-edge="end"] { transform: translateX(-100%); }
+/* a narrow chart keeps every other label (first, middle, last) */
+@container (max-width: 560px) { .dash-axis > span:nth-child(even) { display: none; } }
+
+/* Legend swatches, shaped like the marks they explain. */
+.dash-swatch { display: inline-block; flex-shrink: 0; width: 8px; height: 8px; border-radius: 999px; background: var(--c); }
+.dash-swatch[data-shape="bar"] { width: 12px; height: 6px; border-radius: 2px; }
+.dash-swatch[data-shape="count"] { width: 16px; height: 10px; }
+.dash-swatch[data-shape="ring"] { background: transparent; border: 2px solid var(--c); width: 10px; height: 10px; }
+.dash-swatch[data-shape="diamond"] { border-radius: 1px; transform: rotate(45deg); }
+.dash-swatch[data-pattern="stripes"] { width: 14px; height: 10px; }
+/* Stripes over a colour: tells apart statuses that share one (Interrupted from Waiting for you,
+   Not started from Stopped) in the day bars and their legend. */
+[data-pattern="stripes"] {
+  background-image: repeating-linear-gradient(135deg, color-mix(in oklab, var(--background) 62%, transparent) 0 2px, transparent 2px 5px);
+}
+
+/* A toggletip trigger (hint.tsx): looks like the text or badge it wraps, focusable. */
+.dash-hint { position: relative; z-index: 2; border-radius: 6px; text-align: left; cursor: help; }
+.dash-hint:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+/* Tooltip (chart-tooltip.tsx): fixed to the viewport, above the mark (below near the top). */
+.dash-tooltip {
+  position: fixed;
+  z-index: 60;
+  max-width: 300px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in oklab, var(--foreground) 12%, var(--border));
+  background: var(--card);
+  box-shadow: 0 14px 34px -14px color-mix(in oklab, var(--background) 90%, transparent);
+  font-size: 11px;
+  line-height: 1.45;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 8px));
+}
+.dash-tooltip[data-below] { transform: translate(-50%, 8px); }
+
+/* A mark's details, expanded over its card (mark-details.tsx). */
+.dash-details {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: inherit;
+  background: var(--card);
+  animation: dash-pop-in 0.18s var(--ease-out-expo);
+}
+.dash-details-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+
+/* ---- Activity Timeline: labelled lanes on a time axis ----
+   --plot-min, --dot, --pill and --lanes come from axis.ts / the data (event-lanes.tsx), so the
+   clustering and the drawing agree: marks start ≥ 25 px apart at the narrowest plot. */
+.dash-lanes {
+  --lane-label: 104px;
+  --track-inset: 9px;
+  flex: 1;
+  /* the right inset is a pill wide: a pill starting at the very end stays inside */
+  min-width: calc(var(--lane-label) + 8px + var(--track-inset) + var(--pill, 18px) + var(--plot-min, 296px));
+  display: grid;
+  grid-template-columns: var(--lane-label) minmax(0, 1fr);
+  grid-template-rows: repeat(var(--lanes, 8), minmax(18px, 1fr)) auto;
+  column-gap: 8px;
+}
+.dash-lane { display: contents; }
+.dash-lane-label { display: flex; min-width: 0; align-items: center; gap: 5px; font-size: 11px; color: var(--foreground); }
+.dash-lane-label > svg { color: var(--c); }
+.dash-lane-track {
+  position: relative;
+  margin: 0 var(--pill, 18px) 0 var(--track-inset, 9px);
+  background: linear-gradient(color-mix(in oklab, var(--foreground) 7%, transparent), color-mix(in oklab, var(--foreground) 7%, transparent)) center / 100% 1px no-repeat;
+}
+.dash-lane-axis { grid-column: 2; margin: 3px var(--pill, 18px) 0 var(--track-inset, 9px); }
+/* a single event: a dot centred on its time */
+.dash-mark {
+  position: absolute;
+  top: 50%;
+  width: var(--dot, 10px);
+  height: var(--dot, 10px);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--c);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+/* events close together: a count pill that starts at the first of them */
+.dash-mark[data-count] {
+  width: var(--pill, 18px);
+  height: 16px;
+  font: 600 9px/16px var(--font-mono);
+  text-align: center;
+  color: var(--background);
+  font-variant-numeric: tabular-nums;
+  transform: translate(0, -50%);
+}
+.dash-mark:hover { filter: brightness(1.18); box-shadow: 0 0 0 3px color-mix(in oklab, var(--c) 28%, transparent); }
+.dash-mark:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.dash-mark[data-pending] { box-shadow: 0 0 0 3px color-mix(in oklab, var(--warning) 40%, transparent); animation: dash-gate 1.4s ease-in-out infinite; }
+
+/* ---- Activity Timeline, every run: runs per day ---- */
+.dash-days {
+  flex: 1;
+  min-width: 360px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-rows: minmax(110px, 1fr) auto;
+  column-gap: 8px;
+}
+.dash-yaxis { position: relative; margin-top: 8px; font-family: var(--font-mono); font-size: 10px; color: var(--muted-foreground); }
+.dash-yaxis > span { position: absolute; right: 0; transform: translateY(50%); }
+.dash-days-plot { position: relative; margin-top: 8px; border-bottom: 1px solid var(--border); }
+.dash-gridline { position: absolute; left: 0; right: 0; height: 1px; background: color-mix(in oklab, var(--foreground) 6%, transparent); }
+.dash-daybar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+.dash-daybar:hover { background: color-mix(in oklab, var(--foreground) 4%, transparent); }
+.dash-daybar:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+.dash-daybar-stack { display: flex; flex-direction: column-reverse; gap: 1px; width: 100%; max-width: 26px; border-radius: 4px 4px 0 0; overflow: hidden; }
+.dash-daybar-stack > span { flex-basis: 0; min-height: 3px; }
+.dash-days-axis { grid-column: 2; margin-top: 4px; }
+
+/* ---- Execution Timeline ---- */
+.dash-phases {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) auto minmax(48px, 1fr) 36px;
+  column-gap: 10px;
+  row-gap: 4px;
+  align-items: center;
+  font-size: 12px;
+}
+.dash-phase { display: contents; }
+.dash-track { min-width: 280px; display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-rows: 24px auto; column-gap: 8px; }
+.dash-seg {
+  position: absolute;
+  top: 3px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 5px;
+  border: 0;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--primary) 78%, var(--card));
+  box-shadow: inset -1px 0 0 var(--card);
+  color: var(--primary-foreground);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: default;
+}
+.dash-seg:hover { background: var(--primary); }
+.dash-seg:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.dash-seg[data-live] { animation: dash-breathe 2s ease-in-out infinite; }
+.dash-gate-mark {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: var(--c);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--c) 30%, transparent);
+  transform: translate(-50%, -50%) rotate(45deg);
+  animation: dash-gate 1.4s ease-in-out infinite;
+}
+.dash-gate-mark:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+
+/* every run: the newest runs as rows */
+.dash-runs { display: flex; flex-direction: column; gap: 1px; }
+.dash-run {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) auto minmax(56px, 1fr) 64px;
+  gap: 10px;
+  align-items: center;
+  padding: 3px 6px;
+  line-height: 1.3;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+.dash-run:hover { background: color-mix(in oklab, var(--foreground) 4%, transparent); }
+.dash-run:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+@container (max-width: 520px) {
+  .dash-run { grid-template-columns: minmax(0, 1fr) auto minmax(56px, 0.8fr); }
+  .dash-run > :nth-child(4) { display: none; }
+}
+@container (max-width: 340px) {
+  .dash-run { grid-template-columns: minmax(0, 1fr) auto; }
+  .dash-run > :nth-child(3) { display: none; }
+  .dash-phases { grid-template-columns: minmax(0, 1fr) auto 36px; }
+  .dash-phases .dash-meter { display: none; }
+}
+
+/* ---- Findings by Severity ---- */
+.dash-stack { display: flex; gap: 2px; height: 12px; border-radius: 999px; overflow: hidden; }
+.dash-stack > span { flex-basis: 0; min-width: 4px; }
+.dash-stack-empty { flex: 1; background: var(--muted); }
+.dash-sev-row,
+.dash-top-finding {
+  position: relative;
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+.dash-sev-row { grid-template-columns: 84px minmax(0, 1fr) 30px 36px; }
+.dash-top-finding { grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; }
+.dash-sev-row:hover,
+.dash-top-finding:hover { background: color-mix(in oklab, var(--foreground) 4%, transparent); }
+.dash-top-findings { display: flex; flex-direction: column; gap: 1px; }
+/* As many top findings as the column has room for: 3 in a short fixed frame, up to 8 in a tall
+   one (every finding is in the Findings view). Without the fixed frame the column is not
+   height-bound: 5. */
+.dash-top-finding:nth-child(n + 6) { display: none; }
+@media (min-width: 1280px) and (min-height: 760px) and (max-height: 859.98px) { .dash-top-finding:nth-child(n + 4) { display: none; } }
+@media (min-width: 1280px) and (min-height: 1000px) { .dash-top-finding:nth-child(n + 6) { display: grid; } }
+
+/* ---- Chips / small bits reused across cards ---- */
+.dash-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 7px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.tabnums { font-variant-numeric: tabular-nums; }
+
+/* The "live" dot of the refresh pill. */
+.dash-livedot { background: var(--primary); box-shadow: 0 0 8px color-mix(in oklab, var(--primary) 70%, transparent); }
+
+/* Popovers / search dropdowns */
+.dash-pop {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 20px 50px -20px color-mix(in oklab, var(--background) 90%, transparent), inset 0 1px 0 color-mix(in oklab, var(--foreground) 4%, transparent);
+  transform-origin: top;
+  animation: dash-pop-in 0.18s var(--ease-out-expo);
+}
+@keyframes dash-pop-in { from { opacity: 0; transform: translateY(-4px) scale(0.96); } }
+
+/* ---- Intro reveal: hide the animated pieces before GSAP runs, but only when scripting is on
+   (no inline script needed, so nothing bypasses the CSP). No-JS users see the full page; a
+   browser without the `scripting` media feature shows it too, and GSAP still animates it in.
+   GSAP sets the pieces visible itself. ---- */
+@media (scripting: enabled) {
+  .dash-overview .dash-card,
+  .dash-navbtn,
+  .dash-reveal { visibility: hidden; }
+}
+/* The docs pages (app/docs/layout.tsx) share the frame but have no intro: nothing waits for it. */
+.dash-page[data-docs] :is(.dash-navbtn, .dash-reveal) { visibility: inherit; }
+/* Their "On this page" links glide in whichever box scrolls (the content area or the window). */
+@media (prefers-reduced-motion: no-preference) {
+  .dash-page[data-docs] .dash-content { scroll-behavior: smooth; }
+}
+
+/* ---- Ambient loops ---- */
+@keyframes dash-ping {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 55%, transparent); }
+  70%, 100% { box-shadow: 0 0 0 6px transparent; }
+}
+.dash-livedot { animation: dash-ping 1.6s ease-out infinite; }
+@keyframes dash-gate { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+@keyframes dash-breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* ---- Hero: the globe, the title and the Ask bar ---- */
+.dash-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  min-height: 400px;
+  border-radius: 16px;
+}
+@media (min-width: 768px) { .dash-hero { min-height: 460px; } }
+/* in the fixed frame the hero takes the room the other rows leave (at least 220 px; the short
+   fixed frame's recipe at the top of this file lowers that floor to the hero's content) */
+@media (min-width: 1280px) and (min-height: 760px) { .dash-hero { min-height: 220px; } }
+.dash-globe-wrap { position: absolute; inset: -8px 0; z-index: 0; pointer-events: none; }
+.dash-globe-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 46%, color-mix(in oklab, var(--globe-glow) 22%, transparent), transparent 55%);
+  transition: opacity 0.6s ease;
+}
+.dash-globe-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; transition: opacity 0.8s ease; }
+.dash-hero-title { position: relative; z-index: 2; align-self: flex-start; padding: 20px 0 0 22px; }
+.dash-hero-title > * { text-shadow: 0 0 2px var(--background), 0 2px 18px var(--background); }
+/* Phones: the globe sits right behind the title, so a scrim keeps the title readable. */
+@media (max-width: 767.98px) {
+  .dash-hero-title { padding: 14px 0 0 4px; }
+  .dash-hero::after {
+    content: "";
+    position: absolute;
+    inset: -8px 0 auto;
+    height: 58%;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(to bottom, color-mix(in oklab, var(--background) 92%, transparent), color-mix(in oklab, var(--background) 70%, transparent) 55%, transparent);
+  }
+  .dash-hero-title > p { color: color-mix(in oklab, var(--foreground) 80%, var(--background)); }
+}
+
+.dash-askbar { position: relative; z-index: 2; width: min(760px, 100%); align-self: center; margin-bottom: 4px; }
+
+/* ---- Viewer views (Assessments / Findings / Reports) ---- */
+.dash-view { padding: 20px 16px 28px 8px; }
+
+/* ---- Report: the Overview's look in a view: the header, the summary strip, then panels two
+   to a row (≥1024 wide; one column below), wide ones across the row. Assessments shares the
+   column (.dash-sheet) ---- */
+.dash-sheet { display: flex; flex-direction: column; gap: 12px; }
+.dash-panels { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1024px) { .dash-panels { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); } }
+.dash-panels > .is-wide { grid-column: 1 / -1; }
+.dash-subhead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 7px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Tables in a panel (findings, runs): they scroll sideways inside the card when narrow. */
+.dash-table-scroll { min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+.dash-table thead th {
+  padding: 0 14px 7px 0;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--muted-foreground);
+}
+.dash-table tbody th,
+.dash-table td { padding: 7px 14px 7px 0; border-top: 1px solid var(--border); vertical-align: middle; text-align: inherit; }
+.dash-table :is(th, td):last-child { padding-right: 0; }
+.dash-table tbody tr { transition: background-color 0.2s ease; }
+.dash-table tbody tr:hover { background: color-mix(in oklab, var(--foreground) 3%, transparent); }
+
+/* A plan step in the report: name, state, how far it got. */
+.dash-plan-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(60px, 0.8fr) 36px; align-items: center; gap: 10px; }
+@container (max-width: 420px) { .dash-plan-row { grid-template-columns: minmax(0, 1fr) auto 36px; } .dash-plan-row .dash-meter { display: none; } }
+
+/* A target in the Report view: it opens the newest run's report. */
+.dash-target-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+.dash-target-row:hover { background: color-mix(in oklab, var(--foreground) 4%, transparent); }
+
+/* (the Findings view's rows live in findings.css) */
+
+/* ---- Reduced motion: the dashboard's loops and enter animations off, nothing hidden ---- */
+@media (prefers-reduced-motion: reduce) {
+  .dash-livedot, .dash-mark[data-pending], .dash-seg[data-live], .dash-gate-mark,
+  .dash-pop, .dash-details { animation: none; }
+  /* inherit, not visible: under a hidden parent (the top bar beneath the open assistant) the
+     controls must stay hidden and out of the tab order */
+  .dash-overview .dash-card, .dash-navbtn, .dash-reveal { visibility: inherit; }
+}

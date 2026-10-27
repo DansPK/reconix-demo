@@ -1,0 +1,89 @@
+[
+  [
+    [],
+    []
+  ],
+  [
+    [
+      "https://admin:hunter2@app.example.com/x",
+      "plain"
+    ],
+    [
+      "https://••••@app.example.com/x",
+      "plain"
+    ]
+  ],
+  [
+    [
+      "one\ntwo",
+      "password=hunter2\nthree"
+    ],
+    [
+      "one\ntwo",
+      "password=••••\nthree"
+    ]
+  ],
+  [
+    [
+      "a\n",
+      "",
+      "\nb"
+    ],
+    [
+      "a\n",
+      "",
+      "\nb"
+    ]
+  ],
+  [
+    [
+      "password=hunter2",
+      "x",
+      "Cookie: sid=1",
+      "kept"
+    ],
+    [
+      "password=••••",
+      "x",
+      "Cookie: ••••",
+      "kept"
+    ]
+  ],
+  [
+    [
+      "-----BEGIN RSA PRIVATE KEY-----",
+      "MIIEowIBAAKCAQEA",
+      "-----END RSA PRIVATE KEY-----",
+      "after"
+    ],
+    [
+      "•••• (private key)",
+      "after"
+    ]
+  ],
+  [
+    [
+      "GET /backup/id_ed25519 → 200",
+      "-----BEGIN OPENSSH PRIVATE KEY-----",
+      "b3BlbnNzaC1rZXktdjEAAAAABG5vbmU",
+      "c2VjcmV0LWtleS1ib2R5LWxpbmUtdHdv",
+      "-----END OPENSSH PRIVATE KEY-----",
+      "Server: nginx"
+    ],
+    [
+      "GET /backup/id_ed25519 → 200",
+      "•••• (private key)",
+      "Server: nginx"
+    ]
+  ],
+  [
+    [
+      "eyJ-eyJ-eyJ-eyJ-",
+      "see.https://admin:hunter2@app.example.com"
+    ],
+    [
+      "eyJ-eyJ-eyJ-eyJ-",
+      "see.https://••••@app.example.com"
+    ]
+  ]
+]

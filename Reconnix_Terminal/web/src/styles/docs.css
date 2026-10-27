@@ -1,0 +1,34 @@
+/* The docs view. Owner: the docs workstream (docs/WEB_DOCS_AND_MODELS_PLAN.md). The docs sit in the
+   dashboard's frame (frame.css) and use its cards (.dash-card, dashboard.css). Colours only from
+   the tokens (tokens.css); meanings from lib/status.ts. The page frame, sidebar, search and content
+   primitives are in components/docs-*.tsx; everything else about them is Tailwind utilities. */
+
+/* ---- Prose inside a DocSection: lists, emphasis, nested lists ---- */
+.docs-prose li { margin-left: 1.25rem; list-style: disc; }
+.docs-prose ol > li { list-style: decimal; }
+.docs-prose li > ul, .docs-prose li > ol { margin-top: 0.25rem; }
+.docs-prose strong { font-weight: 600; color: var(--foreground); }
+/* the name of another part of the docs (DocRef): emphasized in place, never a link */
+.docs-ref { font-style: normal; font-weight: 500; color: var(--foreground); }
+.docs-prose table li { margin-left: 1rem; }
+/* numbered steps (Steps) keep their counter even inside a bulleted context */
+.docs-steps > li { list-style: decimal; }
+
+/* ---- Code blocks: the Copy button sits in the corner, always reachable and at full strength
+   (never hover-only or faded: keyboard and touch readers, and its label must read at 4.5:1).
+   Long lines stay inside the block on a phone: the block scrolls (a tab stop while it does, see
+   components/ui/scroll-region.tsx), the page never does ---- */
+.docs-code pre { max-width: 100%; }
+
+/* ---- Two-column tables (DocTable): below sm the key sits above its meaning, each row a block,
+   so a long message or key never squeezes the other column ---- */
+@media (max-width: 639px) {
+  .docs-table thead { display: none; }
+  .docs-table tbody, .docs-table tr, .docs-table th, .docs-table td { display: block; width: 100%; box-sizing: border-box; }
+  .docs-table th[scope="row"] { max-width: none; padding-bottom: 0.25rem; }
+  .docs-table td { padding-top: 0.25rem; }
+}
+
+/* ---- The sidebar and "On this page": each list scrolls inside its sticky column on desktop (the
+   search stays put) ---- */
+.docs-sidebar nav, .docs-toc { scrollbar-width: thin; }

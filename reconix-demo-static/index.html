@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reconix — Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/tokens.css" />
+<link rel="stylesheet" href="css/shell.css" />
+<link rel="stylesheet" href="css/terminal.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
+<link rel="stylesheet" href="css/vscode.css" />
+</head>
+<body>
+  <!-- Top navigation shell -->
+  <header class="shell-nav">
+    <div class="shell-brand">
+      <svg class="shell-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="0" y="0" width="32" height="32" rx="8" fill="var(--surface)" />
+        <path d="M16 6 26 16 16 26 6 16Z" fill="var(--globe-glow)" />
+      </svg>
+      <span>Reconix<span class="shell-brand-dim"> · demo</span></span>
+    </div>
+    <nav class="shell-tabs" id="surfaceTabs">
+      <button data-surface="terminal" class="active">Terminal</button>
+      <button data-surface="dashboard">Dashboard</button>
+      <button data-surface="vscode">VS Code</button>
+    </nav>
+    <div class="shell-actions">
+      <button id="tourToggle" class="shell-tour-btn">▶ Guided tour</button>
+    </div>
+  </header>
+
+  <!-- Surfaces -->
+  <main class="shell-stage">
+    <section class="surface active" id="surface-terminal" data-surface="terminal"></section>
+    <section class="surface" id="surface-dashboard" data-surface="dashboard"></section>
+    <section class="surface" id="surface-vscode" data-surface="vscode"></section>
+  </main>
+
+  <!-- Guided-tour bar -->
+  <div class="tour-bar" id="tourBar" hidden>
+    <div class="tour-step" id="tourStep">Step 1/8</div>
+    <div class="tour-body">
+      <div class="tour-title" id="tourTitle"></div>
+      <div class="tour-say" id="tourSay"></div>
+    </div>
+    <div class="tour-nav">
+      <span class="tour-lines" id="tourLines"></span>
+      <button id="tourPrev">‹ Prev</button>
+      <button id="tourNext">Next ›</button>
+      <button id="tourClose" title="Close tour">✕</button>
+    </div>
+  </div>
+
+  <!-- Spotlight overlay used by the tour -->
+  <div class="tour-spotlight" id="tourSpotlight" hidden></div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/terminal.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/vscode.js"></script>
+  <script src="js/tour.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,579 @@
+/* Reconix TUI — theme from the Figma design tokens.
+   Dark security-tool look, cyan/teal accent, fixed severity scale. */
+
+/* $variables come from theme.CSS_TOKENS (ReconixApp.get_css_variables). */
+
+Screen {
+    background: $bg;
+    color: $text;
+    layout: vertical;
+}
+
+/* ------------------------------------------------------------ chrome */
+SessionBar {
+    height: 1;
+    background: $bg;
+    color: $muted;
+    padding: 0 2;
+    border-bottom: none;
+}
+
+FlowProgress {
+    height: 1;
+    background: $bg;
+}
+
+#body {
+    height: 1fr;
+    padding: 1 2 0 2;
+    background: $bg;
+    scrollbar-color: $border-strong;
+    scrollbar-background: $bg;
+    scrollbar-size-vertical: 1;
+}
+
+Footer {
+    background: $surface2;
+    color: $dim;
+}
+
+Footer > .footer--key,
+FooterKey .footer-key--key {
+    background: $surface2;
+    color: $text;
+    text-style: bold;
+}
+
+FooterKey .footer-key--description {
+    color: $dim;
+}
+
+FooterKey:hover {
+    background: $raised;
+}
+
+/* ------------------------------------------------------------- text */
+/* The operator's sent request: a highlighted bar, like Claude Code. */
+.user-msg   { color: $text; background: $raised; padding: 0 1; margin-bottom: 1; }
+/* Echo of free-text feedback typed at a question. */
+.feedback-echo { height: auto; margin-bottom: 1; }
+.ai-label   { color: $dim; margin-bottom: 1; }
+.muted      { color: $muted; }
+.dim        { color: $dim; }
+.hint       { color: $dim; margin-top: 1; }
+
+/* ------------------------------------------------------------ panels */
+.panel {
+    background: $surface;
+    border: round $border;
+    border-title-color: $text;
+    border-title-style: bold;
+    border-subtitle-color: $dim;
+    padding: 0 2;
+    height: auto;
+    margin-bottom: 1;
+}
+
+.panel.accent   { border: round $cyan-dim; }
+.panel.danger   { border: round $critical; border-title-color: $critical; }
+.panel.success  { border: round $teal; }
+
+.panel-body {
+    height: auto;
+    padding: 1 0;
+}
+
+.panel-note {
+    color: $muted;
+    background: $raised;
+    padding: 0 1;
+    height: auto;
+    margin-bottom: 1;
+}
+
+/* ------------------------------------------------------------ buttons
+   Keyboard-first: buttons are visual affordances that mirror key bindings. */
+.actions {
+    height: auto;
+    margin: 0 0 1 0;
+}
+
+Button {
+    min-width: 12;
+    height: 3;
+    margin-right: 1;
+    border: tall $border-strong;
+    background: $surface;
+    color: $text;
+    text-style: bold;
+}
+
+Button:focus {
+    text-style: bold reverse;
+}
+
+Button.primary {
+    background: $teal;
+    color: $bg;
+    border: tall $teal;
+}
+
+Button.primary:hover { background: $cyan; border: tall $cyan; }
+
+Button.ghost-cyan     { color: $cyan;     border: tall $cyan-dim; background: $surface; }
+Button.ghost-critical { color: $critical; border: tall $critical; background: $surface; }
+Button.ghost-cyan:hover, Button.ghost-critical:hover { background: $raised; }
+
+Button:disabled {
+    opacity: 50%;
+}
+
+/* ------------------------------------------------------------ inputs */
+Input {
+    background: $surface;
+    border: tall $border-strong;
+    color: $text;
+    padding: 0 1;
+}
+
+Input:focus {
+    border: tall $cyan-dim;
+}
+
+Input.match  { border: tall $teal; }
+Input.nomatch { border: tall $critical; }
+
+Input > .input--placeholder { color: $dim; }
+Input > .input--cursor { background: $cyan; color: $bg; }
+
+/* ------------------------------------------------- prompt (Claude-Code style) */
+PromptBox {
+    height: auto;
+    margin: 0 2;
+}
+
+#prompt {
+    margin: 0;
+}
+
+#prompt-hint {
+    height: 1;
+    color: $dim;
+    padding: 0 1;
+}
+
+/* ------------------------------------------------- lists & tables (arrow keys) */
+OptionList {
+    background: $surface;
+    border: round $border;
+    padding: 0 1;
+    height: auto;
+    max-height: 18;
+    scrollbar-color: $border-strong;
+}
+
+OptionList:focus {
+    border: round $cyan-dim;
+}
+
+OptionList > .option-list--option-highlighted {
+    background: $raised;
+    color: $text;
+    text-style: bold;
+}
+
+OptionList:focus > .option-list--option-highlighted {
+    background: $cyan-bg;
+    color: $text;
+}
+
+OptionList > .option-list--separator {
+    color: $border;
+}
+
+/* ---------------------------------------- choice menus (after OptionList rules) */
+ChoiceMenu {
+    background: $bg;
+    border: none;
+    padding: 0;
+    height: auto;
+    max-height: 12;
+}
+
+/* Textual tints focused lists; menus stay flat. */
+ChoiceMenu:focus {
+    border: none;
+    background-tint: $bg 0%;
+}
+
+/* Like Claude Code: the pointer and colour mark the choice, no background band. */
+ChoiceMenu > .option-list--option-highlighted,
+ChoiceMenu:focus > .option-list--option-highlighted {
+    background: $bg;
+    text-style: none;
+}
+
+ChoiceMenu > .option-list--separator {
+    color: $border-strong;
+}
+
+ChoiceMenu > .option-list--option-hover {
+    background: $raised;
+}
+
+/* Floats above the prompt input (first child + overlay + lifted by its own height). */
+SuggestionMenu > .option-list--option-highlighted {
+    background: $surface2;
+}
+
+SuggestionMenu {
+    display: none;
+    overlay: screen;
+    constrain: none inside;
+    offset-y: -100%;
+    width: 100%;
+    background: $surface2;
+    border-top: solid $border-strong;
+    padding: 0 1;
+    max-height: 8;
+}
+
+/* Question widget: chip, bold question, numbered choices, key hint. */
+Question {
+    height: auto;
+}
+
+.chip {
+    width: auto;
+    height: 1;
+    padding: 0 1;
+    margin-bottom: 1;
+    background: $cyan-dim;
+    color: $text;
+    text-style: bold;
+}
+
+Question.danger .chip {
+    background: $critical;
+    color: $bg;
+}
+
+.question {
+    color: $text;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+.menu-hint {
+    color: $dim;
+    margin: 1 0;
+}
+
+DataTable {
+    background: $surface;
+    height: auto;
+    max-height: 16;
+    border: round $border;
+    scrollbar-color: $border-strong;
+}
+
+DataTable:focus {
+    border: round $cyan-dim;
+}
+
+DataTable > .datatable--header {
+    background: $surface2;
+    color: $dim;
+    text-style: bold;
+}
+
+DataTable > .datatable--cursor {
+    background: $cyan-bg;
+    color: $text;
+    text-style: bold;
+}
+
+DataTable > .datatable--hover {
+    background: $raised;
+}
+
+DataTable > .datatable--even-row {
+    background: $surface2;
+}
+
+/* ------------------------------------------- execution (no percentages: a spinner) */
+.task-row {
+    height: 1;
+    margin: 0;
+}
+
+#exec-spinner {
+    height: 1;
+    margin-top: 1;
+}
+
+/* --------------------------------------------------------------- log */
+RichLog {
+    background: $surface2;
+    border: round $border;
+    border-title-color: $muted;
+    border-subtitle-color: $dim;
+    height: 12;
+    padding: 0 1;
+    scrollbar-color: $border-strong;
+}
+
+/* The live output takes the rest of the Execution screen. */
+#live-log {
+    height: 1fr;
+    min-height: 6;
+}
+
+/* ------------------------------------------------------- start screen */
+#start-center {
+    height: 1fr;
+    align: center middle;
+}
+
+#logo {
+    width: auto;
+    color: $cyan;
+    text-style: bold;
+    content-align: center middle;
+}
+
+#tagline, #version-line, #no-scope {
+    width: 100%;
+    content-align: center middle;
+    text-align: center;
+}
+
+#tagline      { color: $muted; margin-top: 1; }
+#version-line { color: $dim; }
+#no-scope     { color: $muted; margin-top: 1; }
+
+#quickstart {
+    width: 80;
+    max-width: 100%;
+    margin-top: 1;
+}
+
+/* After the first input: your line on top, then Reconix's answer or its spinner. */
+#start-conversation {
+    height: 1fr;
+    scrollbar-color: $border-strong;
+    scrollbar-background: $bg;
+    scrollbar-size-vertical: 1;
+}
+
+#start-reply {
+    height: auto;
+}
+
+/* -------------------------------------------------- findings / detail */
+#sev-strip {
+    height: 1;
+    margin-bottom: 1;
+}
+
+#view-line {
+    height: 1;
+}
+
+#findings-empty {
+    display: none;
+}
+
+#preview {
+    margin-top: 1;
+}
+
+#detail-header {
+    height: auto;
+}
+
+#detail-cols {
+    height: auto;
+}
+
+#detail-cols > .panel {
+    width: 1fr;
+    margin-right: 1;
+}
+
+#detail-cols > .panel:last-of-type {
+    margin-right: 0;
+}
+
+/* ------------------------------------------------------------ report */
+#sev-chart {
+    height: auto;
+}
+
+/* --------------------------------------------------------- help modal */
+HelpScreen {
+    align: center middle;
+    background: $bg 70%;
+}
+
+#help-box {
+    width: 64;
+    height: auto;
+    background: $surface;
+    border: round $cyan-dim;
+    border-title-color: $cyan;
+    padding: 1 2;
+}
+
+/* -------------------------------------------------------- command bar */
+CommandBarScreen {
+    align: center bottom;
+    background: $bg 40%;
+}
+
+#command-bar {
+    width: 100%;
+    height: auto;
+    background: $surface;
+    border-top: solid $border-strong;
+    padding: 1 0 0 0;
+}
+
+/* ------------------------------------------------------------ dialogs */
+ChoiceScreen {
+    align: center middle;
+    background: $bg 70%;
+}
+
+.dialog {
+    width: 96;
+    max-width: 95%;
+    height: auto;
+    max-height: 90%;
+    background: $surface;
+    border: round $cyan-dim;
+    border-title-color: $cyan;
+    border-title-style: bold;
+    padding: 1 2;
+}
+
+.dialog.danger {
+    border: round $critical;
+    border-title-color: $critical;
+}
+
+.dialog ChoiceMenu,
+.dialog ChoiceMenu > .option-list--option-highlighted,
+.dialog ChoiceMenu:focus > .option-list--option-highlighted {
+    background: $surface;
+}
+
+/* Full shorthand: a lone margin-bottom would reset the other sides to 0. */
+.dialog .menu-hint {
+    margin: 1 0 0 0;
+}
+
+.dialog-body {
+    height: auto;
+    max-height: 60vh;
+    margin-bottom: 1;
+    scrollbar-color: $border-strong;
+    scrollbar-background: $surface;
+    scrollbar-size-vertical: 1;
+}
+
+/* ------------------------------------------------------------- notifications
+   Toast has inherit_css=False, so it needs its own type selector. */
+Toast {
+    background: $surface;
+    color: $text;
+    padding: 0 1;
+}
+
+Toast.-information {
+    border-left: outer $cyan;
+}
+
+Toast.-warning {
+    border-left: outer $medium;
+}
+
+Toast.-error {
+    border-left: outer $critical;
+}
+
+
+/* ------------------------------------------------------------- forms */
+FormScreen {
+    align: center middle;
+    background: $bg 70%;
+}
+
+.dialog.form {
+    width: 80;
+}
+
+.dialog.form Input {
+    margin-bottom: 1;
+}
+
+.form-note {
+    color: $muted;
+    margin-bottom: 1;
+    height: auto;
+}
+
+.field-label {
+    color: $muted;
+    text-style: bold;
+}
+
+.field-label.-warn {
+    color: $medium;
+}
+
+#form-error {
+    color: $critical;
+    height: auto;
+}
+
+.form-actions {
+    height: auto;
+    margin-top: 1;
+}
+
+/* ------------------------------------------------- template / plan / approval */
+.spinner {
+    height: 1;
+    margin-bottom: 1;
+}
+
+/* A spinner line that Ctrl+O expands into the steps Reconix finished. */
+.activity {
+    height: auto;
+    margin-bottom: 1;
+}
+
+#target-row {
+    height: auto;
+    margin-top: 1;
+}
+
+#target-row .field-label {
+    margin-bottom: 0;
+}
+
+#target-error {
+    color: $critical;
+    height: auto;
+}
+
+.approval-row {
+    height: auto;
+}
+
+/* ------------------------------------------------------------ execution */
+#exec-hint {
+    height: auto;
+    margin-top: 1;
+}

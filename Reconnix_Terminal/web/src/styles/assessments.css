@@ -1,0 +1,74 @@
+/* The Assessments view (assessments-view.tsx, assessments-rows.tsx). Colours only from the
+   tokens (tokens.css); meanings from lib/status.ts; a row is the shared .ui-row (ui.css).
+
+   Layout: a card a run on phones (one column), two to a row from 640 px, and from 1024 px one
+   table-like row a run under a header row (the cells' own labels are then read by screen
+   readers only). The page scrolls natively; nothing here scrolls on its own. */
+
+/* ---- Controls ---- */
+.asm-controls { display: flex; flex-direction: column; gap: 10px; }
+.asm-controls-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+
+/* (no match: the shared .ui-empty, ui.css) */
+
+/* ---- The rows ---- */
+.asm-table { display: flex; flex-direction: column; min-width: 0; }
+.asm-head { display: none; }
+.asm-list { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); min-width: 0; list-style: none; margin: 0; padding: 0; }
+.asm-list > li { min-width: 0; }
+.asm-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "run status"
+    "target target"
+    "findings plan";
+  gap: 8px 12px;
+  align-items: center;
+  height: 100%;
+  padding: 10px 12px;
+  font-size: 12px;
+  text-decoration: none;
+}
+.asm-cell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.asm-run { grid-area: run; }
+.asm-target { grid-area: target; }
+.asm-status { grid-area: status; }
+.asm-findings { grid-area: findings; }
+.asm-plan { grid-area: plan; align-items: flex-end; }
+/* the label of a cell on a card */
+.asm-k { font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted-foreground); }
+.asm-run .asm-k, .asm-status .asm-k { display: none; }
+
+@media (min-width: 640px) {
+  .asm-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* a table-like row: one grid for the header and every row, so the columns line up */
+@media (min-width: 1024px) {
+  .asm-head, .asm-row {
+    grid-template-columns: minmax(170px, 1.3fr) minmax(150px, 1fr) 140px 120px 48px;
+    grid-template-areas: "run target status findings plan";
+    column-gap: 14px;
+  }
+  .asm-head {
+    display: grid;
+    padding: 0 12px 7px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .asm-head > :last-child { text-align: right; }
+  .asm-list { grid-template-columns: minmax(0, 1fr); gap: 0; } /* one row a run, not the two-up cards */
+  .asm-list > li + li .asm-row { border-top-width: 0; }
+  .asm-list > li:first-child .asm-row { border-radius: 10px 10px 0 0; }
+  .asm-list > li:last-child .asm-row { border-radius: 0 0 10px 10px; }
+  .asm-list > li:only-child .asm-row { border-radius: 10px; }
+  .asm-row { padding: 8px 12px; }
+  .asm-row:hover, .asm-row:focus-visible { position: relative; z-index: 1; }
+  /* the cells' labels: for screen readers only (the header row carries them) */
+  .asm-cell { position: relative; }
+  .asm-k { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .asm-run .asm-k, .asm-status .asm-k { display: block; }
+}

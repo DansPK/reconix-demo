@@ -1,0 +1,55 @@
+/* The Report view: the every-run Targets card (report-targets.tsx), combining saved runs
+   (report-selection.tsx), the runs table's checkboxes (report-runs.tsx) and the preview frame
+   (report-preview.tsx). Its buttons are the shared
+   Button (components/ui/button.tsx) and its links .ui-link (ui.css). Colours only from the
+   tokens (tokens.css); meanings from lib/status.ts. */
+
+/* ---- Targets (report-targets.tsx): seven a page beside Findings by Severity ----
+   Both cards stretch to their grid row (.dash-panels), so they are the same height and neither
+   clips: the taller content sets the row. The list keeps room for a whole page (--slots rows;
+   1fr rows in an auto-height grid are each as tall as the tallest row shown, so an empty slot
+   is a row's height), and the pager sits at the card's foot: on every page the list and the
+   pager hold still. */
+.rep-targets-body { display: flex; flex-direction: column; gap: 10px; }
+.rep-targets-list { flex: none; display: grid; grid-template-rows: repeat(var(--slots, 1), 1fr); gap: 1px; }
+.rep-targets-pager { flex: none; margin-top: auto; }
+
+/* ---- Selection panel ---- */
+.rep-select { display: grid; gap: 12px; }
+.rep-help { font-size: 12.5px; color: var(--muted-foreground); max-width: 72ch; }
+.rep-options { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.rep-option { display: grid; gap: 2px; }
+.rep-hint { padding-left: 24px; font-size: 11.5px; color: var(--muted-foreground); }
+.rep-legend { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); margin-bottom: 2px; }
+.rep-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.rep-reason { font-size: 12px; color: var(--muted-foreground); }
+.rep-reason:empty { display: none; }
+
+.rep-status { font-size: 12.5px; color: var(--muted-foreground); } /* sr-only while idle: in the DOM, out of sight */
+.rep-status.is-error { color: var(--danger); }
+
+/* ---- The runs table's checkbox ---- */
+.rep-pick { display: inline-flex; vertical-align: middle; }
+.dash-table tbody tr[data-selected] { background: color-mix(in oklab, var(--primary) 7%, transparent); }
+
+/* ---- Preview frame ---- */
+.rep-frame-wrap { position: relative; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.rep-frame { display: block; width: 100%; height: clamp(360px, 70vh, 900px); border: 0; }
+.rep-frame-note {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  color: var(--muted-foreground);
+  background: color-mix(in oklab, var(--surface) 85%, transparent);
+}
+.rep-frame-wrap[aria-busy="true"] { min-height: 160px; }
+.rep-preview-card { min-width: 0; }
+.rep-preview-card:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; border-radius: 12px; }
+.rep-error { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 13px; color: var(--danger); }
+.rep-note { margin-top: 8px; font-size: 12px; color: var(--warning); }
+@media (max-width: 640px) {
+  .rep-frame { height: clamp(320px, 60vh, 600px); }
+  .rep-actions > button { flex: 1 1 auto; }
+}

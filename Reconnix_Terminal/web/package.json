@@ -1,0 +1,51 @@
+{
+  "name": "reconix-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local analysis dashboard and AI Assistant for assessments saved by the Reconix TUI",
+  "scripts": {
+    "dev": "node scripts/serve.mjs dev",
+    "build": "next build",
+    "start": "node scripts/serve.mjs start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "check:data": "node scripts/check-dashboard-data.mjs",
+    "globe:points": "node scripts/build-globe-points.mjs"
+  },
+  "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "gsap": "^3.15.0",
+    "lucide-react": "^1.49.0",
+    "next": "16.3.8",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
+    "simple-icons": "^16.35.0",
+    "tailwind-merge": "^3.7.0",
+    "three": "^0.169.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.55.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/d3-geo": "^3.1.1",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.169.0",
+    "@types/topojson-client": "^3.1.5",
+    "d3-geo": "^3.1.1",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "tailwindcss": "^4",
+    "topojson-client": "^3.1.0",
+    "typescript": "^5",
+    "vitest": "^3.2.4",
+    "world-atlas": "^2.0.2"
+  }
+}
