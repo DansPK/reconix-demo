@@ -122,8 +122,10 @@ def switch_model() -> bool:
     Returns False if there is no agent yet (nothing to switch) or no active model.
     """
     agent = _agents.get(uid_for(get_assessment()))
+    if agent is None:          # no live agent → nothing to switch, don't touch harness
+        return False
     settings = _llm_settings()
-    if agent is None or settings is None:
+    if settings is None:
         return False
     agent.set_llm(settings)
     return True
