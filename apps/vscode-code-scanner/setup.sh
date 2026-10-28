@@ -73,4 +73,5 @@ fi
 say "Done"
 echo "Demo server: $SERVER_URL  (token: $TOKEN)"
 echo "Start it:    cd vscode-extension && npm run fake-server"
+echo "Sample repo: open demo-vuln-shop/ in VS Code (planted issue per file)"
 echo "Then in VS Code: Reload Window → shield icon → \"Scan with Reconix\"."
