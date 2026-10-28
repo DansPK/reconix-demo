@@ -57,7 +57,7 @@ export const troubleshooting: GroupContent = {
         <DocSection title="No PDF">
           <p>
             The PDF button reads &quot;PDF (not installed)&quot; and <Mono>/export pdf</Mono> says &quot;PDF reports aren&apos;t
-            in this demo.&quot; or &quot;PDF export needs WeasyPrint or a Chrome/Chromium browser.&quot;. Install one of the
+            available.&quot; or &quot;PDF export needs WeasyPrint or a Chrome/Chromium browser.&quot;. Install one of the
             two:
           </p>
           <ul>
@@ -199,7 +199,7 @@ export const troubleshooting: GroupContent = {
               opens the &quot;Export the report as…&quot; menu instead.
             </li>
             <li>
-              <strong>&quot;&lt;Format&gt; reports aren&apos;t in this demo.&quot;</strong> The format&apos;s engine is missing:
+              <strong>&quot;&lt;Format&gt; reports aren&apos;t available.&quot;</strong> The format&apos;s engine is missing:
               see <DocRef>Missing tools</DocRef>.
             </li>
           </ul>

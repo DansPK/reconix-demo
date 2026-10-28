@@ -1,16 +1,16 @@
 # Setup guide
 
-> **Static demo:** the real scanner harness (Docker, SonarQube, LLM) has been **removed**.
-> The extension now uses a bundled canned **demo server** — no Docker, no keys, no waiting.
-> Setup is just: `./setup.sh`, then `cd vscode-extension && npm run fake-server`, then in
+> **Note:** the original scanner harness (Docker, SonarQube, LLM) has been **removed**.
+> The extension now uses a bundled **Reconix scanner server** — no Docker, no keys, no waiting.
+> Setup is just: `./setup.sh`, then `cd vscode-extension && npm run server`, then in
 > VS Code Reload Window → shield → "Scan with Reconix". The Docker/SonarQube/LLM steps below
 > are historical.
 
 ## Quick way: `setup.sh`
 
 ```sh
-./setup.sh                                  # builds + installs the extension, points it at the demo server
-cd vscode-extension && npm run fake-server  # starts the canned demo server on :7357 (token test-token)
+./setup.sh                                  # builds + installs the extension, points it at the scanner server
+cd vscode-extension && npm run server  # starts the scanner server on :7357 (token test-token)
 ```
 
 It works on Linux, macOS and Windows. On Windows, run it in **Git Bash** (part of [Git for Windows](https://git-scm.com/download/win)), not PowerShell or cmd. It finds Python as `python3`, `python` or `py -3`, and writes VS Code's settings in the right place for each system.
@@ -151,8 +151,8 @@ The token is printed once. Only its hash is stored, so if you lose it, create a 
 cd ../vscode-extension
 npm ci
 npm run build
-npx @vscode/vsce package --allow-missing-repository --skip-license -o vuln-scanner.vsix
-code --install-extension vuln-scanner.vsix --force
+npx @vscode/vsce package --allow-missing-repository --skip-license -o reconix-scanner.vsix
+code --install-extension reconix-scanner.vsix --force
 ```
 
 Run the same commands again after pulling changes to update the extension.
@@ -161,8 +161,8 @@ For extension development, open `vscode-extension/` in VS Code and press **F5** 
 
 ## 7. Connect VS Code
 
-1. Open Settings and set **`vulnScanner.serverUrl`** to the harness URL, for example `http://localhost:8080`. It must match `HARNESS_PUBLIC_URL`.
-2. Run **Reconix: Set Token** from the Command Palette and paste the token from step 5. You can also paste it into the `vulnScanner.token` setting. Either way, the extension moves it into VS Code's secure storage and clears the setting.
+1. Open Settings and set **`reconix.serverUrl`** to the harness URL, for example `http://localhost:8080`. It must match `HARNESS_PUBLIC_URL`.
+2. Run **Reconix: Set Token** from the Command Palette and paste the token from step 5. You can also paste it into the `reconix.token` setting. Either way, the extension moves it into VS Code's secure storage and clears the setting.
 3. Reload the window (**Developer: Reload Window**).
 4. Open the **Reconix** view (the shield icon in the activity bar) and type `scan this project`.
 
@@ -183,7 +183,7 @@ HARNESS_TLS_CERT=/certs/dev-cert.pem
 HARNESS_TLS_KEY=/certs/dev-key.pem
 ```
 
-Run `docker compose up -d harness`. In VS Code, change `vulnScanner.serverUrl` to `https://…` and set `vulnScanner.caCertificate` to the full path of `analyzer-agent-harness/certs/dev-cert.pem`.
+Run `docker compose up -d harness`. In VS Code, change `reconix.serverUrl` to `https://…` and set `reconix.caCertificate` to the full path of `analyzer-agent-harness/certs/dev-cert.pem`.
 
 ## Troubleshooting
 
@@ -196,7 +196,7 @@ Run `docker compose up -d harness`. In VS Code, change `vulnScanner.serverUrl` t
 | Chat replies are odd, but scan commands still work | Small models sometimes ignore instructions. When the LLM fails, scan commands fall back to keyword matching. A larger model gives better routing and reviews. |
 | Extension says "No token is set" | Run **Reconix: Set Token** again. Tokens are stored per VS Code profile. |
 | Upload fails with HTTP 403 | The upload link expired or was signed with a different secret. Check that `HARNESS_PUBLIC_URL` matches the URL VS Code uses, then rescan. |
-| Logs show `Invalid HTTP request received` | Something is connecting with HTTPS, or isn't sending HTTP, to a plain-HTTP harness. Check that the `vulnScanner.serverUrl` scheme matches the server. |
+| Logs show `Invalid HTTP request received` | Something is connecting with HTTPS, or isn't sending HTTP, to a plain-HTTP harness. Check that the `reconix.serverUrl` scheme matches the server. |
 
 To see what the harness is doing:
 

@@ -146,7 +146,7 @@ export const reports: GroupContent = {
             rows={[
               { key: "The report is available once the assessment is complete.", value: "The run has not completed (it is still going, or it was stopped)." },
               { key: "(the \u201cExport the report as…\u201d menu opens)", value: "An argument that is not a format id is not refused: /export opens its menu instead." },
-              { key: "<Format> reports aren't in this demo.", value: "PDF without WeasyPrint or Chrome, or DOCX without python-docx." },
+              { key: "<Format> reports aren't available.", value: "PDF without WeasyPrint or Chrome, or DOCX without python-docx." },
               { key: "PDF export needs WeasyPrint or a Chrome/Chromium browser.", value: "Neither PDF engine was found at export time." },
               { key: "Couldn't render the PDF with the browser. / The browser did not produce a PDF.", value: "Chrome was found but printing failed; the DOCX and JSON exports still work." },
               { key: "The assessment id can't be used as a file name. / Reports can only be saved in the reports folder.", value: "The id contains characters that could leave ./reports/." },

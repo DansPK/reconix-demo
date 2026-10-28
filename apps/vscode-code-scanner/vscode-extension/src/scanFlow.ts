@@ -53,8 +53,8 @@ export async function prepareWorkspace(client: HarnessClient, sessionId: string,
       const folders = largestFolders(sync.need.map((p) => byPath.get(p)!).filter(Boolean))
         .map((f) => `- \`${f.folder}\` ${formatBytes(f.bytes)}`).join("\n");
       throw new TooLargeError(`The archive is ${formatBytes(archive.size)}, more than the limit of `
-        + `${settings.maxUploadMB} MB (vulnScanner.maxUploadMB). The largest folders are:\n${folders}\n\n`
-        + "Add excludes in vulnScanner.extraExcludes or .gitignore, then try again.");
+        + `${settings.maxUploadMB} MB (reconix.maxUploadMB). The largest folders are:\n${folders}\n\n`
+        + "Add excludes in reconix.extraExcludes or .gitignore, then try again.");
     }
     let uploadId = "";
     for (let attempt = 1; ; attempt++) {

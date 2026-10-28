@@ -1,8 +1,8 @@
 {
-  "name": "demo-vuln-shop",
+  "name": "vuln-shop",
   "version": "1.0.0",
   "private": true,
-  "description": "Intentionally vulnerable demo project for the Reconix VS Code scanner demo. Do not deploy.",
+  "description": "Intentionally vulnerable sample project for the Reconix code scanner. Do not deploy.",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js"

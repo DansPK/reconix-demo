@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { HarnessClient } from "../../src/client";
-import { FakeHarness } from "../../demo-server/server";
+import { FakeHarness } from "../../server/server";
 
 let fake: FakeHarness;
 let c: HarnessClient;

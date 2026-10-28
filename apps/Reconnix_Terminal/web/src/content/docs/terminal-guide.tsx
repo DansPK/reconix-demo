@@ -198,7 +198,7 @@ export const terminalGuide: GroupContent = {
         <DocSection title="History">
           <p>
             Every accepted line (a request or a command) is remembered for the session. On the prompt, with no menu
-            open, <Kbd>↑</Kbd>/<Kbd>↓</Kbd> walk through the history and <Kbd>Ctrl+R</Kbd> searches it; the demo request
+            open, <Kbd>↑</Kbd>/<Kbd>↓</Kbd> walk through the history and <Kbd>Ctrl+R</Kbd> searches it; the example request
             is the first entry, so <Kbd>↑</Kbd> on a fresh start recalls it.
           </p>
         </DocSection>
@@ -234,7 +234,7 @@ export const terminalGuide: GroupContent = {
               &quot;ports&quot;, &quot;repo&quot;, &quot;website&quot;) and can name ports or tools.
             </li>
             <li>
-              <strong>An empty line uses the demo request</strong>, a reserved example site.
+              <strong>An empty line uses the example request</strong>, a reserved example site.
             </li>
             <li>
               <strong>Anything else gets a short answer</strong> and nothing starts: a greeting, a question, or

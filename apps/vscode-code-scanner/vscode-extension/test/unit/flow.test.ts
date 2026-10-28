@@ -6,7 +6,7 @@ import { listArchive } from "../../src/archive";
 import { HarnessClient, TOKEN_REJECTED } from "../../src/client";
 import { prepareWorkspace, TooLargeError, watchToEnd } from "../../src/scanFlow";
 import { hashFile } from "../../src/workspaceFiles";
-import { FakeHarness } from "../../demo-server/server";
+import { FakeHarness } from "../../server/server";
 import { makeTree } from "./helpers";
 import * as os from "os";
 import * as tar from "tar";

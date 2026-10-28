@@ -26,7 +26,7 @@ export const guardrails: GroupContent = {
         <DocSection title="What is simulated">
           <p>
             Without a model and the backend harness, the run is simulated: no scanner runs and nothing is sent to the
-            target. The demo uses reserved example domains and fake, masked evidence. See{" "}
+            target. Reconix uses reserved example domains and synthetic, masked evidence. See{" "}
             <DocRef>Introduction</DocRef>.
           </p>
         </DocSection>
@@ -203,7 +203,7 @@ export const guardrails: GroupContent = {
         <DocSection title="Known limitations">
           <ul>
             <li>
-              <strong>The scripted run is a simulation.</strong> Its findings are demo data for the template, not the state
+              <strong>The scripted run is a simulation.</strong> Its findings are sample data for the template, not the state
               of your target. Real findings come from the AI agent.
             </li>
             <li>

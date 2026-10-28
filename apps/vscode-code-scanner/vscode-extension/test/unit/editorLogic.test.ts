@@ -47,7 +47,7 @@ test("hover markdown has the review, links, and escapes the title", () => {
   assert.match(md, /^\*\*CRITICAL\*\* · SQL \\\*injection\\\*/);
   assert.match(md, /_Likely real_ · `r` · \[CWE-89\]\(https:\/\/cwe\.mitre\.org\/data\/definitions\/89\.html\)/);
   assert.match(md, /\*\*What's wrong:\*\* User input reaches the query\./);
-  assert.match(md, /<vulnScanner\.fixFinding\|\$\(wrench\) Fix>/);
+  assert.match(md, /<reconix\.fixFinding\|\$\(wrench\) Fix>/);
   assert.match(hoverMarkdown(f({}), () => ""), /_Not reviewed yet_/);
 });
 

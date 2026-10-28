@@ -6,7 +6,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import type { Controller } from "../../src/controller";
 import type { ToWebview } from "../../src/shared/messages";
-import { FakeHarness } from "../../demo-server/server";
+import { FakeHarness } from "../../server/server";
 
 const tests: [string, () => Promise<void>][] = [];
 const test = (name: string, fn: () => Promise<void>) => tests.push([name, fn]);
@@ -25,7 +25,7 @@ const last = <T extends ToWebview["type"]>(type: T) =>
 const texts = () => posted.filter((m) => m.type === "message").map((m: any) => m.message.text as string);
 
 test("the extension activates and the chat panel opens", async () => {
-  const ext = vscode.extensions.getExtension("local.vuln-scanner")!;
+  const ext = vscode.extensions.getExtension("local.reconix-code-scanner")!;
   const api = await ext.activate();
   controller = api.controller;
   context = api.context;
@@ -34,19 +34,19 @@ test("the extension activates and the chat panel opens", async () => {
     posted.push(m);
     if (m.type === "state") latestState = m;
   } });
-  await vscode.commands.executeCommand("vulnScanner.openChat");
+  await vscode.commands.executeCommand("reconix.openChat");
 });
 
 test("no server URL or token: a short message with the right button", async () => {
   await controller.connect();
   const s = last("state")!;
   assert.equal(s.connection.state, "disconnected");
-  assert.equal((s.connection as any).action.command, "vulnScanner.openSettings");
+  assert.equal((s.connection as any).action.command, "reconix.openSettings");
 });
 
 test("a bad token shows the 401 message; a good one connects", async () => {
   console.log("    updating setting");
-  await vscode.workspace.getConfiguration("vulnScanner").update("serverUrl", fake.url,
+  await vscode.workspace.getConfiguration("reconix").update("serverUrl", fake.url,
     vscode.ConfigurationTarget.Workspace);
   console.log("    setting bad token");
   await controller.setToken("bad-token-xyz");
@@ -109,7 +109,7 @@ test("in the editor: quick fixes, hover, status bar, badge, tree, next finding, 
   const hoverText = hovers.flatMap((h) => h.contents.map((c) => (c as vscode.MarkdownString).value ?? String(c))).join("\n");
   assert.match(hoverText, /\*\*HIGH\*\* · SQL injection/);
   assert.match(hoverText, /How to fix:\*\* Use a parameterised query/);
-  assert.match(hoverText, /command:vulnScanner\.fixFinding/);
+  assert.match(hoverText, /command:reconix\.fixFinding/);
   // status bar, Explorer badge, Findings tree
   assert.equal(features.status.text, "$(shield) 1 high");
   assert.equal(features.fileDecoration(uri)?.badge, "1");
@@ -121,17 +121,17 @@ test("in the editor: quick fixes, hover, status bar, badge, tree, next finding, 
   // next finding from the top of the file lands on it
   const doc = await vscode.workspace.openTextDocument(uri);
   await vscode.window.showTextDocument(doc, { selection: new vscode.Range(0, 0, 0, 0) });
-  await vscode.commands.executeCommand("vulnScanner.nextFinding");
+  await vscode.commands.executeCommand("reconix.nextFinding");
   assert.equal(vscode.window.activeTextEditor!.selection.start.line, 1);
   // ignore hides it everywhere; showing ignored ones brings it back
-  await vscode.commands.executeCommand("vulnScanner.ignoreFinding", id);
+  await vscode.commands.executeCommand("reconix.ignoreFinding", id);
   assert.equal(controller.getDiagnostics().length, 0);
   assert.equal(features.status.text, "$(shield) Reconix");
-  await vscode.commands.executeCommand("vulnScanner.clearIgnored");
+  await vscode.commands.executeCommand("reconix.clearIgnored");
   assert.equal(controller.getDiagnostics().length, 1);
   // explain goes to the chat with the file and line, not the code
   posted = [];
-  await vscode.commands.executeCommand("vulnScanner.explainFinding", id);
+  await vscode.commands.executeCommand("reconix.explainFinding", id);
   const asked = posted.find((m) => m.type === "message" && m.message.role === "user") as any;
   assert.match(asked.message.text, /^Explain the finding "SQL injection" in app\.js:2/);
   assert.ok(!asked.message.text.includes("SELECT"), "no file contents in the message");
@@ -354,12 +354,12 @@ test("a private GitHub repo: sign in with VS Code's GitHub account, then it scan
 });
 
 test("a token pasted into the settings moves to secret storage", async () => {
-  const c = vscode.workspace.getConfiguration("vulnScanner");
-  await context.secrets.delete("vulnScanner.token");
+  const c = vscode.workspace.getConfiguration("reconix");
+  await context.secrets.delete("reconix.token");
   await c.update("token", fake.token, vscode.ConfigurationTarget.Workspace);
   await controller.connect();
-  assert.equal(await context.secrets.get("vulnScanner.token"), fake.token);
-  assert.equal(vscode.workspace.getConfiguration("vulnScanner").inspect("token")?.workspaceValue, undefined);
+  assert.equal(await context.secrets.get("reconix.token"), fake.token);
+  assert.equal(vscode.workspace.getConfiguration("reconix").inspect("token")?.workspaceValue, undefined);
   // Changing the setting also starts a reconnect of its own; wait for whichever finishes last.
   await waitFor("connected", () => latestState?.connection.state === "connected");
 });
@@ -368,7 +368,7 @@ test("the token never reaches settings, logs or the webview", async () => {
   const settings = await fs.readFile(path.join(root(), ".vscode", "settings.json"), "utf8");
   assert.ok(!settings.includes(fake.token));
   assert.ok(!JSON.stringify(posted).includes(fake.token));
-  assert.equal(await context.secrets.get("vulnScanner.token"), fake.token);
+  assert.equal(await context.secrets.get("reconix.token"), fake.token);
 });
 
 async function archiveNames(data: Buffer) {

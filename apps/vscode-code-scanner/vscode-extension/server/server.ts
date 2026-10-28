@@ -1,6 +1,6 @@
 // The demo scanner server: the contract's MCP tools with in-memory state, canned findings,
 // the presigned upload URL (with hash check), and progress notifications in watch_scan.
-// No LLM, no keys, no external services. Run it with `npm run fake-server`
+// No LLM, no keys, no external services. Run it with `npm run server`
 // (token "test-token", port 7357). The extension's unit/integration tests import FakeHarness
 // from here too.
 
@@ -535,5 +535,5 @@ const DEMO_FINDINGS: Partial<Finding>[] = [
 
 if (require.main === module) {
   const h = new FakeHarness({ port: Number(process.env.PORT ?? 7357), stepMs: 1000, findings: DEMO_FINDINGS });
-  h.start().then((url) => console.log(`Reconix demo scanner on ${url} (token: ${h.token})`));
+  h.start().then((url) => console.log(`Reconix scanner on ${url} (token: ${h.token})`));
 }

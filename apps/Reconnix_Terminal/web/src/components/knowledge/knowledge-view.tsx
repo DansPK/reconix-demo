@@ -100,7 +100,7 @@ export function KnowledgeView() {
         ) : items.length === 0 ? (
           <div className="ui-empty kn-empty">
             <p>
-              No knowledge files in this demo. In the full product, documents added in the terminal with /add-on appear here; their
+              No knowledge files yet. Documents added in the terminal with /add-on appear here; their
               text is masked and split into passages the AI Assistant quotes when they match a question.
             </p>
           </div>

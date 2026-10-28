@@ -16,11 +16,11 @@ import type { ConnectionStatus, FindingView, ToExtension, ToWebview } from "./sh
 import { UploadError } from "./upload";
 import { CancelledError, hashFile } from "./workspaceFiles";
 
-export const TOKEN_KEY = "vulnScanner.token";
-const LAST_SESSION_KEY = "vulnScanner.lastSession";
-const SESSION_FOLDERS_KEY = "vulnScanner.sessionFolders";
-const PRIVATE_REPOS_KEY = "vulnScanner.privateRepoSessions"; // GitHub sessions that needed a sign-in
-const IGNORED_KEY = "vulnScanner.ignored"; // per session: finding ids the user chose to ignore (local only)
+export const TOKEN_KEY = "reconix.token";
+const LAST_SESSION_KEY = "reconix.lastSession";
+const SESSION_FOLDERS_KEY = "reconix.sessionFolders";
+const PRIVATE_REPOS_KEY = "reconix.privateRepoSessions"; // GitHub sessions that needed a sign-in
+const IGNORED_KEY = "reconix.ignored"; // per session: finding ids the user chose to ignore (local only)
 const SCAN_ON_SAVE_DELAY_MS = 2000;
 const PRIVATE_HINT = /If the repository is private, sign in to GitHub and scan again\./;
 
@@ -35,7 +35,7 @@ async function githubToken(prompt: boolean): Promise<string | undefined> {
   }
 }
 const LIVE_REFRESH_MS = 1500;
-const FIX_SCHEME = "vulnscanner-fix";
+const FIX_SCHEME = "reconix-fix";
 const OUTCOME_LABEL: Record<FixOutcome["status"], string> = {
   fixed: "✅ fixed:", still_reported: "⚠️ still reported:", not_verified: "🔎 changed, rescan to confirm:",
   not_fixed: "⏭️ not changed:",
@@ -94,7 +94,7 @@ export class Controller implements vscode.Disposable {
   private readonly fixDocs: vscode.Disposable;
 
   constructor(private readonly ctx: vscode.ExtensionContext) {
-    this.diagnostics = vscode.languages.createDiagnosticCollection("vulnScanner");
+    this.diagnostics = vscode.languages.createDiagnosticCollection("reconix");
     this.fixDocs = vscode.workspace.registerTextDocumentContentProvider(FIX_SCHEME, {
       provideTextDocumentContent: (uri) => this.proposed.get(uri.toString()) ?? "",
     });
@@ -153,7 +153,7 @@ export class Controller implements vscode.Disposable {
   }
 
   private settings() {
-    const c = vscode.workspace.getConfiguration("vulnScanner");
+    const c = vscode.workspace.getConfiguration("reconix");
     return {
       serverUrl: (c.get<string>("serverUrl") ?? "").trim(),
       maxFileSizeKB: c.get<number>("maxFileSizeKB", 2048),
@@ -188,9 +188,9 @@ export class Controller implements vscode.Disposable {
     }
   }
 
-  /** A token pasted into the vulnScanner.token setting moves to secret storage, and the setting is cleared. */
+  /** A token pasted into the reconix.token setting moves to secret storage, and the setting is cleared. */
   private async takeTokenFromSettings() {
-    const c = vscode.workspace.getConfiguration("vulnScanner");
+    const c = vscode.workspace.getConfiguration("reconix");
     const info = c.inspect<string>("token");
     const value = (info?.workspaceFolderValue || info?.workspaceValue || info?.globalValue || "").trim();
     if (!value) return;
@@ -215,13 +215,13 @@ export class Controller implements vscode.Disposable {
     const token = await this.ctx.secrets.get(TOKEN_KEY);
     if (!serverUrl) {
       this.connection = { state: "disconnected", reason: "No server URL is set.",
-                          action: { label: "Open Settings", command: "vulnScanner.openSettings" } };
+                          action: { label: "Open Settings", command: "reconix.openSettings" } };
       this.postState();
       return false;
     }
     if (!token) {
       this.connection = { state: "disconnected", reason: "No token is set.",
-                          action: { label: "Set Token", command: "vulnScanner.setToken" } };
+                          action: { label: "Set Token", command: "reconix.setToken" } };
       this.postState();
       return false;
     }
@@ -245,9 +245,9 @@ export class Controller implements vscode.Disposable {
     const err = e as Error;
     log.warn(`Connection problem: ${err.message}`);
     this.connection = e instanceof TokenRejectedError
-      ? { state: "disconnected", reason: TOKEN_REJECTED, action: { label: "Set Token", command: "vulnScanner.setToken" } }
+      ? { state: "disconnected", reason: TOKEN_REJECTED, action: { label: "Set Token", command: "reconix.setToken" } }
       : { state: "disconnected", reason: err.message || "Cannot connect.",
-          action: { label: "Retry", command: "vulnScanner.reconnect" } };
+          action: { label: "Retry", command: "reconix.reconnect" } };
     this.postState();
   }
 
@@ -292,10 +292,10 @@ export class Controller implements vscode.Disposable {
         case "openFinding": return await this.openFinding(msg.id);
         case "fix": return await this.fixFindings(msg.ids);
         case "showFalsePositives":
-          return await vscode.workspace.getConfiguration("vulnScanner")
+          return await vscode.workspace.getConfiguration("reconix")
             .update("showLikelyFalsePositives", msg.on, vscode.ConfigurationTarget.Global);
         case "runCommand":
-          if (msg.command.startsWith("vulnScanner.")) await vscode.commands.executeCommand(msg.command);
+          if (msg.command.startsWith("reconix.")) await vscode.commands.executeCommand(msg.command);
           return;
         case "testProvider": return await this.testProvider(msg.id, msg.model, msg.base_url, msg.api_key);
         case "activateModel": return await this.activateModel(msg.id, msg.model);
@@ -312,7 +312,7 @@ export class Controller implements vscode.Disposable {
     if (e instanceof CancelledError || err?.name === "AbortError") return;
     if (e instanceof TokenRejectedError) {
       this.setDisconnected(e);
-      this.post({ type: "error", message: TOKEN_REJECTED, action: { label: "Set Token", command: "vulnScanner.setToken" } });
+      this.post({ type: "error", message: TOKEN_REJECTED, action: { label: "Set Token", command: "reconix.setToken" } });
       return;
     }
     if (e instanceof ServerUnreachableError) this.setDisconnected(e);
@@ -361,7 +361,7 @@ export class Controller implements vscode.Disposable {
     if (!folder) return;
     const rel = path.relative(folder, uri.fsPath).split(path.sep).join("/");
     if (rel.startsWith("..")) return;
-    if (vscode.workspace.getConfiguration("vulnScanner").get<boolean>("scanOnSave", false)) {
+    if (vscode.workspace.getConfiguration("reconix").get<boolean>("scanOnSave", false)) {
       clearTimeout(this.scanOnSaveTimer); // several quick saves -> one scan
       this.scanOnSaveTimer = setTimeout(() => {
         if (this.scanning || this.busy || this.connection.state !== "connected") return;
@@ -964,13 +964,13 @@ export class Controller implements vscode.Disposable {
   }
 
   async onSettingsChanged(e: vscode.ConfigurationChangeEvent) {
-    if (["serverUrl", "token", "caCertificate"].some((k) => e.affectsConfiguration(`vulnScanner.${k}`))) {
+    if (["serverUrl", "token", "caCertificate"].some((k) => e.affectsConfiguration(`reconix.${k}`))) {
       // Our own clearing of the token setting also lands here; only reconnect when there is something to use.
-      if (e.affectsConfiguration("vulnScanner.token")
-          && !vscode.workspace.getConfiguration("vulnScanner").get<string>("token")?.trim()) return;
+      if (e.affectsConfiguration("reconix.token")
+          && !vscode.workspace.getConfiguration("reconix").get<string>("token")?.trim()) return;
       await this.connect();
     }
-    else if (e.affectsConfiguration("vulnScanner.showLikelyFalsePositives") && this.client) await this.loadFindings();
+    else if (e.affectsConfiguration("reconix.showLikelyFalsePositives") && this.client) await this.loadFindings();
   }
 
   // --- auto-fix ---

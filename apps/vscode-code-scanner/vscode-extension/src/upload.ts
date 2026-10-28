@@ -14,7 +14,7 @@ export const UPLOAD_MESSAGES: Record<number, string> = {
   400: "The upload did not match its size or hash. Please try again.",
   403: "The upload link was refused or has expired.",
   409: "The upload link was already used.",
-  413: "The archive is larger than the server allows. Add excludes in vulnScanner.extraExcludes.",
+  413: "The archive is larger than the server allows. Add excludes in reconix.extraExcludes.",
   507: "The server disk is full.",
 };
 

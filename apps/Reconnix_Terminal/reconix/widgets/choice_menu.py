@@ -161,7 +161,7 @@ class ChoiceMenu(OptionList):
         number = f"{index + 1}. " if self._numbered else ""
         if choice.disabled:                         # dead end: visible but not pickable
             line.append(number + choice.label, style=theme.DIM)
-            line.append("  (not in demo)", style=f"italic {theme.DIM}")
+            line.append("  (not available)", style=f"italic {theme.DIM}")
             return line
         line.append(number, style=accent if highlighted else theme.DIM)
         if choice.kind == "input":

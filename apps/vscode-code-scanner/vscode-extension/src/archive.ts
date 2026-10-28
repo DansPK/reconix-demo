@@ -15,7 +15,7 @@ export interface Archive {
 }
 
 export async function createArchive(root: string, paths: string[]): Promise<Archive> {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "vuln-scanner-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "reconix-"));
   const file = path.join(dir, "upload.tar.gz");
   try {
     await tar.create({ gzip: true, cwd: root, file, portable: true, noDirRecurse: true, follow: false }, paths);

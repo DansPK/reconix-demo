@@ -129,7 +129,7 @@ class ReconixScreen(Screen):
             body.mount(echo, before=questions.first())
         else:
             body.mount(echo)
-        self.notify("Feedback noted — the planner isn't connected in this demo.",
+        self.notify("Feedback noted — the planner isn't connected.",
                     severity="information")
 
     def notify_error(self, message: str, title: Optional[str] = None) -> None:

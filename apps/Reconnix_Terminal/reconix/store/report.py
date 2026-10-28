@@ -56,7 +56,7 @@ def _format(format_id: str) -> ReportFormat:
     if fmt is None:
         raise StoreValidationError(f"Unknown report format {format_id}.")
     if not fmt.available:
-        raise StoreValidationError(f"{fmt.name} reports aren't in this demo.")
+        raise StoreValidationError(f"{fmt.name} reports aren't available.")
     return fmt
 
 

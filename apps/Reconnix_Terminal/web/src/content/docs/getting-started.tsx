@@ -25,8 +25,8 @@ export const gettingStarted: GroupContent = {
             <li>
               <strong>The scripted run is simulated.</strong> Without a model, no scanner runs and no network traffic
               goes to the target. The target you type still picks the template, builds the scope, plan, approvals and
-              findings, and the policy engine checks every request against the scope you approved. The demo data uses
-              reserved example domains and fake, masked evidence.
+              findings, and the policy engine checks every request against the scope you approved. The sample data uses
+              reserved example domains and synthetic, masked evidence.
             </li>
             <li>
               <strong>The process is real.</strong> Scope approval, the plan, the policy verdicts, the approval gates
@@ -226,19 +226,19 @@ python run.py         # the launcher in the repository root`}</Code>
     ),
   },
   "first-steps": {
-    lede: "A first assessment on the demo target, gate by gate.",
+    lede: "A first assessment on the example target, gate by gate.",
     body: (
       <>
         <DocSection title="Before you start">
           <p>
-            Everything below is simulated: the demo target is a reserved example domain, and no request leaves your
+            Everything below is simulated: the example target is a reserved example domain, and no request leaves your
             machine. The screens, decisions and outputs are the real ones.
           </p>
         </DocSection>
         <DocSection title="Step by step">
           <Steps>
             <li>
-              <strong>Start.</strong> Press <Kbd>Enter</Kbd> on the empty prompt to use the demo request, or type a target
+              <strong>Start.</strong> Press <Kbd>Enter</Kbd> on the empty prompt to use the example request, or type a target
               of your own (for example <Mono>https://staging.example.com</Mono>). The logo makes way for the conversation:
               your line, then Reconix&apos;s answer or a spinner while it reads the target. <Kbd>Ctrl+O</Kbd> lists the
               steps it finished.
@@ -255,7 +255,7 @@ python run.py         # the launcher in the repository root`}</Code>
             </li>
             <li>
               <strong>Execution.</strong> Tasks move from queued to running to done with a live output underneath. The
-              run pauses when it needs you: the <strong>target login</strong> opens a secure form (the demo&apos;s tools,
+              run pauses when it needs you: the <strong>target login</strong> opens a secure form (the simulated tools,
               Nuclei and OWASP ZAP, need a test account: email or username and password), and each{" "}
               <strong>gated action</strong> opens the Approval screen. <Kbd>Enter</Kbd> opens what the run waits for.
             </li>

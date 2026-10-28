@@ -29,7 +29,7 @@ export function EmptyView({ dir, problems, compact = false }: { dir: string; pro
           within 10 seconds.
         </p>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          To look around with demo data, start the site with{" "}
+          To look around with sample data, start the site with{" "}
           <code className={CODE}>RECONIX_DATA_DIR=sample-data RECONIX_STALE_AFTER_HOURS=0</code>.
         </p>
         {problems.length > 0 && (

@@ -28,7 +28,7 @@ export function mapError(e: unknown, serverUrl: string): Error {
   const tlsCode = tlsErrorCode(e);
   if (tlsCode) {
     return new ServerUnreachableError(`The server's HTTPS certificate is not trusted (${tlsCode}). `
-      + "For a self-signed certificate, set vulnScanner.caCertificate to its .pem file.");
+      + "For a self-signed certificate, set reconix.caCertificate to its .pem file.");
   }
   const err = e as Error & { code?: number };
   if ((e instanceof StreamableHTTPError && e.code === 401) || /\b401\b|unauthori[sz]ed/i.test(err?.message ?? "")) {
@@ -51,7 +51,7 @@ export class HarnessClient {
   }
 
   async connect(): Promise<void> {
-    const client = new Client({ name: "vuln-scanner-vscode", version: "0.1.0" });
+    const client = new Client({ name: "reconix-vscode", version: "0.1.0" });
     const transport = new StreamableHTTPClientTransport(new URL(this.serverUrl.replace(/\/+$/, "") + "/mcp"), {
       requestInit: { headers: { Authorization: `Bearer ${this.token}` } },
       fetch: this.fetchFn,

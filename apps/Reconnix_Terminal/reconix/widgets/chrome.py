@@ -35,7 +35,7 @@ class SessionBar(Static):
             glyph = "◌" if style.busy else "●"
             parts.append(Text(f"{glyph} {style.label}",
                               style=PHASE_COLOR.get(style.tone, theme.MUTED)))
-        parts.append(Text.assemble(("◆ ", theme.MEDIUM), ("demo data", theme.MUTED)))
+        parts.append(Text.assemble(("◆ ", theme.MEDIUM), ("sample data", theme.MUTED)))
         template = store.selected_template()
         if template:
             parts.append(Text.assemble(("template: ", theme.DIM), (template.name, theme.MUTED)))

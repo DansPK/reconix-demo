@@ -37,7 +37,7 @@ export default async function Home({ searchParams }: Props) {
   const items = library.assessments.map(libraryItem);
   const dir = shownDir(library.dir);
   // Static demo: a fixed, local, canned "model" always answers — no picker, no network.
-  const model = { configured: true, name: "Reconix demo", provider: "Static data", local: true, reason: "" };
+  const model = { configured: true, name: "Reconix", provider: "Built-in", local: true, reason: "" };
   const assistant: AssistantInfo = {
     scope: scopeOf(chosen),
     runs: scopedViews(views, null).map((v) => ({ ...runRef(v), status: v.status })),

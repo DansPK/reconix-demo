@@ -153,10 +153,10 @@ You need Node.js 20 or newer.
 cd vscode-extension
 npm ci
 npm run build
-npx @vscode/vsce package --allow-missing-repository --skip-license -o vuln-scanner.vsix
+npx @vscode/vsce package --allow-missing-repository --skip-license -o reconix-scanner.vsix
 ```
 
-This makes `vscode-extension/vuln-scanner.vsix`. You can copy this file to other computers; they don't need to build it.
+This makes `vscode-extension/reconix-scanner.vsix`. You can copy this file to other computers; they don't need to build it.
 
 ### 2. Install it in VS Code
 
@@ -164,12 +164,12 @@ Pick one:
 
 - **From the command line:**
   ```sh
-  code --install-extension vuln-scanner.vsix --force
+  code --install-extension reconix-scanner.vsix --force
   ```
 - **From VS Code:**
   1. Open the **Extensions** view (`Ctrl+Shift+X`, or `Cmd+Shift+X` on macOS).
   2. Click the **…** menu at the top of the view.
-  3. Choose **Install from VSIX…** and pick `vuln-scanner.vsix`.
+  3. Choose **Install from VSIX…** and pick `reconix-scanner.vsix`.
 
 You now have a **shield icon** in the left bar. The extension needs VS Code 1.90 or newer.
 
@@ -187,7 +187,7 @@ The token is printed **once**. Copy it now. If you lose it, run the command agai
 ### 4. Set the server address
 
 1. Open **Settings** (`Ctrl+,`, or `Cmd+,` on macOS).
-2. Search for `vulnScanner`.
+2. Search for `reconix`.
 3. Set **Reconix: Server Url** to the harness address, for example `http://localhost:8080`.
 
 Use the same address as `HARNESS_PUBLIC_URL` in `analyzer-agent-harness/.env`. `setup.sh` may have picked another port, such as `8090`; it prints the address at the end. From another computer, use the harness computer's IP, for example `http://192.168.1.20:8080`, and set `HARNESS_PUBLIC_URL` to that same address.
@@ -196,7 +196,7 @@ Or add it to your `settings.json` directly:
 
 ```json
 {
-  "vulnScanner.serverUrl": "http://localhost:8080"
+  "reconix.serverUrl": "http://localhost:8080"
 }
 ```
 
@@ -241,11 +241,11 @@ The token is kept in VS Code's secure storage, not in your settings. You can als
 
 | Setting | What it does |
 | --- | --- |
-| `vulnScanner.caCertificate` | Full path to a certificate file, for a harness with HTTPS and a self-signed certificate (see [docs/SETUP.md](docs/SETUP.md#optional-https)). |
-| `vulnScanner.extraExcludes` | More files or folders to skip, in `.gitignore` style, for example `["data/", "*.min.js"]`. |
-| `vulnScanner.maxFileSizeKB` | Skip files bigger than this (default 2048). |
-| `vulnScanner.maxUploadMB` | Stop before uploading more than this (default 200). |
-| `vulnScanner.showLikelyFalsePositives` | Show findings the AI thinks are false alarms (default off). |
+| `reconix.caCertificate` | Full path to a certificate file, for a harness with HTTPS and a self-signed certificate (see [docs/SETUP.md](docs/SETUP.md#optional-https)). |
+| `reconix.extraExcludes` | More files or folders to skip, in `.gitignore` style, for example `["data/", "*.min.js"]`. |
+| `reconix.maxFileSizeKB` | Skip files bigger than this (default 2048). |
+| `reconix.maxUploadMB` | Stop before uploading more than this (default 200). |
+| `reconix.showLikelyFalsePositives` | Show findings the AI thinks are false alarms (default off). |
 
 Folders like `.git`, `node_modules`, `dist`, `build` and `.venv`, and everything in your `.gitignore`, are never uploaded.
 

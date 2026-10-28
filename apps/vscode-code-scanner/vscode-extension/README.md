@@ -1,22 +1,22 @@
 # Reconix for VS Code
 
-Scan your code for vulnerabilities from a chat panel in the sidebar. This is a **demo**: scanning is served by a local, canned demo server (no LLM, no keys, no external services) that returns a fixed set of findings and answers chat with simple rules. This extension is the client. It shows live progress, and lists the findings in the chat and in the Problems panel.
+Scan your code for vulnerabilities from a chat panel in the sidebar. Scanning is served by a local Reconix scanner server (no LLM, no keys, no external services); this extension is the client. It shows live progress, and lists the findings in the chat and in the Problems panel.
 
-## Setup (demo)
+## Setup
 
-1. Start the demo server from `vscode-extension/`:
+1. Start the scanner server from `vscode-extension/`:
    ```sh
    npm install
-   npm run fake-server      # listens on http://127.0.0.1:7357, token "test-token"
+   npm run server      # listens on http://127.0.0.1:7357, token "test-token"
    ```
-2. `vulnScanner.serverUrl` already defaults to `http://127.0.0.1:7357`, so you don't need to change it.
-3. Run **Reconix: Set Token** and paste `test-token` (it is kept only in VS Code's secret storage; the `vulnScanner.token` setting, if you use it, is cleared right away).
-4. Open a project to scan — the bundled **`../demo-vuln-shop/`** sample has a planted issue per file, matched to the demo findings.
-5. Open the **Reconix** view in the activity bar (the shield icon), or right-click a file/folder → **Scan with Reconix**. The findings land on their lines in `demo-vuln-shop`.
+2. `reconix.serverUrl` already defaults to `http://127.0.0.1:7357`, so you don't need to change it.
+3. Run **Reconix: Set Token** and paste `test-token` (it is kept only in VS Code's secret storage; the `reconix.token` setting, if you use it, is cleared right away).
+4. Open a project to scan — the bundled **`../vuln-shop/`** sample has one issue per file, matched to the findings.
+5. Open the **Reconix** view in the activity bar (the shield icon), or right-click a file/folder → **Scan with Reconix**. The findings land on their lines in `vuln-shop`.
 
 ## Using it
 
-Apart from a **Rescan** button, you tell the assistant what you want, in your own words. Every message goes to the agent on the harness, which answers questions and starts or stops scans:
+Apart from a **Rescan** button, you tell the assistant what you want, in your own words. Every message goes to the agent on the server, which answers questions and starts or stops scans:
 
 | You type, for example | What happens |
 | --- | --- |
@@ -41,25 +41,25 @@ When a scan ends, a summary card appears in the chat: a severity bar, one senten
 Only files under the chosen workspace folder, skipping:
 - `.git`, `node_modules`, `build`, `dist`, `out`, `target`, `bin`, `obj`, `.venv`, `venv`, `__pycache__`, `.idea`, `.vscode`
 - anything your `.gitignore` files exclude (every folder's `.gitignore` applies to that folder and below)
-- `vulnScanner.extraExcludes` patterns, binary files, files over `vulnScanner.maxFileSizeKB`, and symlinks
+- `reconix.extraExcludes` patterns, binary files, files over `reconix.maxFileSizeKB`, and symlinks
 
-On a rescan, only new and changed files are sent. Before uploading, the extension stops if the archive is over `vulnScanner.maxUploadMB` and lists the largest folders, so you can exclude them.
+On a rescan, only new and changed files are sent. Before uploading, the extension stops if the archive is over `reconix.maxUploadMB` and lists the largest folders, so you can exclude them.
 
 ## Settings
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `vulnScanner.serverUrl` | `http://127.0.0.1:7357` | Base URL of the scanner server (the demo server's address) |
-| `vulnScanner.token` | empty | Paste a token here to sign in; it moves to secure storage and this field is cleared |
-| `vulnScanner.caCertificate` | empty | PEM certificate to trust for HTTPS (for a self-signed harness), in addition to the normal ones |
-| `vulnScanner.maxFileSizeKB` | `2048` | Files larger than this are skipped |
-| `vulnScanner.maxUploadMB` | `200` | Stop before uploading an archive larger than this |
-| `vulnScanner.extraExcludes` | `[]` | Extra patterns to skip (gitignore syntax) |
-| `vulnScanner.showLikelyFalsePositives` | `false` | Show findings the LLM marked as likely false alarms |
-| `vulnScanner.gutterIcons` | `true` | Severity dot next to the line numbers on lines with findings |
-| `vulnScanner.explorerBadges` | `true` | Finding count on files in the Explorer |
-| `vulnScanner.codeLens` | `false` | A line above each function with findings, with a Fix button |
-| `vulnScanner.scanOnSave` | `false` | Rescan a moment after you save a file in the scanned folder |
+| `reconix.serverUrl` | `http://127.0.0.1:7357` | Base URL of the scanner server |
+| `reconix.token` | empty | Paste a token here to sign in; it moves to secure storage and this field is cleared |
+| `reconix.caCertificate` | empty | PEM certificate to trust for HTTPS (for a self-signed server), in addition to the normal ones |
+| `reconix.maxFileSizeKB` | `2048` | Files larger than this are skipped |
+| `reconix.maxUploadMB` | `200` | Stop before uploading an archive larger than this |
+| `reconix.extraExcludes` | `[]` | Extra patterns to skip (gitignore syntax) |
+| `reconix.showLikelyFalsePositives` | `false` | Show findings the LLM marked as likely false alarms |
+| `reconix.gutterIcons` | `true` | Severity dot next to the line numbers on lines with findings |
+| `reconix.explorerBadges` | `true` | Finding count on files in the Explorer |
+| `reconix.codeLens` | `false` | A line above each function with findings, with a Fix button |
+| `reconix.scanOnSave` | `false` | Rescan a moment after you save a file in the scanned folder |
 
 ## In the editor
 
@@ -82,11 +82,11 @@ Logs are in the **Reconix** output channel. They never contain your token or fil
 ```sh
 npm install
 npm run build              # bundle with esbuild into dist/
-npm run test:unit          # plain Node tests (routing, file walk, archive, upload and scan flows vs. the fake harness)
-npm run test:integration   # runs inside a downloaded VS Code against the fake harness
+npm run test:unit          # plain Node tests (routing, file walk, archive, upload and scan flows vs. the bundled server)
+npm run test:integration   # runs inside a downloaded VS Code against the bundled server
 npm test                   # both
 node --test out/test/unit/routing.test.js   # one unit test file (after npm run compile-tests)
-npm run fake-server        # fake harness on http://127.0.0.1:7357, token "test-token", for trying the UI by hand
+npm run server        # scanner server on http://127.0.0.1:7357, token "test-token", for trying the UI by hand
 ```
 
 Press F5 with this folder open to start an Extension Development Host. The integration tests open a second VS Code window for a few seconds; it closes on its own.

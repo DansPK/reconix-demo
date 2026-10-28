@@ -9,7 +9,7 @@ import { badge, countBySeverity, findingsInLines, hoverMarkdown, lensGroups, sta
   worstSeverity } from "./editorLogic";
 import type { Finding, Severity } from "./shared/contract";
 
-const COMMANDS = ["vulnScanner.fixFinding", "vulnScanner.explainFinding", "vulnScanner.ignoreFinding"];
+const COMMANDS = ["reconix.fixFinding", "reconix.explainFinding", "reconix.ignoreFinding"];
 
 /** Theme colours per severity (they follow the user's theme, unlike fixed hex values). */
 const SEVERITY_COLOR: Record<Severity, string> = {
@@ -21,7 +21,7 @@ const SEVERITY_LABEL: Record<Severity, string> = {
 };
 
 function setting<T>(key: string, fallback: T): T {
-  return vscode.workspace.getConfiguration("vulnScanner").get<T>(key, fallback);
+  return vscode.workspace.getConfiguration("reconix").get<T>(key, fallback);
 }
 
 const commandLink = (id: string) => (command: string, label: string) =>
@@ -120,7 +120,7 @@ class FindingsTree implements vscode.TreeDataProvider<Node> {
     item.contextValue = "finding";
     item.iconPath = new vscode.ThemeIcon(f.severity === "critical" || f.severity === "high" ? "error"
       : f.severity === "medium" ? "warning" : "info", new vscode.ThemeColor(SEVERITY_COLOR[f.severity]));
-    item.command = { command: "vulnScanner.openFindingById", title: "Open", arguments: [f.id] };
+    item.command = { command: "reconix.openFindingById", title: "Open", arguments: [f.id] };
     return item;
   }
 }
@@ -129,7 +129,7 @@ class FindingsTree implements vscode.TreeDataProvider<Node> {
 
 export class EditorFeatures implements vscode.Disposable {
   private readonly disposables: vscode.Disposable[] = [];
-  private readonly status = vscode.window.createStatusBarItem("vulnScanner.status", vscode.StatusBarAlignment.Left, 50);
+  private readonly status = vscode.window.createStatusBarItem("reconix.status", vscode.StatusBarAlignment.Left, 50);
   private readonly gutter: Record<Severity, vscode.TextEditorDecorationType>;
   private readonly fileDecorations = new vscode.EventEmitter<vscode.Uri[] | undefined>();
   private readonly lensChanged = new vscode.EventEmitter<void>();
@@ -147,10 +147,10 @@ export class EditorFeatures implements vscode.Disposable {
       })])) as Record<Severity, vscode.TextEditorDecorationType>;
 
     this.status.name = "Reconix";
-    this.status.command = "vulnScanner.openChat";
+    this.status.command = "reconix.openChat";
 
     this.tree = new FindingsTree(controller);
-    this.treeView = vscode.window.createTreeView("vulnScanner.findings", { treeDataProvider: this.tree, showCollapseAll: true });
+    this.treeView = vscode.window.createTreeView("reconix.findings", { treeDataProvider: this.tree, showCollapseAll: true });
 
     const selector: vscode.DocumentSelector = { scheme: "file" };
     this.disposables.push(
@@ -165,7 +165,7 @@ export class EditorFeatures implements vscode.Disposable {
       controller.onDidChange(() => this.redraw()),
       vscode.window.onDidChangeVisibleTextEditors(() => this.drawGutter()),
       vscode.workspace.onDidChangeConfiguration((e) => {
-        if (["gutterIcons", "explorerBadges", "codeLens"].some((k) => e.affectsConfiguration(`vulnScanner.${k}`))) this.redraw();
+        if (["gutterIcons", "explorerBadges", "codeLens"].some((k) => e.affectsConfiguration(`reconix.${k}`))) this.redraw();
       }),
       ...this.commands(),
     );
@@ -248,12 +248,12 @@ export class EditorFeatures implements vscode.Disposable {
     };
     for (const f of here) {
       const diag = ours.filter((d) => d.range.start.line === f.start_line - 1);
-      add(`Reconix: Fix "${f.title}"`, "vulnScanner.fixFinding", [f.id], diag, true);
-      add(`Reconix: Explain "${f.title}" in chat`, "vulnScanner.explainFinding", [f.id], diag);
-      add(`Reconix: Ignore "${f.title}"`, "vulnScanner.ignoreFinding", [f.id], diag);
+      add(`Reconix: Fix "${f.title}"`, "reconix.fixFinding", [f.id], diag, true);
+      add(`Reconix: Explain "${f.title}" in chat`, "reconix.explainFinding", [f.id], diag);
+      add(`Reconix: Ignore "${f.title}"`, "reconix.ignoreFinding", [f.id], diag);
     }
     if (inFile.length > 1) {
-      add(`Reconix: Fix all ${inFile.length} findings in this file`, "vulnScanner.fixFindings", [inFile.map((f) => f.id)], ours);
+      add(`Reconix: Fix all ${inFile.length} findings in this file`, "reconix.fixFindings", [inFile.map((f) => f.id)], ours);
     }
     return actions;
   }
@@ -286,8 +286,8 @@ export class EditorFeatures implements vscode.Disposable {
       const n = g.ids.length;
       return [
         new vscode.CodeLens(at, { title: `$(shield) ${n} Reconix finding${n === 1 ? "" : "s"}`,
-                                  command: "vulnScanner.revealFinding", arguments: [g.ids[0]] }),
-        new vscode.CodeLens(at, { title: n === 1 ? "Fix" : "Fix all", command: "vulnScanner.fixFindings", arguments: [g.ids] }),
+                                  command: "reconix.revealFinding", arguments: [g.ids[0]] }),
+        new vscode.CodeLens(at, { title: n === 1 ? "Fix" : "Fix all", command: "reconix.fixFindings", arguments: [g.ids] }),
       ];
     });
   }
@@ -308,18 +308,18 @@ export class EditorFeatures implements vscode.Disposable {
   private commands(): vscode.Disposable[] {
     const c = this.controller;
     const run = (fn: (...a: any[]) => Promise<unknown>) => (...a: any[]) => fn(...a).catch((e) => c.showError(e));
-    const openChat = () => vscode.commands.executeCommand("vulnScanner.chat.focus");
+    const openChat = () => vscode.commands.executeCommand("reconix.chat.focus");
     // tree context menus pass the tree node; other callers pass the finding id
     const idOf = (x: unknown) => (typeof x === "string" ? x : (x as Node)?.kind === "finding" ? (x as { finding: Finding }).finding.id : undefined);
     return [
-      vscode.commands.registerCommand("vulnScanner.fixFinding", run(async (x) => {
+      vscode.commands.registerCommand("reconix.fixFinding", run(async (x) => {
         const id = idOf(x);
         if (id) { await openChat(); await c.fixFindings([id]); }
       })),
-      vscode.commands.registerCommand("vulnScanner.fixFindings", run(async (ids: string[]) => {
+      vscode.commands.registerCommand("reconix.fixFindings", run(async (ids: string[]) => {
         if (ids?.length) { await openChat(); await c.fixFindings(ids); }
       })),
-      vscode.commands.registerCommand("vulnScanner.fixFile", run(async (uri?: vscode.Uri) => {
+      vscode.commands.registerCommand("reconix.fixFile", run(async (uri?: vscode.Uri) => {
         const target = uri ?? vscode.window.activeTextEditor?.document.uri;
         const rel = target && c.relPath(target);
         const ids = c.snapshot().findings.filter((f) => f.path === rel).map((f) => f.id);
@@ -327,29 +327,29 @@ export class EditorFeatures implements vscode.Disposable {
         await openChat();
         await c.fixFindings(ids);
       })),
-      vscode.commands.registerCommand("vulnScanner.explainFinding", run(async (x) => {
+      vscode.commands.registerCommand("reconix.explainFinding", run(async (x) => {
         const id = idOf(x);
         if (id) { await openChat(); await c.explainFinding(id); }
       })),
-      vscode.commands.registerCommand("vulnScanner.ignoreFinding", run(async (x) => {
+      vscode.commands.registerCommand("reconix.ignoreFinding", run(async (x) => {
         const id = idOf(x);
         if (id) await c.ignoreFinding(id);
       })),
-      vscode.commands.registerCommand("vulnScanner.clearIgnored", run(() => c.clearIgnored())),
-      vscode.commands.registerCommand("vulnScanner.openFindingById", run((id: string) => c.openFinding(id))),
-      vscode.commands.registerCommand("vulnScanner.revealFinding", run(async (id: string) => {
+      vscode.commands.registerCommand("reconix.clearIgnored", run(() => c.clearIgnored())),
+      vscode.commands.registerCommand("reconix.openFindingById", run((id: string) => c.openFinding(id))),
+      vscode.commands.registerCommand("reconix.revealFinding", run(async (id: string) => {
         const node = this.tree.nodeOf(id);
         if (node) await this.treeView.reveal(node, { select: true, focus: true, expand: true });
       })),
-      vscode.commands.registerCommand("vulnScanner.nextFinding", run(() => this.step(1))),
-      vscode.commands.registerCommand("vulnScanner.previousFinding", run(() => this.step(-1))),
-      vscode.commands.registerCommand("vulnScanner.scanPath", run(async (uri?: vscode.Uri) => {
+      vscode.commands.registerCommand("reconix.nextFinding", run(() => this.step(1))),
+      vscode.commands.registerCommand("reconix.previousFinding", run(() => this.step(-1))),
+      vscode.commands.registerCommand("reconix.scanPath", run(async (uri?: vscode.Uri) => {
         const target = uri ?? vscode.window.activeTextEditor?.document.uri;
         if (!target || target.scheme !== "file") return;
         await openChat();
         await c.scanPath(target);
       })),
-      vscode.commands.registerCommand("vulnScanner.explainSelection", run(async () => {
+      vscode.commands.registerCommand("reconix.explainSelection", run(async () => {
         const editor = vscode.window.activeTextEditor;
         if (!editor) return;
         await openChat();

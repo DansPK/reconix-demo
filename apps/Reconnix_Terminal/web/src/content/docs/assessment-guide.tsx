@@ -531,7 +531,7 @@ export const assessmentGuide: GroupContent = {
             starts, the dialogs it opens for decisions and logins, the redaction of what it logs and the evidence it
             records, and the audit trail. <Mono>/assess</Mono>, <Mono>/new</Mono>, opening another assessment and
             quitting cancel a running agent turn; the run you leave is marked stopped. Without a model or the harness,
-            the scripted demo runs instead.
+            the scripted sample runs instead.
           </Callout>
         </DocSection>
       </>

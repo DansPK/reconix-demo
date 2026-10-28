@@ -16,7 +16,7 @@ const refuse = (detail: string, status: number) => NextResponse.json({ detail },
 export async function GET(request: Request, ctx: { params: Promise<{ uid: string }> }) {
   const format = new URL(request.url).searchParams.get("format") ?? "";
   if (!isExportFormat(format)) return refuse("Unknown export format.", 400);
-  if (format === "pdf") return refuse("PDF export is disabled in the static demo. Download JSON or DOCX instead.", 501);
+  if (format === "pdf") return refuse("PDF export isn't available. Download JSON or DOCX instead.", 501);
 
   const { uid } = await ctx.params;
   const saved = await loadAssessment(uid);

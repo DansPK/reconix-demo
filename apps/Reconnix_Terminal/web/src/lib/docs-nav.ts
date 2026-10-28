@@ -71,14 +71,14 @@ const GROUPS: GroupSpec[] = [
   {
     id: "getting-started",
     title: "Getting started",
-    description: "What Reconix is, how to install and launch it, and a first assessment on the demo target.",
+    description: "What Reconix is, how to install and launch it, and a first assessment on the example target.",
     icon: Rocket,
     pages: [
       { title: "Introduction", slug: "introduction", description: "What Reconix does, what is simulated and what is real." },
       { title: "Requirements", slug: "requirements", description: "Python, a terminal, and the optional pieces for PDF, the dashboard and a model." },
       { title: "Installation", slug: "installation", description: "Clone, create a virtual environment, install." },
       { title: "Launching", slug: "launching", description: "python -m reconix, the reconix command and run.py." },
-      { title: "First steps", slug: "first-steps", description: "A first assessment on the demo target, gate by gate." },
+      { title: "First steps", slug: "first-steps", description: "A first assessment on the example target, gate by gate." },
     ],
   },
   {

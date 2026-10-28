@@ -2,14 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Static demo:** the real analyzer (`analyzer-agent-harness/` — Semgrep/Gitleaks/SonarQube
-> + LiteLLM) has been **removed**. The extension now talks to the bundled, canned, LLM-free
-> **demo server** (`vscode-extension/demo-server/server.ts`, `npm run fake-server`, `:7357`,
+> **Note:** the original analyzer (`analyzer-agent-harness/` — Semgrep/Gitleaks/SonarQube
+> + LiteLLM) has been **removed**. The extension now talks to the bundled, LLM-free
+> **Reconix scanner server** (`vscode-extension/server/server.ts`, `npm run server`, `:7357`,
 > token `test-token`). The architecture notes below describe the original harness for
-> reference; nothing in this repo runs it. Run the demo with `./setup.sh` then
-> `npm run fake-server`.
+> reference; nothing in this repo runs it. Run it with `./setup.sh` then
+> `npm run server`.
 
-Originally two components (a VS Code extension and a Python analyzer harness); the harness and its design/flow plan docs were removed for the static demo, leaving the extension plus the bundled demo server. Setup lives in `docs/SETUP.md`.
+Originally two components (a VS Code extension and a Python analyzer harness); the harness and its design/flow plan docs were removed, leaving the extension plus the bundled Reconix scanner server. Setup lives in `docs/SETUP.md`.
 
 ## Commands
 
@@ -32,7 +32,7 @@ npm run build              # dist/extension.js + dist/webview.js
 npm run test:unit          # node:test, no VS Code needed
 npm run test:integration   # downloads VS Code into .vscode-test/ and opens a window briefly
 node --test out/test/unit/flow.test.js   # one file, after `npm run compile-tests`
-npm run fake-server        # fake harness on :7357, token "test-token"
+npm run server        # scanner server on :7357, token "test-token"
 ```
 
 `test/integration/runTest.ts` deletes `ELECTRON_RUN_AS_NODE`. Otherwise, when run from a VS Code terminal, the test VS Code starts as plain Node and dies.
@@ -66,11 +66,11 @@ VS Code extension ──MCP (streamable HTTP, /mcp, Bearer token)──► harne
 - **Fix agent and summary.** `fix_findings` (`harness/agent.py`) runs one tool-calling agent per file with findings (`LLM_MAX_PARALLEL` at once) over a shared in-memory copy (`Edits`: real, masked and original lines). Tools: `read_file`, `search_code`, `edit_file` (exact unique text on the masked view; refused if it would write back `****`), `check_fixes`, `finish`. Checks rerun Semgrep with only the targets' rules (all 1000+ rules take ~50 s to load, a few take ~4 s) plus Gitleaks; a finding is still reported if its id survives or its rule fires as often in that file as before. `line_edits` turns the result into whole-line edits; a single blank line borrows a neighbour, since `""` means delete. Without tool calling (or if the server rejects tools) it falls back to `fix.propose`, one-shot edits per finding. The agent's LLM calls stream (`LLM.complete(on_text=...)`, rebuilt with `litellm.stream_chunk_builder`; `reasoning_content` streams as thinking); its text, tool and result events go out as JSON progress messages, text batched every 0.25 s, and the extension draws them as a live transcript block (`agentStart`/`agentEvent`/`agentEnd`). Small files (≤300 lines) go into the agent's task whole, which saves a `read_file` call; the rules are parsed once per process, preloaded at startup. The extension (`Controller.fixFindings`) groups the result per file (several files: **Apply all** or **Review one by one**), refuses if the file is dirty or its hash differs from `file_sha256`, shows a `vscode.diff` against a virtual `vulnscanner-fix:` document, and applies plus saves only after **Apply fix**. Chat intents `fix` (action with `finding_ids`, chosen by `service.fix_targets`) and `summary`. `chat.summarize` is short: two lines of counts, then the LLM's one sentence and at most three "fix first" bullets (`_concise` cuts anything else); with nothing likely real it skips the LLM. After every scan the extension calls `summarize_findings` (not saved in history) and draws its `card` (`summaryCard` message: severity bar, overall, clickable fix-first items with Fix buttons, most affected files, Fix all / View findings). Messages starting with "fix" or "summarize" skip the routing LLM call.
 - **Web tools.** With `WEB_SEARCH_URL` set (compose runs a `searxng` container, internal only, JSON API on), the chat agent and the fix agent also get `web_search` and `fetch_url` (`harness/web.py`). Queries are cut to 200 chars and refused if they contain `****`; the prompt forbids code, secrets and project names in them. `fetch_url` only reads public addresses: every resolved IP must be `is_global`, checked again on each redirect (followed by hand), 2 MB / 8000 chars, text only. Set `WEB_SEARCH_URL=` empty in `.env` to turn them off.
 - **Live findings.** `ScanManager._run` stores merged findings after each scanner finishes (`db.save_findings(..., replace=True)`), stores the full list before the LLM step, then updates each finding as its review completes (`db.update_finding`). The extension's `Controller.liveFindings` re-fetches `get_findings(scan_id=<running>)` on progress, at most every 1.5 s. An empty `explanation` means "not reviewed yet".
-- **HTTPS.** The harness serves TLS when `HARNESS_TLS_CERT`/`HARNESS_TLS_KEY` are set; `scripts/make_dev_cert.sh` makes a self-signed dev certificate in `certs/`. The extension trusts an extra CA through `vulnScanner.caCertificate`: `src/http.ts` builds an undici `fetch` with that CA, used for both MCP and uploads.
+- **HTTPS.** The harness serves TLS when `HARNESS_TLS_CERT`/`HARNESS_TLS_KEY` are set; `scripts/make_dev_cert.sh` makes a self-signed dev certificate in `certs/`. The extension trusts an extra CA through `reconix.caCertificate`: `src/http.ts` builds an undici `fetch` with that CA, used for both MCP and uploads.
 
 ## Rules that hold everywhere
 
-- A token pasted into the `vulnScanner.token` setting is moved to SecretStorage and the setting is cleared (`takeTokenFromSettings`). Never read the token from settings in any other way.
+- A token pasted into the `reconix.token` setting is moved to SecretStorage and the setting is cleared (`takeTokenFromSettings`). Never read the token from settings in any other way.
 - Never log, store or post tokens (including users' GitHub tokens for private repos, which pass through `start_scan` to git's environment only), upload signatures (`logs.RedactingFormatter` scrubs `sig=`; uvicorn runs with `log_config=None`), API keys, secret values or (extension side) file contents.
 - Harness config comes only from environment variables (`config.py`). `LLM_MODEL` needs LiteLLM's provider prefix, for example `openai/<model>` for an OpenAI-compatible server. Small local models often return near-JSON, and `llm.parse_review` accepts it.
 - Contract paths are relative, use forward slashes, and have no `..` or empty parts (`files.check_rel_path`). Unpacking refuses links, devices and absolute or `..` paths before anything reaches the code folder. GitHub clones have every symlink removed.

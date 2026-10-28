@@ -6,7 +6,7 @@ import type { Controller, View } from "./controller";
 import type { ToExtension, ToWebview } from "./shared/messages";
 
 export class ChatViewProvider implements vscode.WebviewViewProvider, View {
-  static readonly id = "vulnScanner.chat";
+  static readonly id = "reconix.chat";
   private view?: vscode.WebviewView;
   private ready = false;
   private queue: ToWebview[] = [];

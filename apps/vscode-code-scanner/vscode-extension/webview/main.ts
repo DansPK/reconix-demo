@@ -1057,7 +1057,7 @@ findingsTab.onclick = () => setTab("findings");
 stopBtn.onclick = () => send({ type: "cancel" });
 rescanBtn.onclick = () => {
   setTab("chat");
-  send({ type: "runCommand", command: "vulnScanner.rescan" });
+  send({ type: "runCommand", command: "reconix.rescan" });
 };
 fixAllBtn.onclick = () => {
   setTab("chat");

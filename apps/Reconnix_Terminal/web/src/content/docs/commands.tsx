@@ -216,7 +216,7 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
     errors: [
       { message: "The report is available once the assessment is complete.", meaning: "The run is still going or was stopped." },
       { message: "(the \u201cExport the report as…\u201d menu opens)", meaning: "An argument that is not one of the three format ids is not an error: the menu opens instead." },
-      { message: "<Format> reports aren't in this demo.", meaning: "PDF without WeasyPrint or Chrome, or DOCX without python-docx." },
+      { message: "<Format> reports aren't available.", meaning: "PDF without WeasyPrint or Chrome, or DOCX without python-docx." },
       { message: "PDF export needs WeasyPrint or a Chrome/Chromium browser. / Couldn't render the PDF with the browser. / The browser did not produce a PDF.", meaning: "The PDF engine is missing or failed; export DOCX or JSON instead." },
       { message: "Couldn't open it. The report is saved at <path>.", meaning: "The file is written but no browser or app could be launched here." },
     ],

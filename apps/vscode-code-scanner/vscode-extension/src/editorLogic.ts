@@ -64,8 +64,8 @@ export function hoverMarkdown(f: Finding, link: (command: string, label: string)
   lines.push(`_${verdict}_ · \`${f.rule_id}\`${cwe ? ` · [${f.cwe}](${cwe})` : ""} · ${f.tools.join(" + ")}`, "");
   if (f.explanation) lines.push(`**What's wrong:** ${f.explanation}`, "");
   if (f.fix_recommendation) lines.push(`**How to fix:** ${f.fix_recommendation}`, "");
-  lines.push([link("vulnScanner.fixFinding", "$(wrench) Fix"), link("vulnScanner.explainFinding", "$(comment-discussion) Explain"),
-              link("vulnScanner.ignoreFinding", "$(eye-closed) Ignore")].join(" &nbsp;·&nbsp; "));
+  lines.push([link("reconix.fixFinding", "$(wrench) Fix"), link("reconix.explainFinding", "$(comment-discussion) Explain"),
+              link("reconix.ignoreFinding", "$(eye-closed) Ignore")].join(" &nbsp;·&nbsp; "));
   return lines.join("\n");
 }
 

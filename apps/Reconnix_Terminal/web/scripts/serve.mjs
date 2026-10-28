@@ -47,7 +47,7 @@ child.stdout.on("data", (chunk) => {
   process.stdout.write(chunk);
   if (announced || !/ready/i.test(String(chunk))) return;
   announced = true;
-  process.stdout.write(`\n  Reconix analysis dashboard (static demo)\n  Open  ${url}\n  Press Ctrl+C to stop.\n\n`);
+  process.stdout.write(`\n  Reconix analysis dashboard\n  Open  ${url}\n  Press Ctrl+C to stop.\n\n`);
   if (openBrowser) open(url);
 });
 

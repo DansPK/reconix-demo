@@ -15,7 +15,7 @@ from .targets import needs
 
 START = ("Type a target to start — a URL, an IPv4 address or range, or a git repo or local "
          "path — or /template to pick a template.")
-RUNNING = ("I can't take new instructions in this demo while an assessment runs. Use "
+RUNNING = ("I can't take new instructions while an assessment runs. Use "
            "/status, /findings, /audit and /report, or /new to start over.")
 AFTER_RUN = ("The assessment is finished. Use /findings, /report, or /new to start another.")
 

@@ -18,7 +18,7 @@ export function makeFetch(caCertificatePath?: string): FetchFn {
   try {
     ca = readFileSync(expandHome(caCertificatePath), "utf8");
   } catch {
-    throw new Error(`Cannot read the CA certificate at ${caCertificatePath} (vulnScanner.caCertificate).`);
+    throw new Error(`Cannot read the CA certificate at ${caCertificatePath} (reconix.caCertificate).`);
   }
   const dispatcher = new Agent({ connect: { ca: [...tls.rootCertificates, ca] } });
   return ((url: string | URL, init?: RequestInit) =>

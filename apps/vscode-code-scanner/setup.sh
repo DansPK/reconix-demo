@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# One-shot setup for the STATIC DEMO. Safe to run again.
+# One-shot setup for the Reconix code scanner. Safe to run again.
 #
 # Works on Linux, macOS and Windows (run it in Git Bash, which comes with Git for Windows).
 #
-# This demo needs no real analyzer, no Docker, no SonarQube, no LLM and no API keys. It
-# builds the VS Code extension and points it at the bundled demo server (canned findings).
+# No Docker, no SonarQube, no LLM and no API keys. It builds the VS Code extension and
+# points it at the bundled Reconix scanner server.
 #
 #   ./setup.sh
-#   cd vscode-extension && npm run fake-server     # start the demo server on :7357
+#   cd vscode-extension && npm run server          # start the scanner server on :7357
 #
 # Then in VS Code: Reload Window, click the shield → "Scan with Reconix".
 set -euo pipefail
@@ -45,7 +45,7 @@ if command -v code >/dev/null; then
     MINGW* | MSYS* | CYGWIN*) SETTINGS="${APPDATA//\\//}/Code/User/settings.json" ;;
     *) SETTINGS="${XDG_CONFIG_HOME:-$HOME/.config}/Code/User/settings.json" ;;
   esac
-  # The extension moves vulnScanner.token into secure storage on start and clears the setting.
+  # The extension moves reconix.token into secure storage on start and clears the setting.
   if URL=$SERVER_URL TOKEN=$TOKEN python3 - "$SETTINGS" <<'EOF'
 import json, os, sys
 path = sys.argv[1]
@@ -56,14 +56,16 @@ except FileNotFoundError:
     s = {}
 except ValueError:
     sys.exit(1)  # settings.json has comments or trailing commas; leave it alone
-s["vulnScanner.serverUrl"] = os.environ["URL"]
-s["vulnScanner.token"] = os.environ["TOKEN"]
+for k in [k for k in s if k.startswith("vulnScanner.")]:  # migrate keys from older installs
+    s.setdefault("reconix." + k[len("vulnScanner."):], s.pop(k))
+s["reconix.serverUrl"] = os.environ["URL"]
+s["reconix.token"] = os.environ["TOKEN"]
 json.dump(s, open(path, "w", encoding="utf-8"), indent=4)
 EOF
   then
     echo "VS Code settings updated (serverUrl=$SERVER_URL, token set)"
   else
-    warn "Could not edit $SETTINGS. Set vulnScanner.serverUrl=$SERVER_URL and token=$TOKEN yourself."
+    warn "Could not edit $SETTINGS. Set reconix.serverUrl=$SERVER_URL and token=$TOKEN yourself."
   fi
 else
   warn "'code' is not on PATH. Install $EXT/reconix-scanner.vsix from VS Code (Extensions → … → Install from VSIX)."
@@ -71,7 +73,7 @@ fi
 
 # --- summary -----------------------------------------------------------------
 say "Done"
-echo "Demo server: $SERVER_URL  (token: $TOKEN)"
-echo "Start it:    cd vscode-extension && npm run fake-server"
-echo "Sample repo: open demo-vuln-shop/ in VS Code (planted issue per file)"
+echo "Scanner server: $SERVER_URL  (token: $TOKEN)"
+echo "Start it:       cd vscode-extension && npm run server"
+echo "Sample repo:    open vuln-shop/ in VS Code (one issue per file)"
 echo "Then in VS Code: Reload Window → shield icon → \"Scan with Reconix\"."

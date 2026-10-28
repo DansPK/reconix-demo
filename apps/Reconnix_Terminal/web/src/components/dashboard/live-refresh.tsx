@@ -31,7 +31,7 @@ export function LiveRefresh({ renderedAt, dir, everyMs = DEFAULT_REFRESH_MS }: {
         className="dash-reveal hidden shrink-0 items-center gap-2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground md:flex"
       >
         <span aria-hidden className="inline-block size-1.5 rounded-full bg-muted-foreground" />
-        <span>Static · {renderedAt}</span>
+        <span>Updated {renderedAt}</span>
       </span>
     );
   }
