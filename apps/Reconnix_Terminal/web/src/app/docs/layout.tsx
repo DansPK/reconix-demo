@@ -1,7 +1,6 @@
 import { HydratedMark } from "@/components/dashboard/hydrated-mark";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { DocsTopBar } from "@/components/docs-top-bar";
-import { requireSignedIn } from "@/lib/auth/guard";
 
 /**
  * Chrome for every /docs/** route: the dashboard's own frame (the same sidebar, a top bar and
@@ -15,7 +14,6 @@ import { requireSignedIn } from "@/lib/auth/guard";
  * intro reveal (the docs have no intro) and turns on smooth hash links (dashboard.css).
  */
 export default async function DocsLayout({ children }: { children: React.ReactNode }) {
-  await requireSignedIn();
   return (
     <div className="dash-page" data-docs="">
       <HydratedMark />

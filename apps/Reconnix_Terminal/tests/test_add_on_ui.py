@@ -155,18 +155,8 @@ async def test_the_notice_says_when_the_file_was_cut(app, notes, tmp_path, monke
         assert notes[0][0] == "Added big.txt — 5 passage(s), cut to the first 5 passages."
 
 
-async def test_a_remote_model_is_named_in_the_notice(app, notes, model_active, tmp_path):
-    async with app.run_test(size=SIZE) as pilot:
-        app.run_command_line(f"/add-on {_write(tmp_path)}")
-        await wait_until(pilot, lambda: notes, what="a notification")
-        assert notes[0][0] == ("Added runbook.md — 1 passage(s). Passages from it may be sent "
-                               "to OpenAI with your questions.")
-
-
-async def test_a_local_model_is_not_named(app, notes, reachable, tmp_path):
-    store.set_provider("ollama", base_url="http://127.0.0.1:11434", models=["llama3.1"])
-    store.test_provider("ollama")
-    store.activate("ollama", "llama3.1")
+async def test_notice_never_names_a_remote_model(app, notes, tmp_path):
+    # Static demo: there is no model, so a file's passages are never sent anywhere.
     async with app.run_test(size=SIZE) as pilot:
         app.run_command_line(f"/add-on {_write(tmp_path)}")
         await wait_until(pilot, lambda: notes, what="a notification")

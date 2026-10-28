@@ -1,37 +1,67 @@
 /* One answer as the NDJSON stream the page reads (protocol.ts), server only: `meta` (with the
-   names of the /add-on files the model was given, kept with the reply too), the cards,
-   the model's text as it arrives, an `error` if the model fails, then `done`. When it ends the
-   reply is saved after its question with the cards that were shown (history-store.ts): "done",
-   "error" with what went wrong, or "stopped" with the part that arrived when the operator
-   pressed Stop (the request is aborted, which cancels this stream and the model's). While it
-   runs the question is marked as being answered (a Retry of it is refused). The rate slot is
-   handed back at the very end. Nothing here logs the question or the answer. */
+   names of the /add-on files whose passages were matched), the cards, then a short reply text,
+   then `done`. Static demo: no model is called. The cards are the facts the server built from
+   the saved files (cards.ts); the text here is a canned narrative written around them (counts,
+   the worst finding, the run's state), never invented data. When it ends the reply is saved
+   after its question with the cards that were shown (history-store.ts). The rate slot is handed
+   back at the end. Nothing here logs the question or the answer. */
 import "server-only";
 
-import type { ModelConfig } from "./config";
-import type { Conversation, ReplyState, UserMessage } from "./history-schema";
+import type { Conversation, UserMessage } from "./history-schema";
 import { markStreaming, saveReply } from "./history-store";
-import { ModelError, streamReply, type Turn } from "./llm";
 import { type Card, encodeFrame, type Frame } from "./protocol";
 
 export interface ReplyInput {
-  config: ModelConfig;
-  turns: Turn[];
   conversation: Conversation;
   asked: UserMessage;
   cards: Card[];
-  knowledge?: string[]; // the /add-on files whose passages went to the model (their names)
+  knowledge?: string[]; // the /add-on files whose passages matched (their names)
   signal: AbortSignal; // the request's: aborted when the page stops or leaves
   release: () => void; // the rate slot
 }
 
-export function replyStream({ config, turns, conversation, asked, cards, knowledge = [], signal, release }: ReplyInput): ReadableStream<Uint8Array> {
+const sev = (c: { CRITICAL: number; HIGH: number; MEDIUM: number; LOW: number }): string =>
+  (["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const).filter((k) => c[k] > 0).map((k) => `${c[k]} ${k.toLowerCase()}`).join(", ");
+
+/** A canned narrative built from the cards the server picked. Plain facts, no model. */
+function narrate(cards: Card[], scopeLabel: string): string {
+  const parts: string[] = [];
+  for (const card of cards) {
+    if (card.kind === "notice") parts.push(card.body);
+    else if (card.kind === "findings") {
+      const worst = card.items[0];
+      parts.push(
+        card.total === 0
+          ? `No findings are recorded for ${scopeLabel}.`
+          : `${scopeLabel} has ${card.total} ${card.total === 1 ? "finding" : "findings"}${sev(card.counts) ? ` (${sev(card.counts)})` : ""}.` +
+              (worst ? ` The most severe is “${worst.title}” (${worst.severity.toLowerCase()}) on ${worst.target}.` : ""),
+      );
+    } else if (card.kind === "finding") {
+      const i = card.item;
+      parts.push(`“${i.title}” is a ${i.severity.toLowerCase()} issue${card.cwe ? ` (${card.cwe})` : ""} on ${i.target}${card.tool ? `, flagged by ${card.tool}` : ""}. ${card.impact}`.trim());
+    } else if (card.kind === "progress") {
+      const r = card.runs[0];
+      if (r) parts.push(`${r.run.label} is ${String(r.status).toLowerCase()} (${Math.round(r.progress)}%).`);
+    } else if (card.kind === "approvals") {
+      parts.push(`There ${card.pending === 1 ? "is" : "are"} ${card.pending} approval${card.pending === 1 ? "" : "s"} still pending.`);
+    } else if (card.kind === "policy") {
+      parts.push(`The approved scope blocked ${card.blocked} of ${card.checks} checked requests.`);
+    } else if (card.kind === "report") {
+      parts.push(`The report for ${card.runs[0]?.run.label ?? scopeLabel} is ready to download below.`);
+    }
+  }
+  const body = parts.filter(Boolean).join(" ");
+  return body || `Here is what the saved data shows for ${scopeLabel}. See the cards below for the details.`;
+}
+
+/** Split into sentence-ish chunks so the page renders it as it "arrives". */
+function chunks(text: string): string[] {
+  return text.match(/[^.!?]+[.!?]*\s*/g) ?? [text];
+}
+
+export function replyStream({ conversation, asked, cards, knowledge = [], signal, release }: ReplyInput): ReadableStream<Uint8Array> {
   const used = knowledge.length ? { knowledge } : {};
   const encoder = new TextEncoder();
-  const abort = new AbortController();
-  const onAbort = () => abort.abort();
-  signal.addEventListener("abort", onAbort, { once: true });
-  if (signal.aborted) abort.abort();
   let open = true;
   const done = markStreaming(asked.id);
 
@@ -47,44 +77,22 @@ export function replyStream({ config, turns, conversation, asked, cards, knowled
     send({ t: "meta", conversationId: conversation.id, title: conversation.title, scope: conversation.scope, ...used });
     for (const card of cards) send({ t: "card", card });
 
+    const text = narrate(cards, conversation.scope.label || "this assessment");
     let reply = "";
-    let state: ReplyState = "done";
-    let detail: string | undefined;
-    try {
-      const body = await streamReply(config, turns, abort.signal);
-      const reader = body.getReader();
-      const decoder = new TextDecoder();
-      for (;;) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        const text = decoder.decode(value, { stream: true });
-        if (text) {
-          reply += text;
-          send({ t: "text", delta: text });
-        }
-      }
-      if (abort.signal.aborted) state = "stopped";
-      else if (!reply.trim()) {
-        state = "error";
-        detail = "The model sent an empty answer.";
-      }
-    } catch (error) {
-      if (abort.signal.aborted) state = "stopped";
-      else {
-        state = "error";
-        detail = error instanceof ModelError ? error.message : "The AI model stopped answering.";
-      }
+    for (const piece of chunks(text)) {
+      if (signal.aborted) break;
+      reply += piece;
+      send({ t: "text", delta: piece });
     }
-    if (detail) send({ t: "error", detail });
+    const state = signal.aborted ? "stopped" : "done";
     try {
-      const kept = await saveReply(conversation.id, { replyTo: asked.id, content: reply, cards, state, ...(detail ? { detail } : {}), ...used });
+      const kept = await saveReply(conversation.id, { replyTo: asked.id, content: reply, cards, state, ...used });
       if (!kept) send({ t: "error", detail: "The reply was not saved: the conversation was deleted meanwhile." });
     } catch {
       send({ t: "error", detail: "The reply could not be saved." });
     }
     done();
     send({ t: "done" });
-    signal.removeEventListener("abort", onAbort);
     release();
     if (open) {
       open = false;
@@ -102,7 +110,6 @@ export function replyStream({ config, turns, conversation, asked, cards, knowled
     },
     cancel() {
       open = false;
-      abort.abort();
     },
   });
 }

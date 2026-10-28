@@ -1,10 +1,10 @@
-/* The page's side of the Security knowledge routes (browser only): list the files, upload one
-   (XMLHttpRequest, for its upload progress) and remove one. Every answer is checked before the
-   page uses it, and every refusal becomes one sentence for the page. */
+/* The page's side of the Security knowledge route (browser only): list the files, read-only.
+   Static demo: no upload or remove (those went through the TUI's Python /add-on code). Every
+   answer is checked before the page uses it, and every refusal becomes one sentence. */
 import { z } from "zod";
 
-import { knowledgeFileRoute, KNOWLEDGE_ROUTE } from "./paths";
-import type { KnowledgeItem, KnowledgeListing } from "./types";
+import { KNOWLEDGE_ROUTE } from "./paths";
+import type { KnowledgeListing } from "./types";
 
 const ItemSchema = z.object({
   id: z.string().regex(/^[0-9a-f]{32}$/),
@@ -17,16 +17,11 @@ const ItemSchema = z.object({
   original: z.boolean(),
 });
 const ListingSchema = z.object({ state: z.enum(["missing", "refused", "ok"]), items: z.array(ItemSchema).max(500), max: z.number().int().min(1) });
-const AddedSchema = z.object({ source: ItemSchema });
 
 export type Result<T> = { ok: true; value: T } | { ok: false; status: number; detail: string };
 
 const FALLBACK: Record<number, string> = {
-  401: "Your session ended. Open the dashboard again with the sign-in link /web prints.",
-  403: "The dashboard refused that request. Reload the page and try again.",
   404: "That knowledge file is not saved any more.",
-  413: "The file is over 10 MB.",
-  429: "Too many uploads at once. Wait a moment and try again.",
 };
 
 /** The route's `detail`, or a sentence for its status. */
@@ -53,35 +48,3 @@ async function call<T>(url: string, init: RequestInit, schema: z.ZodType<T>): Pr
 }
 
 export const listKnowledge = (): Promise<Result<KnowledgeListing>> => call(KNOWLEDGE_ROUTE, { method: "GET" }, ListingSchema);
-
-export const removeKnowledge = (id: string): Promise<Result<unknown>> => call(knowledgeFileRoute(id), { method: "DELETE" }, z.object({ ok: z.literal(true) }));
-
-/** Uploads `file` (the field `file` of a multipart body). `onProgress` gets the share sent so far
-    (0…1); once it reaches 1 the server is reading the file. */
-export function uploadKnowledge(file: File, onProgress: (sent: number) => void): Promise<Result<KnowledgeItem>> {
-  return new Promise((resolve) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", KNOWLEDGE_ROUTE);
-    xhr.responseType = "text";
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable && e.total > 0) onProgress(Math.min(1, e.loaded / e.total));
-    };
-    xhr.upload.onload = () => onProgress(1);
-    xhr.onerror = () => resolve({ ok: false, status: 0, detail: OFFLINE });
-    xhr.onabort = () => resolve({ ok: false, status: 0, detail: OFFLINE });
-    xhr.onload = () => {
-      let body: unknown = null;
-      try {
-        body = JSON.parse(xhr.responseText);
-      } catch {
-        body = null;
-      }
-      if (xhr.status < 200 || xhr.status >= 300) return resolve({ ok: false, status: xhr.status, detail: detailOf(xhr.status, body) });
-      const parsed = AddedSchema.safeParse(body);
-      resolve(parsed.success ? { ok: true, value: parsed.data.source } : { ok: false, status: xhr.status, detail: UNEXPECTED });
-    };
-    const form = new FormData();
-    form.append("file", file, file.name);
-    xhr.send(form);
-  });
-}

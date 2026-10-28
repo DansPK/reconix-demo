@@ -1,13 +1,16 @@
 # Setup guide
 
-How to run the scanner harness in Docker, connect an LLM and SonarQube, and install the VS Code extension. The steps take about 15 minutes, most of it waiting for Docker images and SonarQube to start.
+> **Static demo:** the real scanner harness (Docker, SonarQube, LLM) has been **removed**.
+> The extension now uses a bundled canned **demo server** — no Docker, no keys, no waiting.
+> Setup is just: `./setup.sh`, then `cd vscode-extension && npm run fake-server`, then in
+> VS Code Reload Window → shield → "Scan with Reconix". The Docker/SonarQube/LLM steps below
+> are historical.
 
 ## Quick way: `setup.sh`
 
 ```sh
-./setup.sh                                  # first run creates analyzer-agent-harness/.env and stops
-# fill in LLM_BASE_URL, LLM_API_KEY and LLM_MODEL in that file
-./setup.sh                                  # does everything else
+./setup.sh                                  # builds + installs the extension, points it at the demo server
+cd vscode-extension && npm run fake-server  # starts the canned demo server on :7357 (token test-token)
 ```
 
 It works on Linux, macOS and Windows. On Windows, run it in **Git Bash** (part of [Git for Windows](https://git-scm.com/download/win)), not PowerShell or cmd. It finds Python as `python3`, `python` or `py -3`, and writes VS Code's settings in the right place for each system.

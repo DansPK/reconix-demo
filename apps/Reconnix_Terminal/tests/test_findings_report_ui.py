@@ -192,14 +192,12 @@ async def test_a_docx_the_writer_refuses_is_a_warning_not_a_crash(app, monkeypat
 
 async def test_web_opens_the_running_dashboard(app, opened, web_launches, monkeypatch):
     from reconix import web_server
-    from reconix.store import persist
 
     monkeypatch.setattr(web_server, "is_listening", lambda url: True)
-    persist.WEB_URL_FILE.write_text("http://127.0.0.1:3100/login#token=abc\n")
     async with app.run_test(size=SIZE) as pilot:
         app.run_command_line("/web")
         await settle(pilot)
-        assert opened == ["http://127.0.0.1:3100/login#token=abc"]
+        assert opened == ["http://127.0.0.1:3100/"]      # the tokenless static-demo dashboard
         app.run_command_line("/dashboard")
         await settle(pilot)
         assert len(opened) == 2 and web_launches == []
@@ -223,11 +221,6 @@ async def test_the_report_has_no_web_button_or_key(app):
         assert "b" not in {b.key for b in app.screen.BINDINGS}
 
 
-async def test_web_refuses_a_link_that_is_not_local(app, opened):
-    from reconix.store import persist
-
-    persist.WEB_URL_FILE.write_text("https://evil.example.com/login\n")
-    async with app.run_test(size=SIZE) as pilot:
-        app.run_command_line("/dashboard")
-        await settle(pilot)
-        assert opened == []
+def test_web_only_opens_a_loopback_url():
+    # The static-demo dashboard URL is always loopback; /web never opens anything else.
+    assert store.web_dashboard_url().startswith("http://127.0.0.1:")

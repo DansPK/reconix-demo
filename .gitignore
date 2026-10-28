@@ -34,3 +34,6 @@
 
 # os / editor
 .DS_Store
+
+# local-only demo notes
+demo-script.md

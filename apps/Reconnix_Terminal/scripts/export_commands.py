@@ -28,7 +28,7 @@ GROUPS = (
     ("flow", "Flow", ("plan", "approval", "status")),
     ("findings", "Findings & reports", ("findings", "finding", "report", "export", "summary")),
     ("data", "Assessments & data", ("assessments", "audit")),
-    ("ai", "AI models & agent", ("assess", "add-on", "provider", "model")),
+    ("ai", "AI knowledge", ("add-on",)),
     ("dashboard", "Dashboard", ("web",)),
     ("session", "Session", ("quit",)),
 )

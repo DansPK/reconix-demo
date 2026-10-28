@@ -1,23 +1,11 @@
 /* The page's side of the AI Assistant's routes (browser only): ask a question and read the
-   NDJSON answer frame by frame, list, read, rename and delete saved conversations, turn a
-   saved conversation into the messages the page shows, and the model picker's calls (list, add,
-   change, remove, switch, test, fetch). Every answer is checked against the shared schemas
-   before the page uses it. */
+   NDJSON answer frame by frame, list, read, rename and delete saved conversations, and turn a
+   saved conversation into the messages the page shows. Every answer is checked against the
+   shared schemas before the page uses it. (Static demo: there is no model picker.) */
 import { z } from "zod";
 
 import { type Conversation, ConversationSchema, type ConversationSummary, ConversationSummarySchema } from "./history-schema";
-import type { AddProvider, Probe, SetActive, UpdateProvider } from "./models/requests";
-import { type FetchResult, FetchResultSchema, type ModelsView, ModelsViewSchema, type ProbeResult, ProbeResultSchema } from "./models/view";
-import {
-  ASSISTANT_ROUTE,
-  conversationRoute,
-  CONVERSATIONS_ROUTE,
-  modelRoute,
-  MODELS_ACTIVE_ROUTE,
-  MODELS_FETCH_ROUTE,
-  MODELS_ROUTE,
-  MODELS_TEST_ROUTE,
-} from "./paths";
+import { ASSISTANT_ROUTE, conversationRoute, CONVERSATIONS_ROUTE } from "./paths";
 import { type Card, createFrameReader, type Frame, isConversationId } from "./protocol";
 
 /** A message of the open conversation, as the page holds it. */
@@ -154,33 +142,4 @@ export async function deleteConversation(id: string): Promise<{ ok: true } | Fai
 export async function deleteAllConversations(): Promise<{ ok: true; deleted: number } | Failure> {
   const result = await call(CONVERSATIONS_ROUTE, { method: "DELETE" }, z.object({ deleted: z.number().int().min(0) }));
   return result.ok ? { ok: true, deleted: result.value.deleted } : result;
-}
-
-// --- the model picker ----------------------------------------------------------------------------
-
-// The routes add fields the picker doesn't use (the presets, the changed provider): dropped here.
-const ViewAnswer = ModelsViewSchema.strip();
-export type ModelsAnswer = { ok: true; view: ModelsView } | Failure;
-
-async function viewOf(url: string, init: RequestInit): Promise<ModelsAnswer> {
-  const result = await call(url, init, ViewAnswer);
-  return result.ok ? { ok: true, view: result.value } : result;
-}
-const send = (method: string, body?: unknown): RequestInit => (body === undefined ? { method } : { method, headers: json, body: JSON.stringify(body) });
-
-export const listModels = (signal?: AbortSignal) => viewOf(MODELS_ROUTE, { signal });
-export const addModelProvider = (body: AddProvider) => viewOf(MODELS_ROUTE, send("POST", body));
-export const updateModelProvider = (id: string, body: UpdateProvider) => viewOf(modelRoute(id), send("PATCH", body));
-export const removeModelProvider = (id: string) => viewOf(modelRoute(id), send("DELETE"));
-export const switchModel = (body: SetActive) => viewOf(MODELS_ACTIVE_ROUTE, send("PUT", body));
-
-export async function testModel(body: Probe): Promise<{ ok: true; result: ProbeResult } | Failure> {
-  const result = await call(MODELS_TEST_ROUTE, send("POST", body), ProbeResultSchema);
-  return result.ok ? { ok: true, result: result.value } : result;
-}
-
-/** The names the model's server lists, or `listed: false` (it answered without a list). */
-export async function fetchModelNames(body: Probe): Promise<({ ok: true } & FetchResult) | Failure> {
-  const result = await call(MODELS_FETCH_ROUTE, send("POST", body), FetchResultSchema);
-  return result.ok ? { ok: true, ...result.value } : result;
 }

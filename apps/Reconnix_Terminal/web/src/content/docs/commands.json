@@ -1,6 +1,6 @@
 {
   "source": "reconix/commands/builtin.py",
-  "count": 19,
+  "count": 16,
   "groups": [
     {
       "id": "start",
@@ -156,47 +156,14 @@
     },
     {
       "id": "ai",
-      "title": "AI models & agent",
+      "title": "AI knowledge",
       "commands": [
-        {
-          "name": "assess",
-          "aliases": [
-            "agent"
-          ],
-          "description": "Run a real assessment with the AI agent (needs a /model)",
-          "takes_argument": false,
-          "ask": false,
-          "question": "",
-          "empty": ""
-        },
         {
           "name": "add-on",
           "aliases": [
             "addon"
           ],
           "description": "Add reference files for the AI (knowledge add-ons)",
-          "takes_argument": false,
-          "ask": false,
-          "question": "",
-          "empty": ""
-        },
-        {
-          "name": "provider",
-          "aliases": [
-            "providers"
-          ],
-          "description": "Manage LLM providers (set / test / use a model / unset)",
-          "takes_argument": false,
-          "ask": false,
-          "question": "",
-          "empty": ""
-        },
-        {
-          "name": "model",
-          "aliases": [
-            "models"
-          ],
-          "description": "Pick the active LLM model (provider/model)",
           "takes_argument": false,
           "ask": false,
           "question": "",

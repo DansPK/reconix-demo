@@ -19,14 +19,14 @@ from . import store, theme
 from .commands import COMMANDS, Command, find, parse
 from .screens import ChoiceScreen, CommandBarScreen, HelpScreen, StartScreen
 from .shell import (
-    ActionsMixin, AgentMixin, DialogsMixin, KnowledgeMixin, LlmMixin, NavigationMixin,
+    ActionsMixin, DialogsMixin, KnowledgeMixin, NavigationMixin,
     RunHostMixin, WebDashboardMixin,
 )
 from .widgets import ActivityStatus
 
 
-class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, AgentMixin, DialogsMixin,
-                 KnowledgeMixin, LlmMixin, WebDashboardMixin, App):
+class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
+                 KnowledgeMixin, WebDashboardMixin, App):
     """Reconix — AI-Powered Security Testing Assistant (demo)."""
 
     CSS_PATH = "reconix.tcss"
@@ -62,7 +62,6 @@ class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, AgentMixin, Dialog
         self.activity_expanded = False           # Ctrl+O: list the steps Reconix finished
         self._init_run_host()
         self._init_web()
-        self._init_agent()
 
     def get_css_variables(self) -> Dict[str, str]:
         # The stylesheet's $variables come from theme.py, the one place colors are defined.
@@ -74,7 +73,6 @@ class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, AgentMixin, Dialog
     def on_unmount(self) -> None:
         # Quitting ends the session: mark the saved copies so the web dashboard shows an
         # unfinished run as interrupted rather than still waiting.
-        self.cancel_agent(mark_stopped=False)    # close_session marks it interrupted
         self.controller.stop()
         self.stop_web_dashboard()
         store.close_session()

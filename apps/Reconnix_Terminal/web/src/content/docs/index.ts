@@ -1,4 +1,3 @@
-import { aiModels } from "@/content/docs/ai-models";
 import { assessmentGuide } from "@/content/docs/assessment-guide";
 import { commandsContent } from "@/content/docs/commands";
 import { gettingStarted } from "@/content/docs/getting-started";
@@ -12,7 +11,6 @@ import type { GroupContent } from "@/content/docs/types";
 export const DOCS_CONTENT: Record<string, GroupContent> = {
   "getting-started": gettingStarted,
   "terminal-guide": terminalGuide,
-  "ai-models": aiModels,
   commands: commandsContent,
   "assessment-guide": assessmentGuide,
   reports,

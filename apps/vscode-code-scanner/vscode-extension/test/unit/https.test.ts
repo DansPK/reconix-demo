@@ -7,7 +7,7 @@ import { after, before, test } from "node:test";
 import { HarnessClient } from "../../src/client";
 import { makeFetch } from "../../src/http";
 import { prepareWorkspace } from "../../src/scanFlow";
-import { FakeHarness } from "../fakeServer";
+import { FakeHarness } from "../../demo-server/server";
 import { makeTree } from "./helpers";
 
 let fake: FakeHarness;

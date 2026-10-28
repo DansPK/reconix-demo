@@ -18,7 +18,7 @@ import { useId, useMemo, useState } from "react";
 import { Eye, X } from "lucide-react";
 
 import { DashCard } from "@/components/dashboard/dash-card";
-import { COMBINED_FILES, FileStatus, type FileState, GenerateButton } from "@/components/dashboard/report-file";
+import { COMBINED_FILE_IDS, FileStatus, type FileState, GenerateButton } from "@/components/dashboard/report-file";
 import { ReportPreview, type PreviewState } from "@/components/dashboard/report-preview";
 import { ReportRuns } from "@/components/dashboard/report-runs";
 import type { ReportRunRow } from "@/components/dashboard/report-types";
@@ -29,7 +29,6 @@ import { DOCS } from "@/lib/docs-nav";
 import {
   COMBINE_MAX,
   COMBINE_OPTION_META,
-  type CombinedFile,
   type CombineOptions,
   combinedFileName,
   combinedHref,
@@ -147,7 +146,7 @@ export function ReportCombine({ runs }: { runs: ReportRunRow[] }) {
           <Button onClick={() => !previewBlocked && showPreview()} aria-disabled={previewBlocked || undefined} aria-describedby={`${whyId}-preview`}>
             <Eye className="size-3.5" aria-hidden /> {preview.kind === "loading" ? "Loading preview…" : "Preview report"}
           </Button>
-          {(Object.keys(COMBINED_FILES) as CombinedFile[]).map((format) => (
+          {COMBINED_FILE_IDS.map((format) => (
             <GenerateButton key={format} format={format} state={file} blocked={fileBlocked} describedBy={`${whyId}-file`} onGenerate={generate} />
           ))}
           <Button variant="quiet" onClick={() => !none && clear()} aria-disabled={none || undefined}>

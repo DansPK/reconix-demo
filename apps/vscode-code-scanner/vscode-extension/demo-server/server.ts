@@ -1,6 +1,8 @@
-// A fake harness for tests: the contract's MCP tools with in-memory state,
+// The demo scanner server: the contract's MCP tools with in-memory state, canned findings,
 // the presigned upload URL (with hash check), and progress notifications in watch_scan.
-// Run directly to use it by hand: `npm run fake-server` (token "test-token", port 7357).
+// No LLM, no keys, no external services. Run it with `npm run fake-server`
+// (token "test-token", port 7357). The extension's unit/integration tests import FakeHarness
+// from here too.
 
 import { createHash, randomUUID } from "crypto";
 import * as http from "http";
@@ -486,8 +488,52 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+/** Canned findings for the demo: a spread of severities across files that exist in a typical
+ * JS/TS project. Everything else (snippet, review verdict, ids) is filled in by findingsFor(). */
+const DEMO_FINDINGS: Partial<Finding>[] = [
+  { path: "src/index.js", title: "SQL injection in user lookup", severity: "critical",
+    rule_id: "javascript.express.sql-injection", cwe: "CWE-89", tools: ["semgrep"],
+    start_line: 42, end_line: 42,
+    message: "User input is concatenated directly into a SQL query.",
+    snippet: "const q = `SELECT * FROM users WHERE id = ${req.query.id}`;",
+    verdict: "likely_real",
+    explanation: "The id query parameter reaches the database without escaping, so an attacker can read or modify any row.",
+    fix_recommendation: "Use a parameterised query: db.query('SELECT * FROM users WHERE id = ?', [req.query.id])." },
+  { path: "src/routes/exec.js", title: "OS command injection", severity: "critical",
+    rule_id: "javascript.lang.command-injection", cwe: "CWE-78", tools: ["semgrep"],
+    start_line: 17, end_line: 17,
+    message: "Untrusted input is passed to child_process.exec.",
+    snippet: "exec(`ping -c 1 ${req.body.host}`);",
+    verdict: "likely_real",
+    explanation: "The host field is shelled out unescaped, letting an attacker run arbitrary commands.",
+    fix_recommendation: "Use execFile with an argument array and validate the host against an allow-list." },
+  { path: "src/config.js", title: "Hard-coded API credential", severity: "high",
+    rule_id: "gitleaks.generic-api-key", cwe: "CWE-798", tools: ["gitleaks"],
+    start_line: 8, end_line: 8,
+    message: "A secret-looking token is committed in source.",
+    snippet: "const STRIPE_KEY = \"sk_live_************************\";",
+    verdict: "likely_real",
+    explanation: "Secrets in source are exposed to anyone with repository access and leak through history.",
+    fix_recommendation: "Move the key to an environment variable and rotate the exposed one." },
+  { path: "src/views/profile.js", title: "Reflected XSS in profile page", severity: "medium",
+    rule_id: "javascript.browser.dom-xss", cwe: "CWE-79", tools: ["semgrep"],
+    start_line: 23, end_line: 23,
+    message: "User input is written to innerHTML.",
+    snippet: "el.innerHTML = params.get('name');",
+    verdict: "likely_real",
+    explanation: "The name parameter is rendered as HTML, so a crafted link can run script in the victim's session.",
+    fix_recommendation: "Set textContent instead of innerHTML, or sanitise the value first." },
+  { path: "src/utils/hash.js", title: "Weak password hash (MD5)", severity: "low",
+    rule_id: "javascript.crypto.weak-hash", cwe: "CWE-327", tools: ["semgrep"],
+    start_line: 5, end_line: 5,
+    message: "MD5 is used to hash passwords.",
+    snippet: "return crypto.createHash('md5').update(pw).digest('hex');",
+    verdict: "likely_real",
+    explanation: "MD5 is fast and broken for password storage; hashes can be brute-forced cheaply.",
+    fix_recommendation: "Use a slow, salted KDF such as bcrypt, scrypt or argon2." },
+];
+
 if (require.main === module) {
-  const h = new FakeHarness({ port: Number(process.env.PORT ?? 7357), stepMs: 1000,
-    findings: [{ path: "src/index.js", title: "SQL injection", severity: "critical" }] });
-  h.start().then((url) => console.log(`Fake harness on ${url} (token: ${h.token})`));
+  const h = new FakeHarness({ port: Number(process.env.PORT ?? 7357), stepMs: 1000, findings: DEMO_FINDINGS });
+  h.start().then((url) => console.log(`Reconix demo scanner on ${url} (token: ${h.token})`));
 }

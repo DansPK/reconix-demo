@@ -3,9 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { ASSISTANT_VIEW } from "@/lib/assistant/paths";
-import { requireSignedIn } from "@/lib/auth/guard";
 
 export default async function AssistantPage() {
-  await requireSignedIn();
   redirect(ASSISTANT_VIEW);
 }

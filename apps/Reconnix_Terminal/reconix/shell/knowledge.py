@@ -94,11 +94,8 @@ class KnowledgeMixin:
         except Exception:  # noqa: BLE001 - a parser bug must neither crash the app nor vanish
             self.call_from_thread(self._add_failed, _FAILED, form)
             return
-        try:
-            remote = store.active_remote_label()
-        except Exception:  # noqa: BLE001 - the notice is best-effort; the file is saved
-            remote = None
-        self.call_from_thread(self._added_knowledge, source, remote, form)
+        # Static demo: no model, so passages are never sent anywhere.
+        self.call_from_thread(self._added_knowledge, source, None, form)
 
     def _form_open(self, form: Optional[AddOnForm]) -> bool:
         return form is not None and form in self.screen_stack

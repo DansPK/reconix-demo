@@ -1,21 +1,17 @@
 """Chatting on after the run: a finished (or stopped) assessment keeps its conversation.
 
 Every typed line after the run is a chat turn about that same assessment, with its history
-and context. A new assessment starts only with /new, /assess or /template.
+and context. A new assessment starts only with /new or /template.
 """
 
-from types import SimpleNamespace
-
-import litellm
 import pytest
 
 from reconix import store
-from reconix.llm import client
-from reconix.store import agent_run, replies
+from reconix.store import replies
 from reconix.store.snapshot import uid_for
 from reconix.widgets import PromptBox
 
-from .support import SIZE, run_ui_to, settle, type_request, wait_until
+from .support import SIZE, run_ui_to, settle, type_request
 
 
 def _uid() -> str:
@@ -24,19 +20,6 @@ def _uid() -> str:
 
 def _chat(speaker: str):
     return [c.text for c in store.list_chat() if c.speaker == speaker and c.kind == "text"]
-
-
-@pytest.fixture
-def model_calls(monkeypatch):
-    """Records every completion the active model is asked for."""
-    calls = []
-
-    def complete(pid, model, messages, **kw):
-        calls.append(messages)
-        return f"model answer {len(calls)}"
-
-    monkeypatch.setattr(client, "complete", complete)
-    return calls
 
 
 # --- scripted run, built-in replies --------------------------------------------------------
@@ -127,30 +110,6 @@ async def test_new_still_starts_a_fresh_assessment(app):
         assert len(store.list_assessments()) == cards + 1     # the finished one stays listed
 
 
-# --- with an active model ------------------------------------------------------------------
-async def test_model_answers_after_the_run_with_history_and_findings(
-        app, model_active, model_calls):
-    async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, None)
-        fid = store.list_findings()[0].fid
-        uid = _uid()
-        app.goto("start")
-        await settle(pilot)
-
-        await type_request(pilot, "first question about the results")
-        await wait_until(pilot, lambda: "model answer 1" in _chat("reconix"), what="reply 1")
-        await type_request(pilot, "and a second one")
-        await wait_until(pilot, lambda: "model answer 2" in _chat("reconix"), what="reply 2")
-
-        assert _uid() == uid
-        sent = " ".join(m["content"] for m in model_calls[-1])
-        assert "first question about the results" in sent      # earlier turns kept
-        assert "model answer 1" in sent
-        assert "and a second one" in sent
-        assert fid in sent                                     # the findings context
-        assert "finished" in sent and "completed" in sent      # and that the run is over
-
-
 # --- the c key ------------------------------------------------------------------------------
 async def test_c_on_findings_opens_chat(app):
     async with app.run_test(size=SIZE) as pilot:
@@ -187,43 +146,10 @@ async def test_c_on_finding_detail_drafts_about_the_finding(app):
             f"About {finding.fid} {finding.title}: ")
 
 
-# --- agent mode ------------------------------------------------------------------------------
-async def test_agent_chat_continues_with_the_same_agent_after_finish(
-        app, model_active, monkeypatch):
-    seen = []
-
-    async def fake_acompletion(**kwargs):
-        seen.append([dict(m) for m in kwargs["messages"]])
-        message = SimpleNamespace(content=f"noted {len(seen)}.", tool_calls=None)
-        return SimpleNamespace(choices=[SimpleNamespace(message=message)])
-
-    monkeypatch.setattr(litellm, "acompletion", fake_acompletion)
-    async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, None)               # the run is over
-        uid = _uid()
-        app.agent_mode = True
-        app._send_to_agent("summarise the engagement")
-        await wait_until(pilot, lambda: len(seen) == 1 and not app._agent_busy,
-                         what="the first agent turn")
-        agent = agent_run._agents[uid]
-        assert store.is_completed()                     # _agent_finished ran the real path
-
-        assert app.submit_request("which finding is worst?") is True
-        await wait_until(pilot, lambda: len(seen) == 2 and not app._agent_busy,
-                         what="the second agent turn")
-
-        assert agent_run._agents[uid] is agent          # same Agent, not a new one
-        assert _uid() == uid
-        convo = " ".join((m.get("content") or "") for m in seen[-1])
-        assert "summarise the engagement" in convo      # its history is intact
-        assert "noted 1." in convo
-        assert "which finding is worst?" in convo
-
-
-# --- stopped at the login: a pasted password never reaches the chat or a model ----------------
+# --- stopped at the login: a pasted password never reaches the chat ---------------------------
 @pytest.mark.parametrize("gate", ["account", "code"])
 async def test_password_pasted_after_a_stop_at_the_login_is_refused(
-        app, model_active, model_calls, monkeypatch, gate):
+        app, monkeypatch, gate):
     from reconix.store import lists, persist
 
     from .support import TEST_PASSWORD, screen_text
@@ -240,7 +166,6 @@ async def test_password_pasted_after_a_stop_at_the_login_is_refused(
         await type_request(pilot, TEST_PASSWORD)
         await settle(pilot)
 
-        assert model_calls == []                                  # no model was asked
         assert any("stopped at the target login" in w for w in warnings)
         assert len(store.list_chat()) == chat_before
         assert TEST_PASSWORD not in repr(store.list_chat())

@@ -49,7 +49,7 @@ export const OLD_DOCS_ROUTES: string[] = [
 
 /** The v2 addresses that are no page of a group today → the nearest group page or part. */
 export const DOCS_REDIRECTS: DocsRedirect[] = [
-  { source: "/docs/getting-started/configuration", destination: "/docs/ai-models#configuration" },
+  { source: "/docs/getting-started/configuration", destination: "/docs/getting-started#installation" },
   { source: "/docs/getting-started/first-assessment", destination: "/docs/getting-started#first-steps" },
   { source: "/docs/assessments", destination: "/docs/assessment-guide" },
   { source: "/docs/assessments/workflow", destination: "/docs/assessment-guide" },
@@ -61,7 +61,7 @@ export const DOCS_REDIRECTS: DocsRedirect[] = [
   { source: "/docs/configuration", destination: "/docs/assessment-guide#scope" },
   { source: "/docs/configuration/scope-manifest", destination: "/docs/assessment-guide#scope" },
   { source: "/docs/configuration/policies", destination: "/docs/assessment-guide#policy-checks" },
-  { source: "/docs/guardrails/model-switching", destination: "/docs/ai-models#models" },
+  { source: "/docs/guardrails/model-switching", destination: "/docs/guardrails#llm-data-handling" },
   { source: "/docs/guardrails/knowledge-and-rag", destination: "/docs/guardrails#llm-data-handling" },
   { source: "/docs/architecture", destination: "/docs/getting-started#introduction" },
   { source: "/docs/reference", destination: "/docs/reports" },
@@ -73,7 +73,6 @@ export const DOCS_REDIRECTS: DocsRedirect[] = [
 export const DOCS_GROUP_IDS: string[] = [
   "getting-started",
   "terminal-guide",
-  "ai-models",
   "commands",
   "assessment-guide",
   "reports",

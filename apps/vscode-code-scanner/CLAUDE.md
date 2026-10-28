@@ -2,7 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Two components, built from the plans in `docs/` (`docs/harness/IMPLEMENT_HARNESS.md`, `docs/extension/IMPLEMENT_VSCODE_EXTENSION.md`). The plans are the source of truth. Choices made where a plan was silent are recorded in the `PLAN_QUESTIONS.md` next to each plan. Setup and flow docs are in `docs/` too (`SETUP.md`, `PROJECT_FLOW.md`, `SOURCE_CODE_ANALYSIS_FLOW.md`).
+> **Static demo:** the real analyzer (`analyzer-agent-harness/` — Semgrep/Gitleaks/SonarQube
+> + LiteLLM) has been **removed**. The extension now talks to the bundled, canned, LLM-free
+> **demo server** (`vscode-extension/demo-server/server.ts`, `npm run fake-server`, `:7357`,
+> token `test-token`). The architecture notes below describe the original harness for
+> reference; nothing in this repo runs it. Run the demo with `./setup.sh` then
+> `npm run fake-server`.
+
+Originally two components (a VS Code extension and a Python analyzer harness); the harness and its design/flow plan docs were removed for the static demo, leaving the extension plus the bundled demo server. Setup lives in `docs/SETUP.md`.
 
 ## Commands
 

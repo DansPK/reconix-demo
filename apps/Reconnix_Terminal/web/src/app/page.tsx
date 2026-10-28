@@ -19,7 +19,6 @@ import { TopBar } from "@/components/dashboard/top-bar";
 import { Viewer } from "@/components/dashboard/viewer";
 import { KnowledgeView } from "@/components/knowledge/knowledge-view";
 import { retentionDays } from "@/lib/assistant/history-store";
-import { activeModelSummary } from "@/lib/assistant/models/resolve";
 import { runRef, scopedViews, scopeOf } from "@/lib/assistant/insights";
 import { welcomePrompts } from "@/lib/assistant/prompts";
 import { assessmentView, libraryItem } from "@/lib/data/adapt";
@@ -37,7 +36,8 @@ export default async function Home({ searchParams }: Props) {
   const overall = !chosen && views.length ? deriveOverall(views) : null;
   const items = library.assessments.map(libraryItem);
   const dir = shownDir(library.dir);
-  const model = await activeModelSummary(); // its summary only: no API key is read for a page
+  // Static demo: a fixed, local, canned "model" always answers — no picker, no network.
+  const model = { configured: true, name: "Reconix demo", provider: "Static data", local: true, reason: "" };
   const assistant: AssistantInfo = {
     scope: scopeOf(chosen),
     runs: scopedViews(views, null).map((v) => ({ ...runRef(v), status: v.status })),

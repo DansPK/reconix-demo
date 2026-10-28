@@ -16,7 +16,6 @@ import stat
 import tempfile
 from pathlib import Path
 from typing import Dict, Optional
-from urllib.parse import urlsplit
 
 from ..models import Assessment
 from ..models.base import utc_now
@@ -26,39 +25,20 @@ from .snapshot import snapshot, uid_for
 DATA_DIR = Path(os.environ.get("RECONIX_DATA_DIR") or "~/.reconix/assessments").expanduser()
 ENABLED = os.environ.get("RECONIX_SAVE", "1").strip().lower() not in {"0", "false", "no", "off"}
 
-# Where `web/scripts/serve.mjs` drops its sign-in link so the TUI can open the dashboard.
+# Kept for `web_server.start()`'s signature; the static-demo dashboard needs no sign-in link.
 WEB_URL_FILE = Path(os.environ.get("RECONIX_WEB_URL_FILE") or "~/.reconix/web.url").expanduser()
-
-_LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost"})
 
 _written: Dict[str, str] = {}     # file path -> digest of the content last written there
 
 
 def web_dashboard_url() -> Optional[str]:
-    """The running web dashboard's sign-in link, if one was written; else None.
+    """The static-demo dashboard's URL (no sign-in). `web/scripts/serve.mjs` binds here.
 
-    Only a loopback http URL is accepted, so a stray or tampered file can't send the
-    operator's browser somewhere else.
+    Always a loopback http URL on the dashboard's port (RECONIX_WEB_PORT, default 3100),
+    so `/web` never sends the operator's browser anywhere but this computer.
     """
-    try:
-        url = WEB_URL_FILE.read_text(encoding="utf-8").strip()
-    except OSError:
-        return None
-    return url if _is_loopback_link(url) else None
-
-
-def _is_loopback_link(url: str) -> bool:
-    """http on 127.0.0.1 or localhost with a port, and nothing that could name another host
-    (`http://127.0.0.1:1@evil.example/` really points at evil.example)."""
-    if any(c.isspace() or ord(c) < 32 for c in url) or "\\" in url:
-        return False
-    try:
-        parts = urlsplit(url)
-        port = parts.port
-    except ValueError:
-        return False
-    return (parts.scheme == "http" and parts.hostname in _LOOPBACK_HOSTS
-            and port is not None and "@" not in parts.netloc)
+    port = (os.environ.get("RECONIX_WEB_PORT") or "3100").strip() or "3100"
+    return f"http://127.0.0.1:{port}/"
 
 
 def file_for(assessment: Assessment) -> Path:

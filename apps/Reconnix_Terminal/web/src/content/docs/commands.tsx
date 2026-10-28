@@ -265,31 +265,6 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
     ),
     errors: [],
   },
-  assess: {
-    purpose: "Runs a real assessment of a target with the AI agent, through the same scope gate.",
-    when: "When a model is active and the backend harness is installed, to let the agent plan and run tools against an authorized target.",
-    syntax: "/assess <target>",   // needs the harness (Python 3.10+) and a /model
-    example: "/assess http://target.example.com",
-    behaviour: (
-      <>
-        The run and its scope are built like the scripted flow and the Template screen opens; the scope lists the
-        agent&apos;s whole tool set. Approving the scope hands the assessment to the agent, which runs on the Execution
-        screen: its plan as task rows, its tool calls in the live output, its findings as <Mono>AI-NNN</Mono> findings.
-        It asks for decisions and logins through dialogs; a chat line continues it; <Mono>/model</Mono> switches its model
-        mid-run. A running assessment&apos;s playback pauses and it stays listed under <Mono>/assessments</Mono>. See{" "}
-        <DocRef>The AI agent</DocRef>.
-      </>
-    ),
-    errors: [
-      { message: "The harness backend isn't installed (pip install -e backend).", meaning: "Install the harness from the repository root." },
-      { message: "Pick a model first with /model.", meaning: "No active model." },
-      { message: "Give a target, e.g. /assess http://host", meaning: "No argument." },
-      { message: "That doesn't look like a scan target (URL, host or repo).", meaning: "The argument names no target." },
-      { message: "No LLM model is active. Use /model to pick one.", meaning: "The model was removed while the agent was running." },
-      { message: "The assessment is running — you can chat once it finishes.", meaning: "A chat line while a turn runs; wait." },
-      { message: "Agent error: <the Python error>", meaning: "The harness failed; the run is marked finished and the terminal keeps working." },
-    ],
-  },
   "add-on": {
     purpose:
       "Adds a reference document the AI may quote from: its text is read once, redacted and kept on this computer.",
@@ -333,51 +308,6 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
       { message: "That YAML file can't be added: YAML anchors (&name) aren't supported.", meaning: "Anchors, aliases, merge keys and nesting over 100 levels are refused (they can expand a small file hugely)." },
       { message: "That Word file unpacks to over 50 MB; add a smaller copy. / That Word file has too many parts to read.", meaning: "The .docx is a zip whose contents are too large or too many." },
       { message: "Couldn't add that file; nothing was saved.", meaning: "Reading the file failed unexpectedly; nothing changed on disk." },
-    ],
-  },
-  provider: {
-    purpose: "Manages LLM providers: set one up, test it, use one of its models, or remove it.",
-    when: "Before using a model for the first time, after changing a key, or to switch to another provider.",
-    syntax: "/provider [<id> | set <id> | update <id> | test <id> | unset <id>]",
-    example: "/provider set ollama",
-    behaviour: (
-      <>
-        Without an argument, a menu lists the six providers (reconix, openai, anthropic, deepseek, ollama,
-        openai_compatible) with status, key hint and models. <Mono>/provider &lt;id&gt;</Mono> opens that provider&apos;s
-        submenu: Set up / Update, Test connection, Use a model, Unset. <Mono>set</Mono> and <Mono>update</Mono> open the
-        form; <Mono>test</Mono> runs the reachability test in the background and saves the result; <Mono>unset</Mono> asks
-        before deleting the saved key and settings. See <DocRef>Providers</DocRef>.
-      </>
-    ),
-    errors: [
-      { message: "Unknown provider.", meaning: "The id is not in the catalog." },
-      { message: "<Provider> needs an API key. / … needs a base URL. / At least one model name is required.", meaning: "A required field is empty." },
-      { message: "The base URL must start with http:// or https://. / Put the API key in the key field, not in the base URL.", meaning: "The base URL is not a plain http(s) URL." },
-      { message: "<Provider> holds a single model. / Reconix's base URL comes from .env and can't be changed.", meaning: "That provider's rules; see the catalog." },
-      { message: "<Provider> is not configured (yet).", meaning: "Test, use or unset before set." },
-      { message: "<Provider>: UNREACHABLE — <detail>", meaning: <>The test failed; see <DocRef>Common errors</DocRef>.</> },
-    ],
-  },
-  model: {
-    purpose: "Picks the active LLM model, the one that answers chat lines and drives the AI agent.",
-    when: "After a provider tested Reachable, and whenever you want to switch models, even mid-run.",
-    syntax: "/model [<provider>/<model>]",
-    example: "/model openai/gpt-4o-mini",
-    behaviour: (
-      <>
-        Without an argument, a menu lists every model of every configured provider (disabled until its provider is
-        Reachable). With <Mono>provider/model</Mono>, that model becomes active at once: the top bar shows{" "}
-        <Mono>llm: &lt;provider label&gt; · &lt;model&gt; ●</Mono>, the chat notes the switch, and a running agent is repointed
-        with its history kept. The run, findings and approvals are untouched. See{" "}
-        <DocRef>Models</DocRef>.
-      </>
-    ),
-    errors: [
-      { message: "Use provider/model, e.g. openai/gpt-4o-mini.", meaning: "The argument has no slash." },
-      { message: "No models yet. Use /provider to set one up and test it.", meaning: "No configured provider has models to list." },
-      { message: "Test the connection first — the provider is not reachable.", meaning: "Only a Reachable provider's model can be active." },
-      { message: "<model> is not configured for <Provider>.", meaning: "The model is not in that provider's list." },
-      { message: "Unknown provider. / <Provider> is not configured.", meaning: "The part before the slash is wrong." },
     ],
   },
   web: {

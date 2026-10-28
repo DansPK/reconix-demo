@@ -48,14 +48,13 @@ describe("the docs structure", () => {
     expect(DOCS_NAV.map((g) => g.id)).toEqual([
       "getting-started",
       "terminal-guide",
-      "ai-models",
       "commands",
       "assessment-guide",
       "reports",
       "troubleshooting",
       "guardrails",
     ]);
-    expect(PAGES.length).toBeGreaterThan(50);
+    expect(PAGES.length).toBeGreaterThan(40);
   });
 
   it("has content for every page, and a page for every content entry", () => {
@@ -160,9 +159,10 @@ describe("the old addresses", () => {
     expect(docsRedirectOf("/docs/commands/model/extra")).toBeUndefined();
   });
 
-  it("send the dashboard's old Configuration link to the AI models configuration", () => {
-    expect(docsRedirectOf("/docs/getting-started/configuration")).toBe("/docs/ai-models#configuration");
-    expect(docsRedirectOf("/docs/ai-models/configuration")).toBe("/docs/ai-models#configuration");
+  it("sends the dashboard's old Configuration link to a live page", () => {
+    expect(docsRedirectOf("/docs/getting-started/configuration")).toBe("/docs/getting-started#installation");
+    // the removed AI-models group is no longer a known docs group
+    expect(docsRedirectOf("/docs/ai-models/configuration")).toBeUndefined();
   });
 });
 
@@ -188,9 +188,8 @@ describe("the docs search", () => {
 
   it("finds a command by its name and by an alias, on the Commands page", () => {
     const commands = groupSearchIndex("commands");
-    expect(searchDocs(commands, "/model")[0].anchor).toBe("model");
-    expect(searchDocs(commands, "model")[0].anchor).toBe("model");
-    expect(searchDocs(commands, "/agent")[0].anchor).toBe("assess");
+    expect(searchDocs(commands, "/web")[0].anchor).toBe("web");
+    expect(searchDocs(commands, "web")[0].anchor).toBe("web");
     expect(searchDocs(commands, "/dashboard").map((h) => h.anchor)).toContain("web");
   });
 

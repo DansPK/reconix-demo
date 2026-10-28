@@ -132,8 +132,8 @@
       "properties": {
         "vulnScanner.serverUrl": {
           "type": "string",
-          "default": "",
-          "description": "Base URL of the scanner harness, for example https://scanner.example.com"
+          "default": "http://127.0.0.1:7357",
+          "description": "Base URL of the scanner harness. The demo server (npm run fake-server) listens on http://127.0.0.1:7357."
         },
         "vulnScanner.token": {
           "type": "string",
@@ -397,7 +397,7 @@
     "test:unit": "npm run compile-tests && node --test \"out/test/unit/**/*.test.js\"",
     "test:integration": "npm run build && npm run compile-tests && node out/test/integration/runTest.js",
     "test": "npm run test:unit && npm run test:integration",
-    "fake-server": "npm run compile-tests && node out/test/fakeServer.js"
+    "fake-server": "npm run compile-tests && node out/demo-server/server.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.0",

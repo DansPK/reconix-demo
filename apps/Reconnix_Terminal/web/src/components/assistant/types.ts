@@ -4,9 +4,17 @@ import type { Status } from "@/lib/data/schema";
 import type { ChatMessage } from "@/lib/assistant/client";
 import type { Card, ScopeRef } from "@/lib/assistant/protocol";
 import type { WelcomePrompt } from "@/lib/assistant/prompts";
-import type { ModelSummary } from "@/lib/assistant/models/view";
 
-export type { Card, ChatMessage, ModelSummary, ScopeRef, WelcomePrompt };
+/** Which model answers. Static demo: always a fixed, local, canned model. */
+export interface ModelSummary {
+  configured: boolean;
+  name: string;
+  provider: string;
+  local: boolean;
+  reason: string;
+}
+
+export type { Card, ChatMessage, ScopeRef, WelcomePrompt };
 
 /** A saved run, for the scope's status badge and the report card's links. */
 export interface RunSummary {

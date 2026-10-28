@@ -1,14 +1,17 @@
 # Reconix for VS Code
 
-Scan your code for vulnerabilities from a chat panel in the sidebar. The scanning itself runs on a self-hosted **scanner harness** (see `../analyzer-agent-harness`): Semgrep, Gitleaks and SonarQube find problems, and an LLM explains each one and suggests a fix. This extension is the client. It uploads your files, shows live progress, and lists the findings in the chat and in the Problems panel.
+Scan your code for vulnerabilities from a chat panel in the sidebar. This is a **demo**: scanning is served by a local, canned demo server (no LLM, no keys, no external services) that returns a fixed set of findings and answers chat with simple rules. This extension is the client. It shows live progress, and lists the findings in the chat and in the Problems panel.
 
-## Setup
+## Setup (demo)
 
-1. Run the harness (see its README) and get a token from its admin (`harness-token <you>`).
-2. In VS Code settings, set **`vulnScanner.serverUrl`**, for example `http://localhost:8080`.
-3. Run **Reconix: Set Token** and paste the token, or paste it into the `vulnScanner.token` setting. Either way it ends up only in VS Code's secret storage; the setting is cleared right away.
-4. For HTTPS with a self-signed certificate, set `vulnScanner.caCertificate` to the certificate file (see the harness README).
-5. Open the **Reconix** view in the activity bar (the shield icon).
+1. Start the demo server from `vscode-extension/`:
+   ```sh
+   npm install
+   npm run fake-server      # listens on http://127.0.0.1:7357, token "test-token"
+   ```
+2. `vulnScanner.serverUrl` already defaults to `http://127.0.0.1:7357`, so you don't need to change it.
+3. Run **Reconix: Set Token** and paste `test-token` (it is kept only in VS Code's secret storage; the `vulnScanner.token` setting, if you use it, is cleared right away).
+4. Open the **Reconix** view in the activity bar (the shield icon), or right-click a file/folder → **Scan with Reconix**.
 
 ## Using it
 
@@ -45,7 +48,7 @@ On a rescan, only new and changed files are sent. Before uploading, the extensio
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `vulnScanner.serverUrl` | empty | Base URL of the harness (`http://` or `https://`) |
+| `vulnScanner.serverUrl` | `http://127.0.0.1:7357` | Base URL of the scanner server (the demo server's address) |
 | `vulnScanner.token` | empty | Paste a token here to sign in; it moves to secure storage and this field is cleared |
 | `vulnScanner.caCertificate` | empty | PEM certificate to trust for HTTPS (for a self-signed harness), in addition to the normal ones |
 | `vulnScanner.maxFileSizeKB` | `2048` | Files larger than this are skipped |

@@ -6,7 +6,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import type { Controller } from "../../src/controller";
 import type { ToWebview } from "../../src/shared/messages";
-import { FakeHarness } from "../fakeServer";
+import { FakeHarness } from "../../demo-server/server";
 
 const tests: [string, () => Promise<void>][] = [];
 const test = (name: string, fn: () => Promise<void>) => tests.push([name, fn]);

@@ -1,5 +1,4 @@
 import {
-  Bot,
   FileText,
   LifeBuoy,
   Rocket,
@@ -92,18 +91,6 @@ const GROUPS: GroupSpec[] = [
       { title: "Keys", slug: "keys", description: "The keys that work everywhere and the ones each screen adds." },
       { title: "The command bar", slug: "command-bar", description: "Slash commands, Tab completion, history and Ctrl+R." },
       { title: "The prompt", slug: "prompt", description: "What a typed line does: a target, a question, a command or a path." },
-    ],
-  },
-  {
-    id: "ai-models",
-    title: "AI models",
-    description: "Connect a model with /provider and /model, and what runs without one.",
-    icon: Bot,
-    pages: [
-      { title: "Providers", slug: "providers", description: "/provider: set, test, use a model, unset; the six-provider catalog." },
-      { title: "Models", slug: "models", description: "/model: pick the active model, switch mid-run, chat with it." },
-      { title: "Configuration", slug: "configuration", description: "The .env seed, the encrypted llm.db and the 0600 key file." },
-      { title: "Common errors", slug: "errors", description: "Every message the provider and model commands can show." },
     ],
   },
   {
@@ -232,6 +219,6 @@ export const DOCS = {
   findings: "/docs/reports#understanding-findings",
   exporting: "/docs/reports#exporting",
   dashboard: "/docs/reports#dashboard",
-  knowledge: "/docs/ai-models#configuration", // its "Security knowledge page" section
+  knowledge: "/docs/reports#dashboard", // the dashboard and its Security knowledge page
 } as const;
 export type DocsLink = (typeof DOCS)[keyof typeof DOCS];

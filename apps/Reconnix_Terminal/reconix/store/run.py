@@ -156,22 +156,7 @@ def say_operator_line(text: str) -> str:
 
 
 def llm_answer(text: str) -> None:
-    """Add Reconix's reply: the active model when one is set, else the built-in reply.
-
-    Blocks on the network, so the app runs it in a worker (see `shell/actions.py`). Any
-    model failure falls back to the scripted reply so the offline demo keeps working.
-    """
-    from . import llm_chat, providers
-    from ..llm import LLMError
-
-    active = providers.active_model()
-    if active is not None:
-        try:
-            llm_chat.reply(text, active)
-            return
-        except LLMError as exc:
-            add_chat("text", "reconix",
-                     f"LLM unavailable ({exc}). Showing the built-in reply.", tone="muted")
+    """Add Reconix's reply: the built-in, rule-based canned reply (no model, static demo)."""
     builtin = reply_after_run if is_finished() else reply_while_running
     add_chat("text", "reconix", builtin(text), tone="muted")
 

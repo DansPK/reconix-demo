@@ -1,24 +1,16 @@
-/* The locks every AI Assistant route checks itself (src/proxy.ts checks the session too): the
-   launch token, a session, and for anything that changes something the page's own Origin.
-   Server only. */
+/* Request helpers for the AI Assistant routes. Static demo: there is no sign-in, so `refuse`
+   always lets the request through; only the body-size helpers below do any gating. Server only. */
 import "server-only";
 
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-
-import { isSameOrigin } from "../auth/origin";
-import { COOKIE, launchToken, readSession } from "../auth/session";
 
 export const NO_STORE = { "Cache-Control": "no-store" };
 
 export const fail = (detail: string, status: number) => NextResponse.json({ detail }, { status, headers: NO_STORE });
 
-/** A refusal, or null when the request may go on. `change`: it writes or deletes something. */
-export async function refuse(request: Request, { change }: { change: boolean }): Promise<NextResponse | null> {
-  const token = launchToken();
-  if (!token) return fail("The dashboard was not started with npm start.", 503);
-  if (change && !isSameOrigin(request)) return fail("Ask from the dashboard page.", 403);
-  if (!readSession((await cookies()).get(COOKIE)?.value, token)) return fail("Sign in first.", 401);
+/** Kept for the routes that call it; the demo has no auth, so nothing is refused. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function refuse(request: Request, opts: { change: boolean }): Promise<NextResponse | null> {
   return null;
 }
 

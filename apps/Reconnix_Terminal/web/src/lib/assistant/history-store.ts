@@ -39,7 +39,6 @@ import {
   summaryOf,
   type UserMessage,
 } from "./history-schema";
-import { MODELS_TEMP } from "./models/store";
 import { isConversationId, type ScopeRef } from "./protocol";
 import { redact } from "./redact";
 import { MAX_QUESTION } from "./request";
@@ -149,9 +148,9 @@ async function prune(f: Folder, now: number): Promise<Conversation[]> {
   const kept: Conversation[] = [];
   for (const name of await names(f)) {
     const full = path.join(f.dir, name);
-    if (TEMP.test(name) || MODELS_TEMP.test(name)) {
-      // a write that never finished (the process died), a conversation's or the saved models':
-      // gone after a while (a write in progress is far younger)
+    if (TEMP.test(name)) {
+      // a write that never finished (the process died): gone after a while (a write in progress
+      // is far younger)
       const info = await lstat(full).catch(() => null);
       if (info && now - info.mtimeMs > TEMP_STALE_MS) await unlink(full).catch(() => {});
       continue;

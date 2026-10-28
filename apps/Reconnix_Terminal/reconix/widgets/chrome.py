@@ -36,24 +36,11 @@ class SessionBar(Static):
             parts.append(Text(f"{glyph} {style.label}",
                               style=PHASE_COLOR.get(style.tone, theme.MUTED)))
         parts.append(Text.assemble(("◆ ", theme.MEDIUM), ("demo data", theme.MUTED)))
-        parts.append(self._llm_part())
         template = store.selected_template()
         if template:
             parts.append(Text.assemble(("template: ", theme.DIM), (template.name, theme.MUTED)))
         parts.append(Text.assemble(("policy: ", theme.DIM), ("enforced", theme.CYAN)))
         return parts
-
-    @staticmethod
-    def _llm_part() -> Text:
-        """`llm: Reconix · model ●` (dot by reachability) or `LLM off`."""
-        active = store.active_model()
-        if active is None:
-            return Text.assemble(("llm: ", theme.DIM), ("off", theme.MUTED))
-        color = {"REACHABLE": theme.GREEN, "UNREACHABLE": theme.CRITICAL}.get(
-            store.get_provider(active.provider_id).status, theme.MUTED)
-        return Text.assemble(("llm: ", theme.DIM),
-                             (f"{active.label} · {active.model} ", theme.MUTED),
-                             ("●", color))
 
     def refresh_line(self) -> None:
         width = self.size.width or 120

@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Static demo:** the real engine has been **removed** — no LLM, no backend harness, no live
+> scanning, no auth. Deleted: `backend/`, `reconix/llm/`, `reconix/store/{providers,llm_chat,
+> agent_run}.py`, `reconix/shell/{llm,agent}.py` and the `/model` `/provider` `/assess`
+> commands. The TUI always runs the scripted assessment; chat uses the built-in canned replies
+> (`store/replies.py`). The web dashboard runs via `npm run dev` on `web/sample-data/` with no
+> sign-in and a canned AI Assistant. Notes below that mention the LLM/harness seams, `/model`,
+> providers, auth or the sign-in link are historical.
+
 ## Reconix TUI (classic UI)
 
 Keyboard-first terminal UI for **Reconix**, an AI-powered security-testing
@@ -316,7 +324,6 @@ Project subagents live in `.claude/agents/` and skills in `.claude/skills/`.
 | Subagent | Use it for |
 |----------|-----------|
 | `tui-engineer` | Building or changing screens, widgets, bindings, TCSS layout |
-| `backend-integrator` | Replacing store bodies with backend calls |
 | `security-reviewer` | Scope enforcement, approval gate, role checks, secret handling |
 | `qa-tester` | Writing and running Textual `Pilot` tests |
 | `code-reviewer` | Final review against the rules above |
@@ -325,7 +332,6 @@ Project subagents live in `.claude/agents/` and skills in `.claude/skills/`.
 |-------|-----------|
 | `add-screen` | Checklist to add a flow screen |
 | `add-widget` | Extracting or creating a reusable widget |
-| `wire-backend` | Moving one data source to a real backend endpoint |
 | `theme-tokens` | Adding or changing colors |
 | `write-tui-test` | Textual tests with `run_test()` and `Pilot` |
 

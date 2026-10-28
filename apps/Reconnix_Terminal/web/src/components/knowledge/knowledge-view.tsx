@@ -9,7 +9,7 @@
    are the /api/knowledge routes, which hand every change to the Python /add-on code. */
 import { useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Loader, Upload } from "lucide-react";
+import { ArrowLeft, Loader } from "lucide-react";
 
 import { DashCard } from "@/components/dashboard/dash-card";
 import { FilterSummary, SearchField } from "@/components/dashboard/filter-bar";
@@ -20,14 +20,11 @@ import { EmptyNote } from "@/components/ui/empty-note";
 import { Pagination } from "@/components/ui/pagination";
 import { DOCS } from "@/lib/docs-nav";
 import { matchName } from "@/lib/knowledge/format";
-import { MAX_UPLOAD_LABEL, UPLOAD_TYPES } from "@/lib/knowledge/rules";
-import type { KnowledgeItem } from "@/lib/knowledge/types";
 import { paginate, slicePage } from "@/lib/paging";
 
 import { FileGrid } from "./file-grid";
 import { FileTable } from "./file-table";
 import { LayoutSwitch } from "./layout-switch";
-import { UploadDialog } from "./upload-dialog";
 import { useKnowledge } from "./use-knowledge";
 import { useLayout } from "./use-layout";
 
@@ -35,12 +32,10 @@ export const KNOWLEDGE_ABOUT = "Reference documents the AI Assistant can quote w
 
 export function KnowledgeView() {
   const shown = parseView(useSearchParams().get("view")) === "knowledge";
-  const { state, reload, remove, added } = useKnowledge(shown);
+  const { state, reload } = useKnowledge(shown);
   const [layout, setLayout] = useLayout();
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
-  const [uploading, setUploading] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
   const top = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLElement>(null);
 
@@ -54,25 +49,6 @@ export function KnowledgeView() {
     setQuery(q);
     setPage(1);
   };
-  const onRemove = async (item: KnowledgeItem) => {
-    const problem = await remove(item);
-    if (!problem) {
-      setNotice(`Removed “${item.name}”. The AI Assistant no longer uses it.`);
-      card.current?.focus({ preventScroll: true }); // the row is gone: the keyboard stays in the list
-    }
-    return problem;
-  };
-  const onAdded = (item: KnowledgeItem) => {
-    setQuery("");
-    setPage(1);
-    setNotice(`Added “${item.name}” (${item.chunks} ${item.chunks === 1 ? "passage" : "passages"}). The AI Assistant can use it from the next question.`);
-    added(item);
-  };
-  const openUpload = () => {
-    setNotice(null);
-    setUploading(true);
-  };
-
 
   return (
     <div className="dash-view dash-sheet kn-view" ref={top}>
@@ -87,17 +63,8 @@ export function KnowledgeView() {
           <SearchField label="Search knowledge files by name" placeholder="Search by name" value={query} onChange={search} />
         </div>
         <LayoutSwitch layout={layout} onChange={setLayout} />
-        <Button onClick={openUpload} aria-haspopup="dialog">
-          <Upload className="size-3.5" aria-hidden />
-          Upload
-        </Button>
       </ViewHeader>
 
-      {/* always there, empty and taking no room until it speaks (a live region added together with
-          its text may go unread) */}
-      <p role="status" className="kn-notice">
-        {notice}
-      </p>
       {state.error && listing && (
         <p role="alert" className="kn-error">
           Couldn&apos;t refresh the list: {state.error}
@@ -133,13 +100,9 @@ export function KnowledgeView() {
         ) : items.length === 0 ? (
           <div className="ui-empty kn-empty">
             <p>
-              No knowledge files yet. Upload a document ({UPLOAD_TYPES}, up to {MAX_UPLOAD_LABEL}) or add one in the terminal with
-              /add-on. Its text is masked and split into passages the AI Assistant quotes when they match a question.
+              No knowledge files in this demo. In the full product, documents added in the terminal with /add-on appear here; their
+              text is masked and split into passages the AI Assistant quotes when they match a question.
             </p>
-            <Button variant="outline" size="xs" onClick={openUpload} aria-haspopup="dialog">
-              <Upload className="size-3.5" aria-hidden />
-              Upload a file
-            </Button>
           </div>
         ) : (
           <>
@@ -152,16 +115,14 @@ export function KnowledgeView() {
                 </Button>
               </EmptyNote>
             ) : layout === "grid" ? (
-              <FileGrid items={rows} onRemove={onRemove} />
+              <FileGrid items={rows} />
             ) : (
-              <FileTable items={rows} onRemove={onRemove} />
+              <FileTable items={rows} />
             )}
             <Pagination paging={paging} onPage={setPage} label="Knowledge file pages" scrollTarget={top} />
           </>
         )}
       </DashCard>
-
-      <UploadDialog open={uploading} onClose={() => setUploading(false)} onAdded={onAdded} />
     </div>
   );
 }

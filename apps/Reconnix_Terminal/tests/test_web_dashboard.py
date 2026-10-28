@@ -5,14 +5,11 @@ import sys
 
 from reconix import web_server
 from reconix.shell import web as web_shell
-from reconix.store import persist
 from reconix.web_server import needs_install as real_needs_install
 from reconix.web_server import problem as real_problem     # before conftest stubs it
 from reconix.web_server import start as real_start
 
 from .support import SIZE, settle
-
-LINK = "http://127.0.0.1:3100/login#token=abc\n"
 
 
 def _notes(app) -> str:
@@ -31,10 +28,16 @@ async def test_the_first_web_starts_it_and_a_second_waits(app, opened, web_launc
 
 async def test_it_says_when_it_is_ready(app, web_launches, monkeypatch):
     monkeypatch.setattr(web_shell, "POLL_EVERY", 0.01)
-    monkeypatch.setattr(web_server, "is_listening", lambda url: bool(url))
+    # Nothing listens on the dashboard port before start; the poll then finds it ready.
+    calls = {"n": 0}
+
+    def listening(url):
+        calls["n"] += 1
+        return calls["n"] > 1
+
+    monkeypatch.setattr(web_server, "is_listening", listening)
     async with app.run_test(size=SIZE) as pilot:
         app.run_command_line("/web")
-        persist.WEB_URL_FILE.write_text(LINK)              # what serve.mjs writes when ready
         await app.workers.wait_for_complete()
         await settle(pilot)
         assert "ready and opened in your browser" in _notes(app)
@@ -119,11 +122,9 @@ def test_the_dashboard_runs_its_knowledge_cli_with_this_python(monkeypatch, tmp_
     assert seen["RECONIX_PYTHON"] == sys.executable
 
 
-async def test_a_stale_link_is_not_opened(app, opened, web_launches):
-    with socket.socket() as free:                          # a port nothing listens on
-        free.bind(("127.0.0.1", 0))
-        port = free.getsockname()[1]
-    persist.WEB_URL_FILE.write_text(LINK.replace(":3100/", f":{port}/"))
+async def test_nothing_listening_starts_it_and_opens_nothing_yet(app, opened, web_launches,
+                                                                 monkeypatch):
+    monkeypatch.setattr(web_server, "is_listening", lambda url: False)
     async with app.run_test(size=SIZE) as pilot:
         app.run_command_line("/web")
         await settle(pilot)

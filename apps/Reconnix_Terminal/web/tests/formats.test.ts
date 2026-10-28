@@ -1,5 +1,5 @@
 /* The export format registry and the renderers the downloads, the assistant and the route share:
-   PDF, JSON and DOCX only (the TUI saves the same three). */
+   JSON and DOCX only (the static demo drops PDF, which needed a headless Chrome). */
 import { describe, expect, it } from "vitest";
 
 import { EXPORT_FORMATS, NO_PRINTER, downloadHref, exportFileName, isExportFormat } from "@/lib/report/formats";
@@ -11,10 +11,10 @@ import { unzip } from "./unzip";
 const assessment = sampleAssessments().find((a) => a.findings.length > 0)!;
 
 describe("export formats", () => {
-  it("lists PDF, JSON and DOCX, each with its own extension and media type", () => {
-    expect(EXPORT_FORMATS.map((f) => f.id)).toEqual(["pdf", "json", "docx"]);
-    expect(new Set(EXPORT_FORMATS.map((f) => f.ext)).size).toBe(3);
-    expect(new Set(EXPORT_FORMATS.map((f) => f.media)).size).toBe(3);
+  it("lists JSON and DOCX, each with its own extension and media type", () => {
+    expect(EXPORT_FORMATS.map((f) => f.id)).toEqual(["json", "docx"]);
+    expect(new Set(EXPORT_FORMATS.map((f) => f.ext)).size).toBe(2);
+    expect(new Set(EXPORT_FORMATS.map((f) => f.media)).size).toBe(2);
   });
 
   it("accepts only known ids", () => {

@@ -1,7 +1,5 @@
 """Shared fixtures: every test starts from fresh demo data, and the UI never waits."""
 
-import sys
-from pathlib import Path
 from typing import List
 
 import pytest
@@ -9,15 +7,7 @@ import pytest
 from reconix import browser, store, web_server
 from reconix.app import ReconixApp
 from reconix.flow import RunController
-from reconix.llm import config as llm_config
 from reconix.store import persist, report
-
-# Test the harness that ships in this checkout (backend/), not any editable install elsewhere,
-# so local backend/harness changes are exercised. Done at conftest import, before any test
-# imports harness (reconix imports it lazily, so nothing above has pulled it in yet).
-_BACKEND = Path(__file__).resolve().parents[1] / "backend"
-if _BACKEND.is_dir() and str(_BACKEND) not in sys.path:
-    sys.path.insert(0, str(_BACKEND))
 
 
 @pytest.fixture(autouse=True)
@@ -39,19 +29,6 @@ def instant_ui(monkeypatch, tmp_path):
 
 
 @pytest.fixture(autouse=True)
-def llm_paths(monkeypatch, tmp_path):
-    """Keep the LLM/harness databases and key file in temp, never in ~/.reconix."""
-    from reconix.store import agent_run
-
-    monkeypatch.setattr(llm_config, "DB_PATH", tmp_path / "llm.db")
-    monkeypatch.setattr(llm_config, "KEY_FILE", tmp_path / "llm.key")
-    monkeypatch.setenv("HARNESS_DB_PATH", str(tmp_path / "harness.db"))
-    agent_run.reset()
-    yield
-    agent_run.reset()
-
-
-@pytest.fixture(autouse=True)
 def knowledge_dir(monkeypatch, tmp_path):
     """Point the /add-on knowledge folder at temp, never ~/.reconix/knowledge."""
     from reconix.store.knowledge import paths
@@ -64,22 +41,6 @@ def knowledge_dir(monkeypatch, tmp_path):
 def reports_dir(tmp_path):
     """Where instant_ui sends the reports this test writes."""
     return tmp_path / "reports"
-
-
-@pytest.fixture
-def reachable(monkeypatch):
-    """Every provider reachability test passes without touching the network."""
-    from reconix.llm import client
-
-    monkeypatch.setattr(client, "ping", lambda pid, model, **kw: (True, "reachable"))
-
-
-@pytest.fixture
-def model_active(reachable):
-    """A configured, tested and active model, so /assess takes the agent path."""
-    store.set_provider("openai", api_key="sk-x-1234", models=["gpt-4o-mini"])
-    store.test_provider("openai")
-    store.activate("openai", "gpt-4o-mini")
 
 
 @pytest.fixture(autouse=True)

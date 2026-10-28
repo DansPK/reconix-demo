@@ -44,9 +44,6 @@ class RunHostMixin:
             self._login_open = True
             self.open_dialog(LoginForm(), self._login_closed)
             return
-        if getattr(self, "agent_mode", False) and gate == "scope":
-            from ..store import agent_run
-            agent_run.widen_scope_tools()   # the agent may use many tools; show them all
         target = screen_for(gate)
         if target and self.current_flow != target:
             self.goto(target)

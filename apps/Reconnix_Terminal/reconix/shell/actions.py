@@ -12,7 +12,6 @@ from ..flow import screen_for
 from ..models import Choice
 from ..screens.choice import ChoiceScreen
 from ..screens.forms import ApprovalEditForm, OpenApiForm, ScopeEditForm
-from ..store import agent_run
 
 
 class ActionsMixin:
@@ -36,23 +35,10 @@ class ActionsMixin:
         an empty line reopens what the run waits for. After the run has finished
         (completed or stopped) every line is still a chat turn about that same assessment,
         with its history and context; an empty line opens Findings (or Report when there are
-        none). A new assessment starts only with /new, /assess <target> or /template.
+        none). A new assessment starts only with /new or /template.
         """
         text = text.strip()
         run = store.get_run()
-        # With a model active, the harness agent handles the prompt. A target enters the
-        # Template frame (structured assessment); plain natural language is a chat turn with
-        # the agent; follow-up lines during a run continue the same agent (history kept).
-        if text and agent_run.available():
-            if self.agent_mode and run.started:
-                self._send_to_agent(text)
-                return True
-            if not run.started:
-                if agent_run.looks_like_target(text):
-                    return self.enter_agent_mode(text)
-                self.agent_mode = False             # plain chat: no run to complete
-                self._send_to_agent(text)
-                return True
         if run.started:
             if not text:
                 if store.is_finished():
@@ -67,17 +53,9 @@ class ActionsMixin:
                 return False
             self._remember(text)
             self.refresh_view()                         # the operator line shows at once
-            if store.active_model() is not None:
-                # ponytail: a toast stands in for a Spinner; the LLM call blocks, so the
-                # reply is built off the UI thread while the RunController keeps playing.
-                self.notify("Thinking…", timeout=2)
-                self.run_worker(lambda: self._llm_answer(answer), thread=True,
-                                group="llm", exit_on_error=False)
-            else:
-                store.llm_answer(answer)                 # built-in reply, instant / offline
-                self.refresh_view()
+            store.llm_answer(answer)                     # built-in canned reply, instant
+            self.refresh_view()
             return True
-        self.agent_mode = False          # scripted path from here on
         try:
             result = store.submit_prompt(text or store.DEMO_REQUEST)
         except store.StoreValidationError as exc:
@@ -90,11 +68,6 @@ class ActionsMixin:
             self.controller.resume()
         return True
 
-    def _llm_answer(self, text: str) -> None:
-        """Worker thread: build the model reply, then redraw on the UI thread."""
-        store.llm_answer(text)
-        self.call_from_thread(self.refresh_view)
-
     # --- template and scope (the Template screen) --------------------------------------------
     def open_template(self, template_id: Optional[str] = None) -> None:
         """`/template`: the Template screen; a fresh assessment if the current one is past it."""
@@ -103,7 +76,6 @@ class ActionsMixin:
             self.controller.stop()
             store.new_assessment()
             self.notify("Started a new assessment. The previous one is under /assessments.")
-        self.agent_mode = False          # /template is the scripted flow
         self.template_pick = template_id if not store.get_run().started else None
         self.goto("template")
 
@@ -134,10 +106,7 @@ class ActionsMixin:
         except store.StoreValidationError as exc:
             self._warn(exc)
             return
-        if getattr(self, "agent_mode", False):
-            self.begin_agent_execution()        # hand off to the harness agent
-        else:
-            self.resume_run()
+        self.resume_run()
 
     def edit_scope(self) -> None:
         self.open_dialog(ScopeEditForm(), lambda _result: self.refresh_view())
@@ -216,11 +185,8 @@ class ActionsMixin:
     # --- assessments ----------------------------------------------------------------------------
     def new_assessment(self, target: Optional[str] = None) -> None:
         """Start over on a fresh assessment (earlier ones stay listed); optionally on `target`."""
-        self.cancel_agent()                 # stop a running agent turn on the run we leave
         self.controller.stop()
         store.new_assessment()
-        self.agent_mode = False
-        self.agent_request = ""
         self.selected_finding = ""
         self.findings_filter = "all"
         self.goto("start")
@@ -229,14 +195,12 @@ class ActionsMixin:
 
     def switch_assessment(self, index: int) -> None:
         """Reopen another assessment where it stands; a run that was playing plays on."""
-        self.cancel_agent()                 # stop a running agent turn on the run we leave
         self.controller.stop()
         try:
             store.switch_assessment(index)
         except store.StoreValidationError as exc:
             self._warn(exc)
             return
-        self.agent_mode = False
         self.selected_finding = ""
         self.goto(self.resume_screen_name())
         gate = store.waiting_gate()
