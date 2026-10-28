@@ -38,6 +38,8 @@ test("the extension activates and the chat panel opens", async () => {
 });
 
 test("no server URL or token: a short message with the right button", async () => {
+  // serverUrl now ships with a default, so clear it to reach the "no URL" branch.
+  await vscode.workspace.getConfiguration("reconix").update("serverUrl", "", vscode.ConfigurationTarget.Workspace);
   await controller.connect();
   const s = last("state")!;
   assert.equal(s.connection.state, "disconnected");
@@ -390,7 +392,7 @@ process.on("exit", (c) => note(`exit ${c}`));
 const TEST_TIMEOUT_MS = 60_000;
 
 export async function run() {
-  fake = new FakeHarness({ stepMs: 30, findings: [
+  fake = new FakeHarness({ stepMs: 30, scanError: "sonarqube: SonarQube cannot be reached", findings: [
     { path: "app.js", start_line: 2, end_line: 3, severity: "high", title: "SQL injection",
       fix_recommendation: "Use a parameterised query. Bind the id." },
     { path: "lib/util.js", severity: "medium", verdict: "likely_false_positive" },

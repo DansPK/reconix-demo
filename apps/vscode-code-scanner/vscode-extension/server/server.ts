@@ -38,6 +38,8 @@ export interface FakeOptions {
   stepMs?: number;
   /** Findings to return; `path` values should exist in the test workspace. */
   findings?: Partial<Finding>[];
+  /** A scanner-failure message to report when a scan finishes (tests only; the demo sets none). */
+  scanError?: string;
   /** Serve HTTPS with this PEM certificate and key. */
   tls?: { cert: string; key: string };
 }
@@ -275,7 +277,7 @@ export class FakeHarness {
           summary: `**${all.length} findings.** Fix the SQL injection first.`, finding_ids: real.slice(0, 1).map((f) => f.id),
           card: { total: all.length, counts, likely_real: real.length, false_alarms: all.length - real.length,
                   files: real.slice(0, 1).map((f) => ({ path: f.path, count: 1 })), overall: "One real problem.",
-                  fix_first: real.slice(0, 1).map((f) => ({ text: "Use a parameterised query in app.js", finding_ids: [f.id] })) },
+                  fix_first: real.slice(0, 1).map((f) => ({ text: `Use a parameterised query in ${f.path}`, finding_ids: [f.id] })) },
         };
       }
       case "fix_findings": {
@@ -294,10 +296,12 @@ export class FakeHarness {
           }
         }
         return {
-          files: chosen.map((f) => ({ path: f!.path, file_sha256: f!.file_sha256,
-                                      edits: [{ start_line: f!.start_line, end_line: f!.end_line, replacement: "// fixed" }] })),
-          summary: "- Replaced the unsafe code.",
-          results: chosen.map((f) => ({ finding_id: f!.id, status: "fixed", note: "The scanners no longer report it." })),
+          files: chosen.map((f) => {
+            const edit = FIXES[f!.path] ?? { start_line: f!.start_line, end_line: f!.end_line, replacement: "// fixed" };
+            return { path: f!.path, file_sha256: f!.file_sha256, edits: [edit] };
+          }),
+          summary: "- Rewrote the unsafe code to its secure form.",
+          results: chosen.map((f) => ({ finding_id: f!.id, status: "fixed", note: "No longer reported." })),
         };
       }
       case "chat": {
@@ -403,7 +407,7 @@ export class FakeHarness {
       if (scan.percent === 100) {
         scan.status = "done";
         scan.stage = "finished";
-        scan.error = "sonarqube: SonarQube cannot be reached";
+        scan.error = this.opts.scanError ?? null;
         scan.finished_at = new Date().toISOString();
         const counts: Record<string, number> = {};
         for (const f of this.findingsFor(s)) counts[f.severity] = (counts[f.severity] ?? 0) + 1;
@@ -416,7 +420,7 @@ export class FakeHarness {
   }
 
   private findingsFor(s: Session): Finding[] {
-    return (this.opts.findings ?? []).map((o, i) => {
+    const list = (this.opts.findings ?? []).map((o, i) => {
       const f: Finding = {
         id: `f${i}`, tools: ["semgrep"], rule_id: "rule", title: `Finding ${i}`, severity: "high", cwe: null,
         path: "app.js", start_line: 1, end_line: 1, start_col: null, end_col: null, file_sha256: "", message: "m",
@@ -427,6 +431,10 @@ export class FakeHarness {
       if (s.target_type === "github") f.web_url = `${s.repo_url}/blob/abc/${f.path}#L${f.start_line}-L${f.end_line}`;
       return f;
     });
+    // Only surface a finding when its file was actually uploaded, so scanning a folder
+    // that doesn't contain these files stays clean (no "file changed" / "no longer exists").
+    if (s.target_type === "workspace" && s.manifest.size) return list.filter((f) => s.manifest.has(f.path));
+    return list;
   }
 
   private latestScan(sessionId: string, doneOnly = false) {
@@ -532,6 +540,26 @@ const DEMO_FINDINGS: Partial<Finding>[] = [
     explanation: "MD5 is fast and broken for password storage; hashes can be brute-forced cheaply.",
     fix_recommendation: "Use a slow, salted KDF such as bcrypt, scrypt or argon2." },
 ];
+
+/** The secure replacement for each planted finding, as whole-line edits over the
+ * vuln-shop sample. Keyed by the finding's file; shown as a diff and applied on "Fix". */
+const FIXES: Record<string, { start_line: number; end_line: number; replacement: string }> = {
+  // SQL injection: parameterise the query and bind the id (lines 42-43).
+  "src/index.js": { start_line: 42, end_line: 43,
+    replacement: '  const q = "SELECT * FROM users WHERE id = ?";\n  db.get(q, [req.query.id], (err, row) => {' },
+  // Command injection: execFile with an argument array instead of a shell string.
+  "src/routes/exec.js": { start_line: 17, end_line: 17,
+    replacement: '  require("child_process").execFile("ping", ["-c", "1", host]);' },
+  // Hard-coded credential: read it from the environment.
+  "src/config.js": { start_line: 8, end_line: 8,
+    replacement: 'const STRIPE_KEY = process.env.STRIPE_KEY;' },
+  // Reflected XSS: textContent escapes markup; innerHTML does not.
+  "src/views/profile.js": { start_line: 23, end_line: 23,
+    replacement: "  el.textContent = params.get('name');" },
+  // Weak hash: scrypt is a slow, salted KDF built into Node's crypto.
+  "src/utils/hash.js": { start_line: 5, end_line: 5,
+    replacement: '  return crypto.scryptSync(pw, "salt", 64).toString("hex");' },
+};
 
 if (require.main === module) {
   const h = new FakeHarness({ port: Number(process.env.PORT ?? 7357), stepMs: 1000, findings: DEMO_FINDINGS });
