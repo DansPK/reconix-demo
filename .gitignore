@@ -21,7 +21,7 @@
 *.key
 *.pem
 **/.reconix/
-**/data/
+
 **/certs/
 *.db
 
