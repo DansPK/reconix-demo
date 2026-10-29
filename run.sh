@@ -3,17 +3,19 @@
 #
 #   ./run.sh tui        the terminal TUI            (interactive)
 #   ./run.sh web        the web dashboard           http://127.0.0.1:3100
+#   ./run.sh site       the public website          http://localhost:3000
 #   ./run.sh scanner    the VS Code scanner server  http://127.0.0.1:7357 (token test-token)
 #   ./run.sh vscode     build + install the VS Code extension (runs setup.sh)
 #
-# The TUI, web and scanner each take over a terminal, so run them in separate terminals.
+# The TUI, web, site and scanner each take over a terminal, so run them in separate terminals.
 # Everything runs locally on bundled sample data — no accounts, no keys.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")" && pwd)
 TUI=$ROOT/apps/terminal
 EXT=$ROOT/apps/scanner/extension
+SITE=$ROOT/apps/public-web
 
-usage() { sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+usage() { sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 
 case "${1:-}" in
   tui)
@@ -23,6 +25,11 @@ case "${1:-}" in
     ;;
   web)
     cd "$TUI/web"
+    [ -d node_modules ] || npm install
+    exec npm run dev
+    ;;
+  site)
+    cd "$SITE"
     [ -d node_modules ] || npm install
     exec npm run dev
     ;;
