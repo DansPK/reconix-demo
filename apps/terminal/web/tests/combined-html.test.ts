@@ -43,7 +43,7 @@ describe("the combined HTML report", () => {
     }
     expect(html).toContain("Generated 2026-10-20");
     expect(html).toContain("break-before:page");
-    expect(html).toContain(`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">`);
+    expect(html).toContain(`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:">`);
   });
 
   it("claims approval only when every run's scope was approved", () => {
@@ -174,7 +174,7 @@ describe("the single report", () => {
   it("matches its saved copy, and carries the meta CSP", async () => {
     const a = all.find((x) => x.findings.length > 0 && x.scope)!;
     const out = renderReportHtml(a, new Date("2026-10-05T12:00:00Z"));
-    expect(out).toContain(`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">`);
+    expect(out).toContain(`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:">`);
     await expect(out).toMatchFileSnapshot("./__snapshots__/single-report.html");
   });
 

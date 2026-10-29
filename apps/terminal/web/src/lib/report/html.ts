@@ -9,6 +9,8 @@
    (combined/html.ts), which must look the same. */
 import { type Assessment, type Finding, SEVERITIES as SEV_ORDER } from "@/lib/data/schema";
 
+import { FONT_FACES } from "./fonts";
+
 const SEV_CLASS: Record<string, string> = { CRITICAL: "crit", HIGH: "high", MEDIUM: "med", LOW: "low" };
 const VALIDATION_CLASS: Record<string, string> = { CONFIRMED: "confirmed", UNCONFIRMED: "unconfirmed", INCONCLUSIVE: "inconclusive" };
 const STATUS_CLASS: Record<string, string> = { open: "open", fixed: "fixed", accepted: "accepted", "false-positive": "falsepos" };
@@ -21,7 +23,7 @@ const own = (map: Record<string, string>, key: string, fallback: string) => (Obj
 
 /** The document's own policy, for the printer's temp copy and the combined preview's frame: no
     scripts, no requests, only its inline styles and data: images. */
-export const META_CSP = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">`;
+export const META_CSP = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:">`;
 
 /** Escape one line of text, collapsing runs of whitespace (for inline copy). */
 export function esc(value: unknown): string {
@@ -64,6 +66,7 @@ const cvss = (f: Finding) => (f.cvss_score ? f.cvss_score.toFixed(1) : "—");
 
 /* --- the fixed stylesheet (identical to the TUI's report) ----------------------------------- */
 export const CSS = `
+${FONT_FACES}
 *{box-sizing:border-box}
 :root{
   --paper:#fff; --ink:#141a24; --ink-soft:#434d5c; --muted:#7c8699; --faint:#a4adbd;
