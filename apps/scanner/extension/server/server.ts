@@ -297,7 +297,11 @@ export class FakeHarness {
         }
         return {
           files: chosen.map((f) => {
-            const edit = FIXES[f!.path] ?? { start_line: f!.start_line, end_line: f!.end_line, replacement: "// fixed" };
+            // f.path may be the real (possibly nested) workspace path, so match FIXES by suffix.
+            const key = f!.path in FIXES ? f!.path
+              : Object.keys(FIXES).find((k) => f!.path === k || f!.path.endsWith(`/${k}`));
+            const edit = (key ? FIXES[key] : undefined)
+              ?? { start_line: f!.start_line, end_line: f!.end_line, replacement: "// fixed" };
             return { path: f!.path, file_sha256: f!.file_sha256, edits: [edit] };
           }),
           summary: "- Rewrote the unsafe code to its secure form.",
@@ -431,9 +435,19 @@ export class FakeHarness {
       if (s.target_type === "github") f.web_url = `${s.repo_url}/blob/abc/${f.path}#L${f.start_line}-L${f.end_line}`;
       return f;
     });
-    // Only surface a finding when its file was actually uploaded, so scanning a folder
-    // that doesn't contain these files stays clean (no "file changed" / "no longer exists").
-    if (s.target_type === "workspace" && s.manifest.size) return list.filter((f) => s.manifest.has(f.path));
+    // Workspace: attach each finding to the uploaded file whose path ends with the finding's
+    // path, so a scan works whether vuln-shop is the open folder or nested inside it. A finding
+    // whose file was not uploaded is dropped, so scanning any other folder stays clean.
+    if (s.target_type === "workspace" && s.manifest.size) {
+      const keys = [...s.manifest.keys()];
+      return list.flatMap((f) => {
+        const match = keys.find((k) => k === f.path || k.endsWith(`/${f.path}`));
+        if (!match) return [];
+        f.path = match;
+        f.file_sha256 = s.manifest.get(match)!.sha256;
+        return [f];
+      });
+    }
     return list;
   }
 
