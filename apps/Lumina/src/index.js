@@ -39,8 +39,8 @@ app.post("/ping", execPing);
 // Look up a user by id
 app.get("/users/:id", (req, res) => {
   // BUG: user input concatenated straight into SQL — SQL injection (CWE-89)
-  const q = `SELECT * FROM users WHERE id = ${req.query.id}`;
-  db.get(q, (err, row) => {
+  const q = "SELECT * FROM users WHERE id = ?";
+  db.get(q, [req.query.id], (err, row) => {
     if (err) return res.status(500).json({ error: "query failed" });
     res.json(row || {});
   });
