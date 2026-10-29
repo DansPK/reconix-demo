@@ -8,7 +8,7 @@ demo request (recalled with ↑) keep the first-run experience the same as befor
 from ..models import ActivityEntry, Assessment, ChatEntry, HistoryEntry
 from . import lists
 
-ASSESSMENT_PREFIX = "RCX-DEMO"
+ASSESSMENT_PREFIX = "RCX"
 TARGET = "staging.example.com"
 TARGET_URL = f"https://{TARGET}"
 DEMO_REQUEST = f"Assess {TARGET_URL} for web security issues."

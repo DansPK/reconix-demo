@@ -1,27 +1,27 @@
 {
   "schema": "reconix.assessment/v1",
-  "uid": "20261003-101500-3ceb_RCX-DEMO-001",
-  "session": "20261003-101500-3ceb",
-  "label": "RCX-DEMO-001",
-  "assessment_id": "RCX-DEMO-001",
-  "target": "192.0.2.10",
-  "target_url": "192.0.2.10",
-  "target_kind": "network host",
+  "uid": "20260928-091200-1cea_RCX-001",
+  "session": "20260928-091200-1cea",
+  "label": "RCX-001",
+  "assessment_id": "RCX-001",
+  "target": "git@git.example.com:shop/storefront.git",
+  "target_url": "git@git.example.com:shop/storefront.git",
+  "target_kind": "source repository",
   "template": {
-    "id": "network",
-    "name": "Network",
+    "id": "source",
+    "name": "Source Code",
     "confirmed": true
   },
   "api_spec": null,
   "operator": "analyst",
-  "client": "192.0.2.10",
+  "client": "Example",
   "mode": "Grey-box, Authorized",
   "methodology": [
-    "NIST SP 800-115",
-    "PTES"
+    "OWASP ASVS",
+    "CWE Top 25"
   ],
   "report_version": "1.0",
-  "created_at": "2026-10-03T10:15:19+00:00",
+  "created_at": "2026-09-28T09:12:16+00:00",
   "status": "Completed",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,8 +30,8 @@
   "session_closed": true,
   "run": {
     "phase": "completed",
-    "started_at": "2026-10-03T10:16:30+00:00",
-    "finished_at": "2026-10-03T10:25:52+00:00",
+    "started_at": "2026-09-28T09:13:06+00:00",
+    "finished_at": "2026-09-28T09:22:53+00:00",
     "completed": true,
     "requests": 2,
     "progress": {
@@ -41,7 +41,7 @@
       "analysis": 100,
       "report": 100
     },
-    "report_path": "./reports/RCX-DEMO-001.json"
+    "report_path": "./reports/RCX-001.docx"
   },
   "login": {
     "kind": "",
@@ -50,17 +50,17 @@
   "plan": [
     {
       "key": "discovery",
-      "label": "Host discovery",
+      "label": "Index repository",
       "status": "done"
     },
     {
       "key": "scanning",
-      "label": "Port & service scan",
+      "label": "Static analysis scan",
       "status": "done"
     },
     {
       "key": "validation",
-      "label": "Validate exposures",
+      "label": "Validate hotspots",
       "status": "done"
     },
     {
@@ -75,93 +75,93 @@
     }
   ],
   "scope": {
-    "kind": "network",
-    "target_url": "192.0.2.10",
-    "assessment_type": "Network",
+    "kind": "source",
+    "target_url": "git@git.example.com:shop/storefront.git",
+    "assessment_type": "Source Code",
     "status": "APPROVED",
     "allowed_actions": [
-      "Host discovery",
-      "port scan",
-      "service detection"
+      "Dependency scan",
+      "secret scan",
+      "static analysis"
     ],
     "allowed_methods": [
-      "TCP connect"
+      "read"
     ],
-    "excluded_paths": [],
-    "allowed_ports": [
-      22,
-      80,
-      443,
-      8080,
-      8443
+    "excluded_paths": [
+      ".git",
+      "node_modules",
+      "vendor",
+      "secrets"
     ],
+    "allowed_ports": [],
     "time_limit_minutes": 30,
     "tools": [
-      "nmap",
-      "testssl.sh"
+      "Semgrep",
+      "gitleaks",
+      "pip-audit"
     ]
   },
   "verdicts": [
     {
-      "method": "TCP",
-      "path": "198.51.100.9",
+      "method": "READ",
+      "path": ".git/config",
       "allowed": false,
-      "reason": "Host outside approved scope",
-      "at": "2026-10-03T10:19:10+00:00"
+      "reason": "Path excluded from the review",
+      "at": "2026-09-28T09:15:50+00:00"
     },
     {
-      "method": "TCP",
-      "path": "192.0.2.10:8443",
+      "method": "READ",
+      "path": "app/config/settings.py",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-03T10:20:56+00:00"
+      "at": "2026-09-28T09:17:47+00:00"
     },
     {
-      "method": "TCP",
-      "path": "192.0.2.10:8443",
+      "method": "READ",
+      "path": "app/config/settings.py",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-03T10:21:02+00:00"
+      "at": "2026-09-28T09:17:56+00:00"
     },
     {
-      "method": "TCP",
-      "path": "192.0.2.10:8443",
+      "method": "READ",
+      "path": "app/config/settings.py",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-03T10:22:06+00:00"
+      "at": "2026-09-28T09:19:09+00:00"
     },
     {
-      "method": "TCP",
-      "path": "192.0.2.10:8443",
+      "method": "READ",
+      "path": "app/config/settings.py",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-03T10:22:28+00:00"
+      "at": "2026-09-28T09:19:29+00:00"
     }
   ],
   "approvals": [
     {
       "request_id": "approval-001",
       "risk": "MEDIUM",
-      "action": "Banner and TLS check (read-only)",
-      "target": "TCP 192.0.2.10:8443",
-      "method": "TCP",
-      "path": "192.0.2.10:8443",
-      "purpose": "Record the service banner and TLS versions on the console port",
-      "impact": "Low. Connects once, sends no credentials",
-      "command": "connect 192.0.2.10:8443 · read banner + TLS",
-      "command_hash": "sha256:7fd36c7331011137e0a8a7f8f98f5944fe37a771fb1d8cc1c492f089ffabf02b"
+      "action": "Read the flagged line (read-only)",
+      "target": "read app/config/settings.py:42",
+      "method": "read",
+      "path": "app/config/settings.py",
+      "purpose": "Confirm the flagged line is a credential, not a false positive",
+      "impact": "Low. Reads one file in the repo, changes nothing",
+      "command": "read app/config/settings.py lines 40-44",
+      "command_hash": "sha256:cab21c3bf9b00a7d496b3cb84c2744f48606b6e3941f4b9c167f6bb626434828"
     },
     {
       "request_id": "approval-002",
       "risk": "HIGH",
-      "action": "single_login_probe",
-      "target": "TCP 192.0.2.10:8443/manager",
-      "method": "TCP",
-      "path": "192.0.2.10:8443",
-      "purpose": "Try one known default credential against the management console",
-      "impact": "One authentication attempt. No change to the host",
-      "command": "POST 192.0.2.10:8443/manager/html · one default credential",
-      "command_hash": "sha256:833f1b763684e05961f3212d10accb403af6c95ec23f79f966baed9d002ff4f3"
+      "action": "secret_validation",
+      "target": "check the credential in app/config/settings.py against a test endpoint",
+      "method": "read",
+      "path": "app/config/settings.py",
+      "purpose": "Check whether the flagged credential still authenticates",
+      "impact": "One authentication attempt against a test database",
+      "command": "use the credential flagged in app/config/settings.py against the test database once",
+      "command_hash": "sha256:dddfd0b8468dcf94774bd1025697ced391796ee116fb015de5e7a860b95435f9"
     }
   ],
   "decisions": [
@@ -170,46 +170,45 @@
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:7fd36c7331011137e0a8a7f8f98f5944fe37a771fb1d8cc1c492f089ffabf02b",
-      "at": "2026-10-03T10:21:05+00:00"
+      "command_hash": "sha256:cab21c3bf9b00a7d496b3cb84c2744f48606b6e3941f4b9c167f6bb626434828",
+      "at": "2026-09-28T09:18:03+00:00"
     },
     {
       "request_id": "approval-002",
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:833f1b763684e05961f3212d10accb403af6c95ec23f79f966baed9d002ff4f3",
-      "at": "2026-10-03T10:22:33+00:00"
+      "command_hash": "sha256:dddfd0b8468dcf94774bd1025697ced391796ee116fb015de5e7a860b95435f9",
+      "at": "2026-09-28T09:19:35+00:00"
     }
   ],
   "findings": [
     {
       "id": "001",
       "severity": "HIGH",
-      "title": "Management console exposed",
-      "path": "192.0.2.10:8443/manager",
+      "title": "Hardcoded database password",
+      "path": "app/config/settings.py",
       "validation": "CONFIRMED",
-      "description": "A Tomcat Manager console answered on 8443 and accepted a login form.",
-      "affected_url": "https://192.0.2.10:8443/manager",
-      "impact": "If credentials are weak, an attacker could deploy code to the host.",
-      "remediation": "Restrict the console to an admin network or disable it.",
-      "tool": "nmap",
+      "description": "A database password is committed in plaintext in the settings module.",
+      "affected_url": "git@git.example.com:shop/storefront.git · app/config/settings.py:42",
+      "impact": "Anyone with repo access gets production database credentials.",
+      "remediation": "Load secrets from the environment or a secret manager; rotate the key.",
+      "tool": "gitleaks",
       "references": [
-        "CWE-284",
-        "OWASP A05:2021"
+        "CWE-798",
+        "OWASP A07:2021"
       ],
       "evidence": [
-        "8443/tcp open ssl/http Apache Tomcat",
-        "GET /manager/html → 401 WWW-Authenticate: Basic"
+        "settings.py:42  DB_PASSWORD = \"••••••••••••\"  (masked)"
       ],
-      "cvss_score": 7.3,
-      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
-      "category": "Network",
+      "cvss_score": 7.5,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "category": "Secret",
       "cwe": [
-        "CWE-284"
+        "CWE-798"
       ],
       "owasp": [
-        "OWASP A05:2021"
+        "OWASP A07:2021"
       ],
       "cve": [],
       "status": "open",
@@ -220,28 +219,30 @@
     {
       "id": "002",
       "severity": "MEDIUM",
-      "title": "Deprecated TLS 1.0 offered",
-      "path": "192.0.2.10:443",
+      "title": "SQL built by string concatenation",
+      "path": "app/db/queries.py",
       "validation": "UNCONFIRMED",
-      "description": "The HTTPS service still negotiates TLS 1.0.",
-      "affected_url": "https://192.0.2.10:443",
-      "impact": "Weak protocol versions expose traffic to downgrade attacks.",
-      "remediation": "Disable TLS 1.0/1.1 and prefer TLS 1.2+ with modern ciphers.",
-      "tool": "testssl.sh",
+      "description": "A query is assembled with f-strings from a request parameter.",
+      "affected_url": "git@git.example.com:shop/storefront.git · app/db/queries.py:88",
+      "impact": "May allow SQL injection if the parameter is attacker-controlled.",
+      "remediation": "Use parameterized queries / an ORM binding instead of string building.",
+      "tool": "Semgrep",
       "references": [
-        "CWE-327"
+        "CWE-89",
+        "OWASP A03:2021"
       ],
       "evidence": [
-        "TLS 1.0   offered (NOT ok)",
-        "TLS 1.2   offered (OK)"
+        "queries.py:88  f\"SELECT * FROM orders WHERE id = {order_id}\""
       ],
-      "cvss_score": 5.9,
-      "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
-      "category": "Network",
+      "cvss_score": 6.3,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
+      "category": "Source Code",
       "cwe": [
-        "CWE-327"
+        "CWE-89"
       ],
-      "owasp": [],
+      "owasp": [
+        "OWASP A03:2021"
+      ],
       "cve": [],
       "status": "open",
       "severity_override": "",
@@ -251,25 +252,25 @@
     {
       "id": "003",
       "severity": "LOW",
-      "title": "SSH banner reveals version",
-      "path": "192.0.2.10:22",
+      "title": "Vulnerable dependency",
+      "path": "requirements.txt",
       "validation": "INCONCLUSIVE",
-      "description": "The SSH service banner discloses its exact version.",
-      "affected_url": "192.0.2.10:22",
-      "impact": "Version disclosure helps an attacker match known exploits.",
-      "remediation": "Suppress the detailed banner where the SSH server allows it.",
-      "tool": "nmap",
+      "description": "A pinned dependency has a known advisory in this version.",
+      "affected_url": "git@git.example.com:shop/storefront.git · requirements.txt",
+      "impact": "The known issue may be reachable depending on how the library is used.",
+      "remediation": "Upgrade to the patched release and re-run the dependency scan.",
+      "tool": "pip-audit",
       "references": [
-        "CWE-200"
+        "CWE-1104"
       ],
       "evidence": [
-        "22/tcp open ssh OpenSSH 8.2p1 (banner shown)"
+        "requests==2.19.1  → advisory GHSA-•••• (upgrade advised)"
       ],
       "cvss_score": 3.7,
       "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
-      "category": "Network",
+      "category": "Dependency",
       "cwe": [
-        "CWE-200"
+        "CWE-1104"
       ],
       "owasp": [],
       "cve": [],
@@ -282,7 +283,7 @@
   "timeline": [
     {
       "seq": 1,
-      "at": "2026-10-03T10:15:06+00:00",
+      "at": "2026-09-28T09:12:07+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -292,7 +293,7 @@
     },
     {
       "seq": 2,
-      "at": "2026-10-03T10:15:12+00:00",
+      "at": "2026-09-28T09:12:13+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -302,57 +303,57 @@
     },
     {
       "seq": 3,
-      "at": "2026-10-03T10:15:36+00:00",
+      "at": "2026-09-28T09:12:29+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
-      "text": "Scan the network host 192.0.2.10 for exposed services.",
+      "text": "Review the source repository git@git.example.com:shop/storefront.git for security issues.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 4,
-      "at": "2026-10-03T10:15:53+00:00",
+      "at": "2026-09-28T09:12:42+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Target parsed: 192.0.2.10",
+      "text": "Target parsed: git@git.example.com:shop/storefront.git",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 5,
-      "at": "2026-10-03T10:16:01+00:00",
+      "at": "2026-09-28T09:12:45+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Target identified: 192.0.2.10 (network host).",
+      "text": "Target identified: git@git.example.com:shop/storefront.git (source repository).",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 6,
-      "at": "2026-10-03T10:16:05+00:00",
+      "at": "2026-09-28T09:12:48+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Template auto-selected: Network (matched to the target)",
+      "text": "Template auto-selected: Source Code (matched to the target)",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 7,
-      "at": "2026-10-03T10:16:12+00:00",
+      "at": "2026-09-28T09:12:52+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Template auto-selected: Network. Drafting a Scope Manifest…",
+      "text": "Template auto-selected: Source Code. Drafting a Scope Manifest…",
       "tone": "ok",
       "rows": []
     },
     {
       "seq": 8,
-      "at": "2026-10-03T10:16:17+00:00",
+      "at": "2026-09-28T09:13:00+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -362,7 +363,7 @@
     },
     {
       "seq": 9,
-      "at": "2026-10-03T10:16:22+00:00",
+      "at": "2026-09-28T09:13:03+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -372,7 +373,7 @@
     },
     {
       "seq": 10,
-      "at": "2026-10-03T10:16:37+00:00",
+      "at": "2026-09-28T09:13:12+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -382,27 +383,27 @@
     },
     {
       "seq": 11,
-      "at": "2026-10-03T10:16:41+00:00",
+      "at": "2026-09-28T09:13:20+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
-      "text": "Assessment RCX-DEMO-001 created",
+      "text": "Assessment RCX-001 created",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 12,
-      "at": "2026-10-03T10:16:59+00:00",
+      "at": "2026-09-28T09:13:41+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Scope approved. Assessment RCX-DEMO-001 created.",
+      "text": "Scope approved. Assessment RCX-001 created.",
       "tone": "ok",
       "rows": []
     },
     {
       "seq": 13,
-      "at": "2026-10-03T10:17:10+00:00",
+      "at": "2026-09-28T09:13:52+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -412,7 +413,7 @@
     },
     {
       "seq": 14,
-      "at": "2026-10-03T10:17:18+00:00",
+      "at": "2026-09-28T09:13:59+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -422,7 +423,7 @@
     },
     {
       "seq": 15,
-      "at": "2026-10-03T10:17:36+00:00",
+      "at": "2026-09-28T09:14:19+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -432,17 +433,17 @@
     },
     {
       "seq": 16,
-      "at": "2026-10-03T10:17:52+00:00",
+      "at": "2026-09-28T09:14:35+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: nmap and testssl.sh. Preparing requests with sample test data. Public surface first.",
+      "text": "Selected tools: Semgrep, gitleaks and pip-audit. Preparing requests with sample test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 17,
-      "at": "2026-10-03T10:18:06+00:00",
+      "at": "2026-09-28T09:14:41+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -452,80 +453,80 @@
     },
     {
       "seq": 18,
-      "at": "2026-10-03T10:18:13+00:00",
+      "at": "2026-09-28T09:14:51+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
-      "text": "Executing permitted scan · nmap",
+      "text": "Executing permitted scan · Semgrep",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 19,
-      "at": "2026-10-03T10:18:30+00:00",
+      "at": "2026-09-28T09:15:11+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
-      "text": "Discovery · nmap",
+      "text": "Discovery · repository",
       "tone": "default",
       "rows": [
         [
-          "Live hosts",
-          "6"
+          "Files",
+          "312"
         ],
         [
-          "Open ports",
-          "11"
+          "Languages",
+          "Python, JS"
         ],
         [
-          "Services",
-          "7"
+          "Dependencies",
+          "48"
         ]
       ]
     },
     {
       "seq": 20,
-      "at": "2026-10-03T10:18:42+00:00",
+      "at": "2026-09-28T09:15:22+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
-      "text": "nmap: checks on the permitted surface",
+      "text": "Semgrep: checks on the permitted surface",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 21,
-      "at": "2026-10-03T10:18:57+00:00",
+      "at": "2026-09-28T09:15:37+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Proposed request: TCP 198.51.100.9",
+      "text": "Proposed request: read .git/config",
       "tone": "warn",
       "rows": []
     },
     {
       "seq": 22,
-      "at": "2026-10-03T10:19:19+00:00",
+      "at": "2026-09-28T09:16:01+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
-      "text": "Blocked: Host outside approved scope",
+      "text": "Blocked: Path excluded from the review",
       "tone": "block",
       "rows": []
     },
     {
       "seq": 23,
-      "at": "2026-10-03T10:19:22+00:00",
+      "at": "2026-09-28T09:16:09+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
-      "text": "Blocked: TCP 198.51.100.9 · Host outside approved scope. Not executed.",
+      "text": "Blocked: read .git/config · Path excluded from the review. Not executed.",
       "tone": "block",
       "rows": []
     },
     {
       "seq": 24,
-      "at": "2026-10-03T10:19:33+00:00",
+      "at": "2026-09-28T09:16:17+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -535,50 +536,46 @@
     },
     {
       "seq": 25,
-      "at": "2026-10-03T10:19:50+00:00",
+      "at": "2026-09-28T09:16:32+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
-      "text": "Services · nmap",
+      "text": "Scan · Semgrep, gitleaks and pip-audit",
       "tone": "default",
       "rows": [
         [
-          "Web",
-          "2"
+          "Potential issues",
+          "3"
         ],
         [
-          "SSH",
-          "1"
-        ],
-        [
-          "Management console",
+          "Secrets flagged",
           "1"
         ]
       ]
     },
     {
       "seq": 26,
-      "at": "2026-10-03T10:20:10+00:00",
+      "at": "2026-09-28T09:16:53+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "The management console may accept weak credentials. Proposing a single, controlled login check.",
+      "text": "A hardcoded credential was flagged in app/config/settings.py. Proposing a controlled read to confirm it is a live secret.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 27,
-      "at": "2026-10-03T10:20:22+00:00",
+      "at": "2026-09-28T09:17:05+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Candidate F-001 · exposed console",
+      "text": "Candidate F-001 · hardcoded secret",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 28,
-      "at": "2026-10-03T10:20:43+00:00",
+      "at": "2026-09-28T09:17:27+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -588,17 +585,17 @@
     },
     {
       "seq": 29,
-      "at": "2026-10-03T10:21:09+00:00",
+      "at": "2026-09-28T09:18:09+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
-      "text": "Approved: Banner and TLS check (read-only)",
+      "text": "Approved: Read the flagged line (read-only)",
       "tone": "ok",
       "rows": []
     },
     {
       "seq": 30,
-      "at": "2026-10-03T10:21:28+00:00",
+      "at": "2026-09-28T09:18:32+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -608,7 +605,7 @@
     },
     {
       "seq": 31,
-      "at": "2026-10-03T10:21:37+00:00",
+      "at": "2026-09-28T09:18:41+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -618,7 +615,7 @@
     },
     {
       "seq": 32,
-      "at": "2026-10-03T10:21:50+00:00",
+      "at": "2026-09-28T09:18:56+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -628,17 +625,17 @@
     },
     {
       "seq": 33,
-      "at": "2026-10-03T10:22:39+00:00",
+      "at": "2026-09-28T09:19:42+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
-      "text": "Approved: single_login_probe (double-checked)",
+      "text": "Approved: secret_validation (double-checked)",
       "tone": "ok",
       "rows": []
     },
     {
       "seq": 34,
-      "at": "2026-10-03T10:23:02+00:00",
+      "at": "2026-09-28T09:20:05+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -648,7 +645,7 @@
     },
     {
       "seq": 35,
-      "at": "2026-10-03T10:23:14+00:00",
+      "at": "2026-09-28T09:20:17+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -658,7 +655,7 @@
     },
     {
       "seq": 36,
-      "at": "2026-10-03T10:23:38+00:00",
+      "at": "2026-09-28T09:20:35+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -668,7 +665,7 @@
     },
     {
       "seq": 37,
-      "at": "2026-10-03T10:23:46+00:00",
+      "at": "2026-09-28T09:20:44+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -678,7 +675,7 @@
     },
     {
       "seq": 38,
-      "at": "2026-10-03T10:23:58+00:00",
+      "at": "2026-09-28T09:20:57+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "check",
@@ -688,17 +685,17 @@
     },
     {
       "seq": 39,
-      "at": "2026-10-03T10:24:09+00:00",
+      "at": "2026-09-28T09:21:12+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
-      "text": "Matching services to known CVEs",
+      "text": "Matching dependencies to advisories",
       "tone": "ok",
       "rows": []
     },
     {
       "seq": 40,
-      "at": "2026-10-03T10:24:29+00:00",
+      "at": "2026-09-28T09:21:31+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -708,7 +705,7 @@
     },
     {
       "seq": 41,
-      "at": "2026-10-03T10:24:41+00:00",
+      "at": "2026-09-28T09:21:46+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -718,7 +715,7 @@
     },
     {
       "seq": 42,
-      "at": "2026-10-03T10:25:06+00:00",
+      "at": "2026-09-28T09:22:19+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -728,7 +725,7 @@
     },
     {
       "seq": 43,
-      "at": "2026-10-03T10:25:23+00:00",
+      "at": "2026-09-28T09:22:33+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -738,7 +735,7 @@
     },
     {
       "seq": 44,
-      "at": "2026-10-03T10:25:35+00:00",
+      "at": "2026-09-28T09:22:38+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -748,7 +745,7 @@
     },
     {
       "seq": 45,
-      "at": "2026-10-03T10:25:42+00:00",
+      "at": "2026-09-28T09:22:45+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -758,40 +755,40 @@
     },
     {
       "seq": 46,
-      "at": "2026-10-03T10:26:06+00:00",
+      "at": "2026-09-28T09:23:01+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
-      "text": "Report format: JSON",
+      "text": "Report format: DOCX",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 47,
-      "at": "2026-10-03T10:26:09+00:00",
+      "at": "2026-09-28T09:23:06+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
-      "text": "Report saved · ./reports/RCX-DEMO-001.json",
+      "text": "Report saved · ./reports/RCX-001.docx",
       "tone": "ok",
       "rows": []
     },
     {
       "seq": 48,
-      "at": "2026-10-03T10:26:13+00:00",
+      "at": "2026-09-28T09:23:09+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Report saved: ./reports/RCX-DEMO-001.json.",
+      "text": "Report saved: ./reports/RCX-001.docx.",
       "tone": "ok",
       "rows": []
     }
   ],
   "requests": [
     {
-      "text": "Scan the network host 192.0.2.10 for exposed services.",
-      "at": "2026-10-03T10:15:27+00:00"
+      "text": "Review the source repository git@git.example.com:shop/storefront.git for security issues.",
+      "at": "2026-09-28T09:12:22+00:00"
     }
   ],
-  "saved_at": "2026-10-03T10:48:17+00:00"
+  "saved_at": "2026-09-28T09:23:22+00:00"
 }

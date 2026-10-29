@@ -134,7 +134,7 @@ def test_each_assessment_gets_its_own_file():
     store.autosave()
     files = saved_files()
     assert len(files) == 2
-    assert {load(p)["label"] for p in files} == {"RCX-DEMO-001", "RCX-DEMO-002"}
+    assert {load(p)["label"] for p in files} == {"RCX-001", "RCX-002"}
 
 
 def test_saving_can_be_turned_off(monkeypatch):
@@ -185,7 +185,7 @@ def test_leaving_an_assessment_saves_it_first():
     run_to("scope")
     lists.current().run.requests = 999            # a change no redraw has saved yet
     store.new_assessment()
-    first = [p for p in saved_files() if "RCX-DEMO-001" in p.name][0]
+    first = [p for p in saved_files() if "RCX-001" in p.name][0]
     assert load(first)["run"]["requests"] == 999
 
 

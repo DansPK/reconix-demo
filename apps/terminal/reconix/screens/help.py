@@ -94,7 +94,7 @@ class HelpScreen(ModalScreen):
             yield from (self._row(keys, desc) for keys, desc in GLOBAL_ROWS)
             yield Static("")
             yield Static(
-                f"[{theme.DIM}]in-memory sample data · ? or Esc closes this[/]",
+                f"[{theme.DIM}]in-memory store · ? or Esc closes this[/]",
                 markup=True,
             )
 

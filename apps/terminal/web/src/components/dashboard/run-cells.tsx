@@ -24,7 +24,7 @@ export type RunColumn = (typeof RUN_COLUMNS)[number]["key"];
 /** The one search over saved runs: its accessible name and placeholder. */
 export const RUN_SEARCH = { label: "Search saved assessments", placeholder: "ID, template, target, status…" } as const;
 
-/** A run named for an accessible name: "RCX-DEMO-001 (Web URL, 9 Oct 15:33)". */
+/** A run named for an accessible name: "RCX-001 (Web URL, 9 Oct 15:33)". */
 export const runTitle = (r: ReportRunRow) => `${r.id} (${r.template}, ${r.when})`;
 
 export interface RunCellProps {

@@ -22,5 +22,5 @@ export interface Stat {
 /** A link to one saved run (it opens the view it sits in, for that run). */
 export interface RunLink {
   uid: string;
-  label: string; // "RCX-DEMO-001 · 9 Oct 15:33"
+  label: string; // "RCX-001 · 9 Oct 15:33"
 }

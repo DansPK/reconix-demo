@@ -1,8 +1,8 @@
 {
   "schema": "reconix.assessment/v1",
-  "uid": "20261001-083000-2265_RCX-DEMO-003",
+  "uid": "20261001-083000-2265_RCX-003",
   "session": "20261001-083000-2265",
-  "label": "RCX-DEMO-003",
+  "label": "RCX-003",
   "assessment_id": "",
   "target": "portal.example.net",
   "target_url": "https://portal.example.net",

@@ -34,7 +34,7 @@ def test_scope_approval_assigns_the_assessment_id():
     assert store.assessment_label() == ""
     run_to_gate_after_template()
     store.approve_scope()
-    assert store.assessment_label() == "RCX-DEMO-001"
+    assert store.assessment_label() == "RCX-001"
     assert store.is_scope_approved()
     with pytest.raises(store.StoreValidationError):
         store.approve_scope()

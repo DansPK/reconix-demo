@@ -159,7 +159,7 @@ describe("safeFindingKey", () => {
   it("accepts the keys the view hands out and nothing else", () => {
     expect(safeFindingKey("F-001")).toBe(true);
     expect(safeFindingKey("IMP-002")).toBe(true);
-    expect(safeFindingKey("20261005-140300-9f76_RCX-DEMO-002~F-001")).toBe(true);
+    expect(safeFindingKey("20261005-140300-9f76_RCX-002~F-001")).toBe(true);
     for (const bad of ["", "<script>", "F-001 ", "a~b~c", "x".repeat(49), "F-001?x=1", "run~F-001\n"]) expect(safeFindingKey(bad)).toBe(false);
   });
 });

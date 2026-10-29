@@ -36,7 +36,7 @@ export function CardShell({
   );
 }
 
-/** "RCX-DEMO-002 · 5 Oct 14:03" */
+/** "RCX-002 · 5 Oct 14:03" */
 export const runName = (run: { label: string; when: string }) => `${run.label} · ${run.when}`;
 
 export function Bar({ pct, tone, label }: { pct: number; tone?: "success"; label: string }) {

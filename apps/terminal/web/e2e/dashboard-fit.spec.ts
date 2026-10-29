@@ -21,11 +21,11 @@ test.beforeAll(() => expect(sample().length, "the every-run mode needs at least 
 const MODES = [
   { name: "every run", view: "overview" },
   { name: "one run", view: `overview&uid=${newest().uid}` },
-  { name: "the run with every severity", view: "overview&uid=20260929-112000-8c51_RCX-DEMO-001" }, // critical to low, one a false positive
-  { name: "the heaviest run", view: "overview&uid=20261005-140300-9f76_RCX-DEMO-001" },
-  { name: "the run with twelve findings", view: "overview&uid=20260929-112000-8c51_RCX-DEMO-002" },
-  { name: "a run with nothing found", view: "overview&uid=20261001-083000-2265_RCX-DEMO-001" },
-  { name: "a run stopped before its scope", view: "overview&uid=20261001-083000-2265_RCX-DEMO-003" },
+  { name: "the run with every severity", view: "overview&uid=20260929-112000-8c51_RCX-001" }, // critical to low, one a false positive
+  { name: "the heaviest run", view: "overview&uid=20261005-140300-9f76_RCX-001" },
+  { name: "the run with twelve findings", view: "overview&uid=20260929-112000-8c51_RCX-002" },
+  { name: "a run with nothing found", view: "overview&uid=20261001-083000-2265_RCX-001" },
+  { name: "a run stopped before its scope", view: "overview&uid=20261001-083000-2265_RCX-003" },
 ];
 
 /** The content area's hidden height (0 when nothing scrolls) and the cards outside the viewport. */

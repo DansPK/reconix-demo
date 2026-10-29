@@ -71,8 +71,8 @@ describe("FileStatus", () => {
   });
 
   it("names the run whose file failed, where several runs offer files (the runs table)", () => {
-    const html = status({ kind: "failed", format: "pdf", message: "the printer took too long", of: "RCX-DEMO-001 (Web URL, 5 Oct 14:03)" });
-    expect(text(html)).toContain("The PDF of RCX-DEMO-001 (Web URL, 5 Oct 14:03) could not be generated: the printer took too long.");
+    const html = status({ kind: "failed", format: "pdf", message: "the printer took too long", of: "RCX-001 (Web URL, 5 Oct 14:03)" });
+    expect(text(html)).toContain("The PDF of RCX-001 (Web URL, 5 Oct 14:03) could not be generated: the printer took too long.");
   });
 
   it("covers one run's JSON too", () => {

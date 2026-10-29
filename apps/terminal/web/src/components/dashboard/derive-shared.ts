@@ -20,7 +20,7 @@ export const STEP_LEGEND: LegendItem[] = (["done", "active", "pending"] as const
   shape: "bar",
 }));
 
-/** A saved run's name in lists: "RCX-DEMO-001 · 9 Oct 15:33". */
+/** A saved run's name in lists: "RCX-001 · 9 Oct 15:33". */
 export const runLabel = (v: Pick<AssessmentView, "id" | "createdMs">) => `${v.id} · ${shortDay(v.createdMs)} ${hourMinute(v.createdMs)}`;
 
 export const runLink = (v: Pick<AssessmentView, "uid" | "id" | "createdMs">): RunLink => ({ uid: v.uid, label: runLabel(v) });

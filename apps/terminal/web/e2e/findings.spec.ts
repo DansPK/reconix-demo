@@ -134,9 +134,9 @@ test("a finding the address names but the list lacks falls back to the first row
   await expect(notice(page)).not.toContainText("<b>");
 });
 
-// 20261001-083000-2265_RCX-DEMO-001 completed with nothing found; MOST is the run with the most
-// findings the page lists (...-8c51_RCX-DEMO-002, twelve; an Info finding would not count)
-const NO_FINDINGS = "20261001-083000-2265_RCX-DEMO-001";
+// 20261001-083000-2265_RCX-001 completed with nothing found; MOST is the run with the most
+// findings the page lists (...-8c51_RCX-002, twelve; an Info finding would not count)
+const NO_FINDINGS = "20261001-083000-2265_RCX-001";
 const MOST = [...sample()].sort((a, b) => counted(b).length - counted(a).length)[0];
 
 test("a run with no findings says so: no list, no filters, no pager", async ({ page }) => {
@@ -176,7 +176,7 @@ test("a run that fits one page shows no pager", async ({ page }) => {
 });
 
 test("a critical finding shows its badge first, there is no Info level, and titles stay text", async ({ page }) => {
-  const uid = "20260929-112000-8c51_RCX-DEMO-001";
+  const uid = "20260929-112000-8c51_RCX-001";
   await go(page, `/?uid=${uid}&view=findings`);
   await expect(rows(page).first().locator("button")).toHaveAttribute("data-severity", "CRITICAL");
   const severity = page.getByRole("group", { name: "Severity" });
@@ -232,7 +232,7 @@ test("a false positive is left out until Show lists it as closed, and its analys
 
 /* The sample run whose target held a login (scripts/make_sample_data.py): the store masked it
    when it saved the run, and the dashboard and its export mask the saved copy once more. */
-const MASKED_RUN = "20260929-112000-8c51_RCX-DEMO-001";
+const MASKED_RUN = "20260929-112000-8c51_RCX-001";
 
 test("a login in a target is masked in the finding's detail and in the Word export", async ({ page }) => {
   await go(page, `/?uid=${MASKED_RUN}&view=findings&finding=IMP-001`);

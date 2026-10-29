@@ -29,7 +29,7 @@ FEEDBACK: List[Feedback] = []
 ALL_LISTS = (ASSESSMENTS, EVENTS, PROMPT_HISTORY, FEEDBACK)
 
 # This run of the app. Saved assessment files are named "<SESSION_ID>_<label>.json", so
-# sessions never overwrite each other (every session numbers from RCX-DEMO-001 again).
+# sessions never overwrite each other (every session numbers from RCX-001 again).
 SESSION_ID = f"{datetime.now():%Y%m%d-%H%M%S}-{secrets.token_hex(2)}"
 
 # A session-wide monotonic counter: chat and activity entries both take a `seq` from it,

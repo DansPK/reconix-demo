@@ -1,9 +1,9 @@
 {
   "schema": "reconix.assessment/v1",
-  "uid": "20260930-160500-8a01_RCX-DEMO-001",
+  "uid": "20260930-160500-8a01_RCX-001",
   "session": "20260930-160500-8a01",
-  "label": "RCX-DEMO-001",
-  "assessment_id": "RCX-DEMO-001",
+  "label": "RCX-001",
+  "assessment_id": "RCX-001",
   "target": "api.example.com",
   "target_url": "https://api.example.com",
   "target_kind": "API service",
@@ -54,7 +54,7 @@
       "analysis": 100,
       "report": 100
     },
-    "report_path": "./reports/RCX-DEMO-001.docx"
+    "report_path": "./reports/RCX-001.docx"
   },
   "login": {
     "kind": "cookie",
@@ -423,7 +423,7 @@
       "type": "activity",
       "who": "SYS",
       "kind": "line",
-      "text": "Assessment RCX-DEMO-001 created",
+      "text": "Assessment RCX-001 created",
       "tone": "default",
       "rows": []
     },
@@ -433,7 +433,7 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Scope approved. Assessment RCX-DEMO-001 created.",
+      "text": "Scope approved. Assessment RCX-001 created.",
       "tone": "ok",
       "rows": []
     },
@@ -855,7 +855,7 @@
       "type": "activity",
       "who": "SYS",
       "kind": "line",
-      "text": "Report saved · ./reports/RCX-DEMO-001.docx",
+      "text": "Report saved · ./reports/RCX-001.docx",
       "tone": "ok",
       "rows": []
     },
@@ -865,7 +865,7 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Report saved: ./reports/RCX-DEMO-001.docx.",
+      "text": "Report saved: ./reports/RCX-001.docx.",
       "tone": "ok",
       "rows": []
     }

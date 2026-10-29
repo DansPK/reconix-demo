@@ -131,7 +131,7 @@ async def test_export_json_then_open_it(app, opened):
         await settle(pilot)
         assert isinstance(app.screen, ChoiceScreen)
         path = store.get_run().report_path
-        assert path.endswith("RCX-DEMO-001.json")
+        assert path.endswith("RCX-001.json")
         await pilot.press("enter")                                     # Open it
         await settle(pilot)
         assert opened == [path]
@@ -171,7 +171,7 @@ async def test_docx_export_with_control_characters_keeps_the_app_running(app, tm
         await settle(pilot)
         assert app.is_running
         assert isinstance(app.screen, ChoiceScreen)                    # ✓ REPORT SAVED
-        assert store.get_run().report_path.endswith("RCX-DEMO-001.docx")
+        assert store.get_run().report_path.endswith("RCX-001.docx")
 
 
 @pytest.mark.skipif(not report.HAS_DOCX, reason="python-docx not installed")

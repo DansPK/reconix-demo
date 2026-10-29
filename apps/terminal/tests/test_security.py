@@ -86,7 +86,7 @@ def test_reports_never_leave_the_reports_folder(reports_dir, bad_id):
 def test_json_report_is_valid_and_has_no_secret(reports_dir):
     run_to(None)
     store.generate_report("json")
-    data = json.loads((reports_dir / "RCX-DEMO-001.json").read_text())
+    data = json.loads((reports_dir / "RCX-001.json").read_text())
     assert TEST_PASSWORD not in json.dumps(data)
 
 
@@ -121,10 +121,10 @@ def test_no_report_shows_a_secret_from_the_scope_the_policy_or_the_approvals(rep
     _secrets_everywhere_a_report_prints()
     texts = {"html (the PDF)": render_html(store.report_data())}
     store.generate_report("json")
-    texts["json"] = (reports_dir / "RCX-DEMO-001.json").read_text("utf-8")
+    texts["json"] = (reports_dir / "RCX-001.json").read_text("utf-8")
     if report.HAS_DOCX:
         store.generate_report("docx")
-        with zipfile.ZipFile(reports_dir / "RCX-DEMO-001.docx") as docx:
+        with zipfile.ZipFile(reports_dir / "RCX-001.docx") as docx:
             texts["docx"] = "".join(docx.read(n).decode("utf-8") for n in docx.namelist()
                                     if n.endswith((".xml", ".rels")))
     for name, text in texts.items():

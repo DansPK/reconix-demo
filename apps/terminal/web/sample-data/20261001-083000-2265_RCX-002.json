@@ -1,11 +1,11 @@
 {
   "schema": "reconix.assessment/v1",
-  "uid": "20261005-140300-9f76_RCX-DEMO-001",
-  "session": "20261005-140300-9f76",
-  "label": "RCX-DEMO-001",
-  "assessment_id": "RCX-DEMO-001",
-  "target": "staging.example.com",
-  "target_url": "https://staging.example.com",
+  "uid": "20261001-083000-2265_RCX-002",
+  "session": "20261001-083000-2265",
+  "label": "RCX-002",
+  "assessment_id": "RCX-002",
+  "target": "calm.example.com",
+  "target_url": "https://calm.example.com",
   "target_kind": "web application",
   "template": {
     "id": "web_url",
@@ -21,17 +21,17 @@
     "OWASP Top 10 (2021)"
   ],
   "report_version": "1.0",
-  "created_at": "2026-10-05T14:03:23+00:00",
+  "created_at": "2026-10-01T08:50:55+00:00",
   "status": "Completed",
   "waiting_gate": "",
   "waiting_request_id": "",
   "waiting_for": "",
   "stopped_reason": "",
-  "session_closed": false,
+  "session_closed": true,
   "run": {
     "phase": "completed",
-    "started_at": "2026-10-05T14:04:28+00:00",
-    "finished_at": "2026-10-05T14:16:32+00:00",
+    "started_at": "2026-10-01T08:52:05+00:00",
+    "finished_at": "2026-10-01T09:04:27+00:00",
     "completed": true,
     "requests": 1202,
     "progress": {
@@ -39,9 +39,9 @@
       "scanning": 100,
       "validation": 100,
       "analysis": 100,
-      "report": 100
+      "report": 0
     },
-    "report_path": "./reports/RCX-DEMO-001.docx"
+    "report_path": ""
   },
   "login": {
     "kind": "password+otp",
@@ -71,12 +71,12 @@
     {
       "key": "report",
       "label": "Generate report",
-      "status": "done"
+      "status": "active"
     }
   ],
   "scope": {
     "kind": "web_url",
-    "target_url": "https://staging.example.com",
+    "target_url": "https://calm.example.com",
     "assessment_type": "Web URL",
     "status": "APPROVED",
     "allowed_actions": [
@@ -104,35 +104,35 @@
       "path": "/admin",
       "allowed": false,
       "reason": "Path outside approved scope",
-      "at": "2026-10-05T14:07:36+00:00"
+      "at": "2026-10-01T08:55:03+00:00"
     },
     {
       "method": "GET",
       "path": "/api/orders/10482",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-05T14:11:13+00:00"
+      "at": "2026-10-01T08:58:59+00:00"
     },
     {
       "method": "GET",
       "path": "/api/orders/10482",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-05T14:11:26+00:00"
+      "at": "2026-10-01T08:59:13+00:00"
     },
     {
       "method": "GET",
       "path": "/api/orders/10483",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-05T14:12:51+00:00"
+      "at": "2026-10-01T09:00:32+00:00"
     },
     {
       "method": "GET",
       "path": "/api/orders/10483",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-05T14:13:11+00:00"
+      "at": "2026-10-01T09:00:57+00:00"
     }
   ],
   "approvals": [
@@ -145,8 +145,8 @@
       "path": "/api/orders/10482",
       "purpose": "Record the normal response for the test account's own order",
       "impact": "Low. One read request, no data changes",
-      "command": "GET https://staging.example.com/api/orders/10482 as test account A",
-      "command_hash": "sha256:dd8a6fbdef10b01c5dd55714a896ccd7a65973a18a26220831bfad3d8d3ec75f"
+      "command": "GET https://calm.example.com/api/orders/10482 as test account A",
+      "command_hash": "sha256:a6e682c2d60a0b711f25532bac8f331b89aec9484af3d4bd61a50275a98c9082"
     },
     {
       "request_id": "approval-002",
@@ -157,8 +157,8 @@
       "path": "/api/orders/10483",
       "purpose": "Check if account A can read an order owned by account B",
       "impact": "May read synthetic test data. 1 request, no changes",
-      "command": "GET https://staging.example.com/api/orders/10483 as test account A",
-      "command_hash": "sha256:dba554317f74f0b84d255414c89409e133c2cdf08710a978f5fa6db2e28f87c3"
+      "command": "GET https://calm.example.com/api/orders/10483 as test account A",
+      "command_hash": "sha256:954e22c0ef7c6f649168aebf673cae94ee415f8c0a8c81de588f86bd81530b36"
     }
   ],
   "decisions": [
@@ -167,153 +167,23 @@
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:dd8a6fbdef10b01c5dd55714a896ccd7a65973a18a26220831bfad3d8d3ec75f",
-      "at": "2026-10-05T14:11:32+00:00"
+      "command_hash": "sha256:a6e682c2d60a0b711f25532bac8f331b89aec9484af3d4bd61a50275a98c9082",
+      "at": "2026-10-01T08:59:16+00:00"
     },
     {
       "request_id": "approval-002",
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:dba554317f74f0b84d255414c89409e133c2cdf08710a978f5fa6db2e28f87c3",
-      "at": "2026-10-05T14:13:17+00:00"
+      "command_hash": "sha256:954e22c0ef7c6f649168aebf673cae94ee415f8c0a8c81de588f86bd81530b36",
+      "at": "2026-10-01T09:01:03+00:00"
     }
   ],
-  "findings": [
-    {
-      "id": "001",
-      "severity": "MEDIUM",
-      "title": "Broken object-level authorization",
-      "path": "/api/orders/{id}",
-      "validation": "CONFIRMED",
-      "description": "An order record owned by test account B was returned to test account A.",
-      "affected_url": "https://staging.example.com/api/orders/10483",
-      "impact": "Users could read other customers' order details.",
-      "remediation": "Enforce server-side ownership checks on every order lookup.",
-      "tool": "OWASP ZAP",
-      "references": [
-        "OWASP A01:2021",
-        "OWASP API1:2023",
-        "CWE-639"
-      ],
-      "evidence": [
-        "HTTP 200 · order_id: 10483",
-        "owner: usr_••••42 · email: b•••@example.com",
-        "token: •••• (masked)"
-      ],
-      "cvss_score": 6.5,
-      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
-      "category": "Web App",
-      "cwe": [
-        "CWE-639"
-      ],
-      "owasp": [
-        "OWASP A01:2021",
-        "OWASP API1:2023"
-      ],
-      "cve": [],
-      "status": "open",
-      "severity_override": "",
-      "effective_severity": "MEDIUM",
-      "triage_note": ""
-    },
-    {
-      "id": "002",
-      "severity": "MEDIUM",
-      "title": "Reflected input in search page",
-      "path": "/search",
-      "validation": "UNCONFIRMED",
-      "description": "A marker string sent in the q parameter came back unencoded in the page.",
-      "affected_url": "https://staging.example.com/search?q=",
-      "impact": "May allow cross-site scripting if the reflection is exploitable.",
-      "remediation": "Apply context-aware output encoding and a strict Content-Security-Policy.",
-      "tool": "Nuclei",
-      "references": [
-        "OWASP A03:2021",
-        "CWE-79"
-      ],
-      "evidence": [
-        "GET /search?q=rcx-marker-7 → marker reflected in body (unencoded)"
-      ],
-      "cvss_score": 6.1,
-      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
-      "category": "Web App",
-      "cwe": [
-        "CWE-79"
-      ],
-      "owasp": [
-        "OWASP A03:2021"
-      ],
-      "cve": [],
-      "status": "open",
-      "severity_override": "",
-      "effective_severity": "MEDIUM",
-      "triage_note": ""
-    },
-    {
-      "id": "003",
-      "severity": "LOW",
-      "title": "Session cookie missing SameSite",
-      "path": "/login",
-      "validation": "INCONCLUSIVE",
-      "description": "The session cookie set at login has no SameSite attribute.",
-      "affected_url": "https://staging.example.com/login",
-      "impact": "Weakens protection against cross-site request forgery.",
-      "remediation": "Set SameSite=Lax (or Strict) on the session cookie.",
-      "tool": "OWASP ZAP",
-      "references": [
-        "OWASP A05:2021",
-        "CWE-1275"
-      ],
-      "evidence": [
-        "Set-Cookie: ••••"
-      ],
-      "cvss_score": 3.1,
-      "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:N/A:N",
-      "category": "Web App",
-      "cwe": [
-        "CWE-1275"
-      ],
-      "owasp": [
-        "OWASP A05:2021"
-      ],
-      "cve": [],
-      "status": "open",
-      "severity_override": "",
-      "effective_severity": "LOW",
-      "triage_note": ""
-    },
-    {
-      "id": "IMP-001",
-      "severity": "LOW",
-      "title": "Web server version disclosed",
-      "path": "/",
-      "validation": "UNCONFIRMED",
-      "description": "The Server header names the web server and its version.",
-      "affected_url": "https://staging.example.com/",
-      "impact": "Review the finding and confirm its impact.",
-      "remediation": "See the tool's guidance for remediation.",
-      "tool": "nuclei",
-      "references": [],
-      "evidence": [
-        "Server: nginx/1.18.0"
-      ],
-      "cvss_score": 0.0,
-      "cvss_vector": "",
-      "category": "",
-      "cwe": [],
-      "owasp": [],
-      "cve": [],
-      "status": "open",
-      "severity_override": "",
-      "effective_severity": "LOW",
-      "triage_note": ""
-    }
-  ],
+  "findings": [],
   "timeline": [
     {
-      "seq": 1,
-      "at": "2026-10-05T14:03:09+00:00",
+      "seq": 54,
+      "at": "2026-10-01T08:50:44+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -322,8 +192,8 @@
       "rows": []
     },
     {
-      "seq": 2,
-      "at": "2026-10-05T14:03:16+00:00",
+      "seq": 55,
+      "at": "2026-10-01T08:50:52+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -332,38 +202,38 @@
       "rows": []
     },
     {
-      "seq": 3,
-      "at": "2026-10-05T14:03:40+00:00",
+      "seq": 56,
+      "at": "2026-10-01T08:51:12+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
-      "text": "Assess https://staging.example.com for web security issues.",
+      "text": "Assess https://calm.example.com for web security issues.",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 4,
-      "at": "2026-10-05T14:03:56+00:00",
+      "seq": 57,
+      "at": "2026-10-01T08:51:30+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Target parsed: staging.example.com",
+      "text": "Target parsed: calm.example.com",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 5,
-      "at": "2026-10-05T14:04:01+00:00",
+      "seq": 58,
+      "at": "2026-10-01T08:51:37+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Target identified: staging.example.com (web application).",
+      "text": "Target identified: calm.example.com (web application).",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 6,
-      "at": "2026-10-05T14:04:09+00:00",
+      "seq": 59,
+      "at": "2026-10-01T08:51:41+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -372,8 +242,8 @@
       "rows": []
     },
     {
-      "seq": 7,
-      "at": "2026-10-05T14:04:15+00:00",
+      "seq": 60,
+      "at": "2026-10-01T08:51:46+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -382,8 +252,8 @@
       "rows": []
     },
     {
-      "seq": 8,
-      "at": "2026-10-05T14:04:19+00:00",
+      "seq": 61,
+      "at": "2026-10-01T08:51:51+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -392,8 +262,8 @@
       "rows": []
     },
     {
-      "seq": 9,
-      "at": "2026-10-05T14:04:24+00:00",
+      "seq": 62,
+      "at": "2026-10-01T08:51:58+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -402,8 +272,8 @@
       "rows": []
     },
     {
-      "seq": 10,
-      "at": "2026-10-05T14:04:31+00:00",
+      "seq": 63,
+      "at": "2026-10-01T08:52:11+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -412,28 +282,28 @@
       "rows": []
     },
     {
-      "seq": 11,
-      "at": "2026-10-05T14:04:34+00:00",
+      "seq": 64,
+      "at": "2026-10-01T08:52:15+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
-      "text": "Assessment RCX-DEMO-001 created",
+      "text": "Assessment RCX-002 created",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 12,
-      "at": "2026-10-05T14:04:56+00:00",
+      "seq": 65,
+      "at": "2026-10-01T08:52:36+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Scope approved. Assessment RCX-DEMO-001 created.",
+      "text": "Scope approved. Assessment RCX-002 created.",
       "tone": "ok",
       "rows": []
     },
     {
-      "seq": 13,
-      "at": "2026-10-05T14:05:06+00:00",
+      "seq": 66,
+      "at": "2026-10-01T08:52:46+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -442,8 +312,8 @@
       "rows": []
     },
     {
-      "seq": 14,
-      "at": "2026-10-05T14:05:14+00:00",
+      "seq": 67,
+      "at": "2026-10-01T08:52:58+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -452,8 +322,8 @@
       "rows": []
     },
     {
-      "seq": 15,
-      "at": "2026-10-05T14:05:42+00:00",
+      "seq": 68,
+      "at": "2026-10-01T08:53:19+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -462,8 +332,8 @@
       "rows": []
     },
     {
-      "seq": 16,
-      "at": "2026-10-05T14:06:03+00:00",
+      "seq": 69,
+      "at": "2026-10-01T08:53:30+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -472,8 +342,8 @@
       "rows": []
     },
     {
-      "seq": 17,
-      "at": "2026-10-05T14:06:12+00:00",
+      "seq": 70,
+      "at": "2026-10-01T08:53:44+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -482,8 +352,8 @@
       "rows": []
     },
     {
-      "seq": 18,
-      "at": "2026-10-05T14:06:23+00:00",
+      "seq": 71,
+      "at": "2026-10-01T08:53:51+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -492,8 +362,8 @@
       "rows": []
     },
     {
-      "seq": 19,
-      "at": "2026-10-05T14:06:54+00:00",
+      "seq": 72,
+      "at": "2026-10-01T08:54:15+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -515,8 +385,8 @@
       ]
     },
     {
-      "seq": 20,
-      "at": "2026-10-05T14:07:03+00:00",
+      "seq": 73,
+      "at": "2026-10-01T08:54:30+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -525,8 +395,8 @@
       "rows": []
     },
     {
-      "seq": 21,
-      "at": "2026-10-05T14:07:26+00:00",
+      "seq": 74,
+      "at": "2026-10-01T08:54:48+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -535,8 +405,8 @@
       "rows": []
     },
     {
-      "seq": 22,
-      "at": "2026-10-05T14:07:46+00:00",
+      "seq": 75,
+      "at": "2026-10-01T08:55:15+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -545,8 +415,8 @@
       "rows": []
     },
     {
-      "seq": 23,
-      "at": "2026-10-05T14:07:50+00:00",
+      "seq": 76,
+      "at": "2026-10-01T08:55:18+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -555,8 +425,8 @@
       "rows": []
     },
     {
-      "seq": 24,
-      "at": "2026-10-05T14:07:57+00:00",
+      "seq": 77,
+      "at": "2026-10-01T08:55:27+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -565,8 +435,8 @@
       "rows": []
     },
     {
-      "seq": 25,
-      "at": "2026-10-05T14:08:20+00:00",
+      "seq": 78,
+      "at": "2026-10-01T08:55:43+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -584,8 +454,8 @@
       ]
     },
     {
-      "seq": 26,
-      "at": "2026-10-05T14:08:33+00:00",
+      "seq": 79,
+      "at": "2026-10-01T08:55:56+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -594,8 +464,8 @@
       "rows": []
     },
     {
-      "seq": 27,
-      "at": "2026-10-05T14:08:40+00:00",
+      "seq": 80,
+      "at": "2026-10-01T08:56:07+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -604,8 +474,8 @@
       "rows": []
     },
     {
-      "seq": 28,
-      "at": "2026-10-05T14:08:51+00:00",
+      "seq": 81,
+      "at": "2026-10-01T08:56:21+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -614,8 +484,8 @@
       "rows": []
     },
     {
-      "seq": 29,
-      "at": "2026-10-05T14:09:11+00:00",
+      "seq": 82,
+      "at": "2026-10-01T08:56:45+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -624,8 +494,8 @@
       "rows": []
     },
     {
-      "seq": 30,
-      "at": "2026-10-05T14:09:23+00:00",
+      "seq": 83,
+      "at": "2026-10-01T08:56:57+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -634,8 +504,8 @@
       "rows": []
     },
     {
-      "seq": 31,
-      "at": "2026-10-05T14:09:33+00:00",
+      "seq": 84,
+      "at": "2026-10-01T08:57:06+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -644,8 +514,8 @@
       "rows": []
     },
     {
-      "seq": 32,
-      "at": "2026-10-05T14:09:49+00:00",
+      "seq": 85,
+      "at": "2026-10-01T08:57:33+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -654,8 +524,8 @@
       "rows": []
     },
     {
-      "seq": 33,
-      "at": "2026-10-05T14:10:00+00:00",
+      "seq": 86,
+      "at": "2026-10-01T08:57:46+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -664,8 +534,8 @@
       "rows": []
     },
     {
-      "seq": 34,
-      "at": "2026-10-05T14:10:26+00:00",
+      "seq": 87,
+      "at": "2026-10-01T08:58:10+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -674,8 +544,8 @@
       "rows": []
     },
     {
-      "seq": 35,
-      "at": "2026-10-05T14:10:34+00:00",
+      "seq": 88,
+      "at": "2026-10-01T08:58:22+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -684,8 +554,8 @@
       "rows": []
     },
     {
-      "seq": 36,
-      "at": "2026-10-05T14:11:02+00:00",
+      "seq": 89,
+      "at": "2026-10-01T08:58:43+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -694,8 +564,8 @@
       "rows": []
     },
     {
-      "seq": 37,
-      "at": "2026-10-05T14:11:34+00:00",
+      "seq": 90,
+      "at": "2026-10-01T08:59:22+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -704,8 +574,8 @@
       "rows": []
     },
     {
-      "seq": 38,
-      "at": "2026-10-05T14:12:01+00:00",
+      "seq": 91,
+      "at": "2026-10-01T08:59:47+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -714,8 +584,8 @@
       "rows": []
     },
     {
-      "seq": 39,
-      "at": "2026-10-05T14:12:12+00:00",
+      "seq": 92,
+      "at": "2026-10-01T08:59:55+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -724,8 +594,8 @@
       "rows": []
     },
     {
-      "seq": 40,
-      "at": "2026-10-05T14:12:30+00:00",
+      "seq": 93,
+      "at": "2026-10-01T09:00:18+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -734,8 +604,8 @@
       "rows": []
     },
     {
-      "seq": 41,
-      "at": "2026-10-05T14:13:21+00:00",
+      "seq": 94,
+      "at": "2026-10-01T09:01:07+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -744,8 +614,8 @@
       "rows": []
     },
     {
-      "seq": 42,
-      "at": "2026-10-05T14:13:42+00:00",
+      "seq": 95,
+      "at": "2026-10-01T09:01:30+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -754,8 +624,8 @@
       "rows": []
     },
     {
-      "seq": 43,
-      "at": "2026-10-05T14:13:52+00:00",
+      "seq": 96,
+      "at": "2026-10-01T09:01:39+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -764,8 +634,8 @@
       "rows": []
     },
     {
-      "seq": 44,
-      "at": "2026-10-05T14:14:10+00:00",
+      "seq": 97,
+      "at": "2026-10-01T09:01:59+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -774,8 +644,8 @@
       "rows": []
     },
     {
-      "seq": 45,
-      "at": "2026-10-05T14:14:20+00:00",
+      "seq": 98,
+      "at": "2026-10-01T09:02:06+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -784,8 +654,8 @@
       "rows": []
     },
     {
-      "seq": 46,
-      "at": "2026-10-05T14:14:32+00:00",
+      "seq": 99,
+      "at": "2026-10-01T09:02:22+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "check",
@@ -794,8 +664,8 @@
       "rows": []
     },
     {
-      "seq": 47,
-      "at": "2026-10-05T14:14:49+00:00",
+      "seq": 100,
+      "at": "2026-10-01T09:02:34+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -804,8 +674,8 @@
       "rows": []
     },
     {
-      "seq": 48,
-      "at": "2026-10-05T14:15:08+00:00",
+      "seq": 101,
+      "at": "2026-10-01T09:02:54+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -814,8 +684,8 @@
       "rows": []
     },
     {
-      "seq": 49,
-      "at": "2026-10-05T14:15:23+00:00",
+      "seq": 102,
+      "at": "2026-10-01T09:03:09+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -824,8 +694,8 @@
       "rows": []
     },
     {
-      "seq": 50,
-      "at": "2026-10-05T14:15:48+00:00",
+      "seq": 103,
+      "at": "2026-10-01T09:03:36+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -834,8 +704,8 @@
       "rows": []
     },
     {
-      "seq": 51,
-      "at": "2026-10-05T14:16:03+00:00",
+      "seq": 104,
+      "at": "2026-10-01T09:03:50+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -844,8 +714,8 @@
       "rows": []
     },
     {
-      "seq": 52,
-      "at": "2026-10-05T14:16:14+00:00",
+      "seq": 105,
+      "at": "2026-10-01T09:04:02+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -854,51 +724,21 @@
       "rows": []
     },
     {
-      "seq": 53,
-      "at": "2026-10-05T14:16:21+00:00",
+      "seq": 106,
+      "at": "2026-10-01T09:04:15+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
       "text": "Open the report (8 or /report) to export it.",
       "tone": "muted",
       "rows": []
-    },
-    {
-      "seq": 54,
-      "at": "2026-10-05T14:16:49+00:00",
-      "type": "activity",
-      "who": "USER",
-      "kind": "line",
-      "text": "Report format: DOCX",
-      "tone": "default",
-      "rows": []
-    },
-    {
-      "seq": 55,
-      "at": "2026-10-05T14:16:54+00:00",
-      "type": "activity",
-      "who": "SYS",
-      "kind": "line",
-      "text": "Report saved · ./reports/RCX-DEMO-001.docx",
-      "tone": "ok",
-      "rows": []
-    },
-    {
-      "seq": 56,
-      "at": "2026-10-05T14:16:58+00:00",
-      "type": "chat",
-      "who": "reconix",
-      "kind": "text",
-      "text": "Report saved: ./reports/RCX-DEMO-001.docx.",
-      "tone": "ok",
-      "rows": []
     }
   ],
   "requests": [
     {
-      "text": "Assess https://staging.example.com for web security issues.",
-      "at": "2026-10-05T14:03:26+00:00"
+      "text": "Assess https://calm.example.com for web security issues.",
+      "at": "2026-10-01T08:51:05+00:00"
     }
   ],
-  "saved_at": "2026-10-05T14:30:43+00:00"
+  "saved_at": "2026-10-01T09:11:07+00:00"
 }

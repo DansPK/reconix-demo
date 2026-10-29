@@ -229,8 +229,8 @@ test("the selection survives a search of the table, by keyboard", async ({ page 
 });
 
 // the two runs that saw the same Broken object-level authorization on api.example.com
-const SHARED = ["20260930-160500-8a01_RCX-DEMO-001", "20261003-101500-3ceb_RCX-DEMO-002"];
-const STOPPED_EARLY = "20261001-083000-2265_RCX-DEMO-003"; // stopped before its scope was approved: no manifest
+const SHARED = ["20260930-160500-8a01_RCX-001", "20261003-101500-3ceb_RCX-002"];
+const STOPPED_EARLY = "20261001-083000-2265_RCX-003"; // stopped before its scope was approved: no manifest
 /** Click an option's visible label (its input is 1px, for screen readers) and expect it off. */
 const turnOff = async (page: Page, name: string) => {
   const box = page.getByRole("checkbox", { name });

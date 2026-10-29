@@ -59,7 +59,7 @@ export type ReportCards =
   | {
       mode: "run";
       uid: string;
-      tag: string; // beside the title: "RCX-DEMO-001 · 1.1.1.1"
+      tag: string; // beside the title: "RCX-001 · 1.1.1.1"
       about: string;
       stats: Stat[];
       details: DetailRow[];

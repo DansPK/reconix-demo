@@ -49,7 +49,7 @@ const REPORT = /\breports?\b|\bexport|\bdownload|\bpdf\b|\bjson\b|\bdocx\b|\bwor
 // "verbose error message disclosure" are weaknesses, not errors of the run).
 const ERRORS = /\berrors?\b|\bfail(ed|ure|ures|ing|s)?\b|\bcrash(ed|es)?\b|\bwent wrong\b/;
 const RUN_WORDS = /\b(runs?|assessments?|scans?|steps?|tools?|phases?|execution|pentests?|tui)\b/;
-// "F-003", "f-3", "IMP-002"; not the "DEMO-001" inside "RCX-DEMO-001"
+// "F-003", "f-3", "IMP-002"; the run-label prefix "RCX" (e.g. "RCX-001") is filtered out below.
 const FINDING_ID = /(?<![\w-])([a-z]{1,4})-(\d{1,4})\b/gi;
 
 /** A finding id in one spelling: "F-003" and "f-3" are both "F-3". */
@@ -73,6 +73,8 @@ export function readIntent(question: string): Asked {
   if (POLICY.test(q)) add("policy");
   if (REPORT.test(q)) add("report");
   if (ERRORS.test(q) && RUN_WORDS.test(q) && !FINDINGS.test(q) && !TOP.test(q)) add("errors");
-  const findingIds = [...new Set([...question.matchAll(FINDING_ID)].map((m) => findingKey(`${m[1]}-${m[2]}`)))].slice(0, 3);
+  const findingIds = [...new Set([...question.matchAll(FINDING_ID)]
+    .filter((m) => m[1].toUpperCase() !== "RCX")   // "RCX-001" is a run label, not a finding id
+    .map((m) => findingKey(`${m[1]}-${m[2]}`)))].slice(0, 3);
   return { intents, findingIds };
 }

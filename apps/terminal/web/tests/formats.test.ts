@@ -23,7 +23,7 @@ describe("export formats", () => {
   });
 
   it("builds the file name and the download link from the uid", () => {
-    expect(exportFileName("20261005-140300-9f76_RCX-DEMO-001", "docx")).toBe("20261005-140300-9f76_RCX-DEMO-001.docx");
+    expect(exportFileName("20261005-140300-9f76_RCX-001", "docx")).toBe("20261005-140300-9f76_RCX-001.docx");
     expect(downloadHref("u1", "json")).toBe("/api/assessments/u1/export?format=json");
     expect(downloadHref("a b/c", "docx")).toBe("/api/assessments/a%20b%2Fc/export?format=docx");
   });

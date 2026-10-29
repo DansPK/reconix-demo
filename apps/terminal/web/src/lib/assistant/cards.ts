@@ -230,7 +230,7 @@ export function pickCards(library: Assessment[], uid: string | null, question: s
     pairs.map((p) => p.v),
     uid,
   );
-  // about every run, a question that names runs ("RCX-DEMO-002") is about those
+  // about every run, a question that names runs ("RCX-002") is about those
   if (!uid) {
     const named = views.filter((v) => v.id && new RegExp(`(?<![\\w-])${escape(v.id)}(?![\\w-])`, "i").test(question));
     if (named.length) views = named;

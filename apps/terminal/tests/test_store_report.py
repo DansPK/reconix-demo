@@ -44,7 +44,7 @@ def test_report_formats_and_their_availability():
 def test_pdf_report_is_the_styled_report_as_a_pdf(reports_dir):
     run_to(None)
     shown = store.generate_report("pdf")
-    path = reports_dir / "RCX-DEMO-001.pdf"
+    path = reports_dir / "RCX-001.pdf"
     assert shown == str(path)
     assert path.read_bytes()[:5] == b"%PDF-"
 
@@ -53,7 +53,7 @@ def test_pdf_report_is_the_styled_report_as_a_pdf(reports_dir):
 def test_docx_report_is_written_as_a_binary_file(reports_dir):
     run_to(None)
     shown = store.generate_report("docx")
-    path = reports_dir / "RCX-DEMO-001.docx"
+    path = reports_dir / "RCX-001.docx"
     assert shown == str(path)
     assert path.read_bytes()[:2] == b"PK"        # a .docx is a zip archive
 
@@ -66,10 +66,10 @@ def _docx_text(path) -> str:
 def test_json_report_is_written_and_recorded(reports_dir):
     run_to(None)
     shown = store.generate_report("json")
-    path = reports_dir / "RCX-DEMO-001.json"
+    path = reports_dir / "RCX-001.json"
     assert shown == str(path)
     data = json.loads(path.read_text())
-    assert data["assessment_id"] == "RCX-DEMO-001"
+    assert data["assessment_id"] == "RCX-001"
     assert [f["id"] for f in data["findings"]] == ["001", "002", "003"]
     assert data["blocked_requests"] == [
         {"request": "GET /admin", "reason": "Path outside approved scope"}]
@@ -96,7 +96,7 @@ def test_docx_report_has_every_section(reports_dir, monkeypatch):
     monkeypatch.setattr(lists.current().findings[2], "severity", "CRITICAL")   # 003 first
     store.triage_finding("002", note="Retested: the marker is encoded now.")
     store.generate_report("docx")
-    paragraphs, tables = _docx_parts(reports_dir / "RCX-DEMO-001.docx")
+    paragraphs, tables = _docx_parts(reports_dir / "RCX-001.docx")
     headings = [text for style, text in paragraphs if style.startswith("Heading")]
     assert headings[:5] == ["1 Executive summary", "2 Findings summary",
                             "3 Approved scope & limitations", "4 Detailed findings",
@@ -126,7 +126,7 @@ def test_docx_report_has_every_section(reports_dir, monkeypatch):
     assert scope["Standards"] == "OWASP WSTG · OWASP Top 10 (2021)"
     approvals = next(t for t in tables if t[0][0] == "Risk")
     assert [row[0] for row in approvals[1:]] == ["Medium", "High"]
-    assert "•••" in _docx_text(reports_dir / "RCX-DEMO-001.docx")      # evidence stays masked
+    assert "•••" in _docx_text(reports_dir / "RCX-001.docx")      # evidence stays masked
 
 
 @pytest.mark.skipif(not report.HAS_DOCX, reason="python-docx not installed")
@@ -141,10 +141,10 @@ def test_control_characters_never_stop_the_docx_report(reports_dir, tmp_path):
         PolicyVerdict("GET", "/a\x00b", False, "Path \x1b[1moutside\x00 approved scope"))
     store.generate_report("docx")
     store.generate_report("json")
-    xml = _docx_text(reports_dir / "RCX-DEMO-001.docx")
+    xml = _docx_text(reports_dir / "RCX-001.docx")
     assert "Banner [31mred[0m leak" in xml and "Path [1moutside approved scope" in xml
     assert not CONTROL.search(xml)
-    assert not CONTROL.search((reports_dir / "RCX-DEMO-001.json").read_text("utf-8"))
+    assert not CONTROL.search((reports_dir / "RCX-001.json").read_text("utf-8"))
 
 
 @pytest.mark.skipif(not report.HAS_DOCX, reason="python-docx not installed")
@@ -176,7 +176,7 @@ def test_the_html_the_pdf_prints_is_a_full_styled_document():
     text = render_html(store.report_data())
     assert text.startswith("<!doctype html>")
     assert "Security Assessment Report" in text          # masthead title
-    assert "RCX-DEMO-001" in text                         # engagement id
+    assert "RCX-001" in text                         # engagement id
     assert "Broken object-level authorization" in text   # a finding
     assert "Executive summary" in text and "Detailed findings" in text
     assert "CVSS 6.5" in text                             # CVSS on the finding
@@ -196,10 +196,10 @@ def test_the_html_the_pdf_prints_escapes_dynamic_text(monkeypatch):
 def test_reports_never_contain_the_test_account(reports_dir):
     run_to(None)
     store.generate_report("json")
-    texts = [(reports_dir / "RCX-DEMO-001.json").read_text(), render_html(store.report_data())]
+    texts = [(reports_dir / "RCX-001.json").read_text(), render_html(store.report_data())]
     if report.HAS_DOCX:
         store.generate_report("docx")
-        texts.append(_docx_text(reports_dir / "RCX-DEMO-001.docx"))
+        texts.append(_docx_text(reports_dir / "RCX-001.docx"))
     for text in texts:
         assert TEST_PASSWORD not in text
         assert "demo.tester" not in text
@@ -240,7 +240,7 @@ def test_a_network_report_lists_the_approved_ports(reports_dir):
     assert "<dt>Allowed ports</dt>" in render_html(store.report_data())
     if report.HAS_DOCX:
         store.generate_report("docx")
-        text = _docx_text(reports_dir / "RCX-DEMO-001.docx")
+        text = _docx_text(reports_dir / "RCX-001.docx")
         assert "Allowed ports" in text and "22, 80, 443, 8080, 8443" in text
 
 
@@ -250,7 +250,7 @@ def test_a_web_report_has_no_ports_line(reports_dir):
     assert "Allowed ports" not in render_html(store.report_data())
     if report.HAS_DOCX:
         store.generate_report("docx")
-        assert "Allowed ports" not in _docx_text(reports_dir / "RCX-DEMO-001.docx")
+        assert "Allowed ports" not in _docx_text(reports_dir / "RCX-001.docx")
 
 
 def test_summary_counts_every_human_approval():

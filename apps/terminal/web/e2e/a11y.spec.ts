@@ -107,7 +107,7 @@ test.describe("axe, more states", () => {
   });
 
   test("a run with no findings (the empty Findings view) has no violations", async ({ page }) => {
-    await show(page, "/?uid=20261001-083000-2265_RCX-DEMO-001&view=findings");
+    await show(page, "/?uid=20261001-083000-2265_RCX-001&view=findings");
     await expect(page.locator("main > :not([hidden])").getByText("No findings in this assessment yet.")).toBeVisible();
     await axe(page, "findings empty");
   });

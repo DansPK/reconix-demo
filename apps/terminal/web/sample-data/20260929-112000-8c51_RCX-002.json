@@ -1,9 +1,9 @@
 {
   "schema": "reconix.assessment/v1",
-  "uid": "20260929-112000-8c51_RCX-DEMO-002",
+  "uid": "20260929-112000-8c51_RCX-002",
   "session": "20260929-112000-8c51",
-  "label": "RCX-DEMO-002",
-  "assessment_id": "RCX-DEMO-002",
+  "label": "RCX-002",
+  "assessment_id": "RCX-002",
   "target": "api.example.org",
   "target_url": "https://api.example.org",
   "target_kind": "API service",
@@ -606,7 +606,7 @@
       "type": "activity",
       "who": "SYS",
       "kind": "line",
-      "text": "Assessment RCX-DEMO-002 created",
+      "text": "Assessment RCX-002 created",
       "tone": "default",
       "rows": []
     },
@@ -616,7 +616,7 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Scope approved. Assessment RCX-DEMO-002 created.",
+      "text": "Scope approved. Assessment RCX-002 created.",
       "tone": "ok",
       "rows": []
     },

@@ -19,7 +19,7 @@ export type { Card, ChatMessage, ScopeRef, WelcomePrompt };
 /** A saved run, for the scope's status badge and the report card's links. */
 export interface RunSummary {
   uid: string;
-  label: string; // "RCX-DEMO-001"
+  label: string; // "RCX-001"
   when: string; // "5 Oct 14:03"
   status: Status;
 }

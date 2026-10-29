@@ -52,10 +52,10 @@ describe("findingMatches", () => {
     }
   });
   it("searches the run's label and the references too", () => {
-    const withRun = { ...findings[0], run: { uid: "run-1", label: "RCX-DEMO-009 · 1 Jan 00:00" }, references: ["OWASP A07:2021", "CWE-798"] };
-    expect(findingMatches(withRun, { ...none, q: "demo-009" })).toBe(true);
+    const withRun = { ...findings[0], run: { uid: "run-1", label: "RCX-009 · 1 Jan 00:00" }, references: ["OWASP A07:2021", "CWE-798"] };
+    expect(findingMatches(withRun, { ...none, q: "rcx-009" })).toBe(true);
     expect(findingMatches(withRun, { ...none, q: "a07:2021" })).toBe(true);
-    expect(findingMatches({ ...withRun, run: null, references: [] }, { ...none, q: "demo-009" })).toBe(false);
+    expect(findingMatches({ ...withRun, run: null, references: [] }, { ...none, q: "rcx-009" })).toBe(false);
   });
   it("buckets every finding once", () => {
     expect(findings.every((f) => ["confirmed", "review", "closed"].includes(validationOf(f)))).toBe(true);

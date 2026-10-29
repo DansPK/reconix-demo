@@ -94,7 +94,7 @@ describe("readIntent", () => {
     expect(readIntent(question).intents).toEqual(intents);
   });
   it("finds finding ids, not the number inside a run label", () => {
-    expect(readIntent("Explain F-002 and imp-1 in RCX-DEMO-001").findingIds).toEqual(["F-2", "IMP-1"]);
+    expect(readIntent("Explain F-002 and imp-1 in RCX-001").findingIds).toEqual(["F-2", "IMP-1"]);
   });
 });
 
@@ -258,8 +258,8 @@ describe("pickCards", () => {
     expect(kinds(pickCards(samples, null, "Run nmap against 192.0.2.10"))).toEqual(["notice"]);
   });
   it("narrows every run to the runs a question names", () => {
-    const card = of(pickCards(samples, null, "How is the progress of RCX-DEMO-002?"), "progress");
-    expect(new Set(card.runs.map((r) => r.run.label))).toEqual(new Set(["RCX-DEMO-002"]));
+    const card = of(pickCards(samples, null, "How is the progress of RCX-002?"), "progress");
+    expect(new Set(card.runs.map((r) => r.run.label))).toEqual(new Set(["RCX-002"]));
   });
   it("shows nothing for small talk, and a notice when nothing is saved", () => {
     expect(pickCards(samples, null, "hello there")).toEqual([]);

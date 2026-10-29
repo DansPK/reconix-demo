@@ -32,7 +32,7 @@ async def test_summary_after_a_run_shows_the_findings_line(app):
         await command(pilot, "/summary")
         assert isinstance(app.screen, ChoiceScreen)
         text = screen_text(app.screen)
-        assert "RCX-DEMO-001" in text
+        assert "RCX-001" in text
         summary = store.assessment_summary()
         assert f"{summary.confirmed} confirmed" in text
         assert store.findings_line().startswith("3 findings")

@@ -193,7 +193,7 @@ describe("what is saved", () => {
     expect(text).not.toMatch(/hunter2|abcdefghijklmnop|s3cr3tvalue123/);
   });
   it("keeps the scope a conversation was started with", async () => {
-    const scope = { uid: "20261005-140300-9f76_RCX-DEMO-002", label: "RCX-DEMO-002 · 5 Oct 14:03" };
+    const scope = { uid: "20261005-140300-9f76_RCX-002", label: "RCX-002 · 5 Oct 14:03" };
     const first = added(await addQuestion({ scope, question: "a" }));
     const next = added(await addQuestion({ id: first.conversation.id, scope: ALL, question: "b" }));
     expect(next.conversation.scope).toEqual(scope);
@@ -259,7 +259,7 @@ describe("what is saved", () => {
 
 describe("a conversation saved while there was an Info level", () => {
   const now = Date.now();
-  const run = { uid: "20261005-140300-9f76_RCX-DEMO-002", label: "RCX-DEMO-002", when: "5 Oct 14:03" };
+  const run = { uid: "20261005-140300-9f76_RCX-002", label: "RCX-002", when: "5 Oct 14:03" };
   const item = (id: string, severity: string) => ({ id, title: `Finding ${id}`, severity, cvss: null, target: "https://example.test", review: "review", run });
   const findings = { kind: "findings", total: 7, counts: { CRITICAL: 1, HIGH: 2, MEDIUM: 1, LOW: 1, INFO: 2 }, items: [item("F-1", "CRITICAL"), item("IMP-5", "INFO")], runs: 1 };
   const finding = { kind: "finding", item: item("IMP-6", "INFO"), cwe: "—", tool: "nuclei", description: "d", impact: "i", remediation: [] };

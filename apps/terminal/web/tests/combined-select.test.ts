@@ -11,8 +11,8 @@ import { sampleAssessments } from "./fixtures";
 const all = sampleAssessments();
 const byLabel = (uid: string) => all.find((a) => a.uid === uid)!;
 /* Two sample runs record "Broken object-level authorization" (CWE-639) at the same URL. */
-const api1 = byLabel("20260930-160500-8a01_RCX-DEMO-001");
-const api2 = byLabel("20261003-101500-3ceb_RCX-DEMO-002");
+const api1 = byLabel("20260930-160500-8a01_RCX-001");
+const api2 = byLabel("20261003-101500-3ceb_RCX-002");
 const opts = DEFAULT_COMBINE_OPTIONS;
 
 describe("the identity of a finding", () => {
@@ -49,7 +49,7 @@ describe("combineAssessments", () => {
     expect(bola.cwe).toBe("CWE-639");
     expect(bola.occurrences).toHaveLength(2);
     expect(bola.occurrences.map((o) => o.uid)).toEqual([api1.uid, api2.uid]);
-    expect(bola.runs).toEqual(["RCX-DEMO-001", "RCX-DEMO-002"]);
+    expect(bola.runs).toEqual(["RCX-001", "RCX-002"]);
     // each occurrence keeps its own facts and traces to its file
     for (const o of bola.occurrences) {
       const own = (o.uid === api1.uid ? api1 : api2).findings.find((f) => f.id === o.id)!;
@@ -98,9 +98,9 @@ describe("combineAssessments", () => {
 
   it("lists a stopped run and its unfinished plan as limitations", () => {
     const texts = r.limitations.map((l) => l.text);
-    expect(texts.some((t) => t.startsWith("RCX-DEMO-002 was stopped"))).toBe(true);
-    expect(texts.some((t) => /RCX-DEMO-002 completed \d+ of \d+ plan steps/.test(t))).toBe(true);
-    expect(r.limitations.filter((l) => l.run === "RCX-DEMO-001")).toEqual([]);
+    expect(texts.some((t) => t.startsWith("RCX-002 was stopped"))).toBe(true);
+    expect(texts.some((t) => /RCX-002 completed \d+ of \d+ plan steps/.test(t))).toBe(true);
+    expect(r.limitations.filter((l) => l.run === "RCX-001")).toEqual([]);
   });
 
   it("builds the appendix from the tools, references and uids", () => {
@@ -177,7 +177,7 @@ describe("missing data", () => {
   it("notes a scope that was never approved", () => {
     const draft = { ...api1, scope: { ...api1.scope!, status: "DRAFT" } };
     const r = combineAssessments([draft, api2], opts);
-    expect(r.limitations.map((l) => l.text)).toContain("RCX-DEMO-001's scope was not approved (DRAFT): testing could not start inside an approved boundary.");
+    expect(r.limitations.map((l) => l.text)).toContain("RCX-001's scope was not approved (DRAFT): testing could not start inside an approved boundary.");
     expect(r.summary.scopesApproved).toBe(1);
     expect(combineAssessments([api1, api2], opts).summary.scopesApproved).toBe(2);
   });
@@ -201,7 +201,7 @@ describe("edge cases of the identity", () => {
     expect(r.summary.unique).toBe(1);
     expect(r.summary.occurrences).toBe(2);
     expect(r.findings[0].occurrences.map((o) => o.id)).toEqual(["001", "001-dup"]);
-    expect(r.findings[0].runs).toEqual(["RCX-DEMO-001"]);
+    expect(r.findings[0].runs).toEqual(["RCX-001"]);
     expect(r.findings[0].confirmed).toBe(true);
   });
 

@@ -49,7 +49,7 @@ describe("readAssessmentFile", () => {
 
   it.each([
     ["notes.json", "unexpected file name"],
-    ["../20261005-140300-9f76_RCX-DEMO-001.json", "unexpected file name"],
+    ["../20261005-140300-9f76_RCX-001.json", "unexpected file name"],
   ])("refuses the name %s", async (name, reason) => {
     expect(await readAssessmentFile(dir, name)).toEqual({ file: name, reason });
   });
@@ -92,7 +92,7 @@ describe("loadLibrary", () => {
     for (const name of sampleNames()) copyFileSync(path.join(SAMPLE_DIR, name), path.join(dir, name));
     writeFileSync(path.join(dir, "20261005-140300-dddd_RCX-BAD-004.json"), "[]");
     writeFileSync(path.join(dir, "README.txt"), "ignored: not .json");
-    writeFileSync(path.join(dir, ".20261005-140300-9f76_RCX-DEMO-001.json.123.tmp"), "half written");
+    writeFileSync(path.join(dir, ".20261005-140300-9f76_RCX-001.json.123.tmp"), "half written");
     const library = await loadLibrary();
     expect(library.assessments).toHaveLength(sampleNames().length);
     const created = library.assessments.map((a) => a.created_at);

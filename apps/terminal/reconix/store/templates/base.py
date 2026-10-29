@@ -148,7 +148,7 @@ def build_rest(profile: RunProfile) -> List[RunStep]:
         # Test
         say("Plan approved. Starting the permitted checks.", tone="ok", pause=0.4),
         RunStep("phase", name="testing", pause=0.0),
-        say("Selected tools: $tools. Preparing requests with sample test data. Public "
+        say("Selected tools: $tools. Preparing requests with test data. Public "
             "surface first."),
         log("POLICY", "Scope check: passed", tone="ok"),
         log("TOOL", "Executing permitted scan · $tool", tool=profile.discovery_tool),
