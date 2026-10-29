@@ -4,8 +4,8 @@
   "session": "20261004-150000-3c6d",
   "label": "RCX-001",
   "assessment_id": "RCX-001",
-  "target": "live.example.com",
-  "target_url": "https://live.example.com",
+  "target": "live.contoso.com",
+  "target_url": "https://live.contoso.com",
   "target_kind": "web application",
   "template": {
     "id": "web_url",
@@ -14,14 +14,14 @@
   },
   "api_spec": null,
   "operator": "analyst",
-  "client": "Example",
+  "client": "Contoso",
   "mode": "Grey-box, Authorized",
   "methodology": [
     "OWASP WSTG",
     "OWASP Top 10 (2021)"
   ],
   "report_version": "1.0",
-  "created_at": "2026-10-04T15:00:14+00:00",
+  "created_at": "2026-10-04T15:00:16+00:00",
   "status": "Running",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,7 +30,7 @@
   "session_closed": false,
   "run": {
     "phase": "testing",
-    "started_at": "2026-10-04T15:01:20+00:00",
+    "started_at": "2026-10-04T15:01:21+00:00",
     "finished_at": null,
     "completed": false,
     "requests": 553,
@@ -76,7 +76,7 @@
   ],
   "scope": {
     "kind": "web_url",
-    "target_url": "https://live.example.com",
+    "target_url": "https://live.contoso.com",
     "assessment_type": "Web URL",
     "status": "APPROVED",
     "allowed_actions": [
@@ -109,8 +109,8 @@
       "path": "/api/orders/10482",
       "purpose": "Record the normal response for the test account's own order",
       "impact": "Low. One read request, no data changes",
-      "command": "GET https://live.example.com/api/orders/10482 as test account A",
-      "command_hash": "sha256:f3c776be30f9bc5e39ded8b3983c2bfa36d000816cf8d8a096bc8149fff3cca7"
+      "command": "GET https://live.contoso.com/api/orders/10482 as test account A",
+      "command_hash": "sha256:b45400e8573cb42887a4323b447ed79728c19db2518c147a3aaa934c83392b26"
     },
     {
       "request_id": "approval-002",
@@ -121,8 +121,8 @@
       "path": "/api/orders/10483",
       "purpose": "Check if account A can read an order owned by account B",
       "impact": "May read synthetic test data. 1 request, no changes",
-      "command": "GET https://live.example.com/api/orders/10483 as test account A",
-      "command_hash": "sha256:82e015bb0843ed81a431819c71e7598e115bb283abb11a2bbe154a1f33bdc1f5"
+      "command": "GET https://live.contoso.com/api/orders/10483 as test account A",
+      "command_hash": "sha256:9721c15a642b3e7e62cdaee669db76ecdea8a06f1baaea2e2dd1ef572c0f2df9"
     }
   ],
   "decisions": [],
@@ -130,7 +130,7 @@
   "timeline": [
     {
       "seq": 1,
-      "at": "2026-10-04T15:00:08+00:00",
+      "at": "2026-10-04T15:00:10+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -140,7 +140,7 @@
     },
     {
       "seq": 2,
-      "at": "2026-10-04T15:00:11+00:00",
+      "at": "2026-10-04T15:00:13+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -150,21 +150,21 @@
     },
     {
       "seq": 3,
-      "at": "2026-10-04T15:00:34+00:00",
+      "at": "2026-10-04T15:00:32+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
-      "text": "Assess https://live.example.com for web security issues.",
+      "text": "Assess https://live.contoso.com for web security issues.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 4,
-      "at": "2026-10-04T15:00:46+00:00",
+      "at": "2026-10-04T15:00:45+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Target parsed: live.example.com",
+      "text": "Target parsed: live.contoso.com",
       "tone": "default",
       "rows": []
     },
@@ -174,13 +174,13 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Target identified: live.example.com (web application).",
+      "text": "Target identified: live.contoso.com (web application).",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 6,
-      "at": "2026-10-04T15:01:00+00:00",
+      "at": "2026-10-04T15:00:59+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -190,7 +190,7 @@
     },
     {
       "seq": 7,
-      "at": "2026-10-04T15:01:07+00:00",
+      "at": "2026-10-04T15:01:06+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -200,7 +200,7 @@
     },
     {
       "seq": 8,
-      "at": "2026-10-04T15:01:13+00:00",
+      "at": "2026-10-04T15:01:09+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -210,7 +210,7 @@
     },
     {
       "seq": 9,
-      "at": "2026-10-04T15:01:17+00:00",
+      "at": "2026-10-04T15:01:15+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -230,7 +230,7 @@
     },
     {
       "seq": 11,
-      "at": "2026-10-04T15:01:30+00:00",
+      "at": "2026-10-04T15:01:34+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -240,7 +240,7 @@
     },
     {
       "seq": 12,
-      "at": "2026-10-04T15:01:45+00:00",
+      "at": "2026-10-04T15:01:54+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -250,7 +250,7 @@
     },
     {
       "seq": 13,
-      "at": "2026-10-04T15:01:56+00:00",
+      "at": "2026-10-04T15:02:03+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -260,7 +260,7 @@
     },
     {
       "seq": 14,
-      "at": "2026-10-04T15:02:06+00:00",
+      "at": "2026-10-04T15:02:13+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -270,7 +270,7 @@
     },
     {
       "seq": 15,
-      "at": "2026-10-04T15:02:22+00:00",
+      "at": "2026-10-04T15:02:34+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -280,17 +280,17 @@
     },
     {
       "seq": 16,
-      "at": "2026-10-04T15:02:35+00:00",
+      "at": "2026-10-04T15:02:47+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: Nuclei and OWASP ZAP. Preparing requests with sample test data. Public surface first.",
+      "text": "Selected tools: Nuclei and OWASP ZAP. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 17,
-      "at": "2026-10-04T15:02:48+00:00",
+      "at": "2026-10-04T15:02:57+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -300,7 +300,7 @@
     },
     {
       "seq": 18,
-      "at": "2026-10-04T15:03:02+00:00",
+      "at": "2026-10-04T15:03:07+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -310,43 +310,30 @@
     },
     {
       "seq": 19,
-      "at": "2026-10-04T15:03:34+00:00",
-      "type": "chat",
-      "who": "reconix",
-      "kind": "card",
-      "text": "Discovery · OWASP ZAP",
-      "tone": "default",
-      "rows": [
-        [
-          "Public pages",
-          "18"
-        ],
-        [
-          "Forms",
-          "4"
-        ],
-        [
-          "API endpoints",
-          "6"
-        ]
-      ]
-    },
-    {
-      "seq": 20,
-      "at": "2026-10-04T15:03:48+00:00",
+      "at": "2026-10-04T15:03:30+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
-      "text": "Nuclei: checks on the permitted surface",
+      "text": "Crawled 24 pages · 6 API endpoints mapped",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 20,
+      "at": "2026-10-04T15:03:40+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Technology fingerprint: nginx · MySQL · lodash",
       "tone": "default",
       "rows": []
     }
   ],
   "requests": [
     {
-      "text": "Assess https://live.example.com for web security issues.",
-      "at": "2026-10-04T15:00:21+00:00"
+      "text": "Assess https://live.contoso.com for web security issues.",
+      "at": "2026-10-04T15:00:22+00:00"
     }
   ],
-  "saved_at": "2026-10-04T15:03:51+00:00"
+  "saved_at": "2026-10-04T15:04:01+00:00"
 }

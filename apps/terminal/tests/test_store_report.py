@@ -70,7 +70,7 @@ def test_json_report_is_written_and_recorded(reports_dir):
     assert shown == str(path)
     data = json.loads(path.read_text())
     assert data["assessment_id"] == "RCX-001"
-    assert [f["id"] for f in data["findings"]] == ["001", "002", "003"]
+    assert [f["id"] for f in data["findings"]] == ["004", "005", "001", "002", "003"]
     assert data["blocked_requests"] == [
         {"request": "GET /admin", "reason": "Path outside approved scope"}]
     assert [a["risk"] for a in data["approvals"]] == ["MEDIUM", "HIGH"]
@@ -102,8 +102,9 @@ def test_docx_report_has_every_section(reports_dir, monkeypatch):
                             "3 Approved scope & limitations", "4 Detailed findings",
                             "003 · Session cookie missing SameSite"]     # worst first
     assert [h for h in headings if h[0].isdigit() and " · " in h] == [
-        "003 · Session cookie missing SameSite", "001 · Broken object-level authorization",
-        "002 · Reflected input in search page"]
+        "003 · Session cookie missing SameSite", "004 · SQL injection in product search",
+        "005 · Outdated JavaScript dependency with a known CVE",
+        "001 · Broken object-level authorization", "002 · Reflected input in search page"]
     assert headings[-3:] == ["5 Policy & governance", "Blocked by policy · 1",
                              "Human approvals · 2"]
     html = render_html(store.report_data())                 # the PDF has the same headings
@@ -117,10 +118,10 @@ def test_docx_report_has_every_section(reports_dir, monkeypatch):
     assert "References: OWASP A01:2021" in text
     assert "CONFIDENTIAL — AUTHORIZED RECIPIENTS ONLY" in text
     assert [["Critical", "High", "Medium", "Low", "Total"],
-            ["1", "0", "2", "0", "3"]] in tables                            # severity counts
+            ["2", "1", "2", "0", "5"]] in tables                            # severity counts
     summary = next(t for t in tables if t[0] == ["ID", "Finding", "Severity", "CVSS", "Status",
                                                   "Category"])
-    assert [row[0] for row in summary[1:]] == ["003", "001", "002"]
+    assert [row[0] for row in summary[1:]] == ["003", "004", "005", "001", "002"]
     scope = dict(next(t for t in tables if t[0][0] == "Approval status"))
     assert scope["Approval status"] == "Approved" and scope["Excluded paths"] == "/admin"
     assert scope["Standards"] == "OWASP WSTG · OWASP Top 10 (2021)"
@@ -258,4 +259,4 @@ def test_summary_counts_every_human_approval():
     summary = store.assessment_summary()
     assert summary.status == "Completed"
     assert summary.approvals == ["scope", "MEDIUM", "HIGH"]
-    assert (summary.blocked, summary.confirmed, summary.for_review) == (1, 1, 2)
+    assert (summary.blocked, summary.confirmed, summary.for_review) == (1, 2, 3)

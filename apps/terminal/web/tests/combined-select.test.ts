@@ -37,7 +37,7 @@ describe("combineAssessments", () => {
 
   it("puts the oldest run first and names every run on the cover", () => {
     expect(r.cover.runs.map((x) => x.uid)).toEqual([api1.uid, api2.uid]);
-    expect(r.cover.targets).toEqual(["https://api.example.com"]);
+    expect(r.cover.targets).toEqual(["https://api.contoso.com"]);
     expect(r.cover.operators).toEqual(["analyst"]);
     expect(r.cover.from).toBe(new Date(api1.run.started_at!).toISOString());
     expect(r.cover.to).toBe(new Date(api2.run.finished_at!).toISOString());

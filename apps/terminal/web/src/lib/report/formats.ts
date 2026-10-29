@@ -19,10 +19,18 @@ export interface ExportSpec {
   blurb: string;
 }
 
-/** The formats a report is saved in (static demo: JSON and DOCX; PDF needed a headless Chrome,
-    which the demo drops). The report HTML remains the combined report's preview, never a
-    download. */
+/** The formats a report is saved in. The PDF is printed by a headless Chrome on the dashboard
+    machine (lib/report/pdf.ts; 501 with the DOCX link when none is found). The report HTML
+    remains the combined report's preview, never a download. */
 export const EXPORT_FORMATS: readonly ExportSpec[] = [
+  {
+    id: "pdf",
+    label: "PDF",
+    title: "PDF report",
+    ext: "pdf",
+    media: "application/pdf",
+    blurb: "The styled security report, printed to PDF on this computer. Page 1 is the one-page executive summary.",
+  },
   {
     id: "json",
     label: "JSON",

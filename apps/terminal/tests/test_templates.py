@@ -61,7 +61,7 @@ def test_each_template_runs_and_blocks_its_out_of_scope_probe(template_id):
     assert store.is_completed()
     counts = store.counters()
     assert counts["approvals"] == 2
-    assert counts["findings"] == 3
+    assert counts["findings"] == (5 if template_id == "web_url" else 3)
     assert counts["blocked"] == 1
     assert store.get_scope().kind == template_id
 

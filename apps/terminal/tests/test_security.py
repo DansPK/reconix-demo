@@ -135,8 +135,9 @@ def test_no_report_shows_a_secret_from_the_scope_the_policy_or_the_approvals(rep
     data = json.loads(texts["json"])
     assert data["scope"]["tools"] == ["Nuclei", "api_key=••••"]
     assert data["approvals"][0]["operator"] == "https://••••@sso.example.com"
-    assert data["findings"][0]["evidence"] == ["GET /backup/key.pem → 200",
-                                               "•••• (private key)"]
+    key_evidence = next(f["evidence"] for f in data["findings"]
+                        if "GET /backup/key.pem → 200" in f["evidence"])
+    assert key_evidence == ["GET /backup/key.pem → 200", "•••• (private key)"]
     if report.HAS_DOCX:
         assert "/backup?token=••••" in texts["docx"]
         assert "https://••••@sso.example.com" in texts["docx"]

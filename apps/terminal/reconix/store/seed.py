@@ -9,7 +9,7 @@ from ..models import ActivityEntry, Assessment, ChatEntry, HistoryEntry
 from . import lists
 
 ASSESSMENT_PREFIX = "RCX"
-TARGET = "staging.example.com"
+TARGET = "www.lumina.com"
 TARGET_URL = f"https://{TARGET}"
 DEMO_REQUEST = f"Assess {TARGET_URL} for web security issues."
 

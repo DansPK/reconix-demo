@@ -4,8 +4,8 @@
   "session": "20261005-140300-9f76",
   "label": "RCX-002",
   "assessment_id": "RCX-002",
-  "target": "git@git.example.com:shop/storefront.git",
-  "target_url": "git@git.example.com:shop/storefront.git",
+  "target": "git@git.contoso.com:shop/storefront.git",
+  "target_url": "git@git.contoso.com:shop/storefront.git",
   "target_kind": "source repository",
   "template": {
     "id": "source",
@@ -14,14 +14,14 @@
   },
   "api_spec": null,
   "operator": "analyst",
-  "client": "Example",
+  "client": "Contoso",
   "mode": "Grey-box, Authorized",
   "methodology": [
     "OWASP ASVS",
     "CWE Top 25"
   ],
   "report_version": "1.0",
-  "created_at": "2026-10-05T14:23:25+00:00",
+  "created_at": "2026-10-05T14:23:56+00:00",
   "status": "Awaiting input",
   "waiting_gate": "approval:approval-002",
   "waiting_request_id": "approval-002",
@@ -30,7 +30,7 @@
   "session_closed": false,
   "run": {
     "phase": "validating",
-    "started_at": "2026-10-05T14:24:34+00:00",
+    "started_at": "2026-10-05T14:25:02+00:00",
     "finished_at": null,
     "completed": false,
     "requests": 1,
@@ -76,7 +76,7 @@
   ],
   "scope": {
     "kind": "source",
-    "target_url": "git@git.example.com:shop/storefront.git",
+    "target_url": "git@git.contoso.com:shop/storefront.git",
     "assessment_type": "Source Code",
     "status": "APPROVED",
     "allowed_actions": [
@@ -107,28 +107,28 @@
       "path": ".git/config",
       "allowed": false,
       "reason": "Path excluded from the review",
-      "at": "2026-10-05T14:27:17+00:00"
+      "at": "2026-10-05T14:27:47+00:00"
     },
     {
       "method": "READ",
       "path": "app/config/settings.py",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-05T14:29:05+00:00"
+      "at": "2026-10-05T14:29:37+00:00"
     },
     {
       "method": "READ",
       "path": "app/config/settings.py",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-05T14:29:16+00:00"
+      "at": "2026-10-05T14:29:50+00:00"
     },
     {
       "method": "READ",
       "path": "app/config/settings.py",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-05T14:30:36+00:00"
+      "at": "2026-10-05T14:31:14+00:00"
     }
   ],
   "approvals": [
@@ -164,7 +164,7 @@
       "operator": "analyst",
       "reason": "",
       "command_hash": "sha256:cab21c3bf9b00a7d496b3cb84c2744f48606b6e3941f4b9c167f6bb626434828",
-      "at": "2026-10-05T14:29:20+00:00"
+      "at": "2026-10-05T14:29:53+00:00"
     }
   ],
   "findings": [
@@ -175,7 +175,7 @@
       "path": "app/config/settings.py",
       "validation": "CONFIRMED",
       "description": "A database password is committed in plaintext in the settings module.",
-      "affected_url": "git@git.example.com:shop/storefront.git · app/config/settings.py:42",
+      "affected_url": "git@git.contoso.com:shop/storefront.git · app/config/settings.py:42",
       "impact": "Anyone with repo access gets production database credentials.",
       "remediation": "Load secrets from the environment or a secret manager; rotate the key.",
       "tool": "gitleaks",
@@ -204,8 +204,8 @@
   ],
   "timeline": [
     {
-      "seq": 57,
-      "at": "2026-10-05T14:23:17+00:00",
+      "seq": 59,
+      "at": "2026-10-05T14:23:48+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -214,8 +214,8 @@
       "rows": []
     },
     {
-      "seq": 58,
-      "at": "2026-10-05T14:23:21+00:00",
+      "seq": 60,
+      "at": "2026-10-05T14:23:52+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -224,38 +224,38 @@
       "rows": []
     },
     {
-      "seq": 59,
-      "at": "2026-10-05T14:23:48+00:00",
+      "seq": 61,
+      "at": "2026-10-05T14:24:18+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
-      "text": "Review the source repository git@git.example.com:shop/storefront.git for security issues.",
-      "tone": "default",
-      "rows": []
-    },
-    {
-      "seq": 60,
-      "at": "2026-10-05T14:24:00+00:00",
-      "type": "activity",
-      "who": "AI",
-      "kind": "line",
-      "text": "Target parsed: git@git.example.com:shop/storefront.git",
-      "tone": "default",
-      "rows": []
-    },
-    {
-      "seq": 61,
-      "at": "2026-10-05T14:24:07+00:00",
-      "type": "chat",
-      "who": "reconix",
-      "kind": "text",
-      "text": "Target identified: git@git.example.com:shop/storefront.git (source repository).",
+      "text": "Review the source repository git@git.contoso.com:shop/storefront.git for security issues.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 62,
-      "at": "2026-10-05T14:24:14+00:00",
+      "at": "2026-10-05T14:24:34+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Target parsed: git@git.contoso.com:shop/storefront.git",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 63,
+      "at": "2026-10-05T14:24:37+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Target identified: git@git.contoso.com:shop/storefront.git (source repository).",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 64,
+      "at": "2026-10-05T14:24:40+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -264,8 +264,8 @@
       "rows": []
     },
     {
-      "seq": 63,
-      "at": "2026-10-05T14:24:18+00:00",
+      "seq": 65,
+      "at": "2026-10-05T14:24:43+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -274,8 +274,8 @@
       "rows": []
     },
     {
-      "seq": 64,
-      "at": "2026-10-05T14:24:22+00:00",
+      "seq": 66,
+      "at": "2026-10-05T14:24:47+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -284,8 +284,8 @@
       "rows": []
     },
     {
-      "seq": 65,
-      "at": "2026-10-05T14:24:26+00:00",
+      "seq": 67,
+      "at": "2026-10-05T14:24:55+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -294,8 +294,8 @@
       "rows": []
     },
     {
-      "seq": 66,
-      "at": "2026-10-05T14:24:37+00:00",
+      "seq": 68,
+      "at": "2026-10-05T14:25:09+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -304,8 +304,8 @@
       "rows": []
     },
     {
-      "seq": 67,
-      "at": "2026-10-05T14:24:40+00:00",
+      "seq": 69,
+      "at": "2026-10-05T14:25:17+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -314,32 +314,12 @@
       "rows": []
     },
     {
-      "seq": 68,
-      "at": "2026-10-05T14:25:02+00:00",
+      "seq": 70,
+      "at": "2026-10-05T14:25:40+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
       "text": "Scope approved. Assessment RCX-002 created.",
-      "tone": "ok",
-      "rows": []
-    },
-    {
-      "seq": 69,
-      "at": "2026-10-05T14:25:17+00:00",
-      "type": "chat",
-      "who": "reconix",
-      "kind": "text",
-      "text": "Test plan ready. Review it, then run it; risky steps still ask you first.",
-      "tone": "default",
-      "rows": []
-    },
-    {
-      "seq": 70,
-      "at": "2026-10-05T14:25:29+00:00",
-      "type": "activity",
-      "who": "USER",
-      "kind": "line",
-      "text": "Plan approved · testing starts",
       "tone": "ok",
       "rows": []
     },
@@ -349,23 +329,43 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
+      "text": "Test plan ready. Review it, then run it; risky steps still ask you first.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 72,
+      "at": "2026-10-05T14:26:00+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Plan approved · testing starts",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 73,
+      "at": "2026-10-05T14:26:15+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
       "text": "Plan approved. Starting the permitted checks.",
       "tone": "ok",
       "rows": []
     },
     {
-      "seq": 72,
-      "at": "2026-10-05T14:26:04+00:00",
+      "seq": 74,
+      "at": "2026-10-05T14:26:31+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: Semgrep, gitleaks and pip-audit. Preparing requests with sample test data. Public surface first.",
+      "text": "Selected tools: Semgrep, gitleaks and pip-audit. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 73,
-      "at": "2026-10-05T14:26:12+00:00",
+      "seq": 75,
+      "at": "2026-10-05T14:26:42+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -374,8 +374,8 @@
       "rows": []
     },
     {
-      "seq": 74,
-      "at": "2026-10-05T14:26:19+00:00",
+      "seq": 76,
+      "at": "2026-10-05T14:26:50+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -384,8 +384,8 @@
       "rows": []
     },
     {
-      "seq": 75,
-      "at": "2026-10-05T14:26:42+00:00",
+      "seq": 77,
+      "at": "2026-10-05T14:27:12+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -407,8 +407,8 @@
       ]
     },
     {
-      "seq": 76,
-      "at": "2026-10-05T14:26:50+00:00",
+      "seq": 78,
+      "at": "2026-10-05T14:27:21+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -417,8 +417,8 @@
       "rows": []
     },
     {
-      "seq": 77,
-      "at": "2026-10-05T14:27:09+00:00",
+      "seq": 79,
+      "at": "2026-10-05T14:27:37+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -427,8 +427,8 @@
       "rows": []
     },
     {
-      "seq": 78,
-      "at": "2026-10-05T14:27:29+00:00",
+      "seq": 80,
+      "at": "2026-10-05T14:27:59+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -437,8 +437,8 @@
       "rows": []
     },
     {
-      "seq": 79,
-      "at": "2026-10-05T14:27:32+00:00",
+      "seq": 81,
+      "at": "2026-10-05T14:28:05+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -447,8 +447,8 @@
       "rows": []
     },
     {
-      "seq": 80,
-      "at": "2026-10-05T14:27:44+00:00",
+      "seq": 82,
+      "at": "2026-10-05T14:28:11+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -457,8 +457,8 @@
       "rows": []
     },
     {
-      "seq": 81,
-      "at": "2026-10-05T14:27:59+00:00",
+      "seq": 83,
+      "at": "2026-10-05T14:28:25+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -476,8 +476,8 @@
       ]
     },
     {
-      "seq": 82,
-      "at": "2026-10-05T14:28:14+00:00",
+      "seq": 84,
+      "at": "2026-10-05T14:28:48+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -486,8 +486,8 @@
       "rows": []
     },
     {
-      "seq": 83,
-      "at": "2026-10-05T14:28:25+00:00",
+      "seq": 85,
+      "at": "2026-10-05T14:29:01+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -496,8 +496,8 @@
       "rows": []
     },
     {
-      "seq": 84,
-      "at": "2026-10-05T14:28:48+00:00",
+      "seq": 86,
+      "at": "2026-10-05T14:29:20+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -506,8 +506,8 @@
       "rows": []
     },
     {
-      "seq": 85,
-      "at": "2026-10-05T14:29:22+00:00",
+      "seq": 87,
+      "at": "2026-10-05T14:29:57+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -516,8 +516,8 @@
       "rows": []
     },
     {
-      "seq": 86,
-      "at": "2026-10-05T14:29:50+00:00",
+      "seq": 88,
+      "at": "2026-10-05T14:30:22+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -526,8 +526,8 @@
       "rows": []
     },
     {
-      "seq": 87,
-      "at": "2026-10-05T14:29:57+00:00",
+      "seq": 89,
+      "at": "2026-10-05T14:30:31+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -536,8 +536,8 @@
       "rows": []
     },
     {
-      "seq": 88,
-      "at": "2026-10-05T14:30:22+00:00",
+      "seq": 90,
+      "at": "2026-10-05T14:30:54+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -548,9 +548,9 @@
   ],
   "requests": [
     {
-      "text": "Review the source repository git@git.example.com:shop/storefront.git for security issues.",
-      "at": "2026-10-05T14:23:35+00:00"
+      "text": "Review the source repository git@git.contoso.com:shop/storefront.git for security issues.",
+      "at": "2026-10-05T14:24:07+00:00"
     }
   ],
-  "saved_at": "2026-10-05T14:30:47+00:00"
+  "saved_at": "2026-10-05T14:31:24+00:00"
 }

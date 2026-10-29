@@ -32,7 +32,7 @@ def _findings(url: str) -> list:
             cvss_score=6.5, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
             category="Web App",
             evidence=["HTTP 200 · order_id: 10483",
-                      "owner: usr_••••42 · email: b•••@example.com",
+                      "owner: usr_••••42 · email: b•••@contoso.com",
                       "token: •••••••••• (masked)"],
         ),
         Finding(
@@ -57,6 +57,40 @@ def _findings(url: str) -> list:
             category="Web App",
             evidence=["Set-Cookie: session=••••••••; Secure; HttpOnly"],
         ),
+        Finding(
+            "004", "CRITICAL", "SQL injection in product search", "/api/products", "CONFIRMED",
+            description="The 'category' parameter is concatenated into a SQL query. A "
+                        "boolean probe changed the result set and a time-based payload "
+                        "delayed the response, confirming injection.",
+            affected_url=f"{url}/api/products?category=",
+            impact="An attacker could read or modify the product and customer database, "
+                   "including order records and password hashes.",
+            remediation="Use parameterized queries / prepared statements for every database "
+                        "call and run the app with a least-privilege database account.",
+            tool="Nuclei",
+            references=["OWASP A03:2021", "CWE-89"],
+            cvss_score=9.8, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            category="Web App",
+            evidence=["GET /api/products?category=1' AND SLEEP(5)-- → response delayed 5.02s",
+                      "category=1 AND 1=1 → 142 rows · category=1 AND 1=2 → 0 rows",
+                      "error probe leaked DBMS banner: MySQL 5.7.x"],
+        ),
+        Finding(
+            "005", "HIGH", "Outdated JavaScript dependency with a known CVE",
+            "/assets/js/vendor.min.js", "UNCONFIRMED",
+            description="The bundled front-end code ships lodash 4.17.15, which has a known "
+                        "prototype-pollution advisory (CVE-2020-8203).",
+            affected_url=f"{url}/assets/js/vendor.min.js",
+            impact="The known flaw may be reachable depending on how the library is used, "
+                   "enabling client-side tampering or denial of service.",
+            remediation="Upgrade lodash to 4.17.21 or later and re-run the dependency scan.",
+            tool="Nuclei",
+            references=["OWASP A06:2021", "CWE-1321", "CVE-2020-8203"],
+            cvss_score=8.1, cvss_vector="CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            category="Dependency",
+            evidence=["vendor.min.js → lodash v4.17.15 fingerprinted",
+                      "advisory CVE-2020-8203 · fixed in 4.17.21"],
+        ),
     ]
 
 
@@ -70,9 +104,11 @@ def build_run(assessment) -> RunBundle:
         discovery_card=("Discovery · $tool",
                         (("Public pages", "18"), ("Forms", "4"), ("API endpoints", "6"))),
         discovery_requests=(312, 241),
+        extra_discovery=("Crawled 24 pages · 6 API endpoints mapped",
+                         "Technology fingerprint: nginx · MySQL · lodash"),
         blocked=("GET", "/admin"),
         scan_card=("Scan · $tools",
-                   (("Potential issues", "3"), ("Needs login", "/api/orders/*"))),
+                   (("Potential issues", "5"), ("Needs login", "/api/orders/*"))),
         scan_requests=(387, 166, 94),
         login_area="/api/orders/*",
         login_2fa=True,                    # the demo target sends a code after the password

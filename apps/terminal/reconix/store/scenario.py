@@ -21,13 +21,15 @@ def banner(text: str, tone: str, speaker: str = "policy", pause: float = 0.6) ->
     return RunStep("say", speaker=speaker, text=text, tone=tone, entry="banner", pause=pause)
 
 
+# check/card play unattended during the demo while the presenter narrates over them,
+# so their pauses are long enough to speak to each one (tests run at SPEED=0, unaffected).
 def check(text: str, first: bool = False) -> RunStep:
     return RunStep("say", speaker="reconix" if first else "", text=text, tone="ok",
-                   entry="check", pause=0.5)
+                   entry="check", pause=1.3)
 
 
 def card(title: str, *rows: Tuple[str, str], tool: str = "") -> RunStep:
-    return RunStep("card", speaker="reconix", text=title, rows=tuple(rows), pause=0.6,
+    return RunStep("card", speaker="reconix", text=title, rows=tuple(rows), pause=2.5,
                    tool=tool)
 
 

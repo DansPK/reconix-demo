@@ -106,17 +106,17 @@ def test_a_network_plan_has_no_login_row():
 def test_filters_sorts_and_counts():
     run_to(None)
     ids = lambda rows: [f.fid for f in rows]                 # noqa: E731
-    assert ids(store.find_findings()) == ["001", "002", "003"]
-    assert ids(store.find_findings("high_up")) == []       # the web demo has no HIGH finding
+    assert ids(store.find_findings()) == ["004", "005", "001", "002", "003"]
+    assert ids(store.find_findings("high_up")) == ["004", "005"]   # CRITICAL + HIGH
     assert ids(store.find_findings("medium")) == ["001", "002"]
     assert ids(store.find_findings("low")) == ["003"]
-    assert ids(store.find_findings("confirmed")) == ["001"]
-    assert ids(store.find_findings("needs_review")) == ["002", "003"]
-    assert ids(store.find_findings("all", "validation")) == ["001", "002", "003"]
+    assert ids(store.find_findings("confirmed")) == ["004", "001"]
+    assert ids(store.find_findings("needs_review")) == ["005", "002", "003"]
+    assert ids(store.find_findings("all", "validation")) == ["004", "001", "005", "002", "003"]
     assert [sid for sid, _ in store.FINDING_SORTS] == ["severity", "validation"]
     assert "info" not in dict(store.FINDING_FILTERS)
-    assert store.severity_counts() == {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 2, "LOW": 1}
-    assert store.filter_counts()["all"] == 3
+    assert store.severity_counts() == {"CRITICAL": 1, "HIGH": 1, "MEDIUM": 2, "LOW": 1}
+    assert store.filter_counts()["all"] == 5
     with pytest.raises(store.StoreValidationError):
         store.find_findings("nope")
     with pytest.raises(store.StoreValidationError):
@@ -131,11 +131,11 @@ def test_triage_moves_findings_between_filters_and_override_counts():
     with pytest.raises(store.StoreValidationError):
         store.triage_finding("003", severity="INFO")          # there is no Info severity
     store.triage_finding("003", status="false-positive", severity="MEDIUM")
-    assert [f.fid for f in store.find_findings("open")] == ["001", "002"]
+    assert [f.fid for f in store.find_findings("open")] == ["004", "005", "001", "002"]
     assert [f.fid for f in store.find_findings("triaged")] == ["003"]
     assert [f.fid for f in store.find_findings("medium")] == ["001", "002", "003"]  # override
     assert store.severity_counts()["LOW"] == 0
-    assert [f.fid for f in store.key_findings(limit=2)] == ["001", "002"]
+    assert [f.fid for f in store.key_findings(limit=2)] == ["004", "005"]
 
 
 # --- the flow line -------------------------------------------------------------------------------

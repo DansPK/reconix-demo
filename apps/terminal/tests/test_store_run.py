@@ -78,8 +78,8 @@ def test_findings_are_revealed_as_the_run_finds_them():
     run_to("approval:approval-001")
     assert [f.fid for f in store.list_findings()] == ["001"]
     run_to_end_from_here()
-    assert [f.fid for f in store.list_findings()] == ["001", "002", "003"]
-    assert store.findings_line() == "3 findings: 1 confirmed, 2 marked for review"
+    assert [f.fid for f in store.list_findings()] == ["004", "005", "001", "002", "003"]
+    assert store.findings_line() == "5 findings: 2 confirmed, 3 marked for review"
 
 
 def run_to_end_from_here():
@@ -94,7 +94,7 @@ def test_a_full_run_matches_the_design_counts():
     counters = store.counters()
     assert counters["blocked"] == 1
     assert counters["approvals"] == 2
-    assert counters["findings"] == 3
+    assert counters["findings"] == 5
     assert counters["requests"] > 1000
     assert all(v == 100 for k, v in store.phase_progress().items() if k != "report")
     assert store.pipeline_stage() == ""

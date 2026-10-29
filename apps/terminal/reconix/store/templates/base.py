@@ -92,15 +92,17 @@ def make_plan(pairs: Tuple[Tuple[str, str], ...]) -> List[PlanTask]:
     return [PlanTask(key, label) for key, label in (pairs or DEFAULT_PLAN)]
 
 
+# The run phases (discovery/scanning/validation/analysis) play unattended while the
+# presenter narrates over them, so progress and finding reveals are paced to speak to.
 def _progress(bar: str, percent: int, requests: int = 0) -> List[RunStep]:
-    steps = [RunStep("progress", name=bar, value=percent, pause=0.5)]
+    steps = [RunStep("progress", name=bar, value=percent, pause=1.3)]
     if requests:
         steps.append(RunStep("requests", value=requests, pause=0.0))
     return steps
 
 
 def _reveal(fid: str) -> RunStep:
-    return RunStep("reveal", name=fid, pause=0.2)
+    return RunStep("reveal", name=fid, pause=0.7)
 
 
 def build_plan(target_kind: str, ask_template: bool = True) -> List[RunStep]:
@@ -148,21 +150,23 @@ def build_rest(profile: RunProfile) -> List[RunStep]:
         # Test
         say("Plan approved. Starting the permitted checks.", tone="ok", pause=0.4),
         RunStep("phase", name="testing", pause=0.0),
+        # Longest narration beat (tool integration, the Kali backend): paced to speak over.
         say("Selected tools: $tools. Preparing requests with test data. Public "
-            "surface first."),
-        log("POLICY", "Scope check: passed", tone="ok"),
-        log("TOOL", "Executing permitted scan · $tool", tool=profile.discovery_tool),
+            "surface first.", pause=2.5),
+        log("POLICY", "Scope check: passed", tone="ok", pause=1.2),
+        log("TOOL", "Executing permitted scan · $tool", tool=profile.discovery_tool, pause=1.2),
     ]
     steps += _progress("discovery", 45, disc_bursts[0])
-    steps += [log("TOOL", line) for line in profile.extra_discovery]
+    steps += [log("TOOL", line, pause=1.2) for line in profile.extra_discovery]
     steps += _progress("discovery", 100, disc_bursts[min(1, len(disc_bursts) - 1)])
     steps.append(card(profile.discovery_card[0], *profile.discovery_card[1],
                       tool=profile.discovery_tool))
 
-    steps += [log("TOOL", "$tool: checks on the permitted surface", tool=profile.scan_tool)]
+    steps += [log("TOOL", "$tool: checks on the permitted surface", tool=profile.scan_tool,
+                  pause=1.2)]
     steps += _progress("scanning", 30, scan_bursts[0])
-    steps.append(RunStep("propose", method=blocked_method, path=blocked_target, pause=0.8))
-    steps.append(log("TOOL", "Continuing on permitted targets"))
+    steps.append(RunStep("propose", method=blocked_method, path=blocked_target, pause=1.5))
+    steps.append(log("TOOL", "Continuing on permitted targets", pause=1.2))
     steps += _progress("scanning", 70, scan_bursts[min(1, len(scan_bursts) - 1)])
     steps.append(card(profile.scan_card[0], *profile.scan_card[1], tool=profile.scan_tool))
 
@@ -188,8 +192,8 @@ def build_rest(profile: RunProfile) -> List[RunStep]:
 
     # Validate
     steps.append(RunStep("phase", name="validating", pause=0.0))
-    steps.append(say(profile.candidate_note))
-    steps.append(log("AI", profile.candidate_log))
+    steps.append(say(profile.candidate_note, pause=2.0))
+    steps.append(log("AI", profile.candidate_log, pause=1.0))
     if first:
         steps.append(_reveal(first))
     steps += _progress("validation", 20)
@@ -218,10 +222,10 @@ def build_rest(profile: RunProfile) -> List[RunStep]:
     steps += _progress("analysis", 100)
 
     # Done
-    steps.append(log("SYS", "Assessment status: Completed", tone="ok", pause=0.6))
-    steps.append(say("Assessment completed. $findings.", tone="ok", pause=0.3))
+    steps.append(log("SYS", "Assessment status: Completed", tone="ok", pause=1.0))
+    steps.append(say("Assessment completed. $findings.", tone="ok", pause=1.5))
     steps.append(say("Open the report (8 or /report) to export it.", tone="muted",
-                     pause=0.3))
+                     pause=1.5))
     steps.append(RunStep("complete", pause=0.0))
     return steps
 

@@ -31,7 +31,7 @@ def _findings(url: str) -> list:
             cvss_score=6.5, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
             category="API",
             evidence=["GET /v1/orders/8842 as token A → HTTP 200",
-                      "owner: tenant_••7 · email: b•••@example.com"],
+                      "owner: tenant_••7 · email: b•••@contoso.com"],
         ),
         Finding(
             "002", "MEDIUM", "Missing authorization on export endpoint", "/v1/reports/export",

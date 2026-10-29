@@ -4,8 +4,8 @@
   "session": "20260928-091200-1cea",
   "label": "RCX-001",
   "assessment_id": "RCX-001",
-  "target": "git@git.example.com:shop/storefront.git",
-  "target_url": "git@git.example.com:shop/storefront.git",
+  "target": "git@git.contoso.com:shop/storefront.git",
+  "target_url": "git@git.contoso.com:shop/storefront.git",
   "target_kind": "source repository",
   "template": {
     "id": "source",
@@ -14,7 +14,7 @@
   },
   "api_spec": null,
   "operator": "analyst",
-  "client": "Example",
+  "client": "Contoso",
   "mode": "Grey-box, Authorized",
   "methodology": [
     "OWASP ASVS",
@@ -76,7 +76,7 @@
   ],
   "scope": {
     "kind": "source",
-    "target_url": "git@git.example.com:shop/storefront.git",
+    "target_url": "git@git.contoso.com:shop/storefront.git",
     "assessment_type": "Source Code",
     "status": "APPROVED",
     "allowed_actions": [
@@ -190,7 +190,7 @@
       "path": "app/config/settings.py",
       "validation": "CONFIRMED",
       "description": "A database password is committed in plaintext in the settings module.",
-      "affected_url": "git@git.example.com:shop/storefront.git · app/config/settings.py:42",
+      "affected_url": "git@git.contoso.com:shop/storefront.git · app/config/settings.py:42",
       "impact": "Anyone with repo access gets production database credentials.",
       "remediation": "Load secrets from the environment or a secret manager; rotate the key.",
       "tool": "gitleaks",
@@ -223,7 +223,7 @@
       "path": "app/db/queries.py",
       "validation": "UNCONFIRMED",
       "description": "A query is assembled with f-strings from a request parameter.",
-      "affected_url": "git@git.example.com:shop/storefront.git · app/db/queries.py:88",
+      "affected_url": "git@git.contoso.com:shop/storefront.git · app/db/queries.py:88",
       "impact": "May allow SQL injection if the parameter is attacker-controlled.",
       "remediation": "Use parameterized queries / an ORM binding instead of string building.",
       "tool": "Semgrep",
@@ -256,7 +256,7 @@
       "path": "requirements.txt",
       "validation": "INCONCLUSIVE",
       "description": "A pinned dependency has a known advisory in this version.",
-      "affected_url": "git@git.example.com:shop/storefront.git · requirements.txt",
+      "affected_url": "git@git.contoso.com:shop/storefront.git · requirements.txt",
       "impact": "The known issue may be reachable depending on how the library is used.",
       "remediation": "Upgrade to the patched release and re-run the dependency scan.",
       "tool": "pip-audit",
@@ -307,7 +307,7 @@
       "type": "chat",
       "who": "you",
       "kind": "text",
-      "text": "Review the source repository git@git.example.com:shop/storefront.git for security issues.",
+      "text": "Review the source repository git@git.contoso.com:shop/storefront.git for security issues.",
       "tone": "default",
       "rows": []
     },
@@ -317,7 +317,7 @@
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Target parsed: git@git.example.com:shop/storefront.git",
+      "text": "Target parsed: git@git.contoso.com:shop/storefront.git",
       "tone": "default",
       "rows": []
     },
@@ -327,7 +327,7 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Target identified: git@git.example.com:shop/storefront.git (source repository).",
+      "text": "Target identified: git@git.contoso.com:shop/storefront.git (source repository).",
       "tone": "default",
       "rows": []
     },
@@ -437,7 +437,7 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: Semgrep, gitleaks and pip-audit. Preparing requests with sample test data. Public surface first.",
+      "text": "Selected tools: Semgrep, gitleaks and pip-audit. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
@@ -786,7 +786,7 @@
   ],
   "requests": [
     {
-      "text": "Review the source repository git@git.example.com:shop/storefront.git for security issues.",
+      "text": "Review the source repository git@git.contoso.com:shop/storefront.git for security issues.",
       "at": "2026-09-28T09:12:22+00:00"
     }
   ],

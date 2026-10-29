@@ -15,7 +15,7 @@ def test_a_new_assessment_keeps_the_earlier_ones():
     assert store.get_assessment().label != first
     cards = store.list_assessments()
     assert len(cards) == 2
-    assert cards[0].status == "Completed" and cards[0].target == "staging.example.com"
+    assert cards[0].status == "Completed" and cards[0].target == "www.lumina.com"
     assert cards[1].status == "New" and cards[1].current
 
 
@@ -50,7 +50,7 @@ async def test_assessments_lists_and_reopens(app):
         await pilot.press("1")                     # reopen the completed web assessment
         await settle(pilot)
         assert store.is_completed()
-        assert store.get_assessment().target == "staging.example.com"
+        assert store.get_assessment().target == "www.lumina.com"
         app.goto("findings")
         await settle(pilot)
         assert isinstance(app.screen, FindingsListScreen)

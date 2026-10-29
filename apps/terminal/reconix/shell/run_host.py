@@ -69,8 +69,8 @@ class RunHostMixin:
     def run_finished(self) -> None:
         self.refresh_view()
         if store.is_completed():
-            self.notify("Assessment complete. Findings: 6 · report and exports: 8.",
-                        title="Reconix")
+            self.notify(f"Assessment complete. Findings: {len(store.list_findings())} · "
+                        "report and exports: 8.", title="Reconix")
 
     def run_failed(self, message: str) -> None:
         self.notify(message, title="The run stopped", severity="error", markup=False)

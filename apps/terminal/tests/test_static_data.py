@@ -43,7 +43,13 @@ CASES = [
 ]
 IDS = [request for _, request, _ in CASES]
 
-RESERVED_DOMAINS = ("example.com", "example.org", "example.net")
+# RFC 2606 reserved domains, plus the standard fictional companies (Contoso, Fabrikam,
+# Northwind) the demo data uses: all safe placeholders, never a real organisation's site.
+RESERVED_DOMAINS = ("example.com", "example.org", "example.net",
+                    "contoso.com", "contoso.org", "contoso.net",
+                    "fabrikam.com", "fabrikam.org", "fabrikam.net",
+                    "northwind.com", "northwind.org", "northwind.net",
+                    "lumina.com")   # the demo's own showcase target
 RESERVED_NETWORKS = [ipaddress.ip_network(n) for n in (
     "192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24",   # RFC 5737 documentation
     "10.0.0.0/8", "127.0.0.0/8",                           # private, loopback
@@ -77,9 +83,11 @@ def _revealed():
 
 # --- values ------------------------------------------------------------------------------
 def test_every_value_is_in_its_allowed_set(completed):
+    template_id, _, _ = completed
     findings = _revealed()
-    assert len(findings) == 3
-    assert len({f.fid for f in findings}) == 3
+    expected = 5 if template_id == "web_url" else 3
+    assert len(findings) == expected
+    assert len({f.fid for f in findings}) == expected
     for finding in findings:
         assert finding.severity in store.SEVERITY_ORDER
         assert finding.validation in VALIDATION_ORDER
@@ -213,7 +221,7 @@ def test_approved_tool():
 # --- what is saved -------------------------------------------------------------------------
 _HOST = re.compile(r"(?<![\w.-])((?:\d{1,3}\.){3}\d{1,3}|(?:[a-z0-9-]+\.)+[a-z]{2,})(?![\w-])",
                    re.IGNORECASE)
-_FILES = (".py", ".txt", ".git", ".sh", ".json", ".yml", ".pem")
+_FILES = (".py", ".txt", ".git", ".sh", ".json", ".yml", ".pem", ".js")
 _NOT_HOSTS = {"reconix.assessment"}                      # the saved copy's schema id
 
 

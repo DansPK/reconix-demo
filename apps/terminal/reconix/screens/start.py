@@ -33,7 +33,7 @@ LOGO = r"""██████╗ ███████╗ ██████╗ 
 # (number, step, hint) for the "Start an assessment" panel
 QUICKSTART = (
     ("1", "Pick a template, type its target", "/template"),
-    ("2", "Or just type a target", '"https://staging.example.com"'),
+    ("2", "Or just type a target", '"https://www.lumina.com"'),
     ("3", "Approve scope · run plan · approve risks", "↵ at each gate"),
 )
 

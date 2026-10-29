@@ -436,7 +436,7 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: nmap and testssl.sh. Preparing requests with sample test data. Public surface first.",
+      "text": "Selected tools: nmap and testssl.sh. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },

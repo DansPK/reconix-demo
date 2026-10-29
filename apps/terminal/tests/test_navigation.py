@@ -23,7 +23,7 @@ async def test_enter_on_empty_prompt_runs_the_demo_to_the_scope(app):
         await start_demo(pilot)
         assert isinstance(app.screen, TemplateScreen)
         assert app.screen.state() == "review"
-        assert store.get_assessment().target == "staging.example.com"
+        assert store.get_assessment().target == "www.lumina.com"
 
 
 async def test_arrows_walk_the_flow(app):

@@ -22,6 +22,9 @@
 *.pem
 **/.reconix/
 **/data/
+# ...but the dashboard's data layer is source, not runtime data — keep it tracked.
+!apps/terminal/web/src/lib/data/
+!apps/terminal/web/src/lib/data/**
 **/certs/
 *.db
 

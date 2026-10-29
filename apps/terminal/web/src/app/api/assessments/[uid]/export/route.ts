@@ -1,13 +1,16 @@
 /* Export one assessment, generated from the saved, already-redacted data, masked once more at
    this boundary (lib/report/mask.ts) before any format is built. `?format=` is one of
-   lib/report/formats.ts (json, docx); every format is served as a download. A Word document
+   lib/report/formats.ts (pdf, json, docx); every format is served as a download. The PDF needs a
+   headless Chrome on this machine: 501 with the Word document's link otherwise. A Word document
    past DOCX_MAX_MIB of text is a 413 (DOCX_TOO_LARGE). Every answer is no-store. */
 import { NextResponse } from "next/server";
 
 import { loadAssessment } from "@/lib/data/store";
 import { DocxTooLarge } from "@/lib/report/docx/ooxml";
-import { DOCX_TOO_LARGE, exportFileName, exportSpec, isExportFormat } from "@/lib/report/formats";
+import { DOCX_TOO_LARGE, downloadHref, exportFileName, exportSpec, isExportFormat, NO_PRINTER } from "@/lib/report/formats";
+import { renderReportHtml } from "@/lib/report/html";
 import { maskAssessment } from "@/lib/report/mask";
+import { renderPdf } from "@/lib/report/pdf";
 import { renderFile } from "@/lib/report/render";
 
 const NO_STORE = { "Cache-Control": "no-store" };
@@ -16,7 +19,6 @@ const refuse = (detail: string, status: number) => NextResponse.json({ detail },
 export async function GET(request: Request, ctx: { params: Promise<{ uid: string }> }) {
   const format = new URL(request.url).searchParams.get("format") ?? "";
   if (!isExportFormat(format)) return refuse("Unknown export format.", 400);
-  if (format === "pdf") return refuse("PDF export isn't available. Download JSON or DOCX instead.", 501);
 
   const { uid } = await ctx.params;
   const saved = await loadAssessment(uid);
@@ -29,6 +31,13 @@ export async function GET(request: Request, ctx: { params: Promise<{ uid: string
     ...NO_STORE,
   };
 
+  if (format === "pdf") {
+    const pdf = await renderPdf(renderReportHtml(assessment)).catch(() => null);
+    if (!pdf) {
+      return NextResponse.json({ detail: NO_PRINTER, docx: downloadHref(assessment.uid, "docx") }, { status: 501, headers: NO_STORE });
+    }
+    return new NextResponse(pdf, { headers });
+  }
   try {
     return new NextResponse(renderFile(format, assessment), { headers });
   } catch (error) {

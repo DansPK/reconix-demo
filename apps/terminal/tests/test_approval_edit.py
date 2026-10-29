@@ -13,7 +13,7 @@ from .support import decide, play_until_gate, run_to, run_to_end
 TEMPLATES = [
     pytest.param(store.DEMO_REQUEST, "/api/orders/10490",
                  ["/admin/users", "/admin;x=1", "/a%2fb"],
-                 "https://staging.example.com/api/orders/1", id="web_url"),
+                 "https://www.lumina.com/api/orders/1", id="web_url"),
     pytest.param("test the API at https://api.example.com/v1", "/v1/orders/9000",
                  ["/internal/metrics", "/admin"], "v1/orders/9000", id="api"),
     pytest.param("Assess 10.0.0.0/24", "10.0.0.9:443",

@@ -4,8 +4,8 @@
   "session": "20260929-112000-8c51",
   "label": "RCX-002",
   "assessment_id": "RCX-002",
-  "target": "api.example.org",
-  "target_url": "https://api.example.org",
+  "target": "api.fabrikam.com",
+  "target_url": "https://api.fabrikam.com",
   "target_kind": "API service",
   "template": {
     "id": "api",
@@ -14,14 +14,14 @@
   },
   "api_spec": null,
   "operator": "analyst",
-  "client": "Example",
+  "client": "Fabrikam",
   "mode": "Grey-box, Authorized",
   "methodology": [
     "OWASP API Security Top 10 (2023)",
     "OWASP WSTG"
   ],
   "report_version": "1.0",
-  "created_at": "2026-09-29T11:43:02+00:00",
+  "created_at": "2026-09-29T11:43:27+00:00",
   "status": "Completed",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,8 +30,8 @@
   "session_closed": true,
   "run": {
     "phase": "completed",
-    "started_at": "2026-09-29T11:44:11+00:00",
-    "finished_at": "2026-09-29T11:55:30+00:00",
+    "started_at": "2026-09-29T11:44:31+00:00",
+    "finished_at": "2026-09-29T11:55:48+00:00",
     "completed": true,
     "requests": 541,
     "progress": {
@@ -76,7 +76,7 @@
   ],
   "scope": {
     "kind": "api",
-    "target_url": "https://api.example.org",
+    "target_url": "https://api.fabrikam.com",
     "assessment_type": "API",
     "status": "APPROVED",
     "allowed_actions": [
@@ -106,35 +106,35 @@
       "path": "/internal/metrics",
       "allowed": false,
       "reason": "Path outside approved scope",
-      "at": "2026-09-29T11:47:09+00:00"
+      "at": "2026-09-29T11:47:40+00:00"
     },
     {
       "method": "GET",
       "path": "/v1/orders/8842",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:50:20+00:00"
+      "at": "2026-09-29T11:50:52+00:00"
     },
     {
       "method": "GET",
       "path": "/v1/orders/8842",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:50:34+00:00"
+      "at": "2026-09-29T11:51:02+00:00"
     },
     {
       "method": "GET",
       "path": "/v1/orders/8843",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:51:57+00:00"
+      "at": "2026-09-29T11:52:15+00:00"
     },
     {
       "method": "GET",
       "path": "/v1/orders/8843",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:52:16+00:00"
+      "at": "2026-09-29T11:52:30+00:00"
     }
   ],
   "approvals": [
@@ -147,8 +147,8 @@
       "path": "/v1/orders/8842",
       "purpose": "Record the normal response for the token's own order",
       "impact": "Low. One read request, no data changes",
-      "command": "GET https://api.example.org/v1/orders/8842 as token A",
-      "command_hash": "sha256:b221d4804e94f3beb6ae1799df73934d7d9a777df8d87460084bb615aeb44cd1"
+      "command": "GET https://api.fabrikam.com/v1/orders/8842 as token A",
+      "command_hash": "sha256:40b19fb42f17f92b5a9e9b47022edfc1a54e6fdf428015a2ec68b458b5ef4ef8"
     },
     {
       "request_id": "approval-002",
@@ -159,8 +159,8 @@
       "path": "/v1/orders/8843",
       "purpose": "Check if token A can read an order owned by account B",
       "impact": "May read synthetic test data. 1 request, no changes",
-      "command": "GET https://api.example.org/v1/orders/8843 as token A",
-      "command_hash": "sha256:f7786bf7b1088de02cdaa9ca33b16eadd89fa5ac7ea84626eb73eb990fa25fa2"
+      "command": "GET https://api.fabrikam.com/v1/orders/8843 as token A",
+      "command_hash": "sha256:c3433c29b37776126a745f15c5b99fd2d8a96d15e5cbfb9d1ba3875b988733b5"
     }
   ],
   "decisions": [
@@ -169,16 +169,16 @@
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:b221d4804e94f3beb6ae1799df73934d7d9a777df8d87460084bb615aeb44cd1",
-      "at": "2026-09-29T11:50:39+00:00"
+      "command_hash": "sha256:40b19fb42f17f92b5a9e9b47022edfc1a54e6fdf428015a2ec68b458b5ef4ef8",
+      "at": "2026-09-29T11:51:06+00:00"
     },
     {
       "request_id": "approval-002",
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:f7786bf7b1088de02cdaa9ca33b16eadd89fa5ac7ea84626eb73eb990fa25fa2",
-      "at": "2026-09-29T11:52:18+00:00"
+      "command_hash": "sha256:c3433c29b37776126a745f15c5b99fd2d8a96d15e5cbfb9d1ba3875b988733b5",
+      "at": "2026-09-29T11:52:33+00:00"
     }
   ],
   "findings": [
@@ -189,7 +189,7 @@
       "path": "/backup",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://api.example.org/backup",
+      "affected_url": "https://api.fabrikam.com/backup",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -213,7 +213,7 @@
       "path": "/v1/orders/{id}",
       "validation": "CONFIRMED",
       "description": "Account A read an order owned by account B through the orders endpoint.",
-      "affected_url": "https://api.example.org/v1/orders/8842",
+      "affected_url": "https://api.fabrikam.com/v1/orders/8842",
       "impact": "Any authenticated client could read other tenants' records.",
       "remediation": "Check resource ownership on the server for every object id.",
       "tool": "ZAP API scan",
@@ -223,7 +223,7 @@
       ],
       "evidence": [
         "GET /v1/orders/8842 as token A → HTTP 200",
-        "owner: tenant_••7 · email: b•••@example.com"
+        "owner: tenant_••7 · email: b•••@contoso.com"
       ],
       "cvss_score": 6.5,
       "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
@@ -247,7 +247,7 @@
       "path": "/v1/reports/export",
       "validation": "UNCONFIRMED",
       "description": "The export endpoint returned data without checking the caller's role.",
-      "affected_url": "https://api.example.org/v1/reports/export",
+      "affected_url": "https://api.fabrikam.com/v1/reports/export",
       "impact": "A low-privilege token may export data meant for admins.",
       "remediation": "Require and verify an admin scope on the export endpoint.",
       "tool": "Nuclei",
@@ -280,7 +280,7 @@
       "path": "/metrics",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://api.example.org/metrics",
+      "affected_url": "https://api.fabrikam.com/metrics",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -304,7 +304,7 @@
       "path": "/debug",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://api.example.org/debug",
+      "affected_url": "https://api.fabrikam.com/debug",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -328,7 +328,7 @@
       "path": "/config",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://api.example.org/config",
+      "affected_url": "https://api.fabrikam.com/config",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -352,7 +352,7 @@
       "path": "/v1/auth/login",
       "validation": "INCONCLUSIVE",
       "description": "Repeated login attempts were not throttled.",
-      "affected_url": "https://api.example.org/v1/auth/login",
+      "affected_url": "https://api.fabrikam.com/v1/auth/login",
       "impact": "Enables credential-stuffing against the API.",
       "remediation": "Add per-IP and per-account rate limiting with backoff.",
       "tool": "Postman",
@@ -385,7 +385,7 @@
       "path": "/swagger",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://api.example.org/swagger",
+      "affected_url": "https://api.fabrikam.com/swagger",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -409,7 +409,7 @@
       "path": "/health",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://api.example.org/health",
+      "affected_url": "https://api.fabrikam.com/health",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -433,7 +433,7 @@
       "path": "/version",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://api.example.org/version",
+      "affected_url": "https://api.fabrikam.com/version",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -457,7 +457,7 @@
       "path": "/status",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://api.example.org/status",
+      "affected_url": "https://api.fabrikam.com/status",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -481,7 +481,7 @@
       "path": "/trace",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://api.example.org/trace",
+      "affected_url": "https://api.fabrikam.com/trace",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -501,8 +501,8 @@
   ],
   "timeline": [
     {
-      "seq": 55,
-      "at": "2026-09-29T11:42:52+00:00",
+      "seq": 57,
+      "at": "2026-09-29T11:43:17+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -511,8 +511,8 @@
       "rows": []
     },
     {
-      "seq": 56,
-      "at": "2026-09-29T11:43:00+00:00",
+      "seq": 58,
+      "at": "2026-09-29T11:43:22+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -521,38 +521,38 @@
       "rows": []
     },
     {
-      "seq": 57,
-      "at": "2026-09-29T11:43:25+00:00",
+      "seq": 59,
+      "at": "2026-09-29T11:43:46+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
-      "text": "Test the REST API at https://api.example.org/v2 for security issues.",
-      "tone": "default",
-      "rows": []
-    },
-    {
-      "seq": 58,
-      "at": "2026-09-29T11:43:39+00:00",
-      "type": "activity",
-      "who": "AI",
-      "kind": "line",
-      "text": "Target parsed: api.example.org",
-      "tone": "default",
-      "rows": []
-    },
-    {
-      "seq": 59,
-      "at": "2026-09-29T11:43:45+00:00",
-      "type": "chat",
-      "who": "reconix",
-      "kind": "text",
-      "text": "Target identified: api.example.org (API service).",
+      "text": "Test the REST API at https://api.fabrikam.com/v2 for security issues.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 60,
-      "at": "2026-09-29T11:43:49+00:00",
+      "at": "2026-09-29T11:44:01+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Target parsed: api.fabrikam.com",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 61,
+      "at": "2026-09-29T11:44:07+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Target identified: api.fabrikam.com (API service).",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 62,
+      "at": "2026-09-29T11:44:14+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -561,8 +561,8 @@
       "rows": []
     },
     {
-      "seq": 61,
-      "at": "2026-09-29T11:43:54+00:00",
+      "seq": 63,
+      "at": "2026-09-29T11:44:19+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -571,8 +571,8 @@
       "rows": []
     },
     {
-      "seq": 62,
-      "at": "2026-09-29T11:44:00+00:00",
+      "seq": 64,
+      "at": "2026-09-29T11:44:23+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -581,8 +581,8 @@
       "rows": []
     },
     {
-      "seq": 63,
-      "at": "2026-09-29T11:44:04+00:00",
+      "seq": 65,
+      "at": "2026-09-29T11:44:28+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -591,8 +591,8 @@
       "rows": []
     },
     {
-      "seq": 64,
-      "at": "2026-09-29T11:44:16+00:00",
+      "seq": 66,
+      "at": "2026-09-29T11:44:34+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -601,8 +601,8 @@
       "rows": []
     },
     {
-      "seq": 65,
-      "at": "2026-09-29T11:44:20+00:00",
+      "seq": 67,
+      "at": "2026-09-29T11:44:39+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -611,8 +611,8 @@
       "rows": []
     },
     {
-      "seq": 66,
-      "at": "2026-09-29T11:44:38+00:00",
+      "seq": 68,
+      "at": "2026-09-29T11:44:55+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -621,8 +621,8 @@
       "rows": []
     },
     {
-      "seq": 67,
-      "at": "2026-09-29T11:44:51+00:00",
+      "seq": 69,
+      "at": "2026-09-29T11:45:04+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -631,8 +631,8 @@
       "rows": []
     },
     {
-      "seq": 68,
-      "at": "2026-09-29T11:45:00+00:00",
+      "seq": 70,
+      "at": "2026-09-29T11:45:17+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -641,8 +641,8 @@
       "rows": []
     },
     {
-      "seq": 69,
-      "at": "2026-09-29T11:45:16+00:00",
+      "seq": 71,
+      "at": "2026-09-29T11:45:35+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -651,18 +651,18 @@
       "rows": []
     },
     {
-      "seq": 70,
-      "at": "2026-09-29T11:45:29+00:00",
+      "seq": 72,
+      "at": "2026-09-29T11:45:53+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: Nuclei, Postman and ZAP API scan. Preparing requests with sample test data. Public surface first.",
+      "text": "Selected tools: Nuclei, Postman and ZAP API scan. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 71,
-      "at": "2026-09-29T11:45:38+00:00",
+      "seq": 73,
+      "at": "2026-09-29T11:46:08+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -671,8 +671,8 @@
       "rows": []
     },
     {
-      "seq": 72,
-      "at": "2026-09-29T11:45:48+00:00",
+      "seq": 74,
+      "at": "2026-09-29T11:46:18+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -681,8 +681,8 @@
       "rows": []
     },
     {
-      "seq": 73,
-      "at": "2026-09-29T11:46:20+00:00",
+      "seq": 75,
+      "at": "2026-09-29T11:46:57+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -704,8 +704,8 @@
       ]
     },
     {
-      "seq": 74,
-      "at": "2026-09-29T11:46:31+00:00",
+      "seq": 76,
+      "at": "2026-09-29T11:47:07+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -714,8 +714,8 @@
       "rows": []
     },
     {
-      "seq": 75,
-      "at": "2026-09-29T11:46:56+00:00",
+      "seq": 77,
+      "at": "2026-09-29T11:47:29+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -724,8 +724,8 @@
       "rows": []
     },
     {
-      "seq": 76,
-      "at": "2026-09-29T11:47:24+00:00",
+      "seq": 78,
+      "at": "2026-09-29T11:47:49+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -734,8 +734,8 @@
       "rows": []
     },
     {
-      "seq": 77,
-      "at": "2026-09-29T11:47:27+00:00",
+      "seq": 79,
+      "at": "2026-09-29T11:47:56+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -744,8 +744,8 @@
       "rows": []
     },
     {
-      "seq": 78,
-      "at": "2026-09-29T11:47:42+00:00",
+      "seq": 80,
+      "at": "2026-09-29T11:48:04+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -754,8 +754,8 @@
       "rows": []
     },
     {
-      "seq": 79,
-      "at": "2026-09-29T11:47:59+00:00",
+      "seq": 81,
+      "at": "2026-09-29T11:48:20+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -773,8 +773,8 @@
       ]
     },
     {
-      "seq": 80,
-      "at": "2026-09-29T11:48:11+00:00",
+      "seq": 82,
+      "at": "2026-09-29T11:48:31+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -783,8 +783,8 @@
       "rows": []
     },
     {
-      "seq": 81,
-      "at": "2026-09-29T11:48:21+00:00",
+      "seq": 83,
+      "at": "2026-09-29T11:48:44+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -793,8 +793,8 @@
       "rows": []
     },
     {
-      "seq": 82,
-      "at": "2026-09-29T11:48:37+00:00",
+      "seq": 84,
+      "at": "2026-09-29T11:48:58+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -803,8 +803,8 @@
       "rows": []
     },
     {
-      "seq": 83,
-      "at": "2026-09-29T11:48:54+00:00",
+      "seq": 85,
+      "at": "2026-09-29T11:49:21+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -813,8 +813,8 @@
       "rows": []
     },
     {
-      "seq": 84,
-      "at": "2026-09-29T11:49:01+00:00",
+      "seq": 86,
+      "at": "2026-09-29T11:49:32+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -823,8 +823,8 @@
       "rows": []
     },
     {
-      "seq": 85,
-      "at": "2026-09-29T11:49:32+00:00",
+      "seq": 87,
+      "at": "2026-09-29T11:50:01+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -833,8 +833,8 @@
       "rows": []
     },
     {
-      "seq": 86,
-      "at": "2026-09-29T11:49:41+00:00",
+      "seq": 88,
+      "at": "2026-09-29T11:50:12+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -843,8 +843,8 @@
       "rows": []
     },
     {
-      "seq": 87,
-      "at": "2026-09-29T11:50:04+00:00",
+      "seq": 89,
+      "at": "2026-09-29T11:50:37+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -853,8 +853,8 @@
       "rows": []
     },
     {
-      "seq": 88,
-      "at": "2026-09-29T11:50:46+00:00",
+      "seq": 90,
+      "at": "2026-09-29T11:51:12+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -863,8 +863,8 @@
       "rows": []
     },
     {
-      "seq": 89,
-      "at": "2026-09-29T11:51:08+00:00",
+      "seq": 91,
+      "at": "2026-09-29T11:51:36+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -873,8 +873,8 @@
       "rows": []
     },
     {
-      "seq": 90,
-      "at": "2026-09-29T11:51:19+00:00",
+      "seq": 92,
+      "at": "2026-09-29T11:51:41+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -883,8 +883,8 @@
       "rows": []
     },
     {
-      "seq": 91,
-      "at": "2026-09-29T11:51:39+00:00",
+      "seq": 93,
+      "at": "2026-09-29T11:52:00+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -893,8 +893,8 @@
       "rows": []
     },
     {
-      "seq": 92,
-      "at": "2026-09-29T11:52:22+00:00",
+      "seq": 94,
+      "at": "2026-09-29T11:52:38+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -903,8 +903,8 @@
       "rows": []
     },
     {
-      "seq": 93,
-      "at": "2026-09-29T11:52:45+00:00",
+      "seq": 95,
+      "at": "2026-09-29T11:52:57+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -913,8 +913,8 @@
       "rows": []
     },
     {
-      "seq": 94,
-      "at": "2026-09-29T11:52:52+00:00",
+      "seq": 96,
+      "at": "2026-09-29T11:53:08+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -923,8 +923,8 @@
       "rows": []
     },
     {
-      "seq": 95,
-      "at": "2026-09-29T11:53:08+00:00",
+      "seq": 97,
+      "at": "2026-09-29T11:53:26+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -933,8 +933,8 @@
       "rows": []
     },
     {
-      "seq": 96,
-      "at": "2026-09-29T11:53:15+00:00",
+      "seq": 98,
+      "at": "2026-09-29T11:53:35+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -943,8 +943,8 @@
       "rows": []
     },
     {
-      "seq": 97,
-      "at": "2026-09-29T11:53:30+00:00",
+      "seq": 99,
+      "at": "2026-09-29T11:53:54+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "check",
@@ -953,8 +953,8 @@
       "rows": []
     },
     {
-      "seq": 98,
-      "at": "2026-09-29T11:53:45+00:00",
+      "seq": 100,
+      "at": "2026-09-29T11:54:06+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -963,8 +963,8 @@
       "rows": []
     },
     {
-      "seq": 99,
-      "at": "2026-09-29T11:54:00+00:00",
+      "seq": 101,
+      "at": "2026-09-29T11:54:22+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -973,8 +973,8 @@
       "rows": []
     },
     {
-      "seq": 100,
-      "at": "2026-09-29T11:54:12+00:00",
+      "seq": 102,
+      "at": "2026-09-29T11:54:41+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -983,8 +983,8 @@
       "rows": []
     },
     {
-      "seq": 101,
-      "at": "2026-09-29T11:54:38+00:00",
+      "seq": 103,
+      "at": "2026-09-29T11:55:06+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -993,8 +993,8 @@
       "rows": []
     },
     {
-      "seq": 102,
-      "at": "2026-09-29T11:54:54+00:00",
+      "seq": 104,
+      "at": "2026-09-29T11:55:19+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -1003,8 +1003,8 @@
       "rows": []
     },
     {
-      "seq": 103,
-      "at": "2026-09-29T11:55:05+00:00",
+      "seq": 105,
+      "at": "2026-09-29T11:55:27+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -1013,8 +1013,8 @@
       "rows": []
     },
     {
-      "seq": 104,
-      "at": "2026-09-29T11:55:19+00:00",
+      "seq": 106,
+      "at": "2026-09-29T11:55:38+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -1025,9 +1025,9 @@
   ],
   "requests": [
     {
-      "text": "Test the REST API at https://api.example.org/v2 for security issues.",
-      "at": "2026-09-29T11:43:15+00:00"
+      "text": "Test the REST API at https://api.fabrikam.com/v2 for security issues.",
+      "at": "2026-09-29T11:43:38+00:00"
     }
   ],
-  "saved_at": "2026-09-29T11:55:43+00:00"
+  "saved_at": "2026-09-29T11:56:06+00:00"
 }

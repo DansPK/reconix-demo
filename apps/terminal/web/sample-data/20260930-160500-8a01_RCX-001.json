@@ -4,8 +4,8 @@
   "session": "20260930-160500-8a01",
   "label": "RCX-001",
   "assessment_id": "RCX-001",
-  "target": "api.example.com",
-  "target_url": "https://api.example.com",
+  "target": "api.contoso.com",
+  "target_url": "https://api.contoso.com",
   "target_kind": "API service",
   "template": {
     "id": "api",
@@ -21,12 +21,10 @@
       "GET",
       "POST"
     ],
-    "servers": [
-      "https://api.example.com/v1"
-    ]
+    "servers": []
   },
   "operator": "analyst",
-  "client": "Example",
+  "client": "Contoso",
   "mode": "Grey-box, Authorized",
   "methodology": [
     "OWASP API Security Top 10 (2023)",
@@ -89,7 +87,7 @@
   ],
   "scope": {
     "kind": "api",
-    "target_url": "https://api.example.com",
+    "target_url": "https://api.contoso.com",
     "assessment_type": "API",
     "status": "APPROVED",
     "allowed_actions": [
@@ -160,8 +158,8 @@
       "path": "/v1/orders/8842",
       "purpose": "Record the normal response for the token's own order",
       "impact": "Low. One read request, no data changes",
-      "command": "GET https://api.example.com/v1/orders/8842 as token A",
-      "command_hash": "sha256:4723aee4350ac7d692b0b272ce09716c2bd003eeffa26f3d897da9778f7da1ea"
+      "command": "GET https://api.contoso.com/v1/orders/8842 as token A",
+      "command_hash": "sha256:3c6853c49a8cdc1d3976f78c8099304fe0d8a730ade86bd22985ac1dfffb98bb"
     },
     {
       "request_id": "approval-002",
@@ -172,8 +170,8 @@
       "path": "/v1/orders/8843",
       "purpose": "Check if token A can read an order owned by account B",
       "impact": "May read synthetic test data. 1 request, no changes",
-      "command": "GET https://api.example.com/v1/orders/8843 as token A",
-      "command_hash": "sha256:bc8caa3aae5f115e2f6acd18806eb90b30da0599a722323e54c318adf8f88214"
+      "command": "GET https://api.contoso.com/v1/orders/8843 as token A",
+      "command_hash": "sha256:f9fde196e2084fbe8c802d1e74738708f2699656a1ba39aee06b2e9431726621"
     }
   ],
   "decisions": [
@@ -182,7 +180,7 @@
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:4723aee4350ac7d692b0b272ce09716c2bd003eeffa26f3d897da9778f7da1ea",
+      "command_hash": "sha256:3c6853c49a8cdc1d3976f78c8099304fe0d8a730ade86bd22985ac1dfffb98bb",
       "at": "2026-09-30T16:13:18+00:00"
     },
     {
@@ -190,7 +188,7 @@
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:bc8caa3aae5f115e2f6acd18806eb90b30da0599a722323e54c318adf8f88214",
+      "command_hash": "sha256:f9fde196e2084fbe8c802d1e74738708f2699656a1ba39aee06b2e9431726621",
       "at": "2026-09-30T16:14:58+00:00"
     }
   ],
@@ -202,7 +200,7 @@
       "path": "/v1/orders/{id}",
       "validation": "CONFIRMED",
       "description": "Account A read an order owned by account B through the orders endpoint.",
-      "affected_url": "https://api.example.com/v1/orders/8842",
+      "affected_url": "https://api.contoso.com/v1/orders/8842",
       "impact": "Any authenticated client could read other tenants' records.",
       "remediation": "Check resource ownership on the server for every object id.",
       "tool": "ZAP API scan",
@@ -212,7 +210,7 @@
       ],
       "evidence": [
         "GET /v1/orders/8842 as token A → HTTP 200",
-        "owner: tenant_••7 · email: b•••@example.com"
+        "owner: tenant_••7 · email: b•••@contoso.com"
       ],
       "cvss_score": 6.5,
       "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
@@ -236,7 +234,7 @@
       "path": "/v1/reports/export",
       "validation": "UNCONFIRMED",
       "description": "The export endpoint returned data without checking the caller's role.",
-      "affected_url": "https://api.example.com/v1/reports/export",
+      "affected_url": "https://api.contoso.com/v1/reports/export",
       "impact": "A low-privilege token may export data meant for admins.",
       "remediation": "Require and verify an admin scope on the export endpoint.",
       "tool": "Nuclei",
@@ -269,7 +267,7 @@
       "path": "/v1/auth/login",
       "validation": "INCONCLUSIVE",
       "description": "Repeated login attempts were not throttled.",
-      "affected_url": "https://api.example.com/v1/auth/login",
+      "affected_url": "https://api.contoso.com/v1/auth/login",
       "impact": "Enables credential-stuffing against the API.",
       "remediation": "Add per-IP and per-account rate limiting with backoff.",
       "tool": "Postman",
@@ -323,7 +321,7 @@
       "type": "chat",
       "who": "you",
       "kind": "text",
-      "text": "Test the REST API at https://api.example.com/v1 for security issues.",
+      "text": "Test the REST API at https://api.contoso.com/v1 for security issues.",
       "tone": "default",
       "rows": []
     },
@@ -333,7 +331,7 @@
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Target parsed: api.example.com",
+      "text": "Target parsed: api.contoso.com",
       "tone": "default",
       "rows": []
     },
@@ -343,7 +341,7 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Target identified: api.example.com (API service).",
+      "text": "Target identified: api.contoso.com (API service).",
       "tone": "default",
       "rows": []
     },
@@ -403,7 +401,7 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "OpenAPI spec attached: Orders API 1.2.0 · 4 endpoints.",
+      "text": "OpenAPI spec attached: Orders API 1.2.0 · 4 endpoints. Servers on other hosts are listed as out of scope and not added.",
       "tone": "ok",
       "rows": []
     },
@@ -473,7 +471,7 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: Nuclei, Postman and ZAP API scan. Preparing requests with sample test data. Public surface first.",
+      "text": "Selected tools: Nuclei, Postman and ZAP API scan. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
@@ -872,7 +870,7 @@
   ],
   "requests": [
     {
-      "text": "Test the REST API at https://api.example.com/v1 for security issues.",
+      "text": "Test the REST API at https://api.contoso.com/v1 for security issues.",
       "at": "2026-09-30T16:05:19+00:00"
     }
   ],

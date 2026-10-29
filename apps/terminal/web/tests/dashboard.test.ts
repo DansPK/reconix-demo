@@ -31,10 +31,13 @@ import { sampleAssessments } from "./fixtures";
 
 const samples = sampleAssessments();
 const waiting = samples.find((a) => a.status === "Awaiting input")!;
-// a plain run: no CRITICAL finding and no false positive (the edge-case runs are tested below)
-const completed = samples.find(
-  (a) => a.status === "Completed" && a.template.name === "Web URL" && a.findings.length > 0 && a.findings.every((f) => f.severity !== "CRITICAL" && f.status !== "false-positive"),
-)!;
+// a plain run: a completed Web URL run with its CRITICAL and false-positive findings removed, so
+// the baseline stays "plain" however rich the template's finding set is (edge cases tested below)
+const webRun = samples.find((a) => a.status === "Completed" && a.template.name === "Web URL" && a.findings.length > 0)!;
+const completed: Assessment = {
+  ...webRun,
+  findings: webRun.findings.filter((f) => f.severity !== "CRITICAL" && f.status !== "false-positive"),
+};
 // that run with one finding of each severity and a critical false positive (built here, so the
 // sample data need not hold such a run)
 const everySeverity: Assessment = (() => {

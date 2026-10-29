@@ -4,8 +4,8 @@
   "session": "20260929-112000-8c51",
   "label": "RCX-001",
   "assessment_id": "RCX-001",
-  "target": "portal.example.com",
-  "target_url": "https://portal.example.com",
+  "target": "portal.contoso.com",
+  "target_url": "https://portal.contoso.com",
   "target_kind": "web application",
   "template": {
     "id": "web_url",
@@ -14,14 +14,14 @@
   },
   "api_spec": null,
   "operator": "analyst",
-  "client": "Example",
+  "client": "Contoso",
   "mode": "Grey-box, Authorized",
   "methodology": [
     "OWASP WSTG",
     "OWASP Top 10 (2021)"
   ],
   "report_version": "1.0",
-  "created_at": "2026-09-29T11:20:27+00:00",
+  "created_at": "2026-09-29T11:20:18+00:00",
   "status": "Completed",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,8 +30,8 @@
   "session_closed": true,
   "run": {
     "phase": "completed",
-    "started_at": "2026-09-29T11:21:21+00:00",
-    "finished_at": "2026-09-29T11:33:29+00:00",
+    "started_at": "2026-09-29T11:21:18+00:00",
+    "finished_at": "2026-09-29T11:33:50+00:00",
     "completed": true,
     "requests": 1202,
     "progress": {
@@ -76,7 +76,7 @@
   ],
   "scope": {
     "kind": "web_url",
-    "target_url": "https://portal.example.com",
+    "target_url": "https://portal.contoso.com",
     "assessment_type": "Web URL",
     "status": "APPROVED",
     "allowed_actions": [
@@ -104,35 +104,35 @@
       "path": "/admin",
       "allowed": false,
       "reason": "Path outside approved scope",
-      "at": "2026-09-29T11:24:27+00:00"
+      "at": "2026-09-29T11:24:43+00:00"
     },
     {
       "method": "GET",
       "path": "/api/orders/10482",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:28:09+00:00"
+      "at": "2026-09-29T11:28:19+00:00"
     },
     {
       "method": "GET",
       "path": "/api/orders/10482",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:28:15+00:00"
+      "at": "2026-09-29T11:28:31+00:00"
     },
     {
       "method": "GET",
       "path": "/api/orders/10483",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:29:35+00:00"
+      "at": "2026-09-29T11:29:48+00:00"
     },
     {
       "method": "GET",
       "path": "/api/orders/10483",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:29:57+00:00"
+      "at": "2026-09-29T11:30:11+00:00"
     }
   ],
   "approvals": [
@@ -145,8 +145,8 @@
       "path": "/api/orders/10482",
       "purpose": "Record the normal response for the test account's own order",
       "impact": "Low. One read request, no data changes",
-      "command": "GET https://portal.example.com/api/orders/10482 as test account A",
-      "command_hash": "sha256:80a4cd184fbef6447669139ae9ffd40f7b676048bc8cdf0dd5a1e4a8ddf8a08e"
+      "command": "GET https://portal.contoso.com/api/orders/10482 as test account A",
+      "command_hash": "sha256:df90f6ee618f9218da60b4069e730f88e69d1fcd251ad485c19d6bea918528d6"
     },
     {
       "request_id": "approval-002",
@@ -157,8 +157,8 @@
       "path": "/api/orders/10483",
       "purpose": "Check if account A can read an order owned by account B",
       "impact": "May read synthetic test data. 1 request, no changes",
-      "command": "GET https://portal.example.com/api/orders/10483 as test account A",
-      "command_hash": "sha256:eaeca0a20b17ea1e3473e6ed3e5e64cfc8d173fe774c73fe0d491e177df0d89a"
+      "command": "GET https://portal.contoso.com/api/orders/10483 as test account A",
+      "command_hash": "sha256:3e5f81a0505dc6ee43a3e2cd788054eba97c96cf472652cc7252cfe243154637"
     }
   ],
   "decisions": [
@@ -167,19 +167,54 @@
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:80a4cd184fbef6447669139ae9ffd40f7b676048bc8cdf0dd5a1e4a8ddf8a08e",
-      "at": "2026-09-29T11:28:22+00:00"
+      "command_hash": "sha256:df90f6ee618f9218da60b4069e730f88e69d1fcd251ad485c19d6bea918528d6",
+      "at": "2026-09-29T11:28:39+00:00"
     },
     {
       "request_id": "approval-002",
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:eaeca0a20b17ea1e3473e6ed3e5e64cfc8d173fe774c73fe0d491e177df0d89a",
-      "at": "2026-09-29T11:30:02+00:00"
+      "command_hash": "sha256:3e5f81a0505dc6ee43a3e2cd788054eba97c96cf472652cc7252cfe243154637",
+      "at": "2026-09-29T11:30:15+00:00"
     }
   ],
   "findings": [
+    {
+      "id": "004",
+      "severity": "CRITICAL",
+      "title": "SQL injection in product search",
+      "path": "/api/products",
+      "validation": "CONFIRMED",
+      "description": "The 'category' parameter is concatenated into a SQL query. A boolean probe changed the result set and a time-based payload delayed the response, confirming injection.",
+      "affected_url": "https://portal.contoso.com/api/products?category=",
+      "impact": "An attacker could read or modify the product and customer database, including order records and password hashes.",
+      "remediation": "Use parameterized queries / prepared statements for every database call and run the app with a least-privilege database account.",
+      "tool": "Nuclei",
+      "references": [
+        "OWASP A03:2021",
+        "CWE-89"
+      ],
+      "evidence": [
+        "GET /api/products?category=1' AND SLEEP(5)-- → response delayed 5.02s",
+        "category=1 AND 1=1 → 142 rows · category=1 AND 1=2 → 0 rows",
+        "error probe leaked DBMS banner: MySQL 5.7.x"
+      ],
+      "cvss_score": 9.8,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "category": "Web App",
+      "cwe": [
+        "CWE-89"
+      ],
+      "owasp": [
+        "OWASP A03:2021"
+      ],
+      "cve": [],
+      "status": "open",
+      "severity_override": "",
+      "effective_severity": "CRITICAL",
+      "triage_note": ""
+    },
     {
       "id": "IMP-001",
       "severity": "CRITICAL",
@@ -187,7 +222,7 @@
       "path": "/console",
       "validation": "UNCONFIRMED",
       "description": "The management console answers without a login.",
-      "affected_url": "https://••••@portal.example.com/console",
+      "affected_url": "https://••••@portal.contoso.com/console",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -205,13 +240,50 @@
       "triage_note": ""
     },
     {
+      "id": "005",
+      "severity": "HIGH",
+      "title": "Outdated JavaScript dependency with a known CVE",
+      "path": "/assets/js/vendor.min.js",
+      "validation": "UNCONFIRMED",
+      "description": "The bundled front-end code ships lodash 4.17.15, which has a known prototype-pollution advisory (CVE-2020-8203).",
+      "affected_url": "https://portal.contoso.com/assets/js/vendor.min.js",
+      "impact": "The known flaw may be reachable depending on how the library is used, enabling client-side tampering or denial of service.",
+      "remediation": "Upgrade lodash to 4.17.21 or later and re-run the dependency scan.",
+      "tool": "Nuclei",
+      "references": [
+        "OWASP A06:2021",
+        "CWE-1321",
+        "CVE-2020-8203"
+      ],
+      "evidence": [
+        "vendor.min.js → lodash v4.17.15 fingerprinted",
+        "advisory CVE-2020-8203 · fixed in 4.17.21"
+      ],
+      "cvss_score": 8.1,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "category": "Dependency",
+      "cwe": [
+        "CWE-1321"
+      ],
+      "owasp": [
+        "OWASP A06:2021"
+      ],
+      "cve": [
+        "CVE-2020-8203"
+      ],
+      "status": "open",
+      "severity_override": "",
+      "effective_severity": "HIGH",
+      "triage_note": ""
+    },
+    {
       "id": "IMP-002",
       "severity": "HIGH",
       "title": "<b>Status page</b> leaks build details",
       "path": "/status",
       "validation": "UNCONFIRMED",
       "description": "The page prints the <i>build number</i> and the host name.",
-      "affected_url": "https://portal.example.com/status",
+      "affected_url": "https://portal.contoso.com/status",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -235,7 +307,7 @@
       "path": "/api/orders/{id}",
       "validation": "CONFIRMED",
       "description": "An order record owned by test account B was returned to test account A.",
-      "affected_url": "https://portal.example.com/api/orders/10483",
+      "affected_url": "https://portal.contoso.com/api/orders/10483",
       "impact": "Users could read other customers' order details.",
       "remediation": "Enforce server-side ownership checks on every order lookup.",
       "tool": "OWASP ZAP",
@@ -246,7 +318,7 @@
       ],
       "evidence": [
         "HTTP 200 · order_id: 10483",
-        "owner: usr_••••42 · email: b•••@example.com",
+        "owner: usr_••••42 · email: b•••@contoso.com",
         "token: •••• (masked)"
       ],
       "cvss_score": 6.5,
@@ -272,7 +344,7 @@
       "path": "/search",
       "validation": "UNCONFIRMED",
       "description": "A marker string sent in the q parameter came back unencoded in the page.",
-      "affected_url": "https://portal.example.com/search?q=",
+      "affected_url": "https://portal.contoso.com/search?q=",
       "impact": "May allow cross-site scripting if the reflection is exploitable.",
       "remediation": "Apply context-aware output encoding and a strict Content-Security-Policy.",
       "tool": "Nuclei",
@@ -305,7 +377,7 @@
       "path": "/",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://portal.example.com/",
+      "affected_url": "https://portal.contoso.com/",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -329,7 +401,7 @@
       "path": "/login",
       "validation": "INCONCLUSIVE",
       "description": "The session cookie set at login has no SameSite attribute.",
-      "affected_url": "https://portal.example.com/login",
+      "affected_url": "https://portal.contoso.com/login",
       "impact": "Weakens protection against cross-site request forgery.",
       "remediation": "Set SameSite=Lax (or Strict) on the session cookie.",
       "tool": "OWASP ZAP",
@@ -362,7 +434,7 @@
       "path": "/",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://portal.example.com/",
+      "affected_url": "https://portal.contoso.com/",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -386,7 +458,7 @@
       "path": "/robots.txt",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://portal.example.com/robots.txt",
+      "affected_url": "https://portal.contoso.com/robots.txt",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -409,7 +481,7 @@
   "timeline": [
     {
       "seq": 1,
-      "at": "2026-09-29T11:20:13+00:00",
+      "at": "2026-09-29T11:20:08+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -419,7 +491,7 @@
     },
     {
       "seq": 2,
-      "at": "2026-09-29T11:20:20+00:00",
+      "at": "2026-09-29T11:20:15+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -429,37 +501,37 @@
     },
     {
       "seq": 3,
-      "at": "2026-09-29T11:20:41+00:00",
+      "at": "2026-09-29T11:20:32+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
-      "text": "Assess https://••••@portal.example.com for web security issues.",
+      "text": "Assess https://••••@portal.contoso.com for web security issues.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 4,
-      "at": "2026-09-29T11:20:55+00:00",
+      "at": "2026-09-29T11:20:43+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Target parsed: portal.example.com",
+      "text": "Target parsed: portal.contoso.com",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 5,
-      "at": "2026-09-29T11:20:59+00:00",
+      "at": "2026-09-29T11:20:47+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Target identified: portal.example.com (web application).",
+      "text": "Target identified: portal.contoso.com (web application).",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 6,
-      "at": "2026-09-29T11:21:06+00:00",
+      "at": "2026-09-29T11:20:55+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -469,7 +541,7 @@
     },
     {
       "seq": 7,
-      "at": "2026-09-29T11:21:09+00:00",
+      "at": "2026-09-29T11:21:03+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -479,7 +551,7 @@
     },
     {
       "seq": 8,
-      "at": "2026-09-29T11:21:12+00:00",
+      "at": "2026-09-29T11:21:11+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -499,7 +571,7 @@
     },
     {
       "seq": 10,
-      "at": "2026-09-29T11:21:25+00:00",
+      "at": "2026-09-29T11:21:21+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -509,7 +581,7 @@
     },
     {
       "seq": 11,
-      "at": "2026-09-29T11:21:33+00:00",
+      "at": "2026-09-29T11:21:26+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -519,7 +591,7 @@
     },
     {
       "seq": 12,
-      "at": "2026-09-29T11:21:55+00:00",
+      "at": "2026-09-29T11:21:46+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -529,7 +601,7 @@
     },
     {
       "seq": 13,
-      "at": "2026-09-29T11:22:03+00:00",
+      "at": "2026-09-29T11:21:58+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -539,7 +611,7 @@
     },
     {
       "seq": 14,
-      "at": "2026-09-29T11:22:15+00:00",
+      "at": "2026-09-29T11:22:12+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -549,7 +621,7 @@
     },
     {
       "seq": 15,
-      "at": "2026-09-29T11:22:35+00:00",
+      "at": "2026-09-29T11:22:32+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -559,17 +631,17 @@
     },
     {
       "seq": 16,
-      "at": "2026-09-29T11:22:55+00:00",
+      "at": "2026-09-29T11:22:49+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: Nuclei and OWASP ZAP. Preparing requests with sample test data. Public surface first.",
+      "text": "Selected tools: Nuclei and OWASP ZAP. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 17,
-      "at": "2026-09-29T11:23:05+00:00",
+      "at": "2026-09-29T11:22:56+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -579,7 +651,7 @@
     },
     {
       "seq": 18,
-      "at": "2026-09-29T11:23:15+00:00",
+      "at": "2026-09-29T11:23:04+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -589,7 +661,27 @@
     },
     {
       "seq": 19,
-      "at": "2026-09-29T11:23:41+00:00",
+      "at": "2026-09-29T11:23:26+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Crawled 24 pages · 6 API endpoints mapped",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 20,
+      "at": "2026-09-29T11:23:39+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Technology fingerprint: nginx · MySQL · lodash",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 21,
+      "at": "2026-09-29T11:24:04+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -611,8 +703,8 @@
       ]
     },
     {
-      "seq": 20,
-      "at": "2026-09-29T11:23:54+00:00",
+      "seq": 22,
+      "at": "2026-09-29T11:24:12+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -621,8 +713,8 @@
       "rows": []
     },
     {
-      "seq": 21,
-      "at": "2026-09-29T11:24:16+00:00",
+      "seq": 23,
+      "at": "2026-09-29T11:24:36+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -631,8 +723,8 @@
       "rows": []
     },
     {
-      "seq": 22,
-      "at": "2026-09-29T11:24:41+00:00",
+      "seq": 24,
+      "at": "2026-09-29T11:24:55+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -641,8 +733,8 @@
       "rows": []
     },
     {
-      "seq": 23,
-      "at": "2026-09-29T11:24:44+00:00",
+      "seq": 25,
+      "at": "2026-09-29T11:25:01+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -651,8 +743,8 @@
       "rows": []
     },
     {
-      "seq": 24,
-      "at": "2026-09-29T11:24:56+00:00",
+      "seq": 26,
+      "at": "2026-09-29T11:25:13+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -661,8 +753,8 @@
       "rows": []
     },
     {
-      "seq": 25,
-      "at": "2026-09-29T11:25:18+00:00",
+      "seq": 27,
+      "at": "2026-09-29T11:25:36+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -671,7 +763,7 @@
       "rows": [
         [
           "Potential issues",
-          "3"
+          "5"
         ],
         [
           "Needs login",
@@ -680,8 +772,8 @@
       ]
     },
     {
-      "seq": 26,
-      "at": "2026-09-29T11:25:24+00:00",
+      "seq": 28,
+      "at": "2026-09-29T11:25:46+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -690,8 +782,8 @@
       "rows": []
     },
     {
-      "seq": 27,
-      "at": "2026-09-29T11:25:38+00:00",
+      "seq": 29,
+      "at": "2026-09-29T11:25:58+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -700,8 +792,8 @@
       "rows": []
     },
     {
-      "seq": 28,
-      "at": "2026-09-29T11:25:57+00:00",
+      "seq": 30,
+      "at": "2026-09-29T11:26:10+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -710,8 +802,8 @@
       "rows": []
     },
     {
-      "seq": 29,
-      "at": "2026-09-29T11:26:21+00:00",
+      "seq": 31,
+      "at": "2026-09-29T11:26:29+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -720,8 +812,8 @@
       "rows": []
     },
     {
-      "seq": 30,
-      "at": "2026-09-29T11:26:30+00:00",
+      "seq": 32,
+      "at": "2026-09-29T11:26:35+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -730,8 +822,8 @@
       "rows": []
     },
     {
-      "seq": 31,
-      "at": "2026-09-29T11:26:39+00:00",
+      "seq": 33,
+      "at": "2026-09-29T11:26:46+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -740,8 +832,8 @@
       "rows": []
     },
     {
-      "seq": 32,
-      "at": "2026-09-29T11:26:55+00:00",
+      "seq": 34,
+      "at": "2026-09-29T11:27:04+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -750,8 +842,8 @@
       "rows": []
     },
     {
-      "seq": 33,
-      "at": "2026-09-29T11:27:06+00:00",
+      "seq": 35,
+      "at": "2026-09-29T11:27:12+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -760,8 +852,8 @@
       "rows": []
     },
     {
-      "seq": 34,
-      "at": "2026-09-29T11:27:27+00:00",
+      "seq": 36,
+      "at": "2026-09-29T11:27:35+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -770,8 +862,8 @@
       "rows": []
     },
     {
-      "seq": 35,
-      "at": "2026-09-29T11:27:34+00:00",
+      "seq": 37,
+      "at": "2026-09-29T11:27:44+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -780,8 +872,8 @@
       "rows": []
     },
     {
-      "seq": 36,
-      "at": "2026-09-29T11:27:53+00:00",
+      "seq": 38,
+      "at": "2026-09-29T11:28:05+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -790,8 +882,8 @@
       "rows": []
     },
     {
-      "seq": 37,
-      "at": "2026-09-29T11:28:26+00:00",
+      "seq": 39,
+      "at": "2026-09-29T11:28:44+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -800,8 +892,8 @@
       "rows": []
     },
     {
-      "seq": 38,
-      "at": "2026-09-29T11:28:47+00:00",
+      "seq": 40,
+      "at": "2026-09-29T11:29:00+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -810,8 +902,8 @@
       "rows": []
     },
     {
-      "seq": 39,
-      "at": "2026-09-29T11:28:57+00:00",
+      "seq": 41,
+      "at": "2026-09-29T11:29:12+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -820,8 +912,8 @@
       "rows": []
     },
     {
-      "seq": 40,
-      "at": "2026-09-29T11:29:21+00:00",
+      "seq": 42,
+      "at": "2026-09-29T11:29:37+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -830,8 +922,8 @@
       "rows": []
     },
     {
-      "seq": 41,
-      "at": "2026-09-29T11:30:09+00:00",
+      "seq": 43,
+      "at": "2026-09-29T11:30:20+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -840,8 +932,8 @@
       "rows": []
     },
     {
-      "seq": 42,
-      "at": "2026-09-29T11:30:25+00:00",
+      "seq": 44,
+      "at": "2026-09-29T11:30:41+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -850,8 +942,8 @@
       "rows": []
     },
     {
-      "seq": 43,
-      "at": "2026-09-29T11:30:39+00:00",
+      "seq": 45,
+      "at": "2026-09-29T11:30:49+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -860,8 +952,8 @@
       "rows": []
     },
     {
-      "seq": 44,
-      "at": "2026-09-29T11:30:58+00:00",
+      "seq": 46,
+      "at": "2026-09-29T11:31:10+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -870,8 +962,8 @@
       "rows": []
     },
     {
-      "seq": 45,
-      "at": "2026-09-29T11:31:05+00:00",
+      "seq": 47,
+      "at": "2026-09-29T11:31:26+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -880,8 +972,8 @@
       "rows": []
     },
     {
-      "seq": 46,
-      "at": "2026-09-29T11:31:21+00:00",
+      "seq": 48,
+      "at": "2026-09-29T11:31:42+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "check",
@@ -890,8 +982,8 @@
       "rows": []
     },
     {
-      "seq": 47,
-      "at": "2026-09-29T11:31:41+00:00",
+      "seq": 49,
+      "at": "2026-09-29T11:32:00+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -900,8 +992,8 @@
       "rows": []
     },
     {
-      "seq": 48,
-      "at": "2026-09-29T11:31:56+00:00",
+      "seq": 50,
+      "at": "2026-09-29T11:32:17+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -910,8 +1002,8 @@
       "rows": []
     },
     {
-      "seq": 49,
-      "at": "2026-09-29T11:32:11+00:00",
+      "seq": 51,
+      "at": "2026-09-29T11:32:32+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -920,18 +1012,18 @@
       "rows": []
     },
     {
-      "seq": 50,
-      "at": "2026-09-29T11:32:44+00:00",
+      "seq": 52,
+      "at": "2026-09-29T11:33:05+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Duplicates merged · 3 unique findings",
+      "text": "Duplicates merged · 5 unique findings",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 51,
-      "at": "2026-09-29T11:32:58+00:00",
+      "seq": 53,
+      "at": "2026-09-29T11:33:22+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -940,18 +1032,18 @@
       "rows": []
     },
     {
-      "seq": 52,
-      "at": "2026-09-29T11:33:10+00:00",
+      "seq": 54,
+      "at": "2026-09-29T11:33:31+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Assessment completed. 3 findings: 1 confirmed, 2 marked for review.",
+      "text": "Assessment completed. 5 findings: 2 confirmed, 3 marked for review.",
       "tone": "ok",
       "rows": []
     },
     {
-      "seq": 53,
-      "at": "2026-09-29T11:33:20+00:00",
+      "seq": 55,
+      "at": "2026-09-29T11:33:40+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -960,8 +1052,8 @@
       "rows": []
     },
     {
-      "seq": 54,
-      "at": "2026-09-29T11:33:39+00:00",
+      "seq": 56,
+      "at": "2026-09-29T11:34:02+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -972,9 +1064,9 @@
   ],
   "requests": [
     {
-      "text": "Assess https://••••@portal.example.com for web security issues.",
-      "at": "2026-09-29T11:20:33+00:00"
+      "text": "Assess https://••••@portal.contoso.com for web security issues.",
+      "at": "2026-09-29T11:20:22+00:00"
     }
   ],
-  "saved_at": "2026-09-29T11:55:38+00:00"
+  "saved_at": "2026-09-29T11:55:59+00:00"
 }

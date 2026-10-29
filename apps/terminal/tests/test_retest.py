@@ -32,7 +32,7 @@ def test_second_run_compares_to_the_first():
     assert result is not None
     assert result["previous_label"]
     # same template → same findings → all recurring, nothing new or resolved
-    assert result["counts"] == {"new": 0, "recurring": 3, "resolved": 0}
+    assert result["counts"] == {"new": 0, "recurring": 5, "resolved": 0}
 
 
 def test_severity_trend_lists_each_run_oldest_first():
@@ -41,8 +41,8 @@ def test_severity_trend_lists_each_run_oldest_first():
     run_to(None)
     trend = store.severity_trend()
     assert len(trend) == 2
-    assert all(point["total"] == 3 for point in trend)
-    assert trend[0]["counts"]["MEDIUM"] == 2 and trend[0]["counts"]["HIGH"] == 0
+    assert all(point["total"] == 5 for point in trend)
+    assert trend[0]["counts"]["MEDIUM"] == 2 and trend[0]["counts"]["HIGH"] == 1
 
 
 def test_retest_shows_in_report_data_and_html():
@@ -50,6 +50,6 @@ def test_retest_shows_in_report_data_and_html():
     store.new_assessment()
     run_to(None)
     data = store.report_data()
-    assert data["retest"]["counts"]["recurring"] == 3
+    assert data["retest"]["counts"]["recurring"] == 5
     from reconix.store.report_html import render_html
     assert "Changes since last assessment" in render_html(data)

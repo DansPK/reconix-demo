@@ -9,7 +9,7 @@ from .support import run_to
 
 def test_findings_start_open():
     run_to(None)
-    assert [f.status for f in store.list_findings()] == ["open", "open", "open"]
+    assert [f.status for f in store.list_findings()] == ["open", "open", "open", "open", "open"]
 
 
 def test_triage_sets_status_note_and_audits():
