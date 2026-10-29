@@ -101,6 +101,9 @@ interface Session {
   id: string; owner: string; name: string; target_type: "workspace" | "github"; repo_url: string | null;
   created_at: string; manifest: Map<string, ManifestEntry>; pending: ManifestEntry[] | null;
   messages: { role: "user" | "assistant"; text: string; finding_ids: string[] }[];
+  // The hash each finding-bearing file had when first scanned; a later scan whose file differs
+  // counts that finding as fixed and drops it, so applying a fix and rescanning clears it.
+  baselineHash: Map<string, string>;
 }
 
 interface Upload { id: string; session: string; size: number; sha256: string; expires: number; used: boolean;
@@ -221,6 +224,7 @@ export class FakeHarness {
           id, owner: "me", name: a.name ?? (a.target_type === "github" ? a.repo_url.split("github.com/")[1] : "Workspace scan"),
           target_type: a.target_type ?? "workspace", repo_url: a.repo_url ?? null,
           created_at: new Date().toISOString(), manifest: new Map(), pending: null, messages: [],
+          baselineHash: new Map(),
         });
         return { session_id: id };
       }
@@ -497,8 +501,11 @@ export class FakeHarness {
       return list.flatMap((f) => {
         const match = keys.find((k) => k === f.path || k.endsWith(`/${f.path}`));
         if (!match) return [];
+        const hash = s.manifest.get(match)!.sha256;
+        const baseline = s.baselineHash.get(match) ?? (s.baselineHash.set(match, hash), hash);
+        if (hash !== baseline) return []; // the file changed since it was first scanned: fix applied
         f.path = match;
-        f.file_sha256 = s.manifest.get(match)!.sha256;
+        f.file_sha256 = hash;
         return [f];
       });
     }
