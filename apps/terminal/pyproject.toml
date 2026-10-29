@@ -9,6 +9,7 @@ dependencies = [
     "python-docx>=1.1",       # the DOCX report (PDF, JSON, DOCX)
     "PyYAML>=6.0",            # OpenAPI specs (safe loading only)
     "pypdf>=6.0",             # /add-on knowledge files: PDF page text
+    "cryptography>=42",       # /add-on knowledge originals: encrypted .orig files
 ]
 
 [project.scripts]

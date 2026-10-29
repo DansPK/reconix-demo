@@ -18,15 +18,15 @@ flowchart LR
 
 | Part | What it does |
 | --- | --- |
-| [**VS Code extension**](vscode-extension/) | The chat panel. Sends the open folder to the server, shows findings in the editor, and applies fixes you accept. |
-| **Scanner server** | Bundled in [`vscode-extension/server/`](vscode-extension/server/). Serves findings and answers chat over a local connection. Started with `npm run server`. |
+| [**VS Code extension**](extension/) | The chat panel. Sends the open folder to the server, shows findings in the editor, and applies fixes you accept. |
+| **Scanner server** | Bundled in [`extension/server/`](extension/server/). Serves findings and answers chat over a local connection. Started with `npm run server`. |
 | [**`vuln-shop/`**](vuln-shop/) | A small, intentionally vulnerable sample project — one planted issue per file — for trying the scanner. |
 
 ## Quick start
 
 ```sh
 ./setup.sh                                   # builds + installs the extension, points it at the server
-cd vscode-extension && npm run server        # starts the scanner server on :7357 (token: test-token)
+cd extension && npm run server        # starts the scanner server on :7357 (token: test-token)
 ```
 
 Then in VS Code:
@@ -69,14 +69,14 @@ set `reconix.serverUrl`/token yourself.
 
 Folders like `.git`, `node_modules`, `dist`, `build` and `.venv`, and everything in your
 `.gitignore`, are never uploaded. The full settings list is in
-[`vscode-extension/README.md`](vscode-extension/README.md).
+[`extension/README.md`](extension/README.md).
 
 ## Project layout
 
 ```
-vscode-code-scanner/
+scanner/
 ├── setup.sh              one-command setup
-├── vscode-extension/     the VS Code extension (TypeScript) + bundled server/
+├── extension/     the VS Code extension (TypeScript) + bundled server/
 ├── vuln-shop/            intentionally vulnerable sample project
 └── docs/
     └── SETUP.md          setup by hand, HTTPS, troubleshooting
@@ -85,7 +85,7 @@ vscode-code-scanner/
 ## For developers
 
 ```sh
-cd vscode-extension
+cd extension
 npm ci
 npm run build              # bundle with esbuild into dist/
 npm run test:unit          # plain Node tests
@@ -94,7 +94,7 @@ npm run server             # start the scanner server on :7357 for trying the UI
 ```
 
 More detail — the extension's commands, the editor features, and how a scan flows through the
-code — is in [`vscode-extension/README.md`](vscode-extension/README.md).
+code — is in [`extension/README.md`](extension/README.md).
 
 ## Your code and data
 

@@ -3,3 +3,4 @@ rich>=13.7
 python-docx>=1.1     # the DOCX report (one of the three formats: PDF, JSON, DOCX)
 PyYAML>=6.0         # OpenAPI specs attached to an API assessment (safe loading only)
 pypdf>=6.0           # /add-on knowledge files: PDF page text
+cryptography>=42     # /add-on knowledge originals: encrypted .orig files

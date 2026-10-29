@@ -4,7 +4,7 @@ Scan your code for vulnerabilities from a chat panel in the sidebar. Scanning is
 
 ## Setup
 
-1. Start the scanner server from `vscode-extension/`:
+1. Start the scanner server from `extension/`:
    ```sh
    npm install
    npm run server      # listens on http://127.0.0.1:7357, token "test-token"

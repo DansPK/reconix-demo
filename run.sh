@@ -10,8 +10,8 @@
 # Everything runs locally on bundled sample data — no accounts, no keys.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")" && pwd)
-TUI=$ROOT/apps/Reconnix_Terminal
-EXT=$ROOT/apps/vscode-code-scanner/vscode-extension
+TUI=$ROOT/apps/terminal
+EXT=$ROOT/apps/scanner/extension
 
 usage() { sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 
@@ -32,7 +32,7 @@ case "${1:-}" in
     exec npm run server
     ;;
   vscode|setup)
-    exec "$ROOT/apps/vscode-code-scanner/setup.sh"
+    exec "$ROOT/apps/scanner/setup.sh"
     ;;
   -h|--help|help|"") usage 0 ;;
   *) echo "run.sh: unknown command '$1'" >&2; echo; usage 1 ;;

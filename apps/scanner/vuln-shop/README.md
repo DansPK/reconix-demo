@@ -21,7 +21,7 @@ real key.
 1. Start the scanner server:
 
    ```sh
-   cd ../vscode-extension && npm run server   # http://127.0.0.1:7357, token test-token
+   cd ../extension && npm run server   # http://127.0.0.1:7357, token test-token
    ```
 
 2. Open **this folder** (`vuln-shop/`) in VS Code, with the Reconix extension installed and

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **Note:** the original analyzer (`analyzer-agent-harness/` — Semgrep/Gitleaks/SonarQube
 > + LiteLLM) has been **removed**. The extension now talks to the bundled, LLM-free
-> **Reconix scanner server** (`vscode-extension/server/server.ts`, `npm run server`, `:7357`,
+> **Reconix scanner server** (`extension/server/server.ts`, `npm run server`, `:7357`,
 > token `test-token`). The architecture notes below describe the original harness for
 > reference; nothing in this repo runs it. Run it with `./setup.sh` then
 > `npm run server`.
@@ -25,7 +25,7 @@ docker compose exec harness harness-token <user> # create a user token (printed 
 
 Scanner tests need `semgrep` and `gitleaks`. Project-local copies live in `analyzer-agent-harness/.bin/` (gitignored), with the merged rules in `.bin/rules/rules.yml`. Rebuild them with `uv run --with pyyaml python scripts/fetch_semgrep_rules.py .bin/rules/rules.yml`, which the Dockerfile also uses. It merges 29 language and security packs and drops duplicate rules, because separate pack files would report each problem more than once. `tests/conftest.py` puts `.bin` on `PATH` and skips scanner tests if the tools are missing. `sonar-scanner` is not installed locally, so SonarQube always "fails" in tests, and tests assert the other tools carry on.
 
-Extension (`vscode-extension/`, TypeScript, esbuild):
+Extension (`extension/`, TypeScript, esbuild):
 
 ```sh
 npm run build              # dist/extension.js + dist/webview.js
@@ -47,7 +47,7 @@ VS Code extension ──MCP (streamable HTTP, /mcp, Bearer token)──► harne
                                                                    └─ SQLite + files on /data
 ```
 
-- **Shared contract.** Both plan files hold an identical "Shared contract" section, mirrored in `harness/service.py` (tool logic) and `vscode-extension/src/shared/contract.ts` (types). Change it in both plans and both implementations.
+- **Shared contract.** Both plan files hold an identical "Shared contract" section, mirrored in `harness/service.py` (tool logic) and `extension/src/shared/contract.ts` (types). Change it in both plans and both implementations.
 - **Harness layering.** `app.py` holds thin MCP tool wrappers. Each one reads the user from `ctx.headers` and turns `UserError` into `ToolError`. They call `service.Service`, which holds the session, sync and upload logic. Scans run as background asyncio tasks in `scans.ScanManager`. Progress is a condition variable plus the last message stored in the `scans` row, so late watchers still see it. `watch_scan` sends a heartbeat every 10 s.
 - **Incremental scans.** Each scan saves its unmerged per-tool findings to `<data>/sessions/<sid>/scans/<scan>/raw/tool_findings.json`. A rescan combines:
   - new Semgrep and Gitleaks results for changed files,

@@ -7,7 +7,7 @@
 # points it at the bundled Reconix scanner server.
 #
 #   ./setup.sh
-#   cd vscode-extension && npm run server          # start the scanner server on :7357
+#   cd extension && npm run server          # start the scanner server on :7357
 #
 # Then in VS Code: Reload Window, click the shield → "Scan with Reconix".
 set -euo pipefail
@@ -22,7 +22,7 @@ if [[ $WINDOWS ]]; then
 else
   ROOT=$(cd "$(dirname "$0")" && pwd)
 fi
-EXT=$ROOT/vscode-extension
+EXT=$ROOT/extension
 SERVER_URL=http://127.0.0.1:7357
 TOKEN=test-token
 
@@ -74,6 +74,6 @@ fi
 # --- summary -----------------------------------------------------------------
 say "Done"
 echo "Scanner server: $SERVER_URL  (token: $TOKEN)"
-echo "Start it:       cd vscode-extension && npm run server"
+echo "Start it:       cd extension && npm run server"
 echo "Sample repo:    open vuln-shop/ in VS Code (one issue per file)"
 echo "Then in VS Code: Reload Window → shield icon → \"Scan with Reconix\"."

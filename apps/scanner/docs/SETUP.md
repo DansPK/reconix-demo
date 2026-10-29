@@ -2,7 +2,7 @@
 
 > **Note:** the original scanner harness (Docker, SonarQube, LLM) has been **removed**.
 > The extension now uses a bundled **Reconix scanner server** — no Docker, no keys, no waiting.
-> Setup is just: `./setup.sh`, then `cd vscode-extension && npm run server`, then in
+> Setup is just: `./setup.sh`, then `cd extension && npm run server`, then in
 > VS Code Reload Window → shield → "Scan with Reconix". The Docker/SonarQube/LLM steps below
 > are historical.
 
@@ -10,7 +10,7 @@
 
 ```sh
 ./setup.sh                                  # builds + installs the extension, points it at the scanner server
-cd vscode-extension && npm run server  # starts the scanner server on :7357 (token test-token)
+cd extension && npm run server  # starts the scanner server on :7357 (token test-token)
 ```
 
 It works on Linux, macOS and Windows. On Windows, run it in **Git Bash** (part of [Git for Windows](https://git-scm.com/download/win)), not PowerShell or cmd. It finds Python as `python3`, `python` or `py -3`, and writes VS Code's settings in the right place for each system.
@@ -148,7 +148,7 @@ The token is printed once. Only its hash is stored, so if you lose it, create a 
 ## 6. Install the VS Code extension
 
 ```sh
-cd ../vscode-extension
+cd ../extension
 npm ci
 npm run build
 npx @vscode/vsce package --allow-missing-repository --skip-license -o reconix-scanner.vsix
@@ -157,7 +157,7 @@ code --install-extension reconix-scanner.vsix --force
 
 Run the same commands again after pulling changes to update the extension.
 
-For extension development, open `vscode-extension/` in VS Code and press **F5** instead. That starts a separate VS Code window with the extension loaded from source.
+For extension development, open `extension/` in VS Code and press **F5** instead. That starts a separate VS Code window with the extension loaded from source.
 
 ## 7. Connect VS Code
 
