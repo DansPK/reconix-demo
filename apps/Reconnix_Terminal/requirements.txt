@@ -1,8 +1,0 @@
-textual>=8.2,<9
-rich>=13.7
-litellm>=1.40        # flexible LLM: unified model interface
-cryptography>=42     # flexible LLM: Fernet-encrypted API keys
-python-dotenv>=1.0   # flexible LLM: load .env
-python-docx>=1.1     # the DOCX report (one of the three formats: PDF, JSON, DOCX)
-PyYAML>=6.0         # OpenAPI specs attached to an API assessment (safe loading only)
-pypdf>=6.0           # /add-on knowledge files: PDF page text

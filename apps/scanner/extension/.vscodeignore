@@ -1,0 +1,11 @@
+src/**
+test/**
+demo-server/**
+out/**
+webview/**/*.ts
+node_modules/**
+.vscode-test/**
+tsconfig*.json
+esbuild.mjs
+**/*.map
+.gitignore

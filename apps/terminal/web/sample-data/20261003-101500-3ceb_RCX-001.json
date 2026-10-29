@@ -1,0 +1,797 @@
+{
+  "schema": "reconix.assessment/v1",
+  "uid": "20261003-101500-3ceb_RCX-001",
+  "session": "20261003-101500-3ceb",
+  "label": "RCX-001",
+  "assessment_id": "RCX-001",
+  "target": "192.0.2.10",
+  "target_url": "192.0.2.10",
+  "target_kind": "network host",
+  "template": {
+    "id": "network",
+    "name": "Network",
+    "confirmed": true
+  },
+  "api_spec": null,
+  "operator": "analyst",
+  "client": "192.0.2.10",
+  "mode": "Grey-box, Authorized",
+  "methodology": [
+    "NIST SP 800-115",
+    "PTES"
+  ],
+  "report_version": "1.0",
+  "created_at": "2026-10-03T10:15:19+00:00",
+  "status": "Completed",
+  "waiting_gate": "",
+  "waiting_request_id": "",
+  "waiting_for": "",
+  "stopped_reason": "",
+  "session_closed": true,
+  "run": {
+    "phase": "completed",
+    "started_at": "2026-10-03T10:16:30+00:00",
+    "finished_at": "2026-10-03T10:25:52+00:00",
+    "completed": true,
+    "requests": 2,
+    "progress": {
+      "discovery": 100,
+      "scanning": 100,
+      "validation": 100,
+      "analysis": 100,
+      "report": 100
+    },
+    "report_path": "./reports/RCX-001.json"
+  },
+  "login": {
+    "kind": "",
+    "provided": false
+  },
+  "plan": [
+    {
+      "key": "discovery",
+      "label": "Host discovery",
+      "status": "done"
+    },
+    {
+      "key": "scanning",
+      "label": "Port & service scan",
+      "status": "done"
+    },
+    {
+      "key": "validation",
+      "label": "Validate exposures",
+      "status": "done"
+    },
+    {
+      "key": "analysis",
+      "label": "Correlate & dedupe findings",
+      "status": "done"
+    },
+    {
+      "key": "report",
+      "label": "Generate report",
+      "status": "done"
+    }
+  ],
+  "scope": {
+    "kind": "network",
+    "target_url": "192.0.2.10",
+    "assessment_type": "Network",
+    "status": "APPROVED",
+    "allowed_actions": [
+      "Host discovery",
+      "port scan",
+      "service detection"
+    ],
+    "allowed_methods": [
+      "TCP connect"
+    ],
+    "excluded_paths": [],
+    "allowed_ports": [
+      22,
+      80,
+      443,
+      8080,
+      8443
+    ],
+    "time_limit_minutes": 30,
+    "tools": [
+      "nmap",
+      "testssl.sh"
+    ]
+  },
+  "verdicts": [
+    {
+      "method": "TCP",
+      "path": "198.51.100.9",
+      "allowed": false,
+      "reason": "Host outside approved scope",
+      "at": "2026-10-03T10:19:10+00:00"
+    },
+    {
+      "method": "TCP",
+      "path": "192.0.2.10:8443",
+      "allowed": true,
+      "reason": "Within approved scope",
+      "at": "2026-10-03T10:20:56+00:00"
+    },
+    {
+      "method": "TCP",
+      "path": "192.0.2.10:8443",
+      "allowed": true,
+      "reason": "Within approved scope",
+      "at": "2026-10-03T10:21:02+00:00"
+    },
+    {
+      "method": "TCP",
+      "path": "192.0.2.10:8443",
+      "allowed": true,
+      "reason": "Within approved scope",
+      "at": "2026-10-03T10:22:06+00:00"
+    },
+    {
+      "method": "TCP",
+      "path": "192.0.2.10:8443",
+      "allowed": true,
+      "reason": "Within approved scope",
+      "at": "2026-10-03T10:22:28+00:00"
+    }
+  ],
+  "approvals": [
+    {
+      "request_id": "approval-001",
+      "risk": "MEDIUM",
+      "action": "Banner and TLS check (read-only)",
+      "target": "TCP 192.0.2.10:8443",
+      "method": "TCP",
+      "path": "192.0.2.10:8443",
+      "purpose": "Record the service banner and TLS versions on the console port",
+      "impact": "Low. Connects once, sends no credentials",
+      "command": "connect 192.0.2.10:8443 · read banner + TLS",
+      "command_hash": "sha256:7fd36c7331011137e0a8a7f8f98f5944fe37a771fb1d8cc1c492f089ffabf02b"
+    },
+    {
+      "request_id": "approval-002",
+      "risk": "HIGH",
+      "action": "single_login_probe",
+      "target": "TCP 192.0.2.10:8443/manager",
+      "method": "TCP",
+      "path": "192.0.2.10:8443",
+      "purpose": "Try one known default credential against the management console",
+      "impact": "One authentication attempt. No change to the host",
+      "command": "POST 192.0.2.10:8443/manager/html · one default credential",
+      "command_hash": "sha256:833f1b763684e05961f3212d10accb403af6c95ec23f79f966baed9d002ff4f3"
+    }
+  ],
+  "decisions": [
+    {
+      "request_id": "approval-001",
+      "decision": "APPROVED",
+      "operator": "analyst",
+      "reason": "",
+      "command_hash": "sha256:7fd36c7331011137e0a8a7f8f98f5944fe37a771fb1d8cc1c492f089ffabf02b",
+      "at": "2026-10-03T10:21:05+00:00"
+    },
+    {
+      "request_id": "approval-002",
+      "decision": "APPROVED",
+      "operator": "analyst",
+      "reason": "",
+      "command_hash": "sha256:833f1b763684e05961f3212d10accb403af6c95ec23f79f966baed9d002ff4f3",
+      "at": "2026-10-03T10:22:33+00:00"
+    }
+  ],
+  "findings": [
+    {
+      "id": "001",
+      "severity": "HIGH",
+      "title": "Management console exposed",
+      "path": "192.0.2.10:8443/manager",
+      "validation": "CONFIRMED",
+      "description": "A Tomcat Manager console answered on 8443 and accepted a login form.",
+      "affected_url": "https://192.0.2.10:8443/manager",
+      "impact": "If credentials are weak, an attacker could deploy code to the host.",
+      "remediation": "Restrict the console to an admin network or disable it.",
+      "tool": "nmap",
+      "references": [
+        "CWE-284",
+        "OWASP A05:2021"
+      ],
+      "evidence": [
+        "8443/tcp open ssl/http Apache Tomcat",
+        "GET /manager/html → 401 WWW-Authenticate: Basic"
+      ],
+      "cvss_score": 7.3,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
+      "category": "Network",
+      "cwe": [
+        "CWE-284"
+      ],
+      "owasp": [
+        "OWASP A05:2021"
+      ],
+      "cve": [],
+      "status": "open",
+      "severity_override": "",
+      "effective_severity": "HIGH",
+      "triage_note": ""
+    },
+    {
+      "id": "002",
+      "severity": "MEDIUM",
+      "title": "Deprecated TLS 1.0 offered",
+      "path": "192.0.2.10:443",
+      "validation": "UNCONFIRMED",
+      "description": "The HTTPS service still negotiates TLS 1.0.",
+      "affected_url": "https://192.0.2.10:443",
+      "impact": "Weak protocol versions expose traffic to downgrade attacks.",
+      "remediation": "Disable TLS 1.0/1.1 and prefer TLS 1.2+ with modern ciphers.",
+      "tool": "testssl.sh",
+      "references": [
+        "CWE-327"
+      ],
+      "evidence": [
+        "TLS 1.0   offered (NOT ok)",
+        "TLS 1.2   offered (OK)"
+      ],
+      "cvss_score": 5.9,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "category": "Network",
+      "cwe": [
+        "CWE-327"
+      ],
+      "owasp": [],
+      "cve": [],
+      "status": "open",
+      "severity_override": "",
+      "effective_severity": "MEDIUM",
+      "triage_note": ""
+    },
+    {
+      "id": "003",
+      "severity": "LOW",
+      "title": "SSH banner reveals version",
+      "path": "192.0.2.10:22",
+      "validation": "INCONCLUSIVE",
+      "description": "The SSH service banner discloses its exact version.",
+      "affected_url": "192.0.2.10:22",
+      "impact": "Version disclosure helps an attacker match known exploits.",
+      "remediation": "Suppress the detailed banner where the SSH server allows it.",
+      "tool": "nmap",
+      "references": [
+        "CWE-200"
+      ],
+      "evidence": [
+        "22/tcp open ssh OpenSSH 8.2p1 (banner shown)"
+      ],
+      "cvss_score": 3.7,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+      "category": "Network",
+      "cwe": [
+        "CWE-200"
+      ],
+      "owasp": [],
+      "cve": [],
+      "status": "open",
+      "severity_override": "",
+      "effective_severity": "LOW",
+      "triage_note": ""
+    }
+  ],
+  "timeline": [
+    {
+      "seq": 1,
+      "at": "2026-10-03T10:15:06+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Welcome to Reconix. Type a target — a URL, an IPv4 address or range, or a git repo or local path — or /template to pick a template.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 2,
+      "at": "2026-10-03T10:15:12+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Session started · policy engine ready",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 3,
+      "at": "2026-10-03T10:15:36+00:00",
+      "type": "chat",
+      "who": "you",
+      "kind": "text",
+      "text": "Scan the network host 192.0.2.10 for exposed services.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 4,
+      "at": "2026-10-03T10:15:53+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Target parsed: 192.0.2.10",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 5,
+      "at": "2026-10-03T10:16:01+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Target identified: 192.0.2.10 (network host).",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 6,
+      "at": "2026-10-03T10:16:05+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Template auto-selected: Network (matched to the target)",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 7,
+      "at": "2026-10-03T10:16:12+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Template auto-selected: Network. Drafting a Scope Manifest…",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 8,
+      "at": "2026-10-03T10:16:17+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Scope Manifest drafted · pending approval",
+      "tone": "warn",
+      "rows": []
+    },
+    {
+      "seq": 9,
+      "at": "2026-10-03T10:16:22+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Draft Scope Manifest ready. Testing stays paused until you approve it.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 10,
+      "at": "2026-10-03T10:16:37+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Scope approved",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 11,
+      "at": "2026-10-03T10:16:41+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Assessment RCX-001 created",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 12,
+      "at": "2026-10-03T10:16:59+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Scope approved. Assessment RCX-001 created.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 13,
+      "at": "2026-10-03T10:17:10+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Test plan ready. Review it, then run it; risky steps still ask you first.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 14,
+      "at": "2026-10-03T10:17:18+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Plan approved · testing starts",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 15,
+      "at": "2026-10-03T10:17:36+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Plan approved. Starting the permitted checks.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 16,
+      "at": "2026-10-03T10:17:52+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Selected tools: nmap and testssl.sh. Preparing requests with sample test data. Public surface first.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 17,
+      "at": "2026-10-03T10:18:06+00:00",
+      "type": "activity",
+      "who": "POLICY",
+      "kind": "line",
+      "text": "Scope check: passed",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 18,
+      "at": "2026-10-03T10:18:13+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Executing permitted scan · nmap",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 19,
+      "at": "2026-10-03T10:18:30+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "card",
+      "text": "Discovery · nmap",
+      "tone": "default",
+      "rows": [
+        [
+          "Live hosts",
+          "6"
+        ],
+        [
+          "Open ports",
+          "11"
+        ],
+        [
+          "Services",
+          "7"
+        ]
+      ]
+    },
+    {
+      "seq": 20,
+      "at": "2026-10-03T10:18:42+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "nmap: checks on the permitted surface",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 21,
+      "at": "2026-10-03T10:18:57+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Proposed request: TCP 198.51.100.9",
+      "tone": "warn",
+      "rows": []
+    },
+    {
+      "seq": 22,
+      "at": "2026-10-03T10:19:19+00:00",
+      "type": "activity",
+      "who": "POLICY",
+      "kind": "line",
+      "text": "Blocked: Host outside approved scope",
+      "tone": "block",
+      "rows": []
+    },
+    {
+      "seq": 23,
+      "at": "2026-10-03T10:19:22+00:00",
+      "type": "chat",
+      "who": "policy",
+      "kind": "banner",
+      "text": "Blocked: TCP 198.51.100.9 · Host outside approved scope. Not executed.",
+      "tone": "block",
+      "rows": []
+    },
+    {
+      "seq": 24,
+      "at": "2026-10-03T10:19:33+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Continuing on permitted targets",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 25,
+      "at": "2026-10-03T10:19:50+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "card",
+      "text": "Services · nmap",
+      "tone": "default",
+      "rows": [
+        [
+          "Web",
+          "2"
+        ],
+        [
+          "SSH",
+          "1"
+        ],
+        [
+          "Management console",
+          "1"
+        ]
+      ]
+    },
+    {
+      "seq": 26,
+      "at": "2026-10-03T10:20:10+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "The management console may accept weak credentials. Proposing a single, controlled login check.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 27,
+      "at": "2026-10-03T10:20:22+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Candidate F-001 · exposed console",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 28,
+      "at": "2026-10-03T10:20:43+00:00",
+      "type": "activity",
+      "who": "POLICY",
+      "kind": "line",
+      "text": "Risk: MEDIUM · approval required",
+      "tone": "warn",
+      "rows": []
+    },
+    {
+      "seq": 29,
+      "at": "2026-10-03T10:21:09+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Approved: Banner and TLS check (read-only)",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 30,
+      "at": "2026-10-03T10:21:28+00:00",
+      "type": "chat",
+      "who": "policy",
+      "kind": "banner",
+      "text": "MEDIUM action approved by analyst.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 31,
+      "at": "2026-10-03T10:21:37+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Executing baseline request",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 32,
+      "at": "2026-10-03T10:21:50+00:00",
+      "type": "activity",
+      "who": "POLICY",
+      "kind": "line",
+      "text": "Risk: HIGH · needs a double check",
+      "tone": "warn",
+      "rows": []
+    },
+    {
+      "seq": 33,
+      "at": "2026-10-03T10:22:39+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Approved: single_login_probe (double-checked)",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 34,
+      "at": "2026-10-03T10:23:02+00:00",
+      "type": "chat",
+      "who": "policy",
+      "kind": "banner",
+      "text": "HIGH action approved after a double check.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 35,
+      "at": "2026-10-03T10:23:14+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Running limited validation · 1 request",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 36,
+      "at": "2026-10-03T10:23:38+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Validation completed. Evidence recorded with sensitive values masked.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 37,
+      "at": "2026-10-03T10:23:46+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Evidence recorded (masked)",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 38,
+      "at": "2026-10-03T10:23:58+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "check",
+      "text": "Analyzing results",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 39,
+      "at": "2026-10-03T10:24:09+00:00",
+      "type": "chat",
+      "who": "",
+      "kind": "check",
+      "text": "Matching services to known CVEs",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 40,
+      "at": "2026-10-03T10:24:29+00:00",
+      "type": "chat",
+      "who": "",
+      "kind": "check",
+      "text": "Correlating duplicate findings",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 41,
+      "at": "2026-10-03T10:24:41+00:00",
+      "type": "chat",
+      "who": "",
+      "kind": "check",
+      "text": "Masking sensitive evidence",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 42,
+      "at": "2026-10-03T10:25:06+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Duplicates merged · 3 unique findings",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 43,
+      "at": "2026-10-03T10:25:23+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Assessment status: Completed",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 44,
+      "at": "2026-10-03T10:25:35+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Assessment completed. 3 findings: 1 confirmed, 2 marked for review.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 45,
+      "at": "2026-10-03T10:25:42+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Open the report (8 or /report) to export it.",
+      "tone": "muted",
+      "rows": []
+    },
+    {
+      "seq": 46,
+      "at": "2026-10-03T10:26:06+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Report format: JSON",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 47,
+      "at": "2026-10-03T10:26:09+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Report saved · ./reports/RCX-001.json",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 48,
+      "at": "2026-10-03T10:26:13+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Report saved: ./reports/RCX-001.json.",
+      "tone": "ok",
+      "rows": []
+    }
+  ],
+  "requests": [
+    {
+      "text": "Scan the network host 192.0.2.10 for exposed services.",
+      "at": "2026-10-03T10:15:27+00:00"
+    }
+  ],
+  "saved_at": "2026-10-03T10:48:17+00:00"
+}

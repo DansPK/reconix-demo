@@ -1,0 +1,162 @@
+{
+  "schema": "reconix.assessment/v1",
+  "uid": "20261001-083000-2265_RCX-003",
+  "session": "20261001-083000-2265",
+  "label": "RCX-003",
+  "assessment_id": "",
+  "target": "portal.example.net",
+  "target_url": "https://portal.example.net",
+  "target_kind": "web application",
+  "template": {
+    "id": "web_url",
+    "name": "Web URL",
+    "confirmed": false
+  },
+  "api_spec": null,
+  "operator": "analyst",
+  "client": "Example",
+  "mode": "Grey-box, Authorized",
+  "methodology": [],
+  "report_version": "1.0",
+  "created_at": "2026-10-01T09:09:52+00:00",
+  "status": "Stopped",
+  "waiting_gate": "",
+  "waiting_request_id": "",
+  "waiting_for": "",
+  "stopped_reason": "you stopped it",
+  "session_closed": true,
+  "run": {
+    "phase": "stopped",
+    "started_at": null,
+    "finished_at": "2026-10-01T09:10:36+00:00",
+    "completed": false,
+    "requests": 0,
+    "progress": {
+      "discovery": 0,
+      "scanning": 0,
+      "validation": 0,
+      "analysis": 0,
+      "report": 0
+    },
+    "report_path": ""
+  },
+  "login": {
+    "kind": "",
+    "provided": false
+  },
+  "plan": [],
+  "scope": null,
+  "verdicts": [],
+  "approvals": [],
+  "decisions": [],
+  "findings": [],
+  "timeline": [
+    {
+      "seq": 107,
+      "at": "2026-10-01T09:09:40+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Welcome to Reconix. Type a target — a URL, an IPv4 address or range, or a git repo or local path — or /template to pick a template.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 108,
+      "at": "2026-10-01T09:09:47+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Session started · policy engine ready",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 109,
+      "at": "2026-10-01T09:10:11+00:00",
+      "type": "chat",
+      "who": "you",
+      "kind": "text",
+      "text": "Check portal.example.net",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 110,
+      "at": "2026-10-01T09:10:20+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Target parsed: portal.example.net",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 111,
+      "at": "2026-10-01T09:10:22+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Target identified: portal.example.net (web application).",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 112,
+      "at": "2026-10-01T09:10:29+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Suggested template: Web URL. Opening templates…",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 113,
+      "at": "2026-10-01T09:10:33+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Stop requested",
+      "tone": "block",
+      "rows": []
+    },
+    {
+      "seq": 114,
+      "at": "2026-10-01T09:10:41+00:00",
+      "type": "chat",
+      "who": "policy",
+      "kind": "banner",
+      "text": "Stopped by the operator. Nothing else will run.",
+      "tone": "block",
+      "rows": []
+    },
+    {
+      "seq": 115,
+      "at": "2026-10-01T09:10:46+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Assessment stopped. Nothing else will run. Type /new to start a new assessment.",
+      "tone": "muted",
+      "rows": []
+    },
+    {
+      "seq": 116,
+      "at": "2026-10-01T09:10:51+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Assessment stopped",
+      "tone": "block",
+      "rows": []
+    }
+  ],
+  "requests": [
+    {
+      "text": "Check portal.example.net",
+      "at": "2026-10-01T09:10:03+00:00"
+    }
+  ],
+  "saved_at": "2026-10-01T09:11:15+00:00"
+}

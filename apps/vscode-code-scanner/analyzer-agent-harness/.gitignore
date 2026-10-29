@@ -1,8 +1,0 @@
-.venv/
-.bin/
-.env
-__pycache__/
-*.pyc
-data/
-certs/
-docker-compose.override.yml

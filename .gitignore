@@ -21,7 +21,7 @@
 *.key
 *.pem
 **/.reconix/
-
+**/data/
 **/certs/
 *.db
 
@@ -34,3 +34,10 @@
 
 # os / editor
 .DS_Store
+
+# local-only demo notes
+demo-script.md
+
+# Lumina sample app: the scanned target, edited during demos (apply fix / reset).
+# Pristine copy lives in apps/lumina.zip; restore with ./run.sh reset.
+apps/Lumina/
