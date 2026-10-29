@@ -18,6 +18,19 @@ SITE=$ROOT/apps/public-web
 
 usage() { sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 
+# apps/Lumina is gitignored (edited during demos); on a fresh clone it is missing,
+# so extract the tracked pristine copy. ./run.sh reset re-extracts it on demand.
+ensure_lumina() {
+  [ -d "$ROOT/apps/Lumina" ] && return 0
+  [ -f "$ROOT/apps/lumina-pristine.zip" ] || return 0
+  echo "Extracting the Lumina sample app (apps/Lumina)…"
+  unzip -oq "$ROOT/apps/lumina-pristine.zip" -d "$ROOT/apps"
+}
+
+case "${1:-}" in
+  tui|web|site|scanner|vscode|setup) ensure_lumina ;;
+esac
+
 case "${1:-}" in
   tui)
     venv=$TUI/.venv
