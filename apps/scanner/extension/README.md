@@ -11,8 +11,8 @@ Scan your code for vulnerabilities from a chat panel in the sidebar. Scanning is
    ```
 2. `reconix.serverUrl` already defaults to `http://127.0.0.1:7357`, so you don't need to change it.
 3. Run **Reconix: Set Token** and paste `test-token` (it is kept only in VS Code's secret storage; the `reconix.token` setting, if you use it, is cleared right away).
-4. Open a project to scan — the bundled **`../vuln-shop/`** sample has one issue per file, matched to the findings.
-5. Open the **Reconix** view in the activity bar (the shield icon), or right-click a file/folder → **Scan with Reconix**. The findings land on their lines in `vuln-shop`.
+4. Open a project to scan — the bundled **Lumina** sample (`apps/Lumina/`) has one issue per file, matched to the findings.
+5. Open the **Reconix** view in the activity bar (the shield icon), or right-click a file/folder → **Scan with Reconix**. The findings land on their lines in `Lumina`.
 
 ## Using it
 

@@ -1,4 +1,4 @@
-// src/index.js — demo app entrypoint (intentionally vulnerable, for the Reconix demo)
+// src/index.js — Lumina app entrypoint (intentionally vulnerable sample)
 const express = require("express");
 const sqlite3 = require("sqlite3");
 const { execPing } = require("./routes/exec");

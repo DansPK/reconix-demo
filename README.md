@@ -24,8 +24,8 @@ Python 3, [Node.js](https://nodejs.org/) 20+, and — for the VS Code surface �
 - **`apps/terminal/`** — the terminal TUI (`python -m reconix`, a scripted
   assessment) and the web dashboard (Next.js, reads `web/sample-data/`, no sign-in).
 - **`apps/scanner/`** — the VS Code extension plus a bundled **Reconix scanner
-  server** (`npm run server`, token `test-token`) and a sample **`vuln-shop/`** project (one
-  issue per file). Open it, click the shield → "Scan with Reconix", and the findings land on
+  server** (`npm run server`, token `test-token`). Scan the sample **`apps/Lumina/`** app (one
+  issue per file): open it, click the shield → "Scan with Reconix", and the findings land on
   their lines.
 
 Each app's own README has the detail.

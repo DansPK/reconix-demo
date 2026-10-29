@@ -20,7 +20,7 @@ flowchart LR
 | --- | --- |
 | [**VS Code extension**](extension/) | The chat panel. Sends the open folder to the server, shows findings in the editor, and applies fixes you accept. |
 | **Scanner server** | Bundled in [`extension/server/`](extension/server/). Serves findings and answers chat over a local connection. Started with `npm run server`. |
-| [**`vuln-shop/`**](vuln-shop/) | A small, intentionally vulnerable sample project — one planted issue per file — for trying the scanner. |
+| [**Lumina**](../Lumina/) | A small, intentionally vulnerable sample app (`apps/Lumina/`) — one planted issue per file — for trying the scanner. |
 
 ## Quick start
 
@@ -32,7 +32,7 @@ cd extension && npm run server        # starts the scanner server on :7357 (toke
 Then in VS Code:
 
 1. **Developer: Reload Window** (Command Palette).
-2. Open a folder to scan — [`vuln-shop/`](vuln-shop/) is a ready-made sample.
+2. Open a folder to scan — [`apps/Lumina/`](../Lumina/) is a ready-made sample.
 3. Click the **shield icon** in the activity bar, or right-click a file/folder → **Scan with Reconix**.
 
 Findings appear in the panel, as squiggles in the code, and in the Problems panel. Click one
@@ -76,11 +76,12 @@ Folders like `.git`, `node_modules`, `dist`, `build` and `.venv`, and everything
 ```
 scanner/
 ├── setup.sh              one-command setup
-├── extension/     the VS Code extension (TypeScript) + bundled server/
-├── vuln-shop/            intentionally vulnerable sample project
+├── extension/            the VS Code extension (TypeScript) + bundled server/
 └── docs/
     └── SETUP.md          setup by hand, HTTPS, troubleshooting
 ```
+
+The sample app to scan lives alongside this at [`apps/Lumina/`](../Lumina/).
 
 ## For developers
 

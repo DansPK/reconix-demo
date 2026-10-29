@@ -75,5 +75,5 @@ fi
 say "Done"
 echo "Scanner server: $SERVER_URL  (token: $TOKEN)"
 echo "Start it:       cd extension && npm run server"
-echo "Sample repo:    open vuln-shop/ in VS Code (one issue per file)"
+echo "Sample app:     open apps/Lumina/ in VS Code (one issue per file)"
 echo "Then in VS Code: Reload Window → shield icon → \"Scan with Reconix\"."

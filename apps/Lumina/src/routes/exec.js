@@ -4,7 +4,7 @@ const { exec } = require("child_process");
 // POST /ping  { "host": "example.com" }
 // Runs a single ICMP ping against the requested host.
 //
-// NOTE: deliberately unsafe example for the Reconix demo. The request body
+// NOTE: deliberately unsafe example. The request body
 // flows directly into a shell command, so a value like
 //   "example.com; rm -rf /"
 // would run arbitrary commands on the server (OS command injection, CWE-78).

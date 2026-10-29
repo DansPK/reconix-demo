@@ -436,7 +436,7 @@ export class FakeHarness {
       return f;
     });
     // Workspace: attach each finding to the uploaded file whose path ends with the finding's
-    // path, so a scan works whether vuln-shop is the open folder or nested inside it. A finding
+    // path, so a scan works whether Lumina is the open folder or nested inside it. A finding
     // whose file was not uploaded is dropped, so scanning any other folder stays clean.
     if (s.target_type === "workspace" && s.manifest.size) {
       const keys = [...s.manifest.keys()];
@@ -556,7 +556,7 @@ const DEMO_FINDINGS: Partial<Finding>[] = [
 ];
 
 /** The secure replacement for each planted finding, as whole-line edits over the
- * vuln-shop sample. Keyed by the finding's file; shown as a diff and applied on "Fix". */
+ * Lumina sample. Keyed by the finding's file; shown as a diff and applied on "Fix". */
 const FIXES: Record<string, { start_line: number; end_line: number; replacement: string }> = {
   // SQL injection: parameterise the query and bind the id (lines 42-43).
   "src/index.js": { start_line: 42, end_line: 43,
