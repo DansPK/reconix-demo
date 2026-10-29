@@ -149,3 +149,29 @@ async def test_audit_before_any_action_says_so(app):
     async with app.run_test(size=SIZE) as pilot:
         await command(pilot, "/audit")
         assert isinstance(app.screen, ChoiceScreen)
+
+
+# --- /provider and /model ------------------------------------------------------------------
+async def test_provider_opens_the_provider_menu(app):
+    async with app.run_test(size=SIZE) as pilot:
+        await command(pilot, "/provider")
+        assert isinstance(app.screen, ChoiceScreen)
+        assert "Pick a provider" in screen_text(app.screen)
+
+
+async def test_model_menu_lists_configured_models(app):
+    async with app.run_test(size=SIZE) as pilot:
+        await command(pilot, "/model")
+        assert isinstance(app.screen, ChoiceScreen)
+        assert "Pick the model" in screen_text(app.screen)
+        # A seeded, tested provider offers its models here.
+        ids = [c.id for c in app.screen._choices]
+        assert "openai/gpt-4o" in ids
+
+
+async def test_model_argument_activates_that_model(app):
+    async with app.run_test(size=SIZE) as pilot:
+        await command(pilot, "/model openai/gpt-4o")
+        active = store.active_model()
+        assert active is not None
+        assert (active.provider_id, active.model) == ("openai", "gpt-4o")

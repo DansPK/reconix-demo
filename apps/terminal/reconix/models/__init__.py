@@ -8,6 +8,7 @@ from .assessment import Assessment, UserRequest
 from .auth import AuthChallenge, AuthField, challenge_for
 from .choice import Choice
 from .finding import Finding
+from .provider import ActiveModel, ProviderView
 from .report import AssessmentSummary, ReportFormat
 from .run import (
     GATE_ACCOUNT, GATE_APPROVAL_PREFIX, GATE_CODE, GATE_PLAN, GATE_SCOPE, GATE_TEMPLATE,
@@ -25,7 +26,7 @@ __all__ = [
     "ApprovalRequest", "ApprovalDecision", "Confirmation",
     "Finding", "AuditEvent", "HistoryEntry", "Choice", "Feedback", "Template",
     "ScopeManifest", "ScopeSummary", "PolicyVerdict", "TestAccount", "VaultEntry", "Secret",
-    "ChatEntry", "ActivityEntry",
+    "ChatEntry", "ActivityEntry", "ProviderView", "ActiveModel",
     "RunStep", "RunState", "PlanTask", "PlanRow", "PROGRESS_BARS",
     "ReportFormat", "AssessmentSummary",
     "GATE_TEMPLATE", "GATE_SCOPE", "GATE_PLAN", "GATE_ACCOUNT", "GATE_CODE",

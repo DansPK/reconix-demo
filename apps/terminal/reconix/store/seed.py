@@ -48,4 +48,6 @@ def load_demo_data() -> None:
     """Empty everything (incl. the audit trail and history) and load one fresh assessment."""
     lists.reset()
     lists.PROMPT_HISTORY.append(HistoryEntry(DEMO_REQUEST))   # ↑ recalls the demo request
+    from .providers import reset_providers
+    reset_providers()
     load_run_data()

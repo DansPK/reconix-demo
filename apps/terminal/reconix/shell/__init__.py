@@ -10,9 +10,10 @@ web         /web: open the web dashboard, starting it first if it isn't running
 from .actions import ActionsMixin
 from .dialogs import DialogsMixin
 from .knowledge import KnowledgeMixin
+from .llm import LlmMixin
 from .navigation import FLOW, FLOW_ORDER, NavigationMixin
 from .run_host import RunHostMixin
 from .web import WebDashboardMixin
 
-__all__ = ["ActionsMixin", "DialogsMixin", "KnowledgeMixin",
+__all__ = ["ActionsMixin", "DialogsMixin", "KnowledgeMixin", "LlmMixin",
            "NavigationMixin", "RunHostMixin", "WebDashboardMixin", "FLOW", "FLOW_ORDER"]

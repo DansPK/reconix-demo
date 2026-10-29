@@ -12,7 +12,60 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { route } from "../src/routing";
-import type { ActiveModel, ChatAction, Finding, ManifestEntry, ProviderInfo, ScanSummary } from "../src/shared/contract";
+import type { ActiveModel, ChatAction, Finding, ManifestEntry, ProviderInfo, ScanSummary, Severity } from "../src/shared/contract";
+
+// --- static chat answers ----------------------------------------------------
+// The demo has no LLM, so a plain question (not a scan/fix/stop command) is
+// answered from the scan's canned findings. No network, no model call.
+const SEV_ORDER: Severity[] = ["critical", "high", "medium", "low", "info"];
+const bySeverity = (a: Finding, b: Finding) => SEV_ORDER.indexOf(a.severity) - SEV_ORDER.indexOf(b.severity);
+const whereOf = (f: Finding) => `\`${f.path}:${f.start_line}\``;
+
+function describeFinding(f: Finding): string {
+  const tag = f.cwe ? `${f.severity}, ${f.cwe}` : f.severity;
+  return `**${f.title}** (${tag}) — ${whereOf(f)}\n\n${f.explanation}\n\n_Fix:_ ${f.fix_recommendation}`;
+}
+
+// Topic keywords → the CWE of the finding they ask about.
+const TOPICS: [RegExp, string][] = [
+  [/\bsql\b|database|\bquery\b/, "CWE-89"],
+  [/command inject|os command|\bexec\b|\bshell\b|\bping\b/, "CWE-78"],
+  [/\bxss\b|cross.?site|innerhtml/, "CWE-79"],
+  [/md5|weak hash|password hash|hashing/, "CWE-327"],
+  [/secret|credential|api key|stripe|hard.?cod/, "CWE-798"],
+];
+
+function answerQuestion(text: string, findings: Finding[]): string {
+  if (findings.length === 0) {
+    return "I haven't scanned anything yet. Say **scan** and I'll check the workspace, then ask me about what I find.";
+  }
+  const t = text.toLowerCase();
+  const sorted = [...findings].sort(bySeverity);
+
+  for (const [re, cwe] of TOPICS) {
+    if (re.test(t)) {
+      const f = findings.find((x) => x.cwe === cwe);
+      if (f) return describeFinding(f);
+    }
+  }
+  if (/most severe|worst|first|priorit|biggest|urgent|start with/.test(t)) {
+    return `Start with the ${sorted[0].severity} one:\n\n${describeFinding(sorted[0])}`;
+  }
+  if (/how (do i |to )?fix|remediat|resolve|\bpatch\b/.test(t)) {
+    return sorted.map((f) => `**${f.title}** (${whereOf(f)})\n${f.fix_recommendation}`).join("\n\n");
+  }
+  if (/how many|count|severit|how bad|breakdown|\brisk\b/.test(t)) {
+    const counts: Partial<Record<Severity, number>> = {};
+    for (const f of findings) counts[f.severity] = (counts[f.severity] ?? 0) + 1;
+    const parts = SEV_ORDER.filter((s) => counts[s]).map((s) => `${counts[s]} ${s}`);
+    return `**${findings.length} findings:** ${parts.join(", ")}.`;
+  }
+  if (/\bfind|found|result|vulnerab|issue|problem|summar|wrong|show|list|what did/.test(t)) {
+    const lines = sorted.map((f) => `- **${f.title}** — ${f.severity}, ${whereOf(f)}`);
+    return `I found **${findings.length} issues**:\n\n${lines.join("\n")}\n\nAsk about any one (e.g. "explain the XSS"), or say **fix** to prepare fixes.`;
+  }
+  return `I can answer from the ${findings.length} findings in this scan. Try:\n- "what did you find?"\n- "explain the SQL injection"\n- "what should I fix first?"\n- "how do I fix the XSS?"\n\nOr say **scan**, **rescan** or **fix**.`;
+}
 
 /** A tiny stand-in for the harness provider catalog, enough for the extension's picker tests. */
 const CATALOG: { id: string; label: string; kind: ProviderInfo["kind"]; needs_key: boolean; key_optional: boolean;
@@ -389,8 +442,9 @@ export class FakeHarness {
       const full = /from scratch|full scan/i.test(text);
       return { reply: "Starting a scan.", action: { ...base, type: "scan", full, paths: only ? [only[1]] : [] } };
     }
-    const reply = `You said: **${text}**\n\n\`\`\`js\nconsole.log("hi")\n\`\`\``;
-    return { reply, action: null };
+    // A plain question: answer from the scan's findings (static, no LLM).
+    const findings = this.latestScan(s.id, true) ? this.findingsFor(s) : [];
+    return { reply: answerQuestion(text, findings), action: null };
   }
 
   private get step() {

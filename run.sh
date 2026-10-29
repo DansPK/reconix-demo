@@ -6,6 +6,7 @@
 #   ./run.sh site       the public website          http://localhost:3000
 #   ./run.sh scanner    the VS Code scanner server  http://127.0.0.1:7357 (token test-token)
 #   ./run.sh vscode     build + install the VS Code extension (runs setup.sh)
+#   ./run.sh reset      restore the Lumina sample app to its original vulnerable state
 #
 # The TUI, web, site and scanner each take over a terminal, so run them in separate terminals.
 # Everything runs locally on bundled sample data — no accounts, no keys.
@@ -15,7 +16,7 @@ TUI=$ROOT/apps/terminal
 EXT=$ROOT/apps/scanner/extension
 SITE=$ROOT/apps/public-web
 
-usage() { sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+usage() { sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 
 case "${1:-}" in
   tui)
@@ -40,6 +41,9 @@ case "${1:-}" in
     ;;
   vscode|setup)
     exec "$ROOT/apps/scanner/setup.sh"
+    ;;
+  reset|reset-lumina)
+    exec "$ROOT/reset-lumina.sh"
     ;;
   -h|--help|help|"") usage 0 ;;
   *) echo "run.sh: unknown command '$1'" >&2; echo; usage 1 ;;

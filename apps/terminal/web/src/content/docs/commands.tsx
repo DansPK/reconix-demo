@@ -310,6 +310,45 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
       { message: "Couldn't add that file; nothing was saved.", meaning: "Reading the file failed unexpectedly; nothing changed on disk." },
     ],
   },
+  provider: {
+    purpose: "Manages the LLM providers Reconix can use: set one up, test it, pick a model or remove it.",
+    when: "When you want to connect a provider — Reconix, OpenAI, Anthropic, DeepSeek, Ollama or a custom OpenAI-compatible endpoint — or change one you already set up.",
+    syntax: "/provider [set | test | unset <provider>]",
+    example: "/provider anthropic",
+    behaviour: (
+      <>
+        With no argument, opens the provider menu: each provider with its status, key hint and models (the active one is
+        tagged <Mono>ACTIVE</Mono>). Picking one opens its submenu — <strong>Set up / Update</strong> (API key, base URL
+        and model(s)), <strong>Test connection</strong>, <strong>Use a model</strong> and <strong>Unset</strong>. A
+        provider id jumps straight to that submenu; <Mono>/provider set anthropic</Mono>, <Mono>test</Mono> or{" "}
+        <Mono>unset</Mono> run the action directly. Keys are shown only as a hint (e.g. <Mono>…77c2</Mono>), never in
+        full. A newly set key must be tested before a model can be made active.
+      </>
+    ),
+    errors: [
+      { message: "Unknown provider '<id>'.", meaning: "The name is not one of the supported providers." },
+      { message: "<Provider> needs an API key.", meaning: "This provider requires a key before it can be saved." },
+      { message: "<Provider> is not configured yet.", meaning: "Set it up before testing it." },
+    ],
+  },
+  model: {
+    purpose: "Picks the active model — the provider and model the next chat line uses.",
+    when: "After a provider is set up and tested, to choose which of its models answers.",
+    syntax: "/model [provider/model]",
+    example: "/model openai/gpt-4o",
+    behaviour: (
+      <>
+        With no argument, opens a menu of every tested provider&apos;s models (the active one is tagged{" "}
+        <Mono>ACTIVE</Mono>); choosing one makes it active. Given <Mono>provider/model</Mono> directly, it activates that
+        model. The active model shows in the status bar (<Mono>llm: … ●</Mono>) with a dot for its reachability.
+      </>
+    ),
+    errors: [
+      { message: "Test <provider> first.", meaning: "A model can be made active only after the provider tests reachable." },
+      { message: "<Provider> has no model '<model>'.", meaning: "That model is not one the provider offers." },
+      { message: "Use provider/model, e.g. openai/gpt-4o-mini.", meaning: "The argument must be a provider and model joined by a slash." },
+    ],
+  },
   web: {
     purpose: "Opens the web dashboard in your browser, starting it in the background first if it is not running.",
     when: "To browse the saved runs, download reports, combine runs into one report, or use the AI Assistant.",
@@ -352,7 +391,6 @@ const ARGUMENT: Record<string, string> = {
   template: "an optional template id (suggested, never asked for)",
   finding: "a finding id; asked with a menu when left out",
   export: "a format id; asked with a menu when left out",
-  assess: "a target, typed (required)",
   "add-on": "an optional file path, typed",
   provider: "an optional verb and provider id, typed",
   model: "an optional provider/model, typed",

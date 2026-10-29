@@ -2,13 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Static demo:** the real engine has been **removed** — no LLM, no backend harness, no live
-> scanning, no auth. Deleted: `backend/`, `reconix/llm/`, `reconix/store/{providers,llm_chat,
-> agent_run}.py`, `reconix/shell/{llm,agent}.py` and the `/model` `/provider` `/assess`
-> commands. The TUI always runs the scripted assessment; chat uses the built-in canned replies
-> (`store/replies.py`). The web dashboard runs via `npm run dev` on `web/sample-data/` with no
-> sign-in and a canned AI Assistant. Notes below that mention the LLM/harness seams, `/model`,
-> providers, auth or the sign-in link are historical.
+> **Static demo:** the real engine has been **removed** — no live LLM calls, no backend harness,
+> no live scanning, no auth. Deleted: `backend/`, `reconix/llm/`, `reconix/store/{llm_chat,
+> agent_run}.py`, `reconix/shell/agent.py` and the `/assess` command. The TUI always runs the
+> scripted assessment; chat uses the built-in canned replies (`store/replies.py`). `/provider`
+> and `/model` are back as a **static, in-memory** provider store (`store/providers.py`,
+> `shell/llm.py`, `screens/forms/provider.py`): providers can be set up, tested, picked and
+> unset and the active model shows in the status bar, but nothing talks to a network and chat is
+> still canned. The web dashboard runs via `npm run dev` on `web/sample-data/` with no sign-in
+> and a canned AI Assistant. Notes below that mention the LLM/harness seams, auth or the sign-in
+> link are historical.
 
 ## Reconix TUI (classic UI)
 

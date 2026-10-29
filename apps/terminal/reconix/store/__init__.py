@@ -38,6 +38,10 @@ from .openapi import (
 from .persist import autosave, close_session, web_dashboard_url
 from .plan import gated_count, plan_overview
 from .progress import step_states
+from .providers import (
+    activate, active_model, get_provider, list_providers, set_provider, test_provider,
+    unset_provider,
+)
 from .report import (
     assessment_summary, generate_report, list_report_formats, list_report_sections,
     report_data,
@@ -113,4 +117,7 @@ __all__ = [
     # knowledge add-ons (/add-on): reference files for the AI
     "knowledge", "add_source", "list_sources", "remove_source",
     "clear_knowledge", "search_knowledge",
+    # LLM providers and the active model
+    "list_providers", "get_provider", "set_provider", "unset_provider", "test_provider",
+    "activate", "active_model",
 ]

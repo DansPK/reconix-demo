@@ -5,7 +5,8 @@ from .approval_edit import ApprovalEditForm
 from .base import FormField, FormScreen
 from .login import LoginForm
 from .openapi_spec import OpenApiForm
+from .provider import ProviderForm
 from .scope_edit import ScopeEditForm
 
 __all__ = ["AddOnForm", "ApprovalEditForm", "FormField", "FormScreen",
-           "LoginForm", "OpenApiForm", "ScopeEditForm"]
+           "LoginForm", "OpenApiForm", "ProviderForm", "ScopeEditForm"]
