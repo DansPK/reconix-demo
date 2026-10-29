@@ -53,7 +53,14 @@ case "${1:-}" in
     exec npm run server
     ;;
   vscode|setup)
-    exec "$ROOT/apps/scanner/setup.sh"
+    "$ROOT/apps/scanner/setup.sh"
+    # Open Lumina as its OWN VS Code window. apps/Lumina is gitignored and the scanner
+    # honours .gitignore, so a scan from the repo-root window would skip it (no findings);
+    # opening the folder directly keeps it in scope.
+    if command -v code >/dev/null; then
+      echo "Opening apps/Lumina in VS Code (scan from this window)…"
+      code "$ROOT/apps/Lumina"
+    fi
     ;;
   reset|reset-lumina)
     # Restore Lumina to its original vulnerable state from the tracked zip.

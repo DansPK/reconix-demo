@@ -75,6 +75,13 @@ function Invoke-Vscode {
     Write-Host "Start it:       .\setup.ps1 scanner"
     Write-Host "Sample app:     open apps\Lumina\ in VS Code (one issue per file)"
     Write-Host 'Then in VS Code: Reload Window -> shield icon -> "Scan with Reconix".'
+
+    # Open Lumina as its OWN window. apps\Lumina is gitignored and the scanner honours
+    # .gitignore, so scanning the repo-root window would skip it (no findings).
+    if (Get-Command code -ErrorAction SilentlyContinue) {
+        Write-Host "Opening apps\Lumina in VS Code (scan from this window)..."
+        code (Join-Path $Root "apps\Lumina")
+    }
 }
 
 function Update-CodeSettings($path, $url, $token) {
