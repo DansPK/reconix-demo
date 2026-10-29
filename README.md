@@ -22,6 +22,10 @@ you want in separate terminals (first run installs dependencies automatically). 
 Python 3, [Node.js](https://nodejs.org/) 20+, and — for the VS Code surface — VS Code with the
 `code` command on your PATH.
 
+On **Windows**, use the PowerShell launcher with the same subcommands: `.\setup.ps1 tui`,
+`.\setup.ps1 web`, `.\setup.ps1 reset`, etc. (if scripts are blocked, run
+`Set-ExecutionPolicy -Scope Process Bypass` first). `setup.sh` also works in Git Bash.
+
 ## The surfaces
 
 - **`apps/terminal/`** — the terminal TUI (`python -m reconix`, a scripted assessment) and the
