@@ -28,9 +28,9 @@ export const assessmentGuide: GroupContent = {
             head={["Template (id)", "Target and default scope"]}
             rows={[
               { key: "Network · network", value: <>Hosts, ports and exposed services. An IPv4 address or range, or a hostname, e.g. <Mono>10.0.0.0/24</Mono>. The scope lists allowed ports (22, 80, 443, 8080, 8443 by default).</> },
-              { key: "API · api", value: <>REST and GraphQL endpoints. The API&apos;s base URL, e.g. <Mono>https://api.example.com/v1</Mono>.</> },
-              { key: "Source Code · source", value: <>Static review of a repository. A git repo URL or a local path, e.g. <Mono>https://git.example.com/acme/app.git</Mono>. The scope excludes paths instead of URLs.</> },
-              { key: "Web URL · web_url", value: <>A web application at a URL, e.g. <Mono>https://shop.example.com</Mono>. Discovery, vulnerability scanning and limited validation; GET and POST; <Mono>/admin</Mono> excluded; 30 minutes; Nuclei and OWASP ZAP.</> },
+              { key: "API · api", value: <>REST and GraphQL endpoints. The API&apos;s base URL, e.g. <Mono>https://api.lumina.com/v1</Mono>.</> },
+              { key: "Source Code · source", value: <>Static review of a repository. A git repo URL or a local path, e.g. <Mono>https://git.lumina.com/lumina/app.git</Mono>. The scope excludes paths instead of URLs.</> },
+              { key: "Web URL · web_url", value: <>A web application at a URL, e.g. <Mono>https://shop.lumina.com</Mono>. Discovery, vulnerability scanning and limited validation; GET and POST; <Mono>/admin</Mono> excluded; 30 minutes; Nuclei and OWASP ZAP.</> },
             ]}
           />
           <p>
@@ -469,7 +469,7 @@ export const assessmentGuide: GroupContent = {
           <Code>{`/provider set reconix        # or any other provider
 /provider test reconix
 /model reconix/<model>
-/assess http://target.example.com`}</Code>
+/assess https://www.lumina.com`}</Code>
         </DocSection>
         <DocSection title="How it runs">
           <Steps>

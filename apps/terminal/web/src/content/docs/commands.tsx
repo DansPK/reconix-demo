@@ -51,7 +51,7 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
       </>
     ),
     syntax: "/new [target]",
-    example: "/new https://staging.example.com",
+    example: "/new https://staging.lumina.com",
     behaviour: (
       <>
         The current run stops playing, a fresh assessment is loaded (the earlier ones stay listed; the audit trail and

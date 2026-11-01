@@ -239,7 +239,7 @@ python run.py         # the launcher in the repository root`}</Code>
           <Steps>
             <li>
               <strong>Start.</strong> Press <Kbd>Enter</Kbd> on the empty prompt to use the example request, or type a target
-              of your own (for example <Mono>https://staging.example.com</Mono>). The logo makes way for the conversation:
+              of your own (for example <Mono>https://staging.lumina.com</Mono>). The logo makes way for the conversation:
               your line, then Reconix&apos;s answer or a spinner while it reads the target. <Kbd>Ctrl+O</Kbd> lists the
               steps it finished.
             </li>
