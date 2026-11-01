@@ -30,7 +30,7 @@ class _Facts:
 # Order matters: Reconix first (the default), then the frontier clouds, then local.
 _CATALOG: Tuple[Tuple[str, _Facts], ...] = (
     ("reconix", _Facts("Reconix (default)", "reconix", True, False, "readonly", False,
-                        "http://localhost:11434/v1", ("reconix-sec-1",))),
+                        "http://localhost:11434/v1", ("reconix-security-flash",))),
     ("openai", _Facts("OpenAI", "frontier", True, False, "optional", True,
                       default_models=("gpt-4o-mini", "gpt-4o"))),
     ("anthropic", _Facts("Anthropic", "frontier", True, False, "optional", True,
@@ -76,7 +76,9 @@ def reset_providers() -> None:
                                  "REACHABLE", "Responded in 0.5 s", _now())
     _CONFIGS["anthropic"] = _Config("sk-ant-…77c2", "", _FACTS["anthropic"].default_models,
                                     "REACHABLE", "Responded in 0.6 s", _now())
-    _ACTIVE[0] = ActiveModel("reconix", "reconix-sec-1", "Reconix (default)", _now())
+    # No model is active at first launch — the operator picks one (chrome shows "llm: off"
+    # until then). The Reconix provider is seeded and reachable, ready to activate.
+    _ACTIVE[0] = None
 
 
 # --- reads ----------------------------------------------------------------------------------
