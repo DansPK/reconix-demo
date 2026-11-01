@@ -26,10 +26,18 @@ On **Windows**, use the PowerShell launcher with the same subcommands: `.\setup.
 `.\setup.ps1 web`, `.\setup.ps1 reset`, etc. (if scripts are blocked, run
 `Set-ExecutionPolicy -Scope Process Bypass` first). `setup.sh` also works in Git Bash.
 
+Once `./setup.sh tui` has created its virtual environment, the TUI is also installed as the
+**`reconix`** command. Activate the environment, then launch it by name:
+
+```sh
+source apps/terminal/.venv/bin/activate          # Windows: . apps\terminal\.venv\Scripts\Activate.ps1
+reconix
+```
+
 ## The surfaces
 
-- **`apps/terminal/`** — the terminal TUI (`python -m reconix`, a scripted assessment) and the
-  web dashboard (Next.js, reads `web/sample-data/`, no sign-in).
+- **`apps/terminal/`** — the terminal TUI (`python -m reconix`, or just `reconix` in the venv; a
+  scripted assessment) and the web dashboard (Next.js, reads `web/sample-data/`, no sign-in).
 - **`apps/scanner/`** — the VS Code extension plus a bundled **Reconix scanner server**
   (`npm run server`, token `test-token`). Scan the **`apps/lumina-site/`** storefront: open it,
   click the shield → "Scan with Reconix", and the findings land on their lines.

@@ -24,7 +24,7 @@ cd Reconnix_Terminal
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e .
-python -m reconix          # or: python run.py
+python -m reconix          # or just: reconix  (the editable install adds the command), or: python run.py
 ```
 
 **Windows 10 / 11** (PowerShell; use Windows Terminal for the TUI)
@@ -35,7 +35,7 @@ cd Reconnix_Terminal
 py -m venv .venv               # or: python -m venv .venv
 .venv\Scripts\Activate.ps1     # if scripts are blocked: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 python -m pip install -e .
-python -m reconix
+python -m reconix              # or just: reconix  (the editable install adds the command)
 ```
 
 Tests (Textual Pilot, no terminal needed):
