@@ -329,12 +329,28 @@ export class FakeHarness {
         const all = this.latestScan(s.id, true) ? this.findingsFor(s) : [];
         const counts: Record<string, number> = {};
         for (const f of all) counts[f.severity] = (counts[f.severity] ?? 0) + 1;
-        const real = all.filter((f) => f.verdict === "likely_real");
+        const real = [...all].filter((f) => f.verdict === "likely_real").sort(bySeverity);
+        const false_alarms = all.length - real.length;
+        // Overall verdict is derived from the same all/real/counts, so it can never contradict the numbers.
+        const plural = (k: number, one: string) => `${k} ${k === 1 ? one : one + "s"}`;
+        const breakdown = SEV_ORDER.filter((sv) => real.some((f) => f.severity === sv))
+          .map((sv) => `${real.filter((f) => f.severity === sv).length} ${sv}`).join(", ");
+        let overall: string | null;
+        if (all.length === 0) overall = null; // the card header already reads "No problems found."
+        else if (real.length === 0) overall = `No real problems — all ${plural(all.length, "finding")} look like false alarms.`;
+        else {
+          const topN = real.filter((f) => f.severity === real[0].severity).length;
+          overall = `${plural(real.length, "likely real problem")} to fix — ${breakdown}`
+            + (false_alarms ? ` (${plural(false_alarms, "finding")} look like noise)` : "")
+            + `. Start with the ${real[0].severity} ${topN === 1 ? "one" : "ones"}.`;
+        }
+        const summary = all.length === 0 ? "**No problems found.**"
+          : `**${plural(all.length, "finding")}.** ${overall}`;
         return {
-          summary: `**${all.length} findings.** Fix the SQL injection first.`, finding_ids: real.slice(0, 1).map((f) => f.id),
-          card: { total: all.length, counts, likely_real: real.length, false_alarms: all.length - real.length,
-                  files: real.slice(0, 1).map((f) => ({ path: f.path, count: 1 })), overall: "One real problem.",
-                  fix_first: real.slice(0, 1).map((f) => ({ text: `Use a parameterised query in ${f.path}`, finding_ids: [f.id] })) },
+          summary, finding_ids: real.slice(0, 1).map((f) => f.id),
+          card: { total: all.length, counts, likely_real: real.length, false_alarms,
+                  files: real.slice(0, 1).map((f) => ({ path: f.path, count: 1 })), overall,
+                  fix_first: real.slice(0, 1).map((f) => ({ text: `${f.title} (${f.path})`, finding_ids: [f.id] })) },
         };
       }
       case "fix_findings": {
@@ -465,7 +481,8 @@ export class FakeHarness {
         clearInterval(t);
         return;
       }
-      scan.percent = Math.min(scan.percent + 25, 100);
+      // Advance in 7 steps (≈7 s at the demo's 1 s tick) so the progress bar reads as real work.
+      scan.percent = Math.min(scan.percent + 15, 100);
       if (scan.percent === 100) {
         scan.status = "done";
         scan.stage = "finished";
@@ -614,6 +631,46 @@ const DEMO_FINDINGS: Partial<Finding>[] = [
     verdict: "likely_real",
     explanation: "MD5 is fast and broken for password storage; hashes can be brute-forced cheaply.",
     fix_recommendation: "Use a slow, salted KDF such as bcrypt, scrypt or argon2." },
+  { path: "server/routes/download.js", title: "Path traversal in invoice download", severity: "high",
+    rule_id: "javascript.express.path-traversal", cwe: "CWE-22", tools: ["semgrep"],
+    start_line: 12, end_line: 12,
+    message: "A request-supplied filename is joined onto a directory without validation.",
+    snippet: "const data = fs.readFileSync(path.join(INVOICE_DIR, file));",
+    verdict: "likely_real",
+    explanation: "The file segment comes straight from the URL, so a value like ../../server/config.js walks out of the invoice folder and reads any file the server can open.",
+    fix_recommendation: "Strip the path with path.basename(), or resolve and confirm the result still sits inside INVOICE_DIR before reading." },
+  { path: "server/routes/import.js", title: "Server-side request forgery in image import", severity: "high",
+    rule_id: "javascript.lang.ssrf", cwe: "CWE-918", tools: ["semgrep"],
+    start_line: 9, end_line: 10,
+    message: "A user-supplied URL is fetched with no host allow-list.",
+    snippet: "https.get(req.body.url, (upstream) => upstream.pipe(res));",
+    verdict: "likely_real",
+    explanation: "The import URL is fetched server-side without checking its host, so an attacker can target internal addresses such as 169.254.169.254 and read cloud-metadata credentials.",
+    fix_recommendation: "Parse the URL and allow only known external hosts (for example cdn.lumina.com) before fetching." },
+  { path: "server/middleware/cors.js", title: "Overly permissive CORS policy", severity: "medium",
+    rule_id: "javascript.express.permissive-cors", cwe: "CWE-942", tools: ["semgrep"],
+    start_line: 7, end_line: 8,
+    message: "A wildcard origin is sent together with Allow-Credentials.",
+    snippet: "res.header(\"Access-Control-Allow-Origin\", \"*\");",
+    verdict: "likely_real",
+    explanation: "Returning a wildcard origin while allowing credentials lets any site make authenticated cross-origin calls to the API using a logged-in visitor's cookies.",
+    fix_recommendation: "Echo only a vetted origin such as https://www.lumina.com instead of \"*\", or drop Allow-Credentials." },
+  { path: "server/middleware/errors.js", title: "Stack trace exposed in API error", severity: "medium",
+    rule_id: "javascript.express.stacktrace-exposure", cwe: "CWE-209", tools: ["semgrep"],
+    start_line: 7, end_line: 7,
+    message: "The error stack is serialised into the HTTP response.",
+    snippet: "res.status(500).json({ error: err.message, stack: err.stack });",
+    verdict: "likely_real",
+    explanation: "Returning the raw message and stack trace leaks file paths, SQL fragments and dependency versions, handing an attacker a map of the backend.",
+    fix_recommendation: "Send a generic message to the client and log the full error server-side instead." },
+  { path: "server/session.js", title: "Session cookie missing HttpOnly and Secure", severity: "low",
+    rule_id: "javascript.express.insecure-cookie", cwe: "CWE-614", tools: ["semgrep"],
+    start_line: 9, end_line: 9,
+    message: "A session cookie is set without HttpOnly, Secure or SameSite.",
+    snippet: "res.cookie(\"sid\", sid, { maxAge: 86400000 });",
+    verdict: "likely_real",
+    explanation: "Without HttpOnly the session id is readable by page scripts (so any XSS steals it), and without Secure it is sent over plain HTTP where it can be sniffed.",
+    fix_recommendation: "Set { httpOnly: true, secure: true, sameSite: \"lax\" } on the cookie." },
 ];
 
 /** The secure replacement for each planted finding, as whole-line edits over the
@@ -634,6 +691,21 @@ const FIXES: Record<string, { start_line: number; end_line: number; replacement:
   // Weak hash: scrypt is a slow, salted KDF built into Node's crypto.
   "server/utils/hash.js": { start_line: 5, end_line: 5,
     replacement: '  return crypto.scryptSync(pw, "salt", 64).toString("hex");' },
+  // Path traversal: basename() drops any directory components, so the read stays in INVOICE_DIR.
+  "server/routes/download.js": { start_line: 12, end_line: 12,
+    replacement: '  const data = fs.readFileSync(path.join(INVOICE_DIR, path.basename(file)));' },
+  // SSRF: resolve the URL and allow only the CDN host before fetching it.
+  "server/routes/import.js": { start_line: 9, end_line: 10,
+    replacement: '  const { hostname } = new URL(req.body.url);\n  if (hostname !== "cdn.lumina.com") return res.status(400).json({ error: "host not allowed" });\n  https.get(req.body.url, (upstream) => upstream.pipe(res));' },
+  // Permissive CORS: name a single trusted origin instead of a wildcard.
+  "server/middleware/cors.js": { start_line: 7, end_line: 8,
+    replacement: '  res.header("Access-Control-Allow-Origin", "https://www.lumina.com");\n  res.header("Access-Control-Allow-Credentials", "true");' },
+  // Stack-trace exposure: return a generic message; log the real error server-side.
+  "server/middleware/errors.js": { start_line: 7, end_line: 7,
+    replacement: '  res.status(500).json({ error: "Something went wrong. Please try again." });' },
+  // Insecure cookie: set HttpOnly, Secure and SameSite so scripts and plain HTTP can't take it.
+  "server/session.js": { start_line: 9, end_line: 9,
+    replacement: '  res.cookie("sid", sid, { maxAge: 86400000, httpOnly: true, secure: true, sameSite: "lax" });' },
 };
 
 if (require.main === module) {

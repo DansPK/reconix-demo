@@ -10,7 +10,7 @@ import { makeFetch } from "./http";
 import { log } from "./log";
 import { route } from "./routing";
 import { fetchAllFindings, prepareWorkspace, TooLargeError, watchToEnd } from "./scanFlow";
-import type { ActiveModel, ChatAction, ChatMessage, FileFix, Finding, FixOutcome, FixResult, ProviderInfo,
+import type { ActiveModel, ChatAction, ChatMessage, FileFix, Finding, FixEdit, FixOutcome, FixResult, ProviderInfo,
   ScanSummary, SessionInfo } from "./shared/contract";
 import type { ConnectionStatus, FindingView, ToExtension, ToWebview } from "./shared/messages";
 import { UploadError } from "./upload";
@@ -36,6 +36,7 @@ async function githubToken(prompt: boolean): Promise<string | undefined> {
 }
 const LIVE_REFRESH_MS = 1500;
 const FIX_SCHEME = "reconix-fix";
+const FIX_REVEAL_MS = 1200; // show the vulnerable line(s) this long before writing the fix, so the demo audience sees it
 const OUTCOME_LABEL: Record<FixOutcome["status"], string> = {
   fixed: "✅ fixed:", still_reported: "⚠️ still reported:", not_verified: "🔎 changed, rescan to confirm:",
   not_fixed: "⏭️ not changed:",
@@ -1077,14 +1078,32 @@ export class Controller implements vscode.Disposable {
   }
 
   /** Write the fixed text if the file is still what the fix was made for. Returns an error, or null. */
-  private async writeFileFix(rel: string, fix: { uri: vscode.Uri; original: string; fixed: string; kept: unknown[] }) {
+  private async writeFileFix(rel: string, fix: { uri: vscode.Uri; original: string; fixed: string; kept: FixEdit[] }) {
     const now = await vscode.workspace.openTextDocument(fix.uri);
     if (now.getText() !== fix.original) return `\`${rel}\` changed in the meantime. Ask again to get a fresh fix.`;
+    await this.revealVulnerableLines(now, fix.kept); // show the vulnerable code first, then fix it
     const edit = new vscode.WorkspaceEdit();
     edit.replace(fix.uri, new vscode.Range(now.positionAt(0), now.positionAt(fix.original.length)), fix.fixed);
     if (!(await vscode.workspace.applyEdit(edit)) || !(await now.save())) return `Could not write \`${rel}\`.`;
     log.info(`Applied ${fix.kept.length} fix edit(s) to ${rel}`);
     return null;
+  }
+
+  /** Open the file and highlight the vulnerable line(s) a beat before the fix is written, the way
+   * "Open" reveals a finding, so the audience sees the vulnerable code before it changes. For "Fix all"
+   * this steps through each file in turn. Best-effort: a reveal failure never blocks the fix. */
+  private async revealVulnerableLines(doc: vscode.TextDocument, edits: FixEdit[]) {
+    if (!edits.length) return;
+    try {
+      const first = Math.min(...edits.map((e) => e.start_line));
+      const last = Math.max(...edits.map((e) => e.end_line));
+      const start = new vscode.Position(Math.min(first, doc.lineCount) - 1, 0);
+      const end = doc.lineAt(Math.min(last, doc.lineCount) - 1).range.end;
+      await vscode.window.showTextDocument(doc, { selection: new vscode.Range(start, end), preview: false });
+      await new Promise((r) => setTimeout(r, FIX_REVEAL_MS));
+    } catch (e) {
+      log.warn(`Reveal before fix failed: ${(e as Error).message}`);
+    }
   }
 
   private async applyAllFixes(folder: string, files: FileFix[]) {

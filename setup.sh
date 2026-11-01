@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Unified launcher for the Reconix demo. One subcommand per surface.
 #
-#   ./setup.sh tui      the terminal TUI            (interactive)
+#   ./setup.sh tui      the terminal TUI            (interactive; or 'reconix' in the venv)
 #   ./setup.sh web      the web dashboard           http://127.0.0.1:3100
 #   ./setup.sh site     the public website          http://localhost:3000
 #   ./setup.sh store    the Lumina storefront       http://localhost:5173
@@ -40,7 +40,11 @@ case "${1:-}" in
   tui)
     venv=$TUI/.venv
     [ -x "$venv/bin/python" ] || { echo "Creating venv…"; python3 -m venv "$venv"; "$venv/bin/pip" install -q -e "$TUI"; }
-    exec "$venv/bin/python" -m reconix
+    # The editable install above also exposes a `reconix` command inside the venv. Not exec'd, so
+    # the hint below prints after you quit the full-screen TUI (stdout before launch is cleared).
+    "$venv/bin/python" -m reconix
+    echo "Tip: you can launch the TUI by name — activate the venv first, then run 'reconix':"
+    echo "       source \"$venv/bin/activate\" && reconix"
     ;;
   web)
     cd "$TUI/web"

@@ -1,7 +1,7 @@
 # Unified launcher for the Reconix demo (Windows / PowerShell). One subcommand per surface.
 # The bash equivalent is setup.sh; this mirrors it for Windows.
 #
-#   .\setup.ps1 tui      the terminal TUI            (interactive)
+#   .\setup.ps1 tui      the terminal TUI            (interactive; or 'reconix' in the venv)
 #   .\setup.ps1 web      the web dashboard           http://127.0.0.1:3100
 #   .\setup.ps1 site     the public website          http://localhost:3000
 #   .\setup.ps1 store    the Lumina storefront       http://localhost:5173
@@ -121,7 +121,12 @@ switch ($Command) {
             python -m venv (Join-Path $Tui ".venv")
             & $py -m pip install -q -e $Tui
         }
+        # The editable install also exposes a `reconix` command inside the venv; the hint below
+        # prints after you quit the full-screen TUI.
         & $py -m reconix
+        $activate = Join-Path $Tui ".venv\Scripts\Activate.ps1"
+        Write-Host "Tip: you can launch the TUI by name - activate the venv first, then run 'reconix':"
+        Write-Host "       . `"$activate`"; reconix"
         break
     }
     "web"     { Need-NodeModules (Join-Path $Tui "web"); Push-Location (Join-Path $Tui "web"); npm run dev; break }
