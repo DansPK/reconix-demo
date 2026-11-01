@@ -12,6 +12,7 @@ One launcher, one subcommand per surface:
 ./setup.sh tui      # the terminal TUI                (interactive)
 ./setup.sh web      # the web dashboard               http://127.0.0.1:3100
 ./setup.sh site     # the public website              http://localhost:3000
+./setup.sh store    # the Lumina storefront           http://localhost:5173
 ./setup.sh scanner  # the VS Code scanner server      http://127.0.0.1:7357 (token test-token)
 ./setup.sh vscode   # build + install the VS Code extension
 ./setup.sh reset    # restore the Lumina sample app to its vulnerable state
