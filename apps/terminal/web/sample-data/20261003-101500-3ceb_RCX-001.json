@@ -4,8 +4,8 @@
   "session": "20261003-101500-3ceb",
   "label": "RCX-001",
   "assessment_id": "RCX-001",
-  "target": "192.0.2.10",
-  "target_url": "192.0.2.10",
+  "target": "10.0.0.10",
+  "target_url": "10.0.0.10",
   "target_kind": "network host",
   "template": {
     "id": "network",
@@ -14,14 +14,14 @@
   },
   "api_spec": null,
   "operator": "analyst",
-  "client": "192.0.2.10",
+  "client": "10.0.0.10",
   "mode": "Grey-box, Authorized",
   "methodology": [
     "NIST SP 800-115",
     "PTES"
   ],
   "report_version": "1.0",
-  "created_at": "2026-10-03T10:15:19+00:00",
+  "created_at": "2026-10-03T10:15:23+00:00",
   "status": "Completed",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,11 +30,12 @@
   "session_closed": true,
   "run": {
     "phase": "completed",
-    "started_at": "2026-10-03T10:16:30+00:00",
-    "finished_at": "2026-10-03T10:25:52+00:00",
+    "started_at": "2026-10-03T10:16:28+00:00",
+    "finished_at": "2026-10-03T10:25:55+00:00",
     "completed": true,
     "requests": 2,
     "progress": {
+      "recon": 100,
       "discovery": 100,
       "scanning": 100,
       "validation": 100,
@@ -76,7 +77,7 @@
   ],
   "scope": {
     "kind": "network",
-    "target_url": "192.0.2.10",
+    "target_url": "10.0.0.10",
     "assessment_type": "Network",
     "status": "APPROVED",
     "allowed_actions": [
@@ -107,35 +108,35 @@
       "path": "198.51.100.9",
       "allowed": false,
       "reason": "Host outside approved scope",
-      "at": "2026-10-03T10:19:10+00:00"
+      "at": "2026-10-03T10:19:26+00:00"
     },
     {
       "method": "TCP",
-      "path": "192.0.2.10:8443",
+      "path": "10.0.0.10:8443",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-03T10:20:56+00:00"
+      "at": "2026-10-03T10:21:03+00:00"
     },
     {
       "method": "TCP",
-      "path": "192.0.2.10:8443",
+      "path": "10.0.0.10:8443",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-03T10:21:02+00:00"
+      "at": "2026-10-03T10:21:10+00:00"
     },
     {
       "method": "TCP",
-      "path": "192.0.2.10:8443",
+      "path": "10.0.0.10:8443",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-03T10:22:06+00:00"
+      "at": "2026-10-03T10:22:25+00:00"
     },
     {
       "method": "TCP",
-      "path": "192.0.2.10:8443",
+      "path": "10.0.0.10:8443",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-03T10:22:28+00:00"
+      "at": "2026-10-03T10:22:51+00:00"
     }
   ],
   "approvals": [
@@ -143,25 +144,25 @@
       "request_id": "approval-001",
       "risk": "MEDIUM",
       "action": "Banner and TLS check (read-only)",
-      "target": "TCP 192.0.2.10:8443",
+      "target": "TCP 10.0.0.10:8443",
       "method": "TCP",
-      "path": "192.0.2.10:8443",
+      "path": "10.0.0.10:8443",
       "purpose": "Record the service banner and TLS versions on the console port",
       "impact": "Low. Connects once, sends no credentials",
-      "command": "connect 192.0.2.10:8443 · read banner + TLS",
-      "command_hash": "sha256:7fd36c7331011137e0a8a7f8f98f5944fe37a771fb1d8cc1c492f089ffabf02b"
+      "command": "connect 10.0.0.10:8443 · read banner + TLS",
+      "command_hash": "sha256:f0aab8350c5487c315120b1e9af49127c5d6f929659868d38bc2081aeb4f20b3"
     },
     {
       "request_id": "approval-002",
       "risk": "HIGH",
       "action": "single_login_probe",
-      "target": "TCP 192.0.2.10:8443/manager",
+      "target": "TCP 10.0.0.10:8443/manager",
       "method": "TCP",
-      "path": "192.0.2.10:8443",
+      "path": "10.0.0.10:8443",
       "purpose": "Try one known default credential against the management console",
       "impact": "One authentication attempt. No change to the host",
-      "command": "POST 192.0.2.10:8443/manager/html · one default credential",
-      "command_hash": "sha256:833f1b763684e05961f3212d10accb403af6c95ec23f79f966baed9d002ff4f3"
+      "command": "POST 10.0.0.10:8443/manager/html · one default credential",
+      "command_hash": "sha256:0284f836c8dbcac4d33a28807d9897f53f3409e5a9a4305bcd42344950d4e614"
     }
   ],
   "decisions": [
@@ -170,16 +171,16 @@
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:7fd36c7331011137e0a8a7f8f98f5944fe37a771fb1d8cc1c492f089ffabf02b",
-      "at": "2026-10-03T10:21:05+00:00"
+      "command_hash": "sha256:f0aab8350c5487c315120b1e9af49127c5d6f929659868d38bc2081aeb4f20b3",
+      "at": "2026-10-03T10:21:13+00:00"
     },
     {
       "request_id": "approval-002",
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:833f1b763684e05961f3212d10accb403af6c95ec23f79f966baed9d002ff4f3",
-      "at": "2026-10-03T10:22:33+00:00"
+      "command_hash": "sha256:0284f836c8dbcac4d33a28807d9897f53f3409e5a9a4305bcd42344950d4e614",
+      "at": "2026-10-03T10:22:57+00:00"
     }
   ],
   "findings": [
@@ -187,10 +188,10 @@
       "id": "001",
       "severity": "HIGH",
       "title": "Management console exposed",
-      "path": "192.0.2.10:8443/manager",
+      "path": "10.0.0.10:8443/manager",
       "validation": "CONFIRMED",
       "description": "A Tomcat Manager console answered on 8443 and accepted a login form.",
-      "affected_url": "https://192.0.2.10:8443/manager",
+      "affected_url": "https://10.0.0.10:8443/manager",
       "impact": "If credentials are weak, an attacker could deploy code to the host.",
       "remediation": "Restrict the console to an admin network or disable it.",
       "tool": "nmap",
@@ -202,6 +203,7 @@
         "8443/tcp open ssl/http Apache Tomcat",
         "GET /manager/html → 401 WWW-Authenticate: Basic"
       ],
+      "evidence_unmasked": [],
       "cvss_score": 7.3,
       "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
       "category": "Network",
@@ -221,10 +223,10 @@
       "id": "002",
       "severity": "MEDIUM",
       "title": "Deprecated TLS 1.0 offered",
-      "path": "192.0.2.10:443",
+      "path": "10.0.0.10:443",
       "validation": "UNCONFIRMED",
       "description": "The HTTPS service still negotiates TLS 1.0.",
-      "affected_url": "https://192.0.2.10:443",
+      "affected_url": "https://10.0.0.10:443",
       "impact": "Weak protocol versions expose traffic to downgrade attacks.",
       "remediation": "Disable TLS 1.0/1.1 and prefer TLS 1.2+ with modern ciphers.",
       "tool": "testssl.sh",
@@ -235,6 +237,7 @@
         "TLS 1.0   offered (NOT ok)",
         "TLS 1.2   offered (OK)"
       ],
+      "evidence_unmasked": [],
       "cvss_score": 5.9,
       "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
       "category": "Network",
@@ -252,10 +255,10 @@
       "id": "003",
       "severity": "LOW",
       "title": "SSH banner reveals version",
-      "path": "192.0.2.10:22",
+      "path": "10.0.0.10:22",
       "validation": "INCONCLUSIVE",
       "description": "The SSH service banner discloses its exact version.",
-      "affected_url": "192.0.2.10:22",
+      "affected_url": "10.0.0.10:22",
       "impact": "Version disclosure helps an attacker match known exploits.",
       "remediation": "Suppress the detailed banner where the SSH server allows it.",
       "tool": "nmap",
@@ -265,6 +268,7 @@
       "evidence": [
         "22/tcp open ssh OpenSSH 8.2p1 (banner shown)"
       ],
+      "evidence_unmasked": [],
       "cvss_score": 3.7,
       "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
       "category": "Network",
@@ -282,7 +286,7 @@
   "timeline": [
     {
       "seq": 1,
-      "at": "2026-10-03T10:15:06+00:00",
+      "at": "2026-10-03T10:15:12+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -292,7 +296,7 @@
     },
     {
       "seq": 2,
-      "at": "2026-10-03T10:15:12+00:00",
+      "at": "2026-10-03T10:15:15+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -302,37 +306,37 @@
     },
     {
       "seq": 3,
-      "at": "2026-10-03T10:15:36+00:00",
+      "at": "2026-10-03T10:15:42+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
-      "text": "Scan the network host 192.0.2.10 for exposed services.",
+      "text": "Scan the network host 10.0.0.10 for exposed services.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 4,
-      "at": "2026-10-03T10:15:53+00:00",
+      "at": "2026-10-03T10:16:00+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Target parsed: 192.0.2.10",
+      "text": "Target parsed: 10.0.0.10",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 5,
-      "at": "2026-10-03T10:16:01+00:00",
+      "at": "2026-10-03T10:16:07+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Target identified: 192.0.2.10 (network host).",
+      "text": "Target identified: 10.0.0.10 (network host).",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 6,
-      "at": "2026-10-03T10:16:05+00:00",
+      "at": "2026-10-03T10:16:10+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -342,7 +346,7 @@
     },
     {
       "seq": 7,
-      "at": "2026-10-03T10:16:12+00:00",
+      "at": "2026-10-03T10:16:15+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -352,7 +356,7 @@
     },
     {
       "seq": 8,
-      "at": "2026-10-03T10:16:17+00:00",
+      "at": "2026-10-03T10:16:20+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -362,7 +366,7 @@
     },
     {
       "seq": 9,
-      "at": "2026-10-03T10:16:22+00:00",
+      "at": "2026-10-03T10:16:25+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -372,7 +376,7 @@
     },
     {
       "seq": 10,
-      "at": "2026-10-03T10:16:37+00:00",
+      "at": "2026-10-03T10:16:33+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -382,7 +386,7 @@
     },
     {
       "seq": 11,
-      "at": "2026-10-03T10:16:41+00:00",
+      "at": "2026-10-03T10:16:39+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -392,7 +396,7 @@
     },
     {
       "seq": 12,
-      "at": "2026-10-03T10:16:59+00:00",
+      "at": "2026-10-03T10:16:55+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -402,7 +406,7 @@
     },
     {
       "seq": 13,
-      "at": "2026-10-03T10:17:10+00:00",
+      "at": "2026-10-03T10:17:05+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -412,7 +416,7 @@
     },
     {
       "seq": 14,
-      "at": "2026-10-03T10:17:18+00:00",
+      "at": "2026-10-03T10:17:13+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -422,7 +426,7 @@
     },
     {
       "seq": 15,
-      "at": "2026-10-03T10:17:36+00:00",
+      "at": "2026-10-03T10:17:39+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -442,7 +446,7 @@
     },
     {
       "seq": 17,
-      "at": "2026-10-03T10:18:06+00:00",
+      "at": "2026-10-03T10:18:00+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -452,7 +456,7 @@
     },
     {
       "seq": 18,
-      "at": "2026-10-03T10:18:13+00:00",
+      "at": "2026-10-03T10:18:12+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -462,7 +466,17 @@
     },
     {
       "seq": 19,
-      "at": "2026-10-03T10:18:30+00:00",
+      "at": "2026-10-03T10:18:23+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Profiling the target: hosts, technology and exposed paths",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 20,
+      "at": "2026-10-03T10:18:49+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -484,8 +498,8 @@
       ]
     },
     {
-      "seq": 20,
-      "at": "2026-10-03T10:18:42+00:00",
+      "seq": 21,
+      "at": "2026-10-03T10:18:58+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -494,8 +508,8 @@
       "rows": []
     },
     {
-      "seq": 21,
-      "at": "2026-10-03T10:18:57+00:00",
+      "seq": 22,
+      "at": "2026-10-03T10:19:13+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -504,8 +518,8 @@
       "rows": []
     },
     {
-      "seq": 22,
-      "at": "2026-10-03T10:19:19+00:00",
+      "seq": 23,
+      "at": "2026-10-03T10:19:36+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -514,8 +528,8 @@
       "rows": []
     },
     {
-      "seq": 23,
-      "at": "2026-10-03T10:19:22+00:00",
+      "seq": 24,
+      "at": "2026-10-03T10:19:39+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -524,8 +538,8 @@
       "rows": []
     },
     {
-      "seq": 24,
-      "at": "2026-10-03T10:19:33+00:00",
+      "seq": 25,
+      "at": "2026-10-03T10:19:51+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -534,8 +548,8 @@
       "rows": []
     },
     {
-      "seq": 25,
-      "at": "2026-10-03T10:19:50+00:00",
+      "seq": 26,
+      "at": "2026-10-03T10:20:09+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -557,8 +571,8 @@
       ]
     },
     {
-      "seq": 26,
-      "at": "2026-10-03T10:20:10+00:00",
+      "seq": 27,
+      "at": "2026-10-03T10:20:25+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -567,8 +581,8 @@
       "rows": []
     },
     {
-      "seq": 27,
-      "at": "2026-10-03T10:20:22+00:00",
+      "seq": 28,
+      "at": "2026-10-03T10:20:32+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -577,8 +591,8 @@
       "rows": []
     },
     {
-      "seq": 28,
-      "at": "2026-10-03T10:20:43+00:00",
+      "seq": 29,
+      "at": "2026-10-03T10:20:47+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -587,8 +601,8 @@
       "rows": []
     },
     {
-      "seq": 29,
-      "at": "2026-10-03T10:21:09+00:00",
+      "seq": 30,
+      "at": "2026-10-03T10:21:17+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -597,8 +611,8 @@
       "rows": []
     },
     {
-      "seq": 30,
-      "at": "2026-10-03T10:21:28+00:00",
+      "seq": 31,
+      "at": "2026-10-03T10:21:35+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -607,8 +621,8 @@
       "rows": []
     },
     {
-      "seq": 31,
-      "at": "2026-10-03T10:21:37+00:00",
+      "seq": 32,
+      "at": "2026-10-03T10:21:48+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -617,8 +631,8 @@
       "rows": []
     },
     {
-      "seq": 32,
-      "at": "2026-10-03T10:21:50+00:00",
+      "seq": 33,
+      "at": "2026-10-03T10:22:08+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -627,8 +641,8 @@
       "rows": []
     },
     {
-      "seq": 33,
-      "at": "2026-10-03T10:22:39+00:00",
+      "seq": 34,
+      "at": "2026-10-03T10:23:03+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -637,8 +651,8 @@
       "rows": []
     },
     {
-      "seq": 34,
-      "at": "2026-10-03T10:23:02+00:00",
+      "seq": 35,
+      "at": "2026-10-03T10:23:18+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -647,8 +661,8 @@
       "rows": []
     },
     {
-      "seq": 35,
-      "at": "2026-10-03T10:23:14+00:00",
+      "seq": 36,
+      "at": "2026-10-03T10:23:28+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -657,8 +671,8 @@
       "rows": []
     },
     {
-      "seq": 36,
-      "at": "2026-10-03T10:23:38+00:00",
+      "seq": 37,
+      "at": "2026-10-03T10:23:45+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -667,8 +681,8 @@
       "rows": []
     },
     {
-      "seq": 37,
-      "at": "2026-10-03T10:23:46+00:00",
+      "seq": 38,
+      "at": "2026-10-03T10:23:59+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -677,8 +691,8 @@
       "rows": []
     },
     {
-      "seq": 38,
-      "at": "2026-10-03T10:23:58+00:00",
+      "seq": 39,
+      "at": "2026-10-03T10:24:11+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "check",
@@ -687,8 +701,8 @@
       "rows": []
     },
     {
-      "seq": 39,
-      "at": "2026-10-03T10:24:09+00:00",
+      "seq": 40,
+      "at": "2026-10-03T10:24:24+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -697,8 +711,8 @@
       "rows": []
     },
     {
-      "seq": 40,
-      "at": "2026-10-03T10:24:29+00:00",
+      "seq": 41,
+      "at": "2026-10-03T10:24:44+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -707,8 +721,8 @@
       "rows": []
     },
     {
-      "seq": 41,
-      "at": "2026-10-03T10:24:41+00:00",
+      "seq": 42,
+      "at": "2026-10-03T10:25:01+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -717,8 +731,8 @@
       "rows": []
     },
     {
-      "seq": 42,
-      "at": "2026-10-03T10:25:06+00:00",
+      "seq": 43,
+      "at": "2026-10-03T10:25:22+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -727,22 +741,12 @@
       "rows": []
     },
     {
-      "seq": 43,
-      "at": "2026-10-03T10:25:23+00:00",
+      "seq": 44,
+      "at": "2026-10-03T10:25:36+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
       "text": "Assessment status: Completed",
-      "tone": "ok",
-      "rows": []
-    },
-    {
-      "seq": 44,
-      "at": "2026-10-03T10:25:35+00:00",
-      "type": "chat",
-      "who": "reconix",
-      "kind": "text",
-      "text": "Assessment completed. 3 findings: 1 confirmed, 2 marked for review.",
       "tone": "ok",
       "rows": []
     },
@@ -752,13 +756,23 @@
       "type": "chat",
       "who": "reconix",
       "kind": "text",
+      "text": "Assessment completed. 3 findings: 1 confirmed, 2 marked for review.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 46,
+      "at": "2026-10-03T10:25:50+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
       "text": "Open the report (8 or /report) to export it.",
       "tone": "muted",
       "rows": []
     },
     {
-      "seq": 46,
-      "at": "2026-10-03T10:26:06+00:00",
+      "seq": 47,
+      "at": "2026-10-03T10:26:09+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -767,8 +781,8 @@
       "rows": []
     },
     {
-      "seq": 47,
-      "at": "2026-10-03T10:26:09+00:00",
+      "seq": 48,
+      "at": "2026-10-03T10:26:14+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -777,8 +791,8 @@
       "rows": []
     },
     {
-      "seq": 48,
-      "at": "2026-10-03T10:26:13+00:00",
+      "seq": 49,
+      "at": "2026-10-03T10:26:21+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -789,9 +803,9 @@
   ],
   "requests": [
     {
-      "text": "Scan the network host 192.0.2.10 for exposed services.",
-      "at": "2026-10-03T10:15:27+00:00"
+      "text": "Scan the network host 10.0.0.10 for exposed services.",
+      "at": "2026-10-03T10:15:31+00:00"
     }
   ],
-  "saved_at": "2026-10-03T10:48:17+00:00"
+  "saved_at": "2026-10-03T10:48:52+00:00"
 }

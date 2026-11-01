@@ -4,8 +4,8 @@
   "session": "20261004-150000-3c6d",
   "label": "RCX-001",
   "assessment_id": "RCX-001",
-  "target": "live.contoso.com",
-  "target_url": "https://live.contoso.com",
+  "target": "checkout.lumina.com",
+  "target_url": "https://checkout.lumina.com",
   "target_kind": "web application",
   "template": {
     "id": "web_url",
@@ -14,14 +14,14 @@
   },
   "api_spec": null,
   "operator": "analyst",
-  "client": "Contoso",
+  "client": "Lumina",
   "mode": "Grey-box, Authorized",
   "methodology": [
     "OWASP WSTG",
     "OWASP Top 10 (2021)"
   ],
   "report_version": "1.0",
-  "created_at": "2026-10-04T15:00:16+00:00",
+  "created_at": "2026-10-04T15:00:17+00:00",
   "status": "Running",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,12 +30,13 @@
   "session_closed": false,
   "run": {
     "phase": "testing",
-    "started_at": "2026-10-04T15:01:21+00:00",
+    "started_at": "2026-10-04T15:01:17+00:00",
     "finished_at": null,
     "completed": false,
-    "requests": 553,
+    "requests": 312,
     "progress": {
-      "discovery": 100,
+      "recon": 100,
+      "discovery": 45,
       "scanning": 0,
       "validation": 0,
       "analysis": 0,
@@ -44,39 +45,34 @@
     "report_path": ""
   },
   "login": {
-    "kind": "password+otp",
+    "kind": "",
     "provided": false
   },
   "plan": [
     {
-      "key": "discovery",
-      "label": "Crawl & map endpoints",
+      "key": "recon",
+      "label": "Reconnaissance",
       "status": "done"
     },
     {
+      "key": "discovery",
+      "label": "Content discovery",
+      "status": "active"
+    },
+    {
       "key": "scanning",
-      "label": "Scan for vulnerabilities",
+      "label": "Vulnerability scanning",
       "status": "pending"
     },
     {
       "key": "validation",
-      "label": "Validate access controls",
-      "status": "pending"
-    },
-    {
-      "key": "analysis",
-      "label": "Correlate & dedupe findings",
-      "status": "pending"
-    },
-    {
-      "key": "report",
-      "label": "Generate report",
+      "label": "Finding validation",
       "status": "pending"
     }
   ],
   "scope": {
     "kind": "web_url",
-    "target_url": "https://live.contoso.com",
+    "target_url": "https://checkout.lumina.com",
     "assessment_type": "Web URL",
     "status": "APPROVED",
     "allowed_actions": [
@@ -104,25 +100,25 @@
       "request_id": "approval-001",
       "risk": "MEDIUM",
       "action": "Baseline request (read-only)",
-      "target": "GET /api/orders/10482",
+      "target": "GET /api/v1/products?q=cotton+socks",
       "method": "GET",
-      "path": "/api/orders/10482",
-      "purpose": "Record the normal response for the test account's own order",
-      "impact": "Low. One read request, no data changes",
-      "command": "GET https://live.contoso.com/api/orders/10482 as test account A",
-      "command_hash": "sha256:b45400e8573cb42887a4323b447ed79728c19db2518c147a3aaa934c83392b26"
+      "path": "/api/v1/products?q=cotton+socks",
+      "purpose": "Record a normal search response to compare against the injection probes",
+      "impact": "Low. One read-only search request, no data changes",
+      "command": "GET https://checkout.lumina.com/api/v1/products?q=cotton+socks (no authentication)",
+      "command_hash": "sha256:f1a0f5da6dc0df07f475df454e7c53c66ab4725560d2785968678690bc1e90c8"
     },
     {
       "request_id": "approval-002",
       "risk": "HIGH",
-      "action": "limited_validation",
-      "target": "GET /api/orders/10483 (test account B)",
+      "action": "Confirm the exposure",
+      "target": "GET /api/v1/products?q='+OR+1=1--",
       "method": "GET",
-      "path": "/api/orders/10483",
-      "purpose": "Check if account A can read an order owned by account B",
-      "impact": "May read synthetic test data. 1 request, no changes",
-      "command": "GET https://live.contoso.com/api/orders/10483 as test account A",
-      "command_hash": "sha256:9721c15a642b3e7e62cdaee669db76ecdea8a06f1baaea2e2dd1ef572c0f2df9"
+      "path": "/api/v1/products?q='+OR+1=1--",
+      "purpose": "Prove the injection returns the whole table with an always-true condition",
+      "impact": "Returns every customer row from the database. 1 request, no changes",
+      "command": "GET https://checkout.lumina.com/api/v1/products?q='+OR+1=1-- (no authentication)",
+      "command_hash": "sha256:c3b3c87e5e102af40ce65c8784868527c2938e5f33268c1d15ad3a20f8f7ff2f"
     }
   ],
   "decisions": [],
@@ -130,7 +126,7 @@
   "timeline": [
     {
       "seq": 1,
-      "at": "2026-10-04T15:00:10+00:00",
+      "at": "2026-10-04T15:00:08+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -140,7 +136,7 @@
     },
     {
       "seq": 2,
-      "at": "2026-10-04T15:00:13+00:00",
+      "at": "2026-10-04T15:00:12+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -150,37 +146,37 @@
     },
     {
       "seq": 3,
-      "at": "2026-10-04T15:00:32+00:00",
+      "at": "2026-10-04T15:00:35+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
-      "text": "Assess https://live.contoso.com for web security issues.",
+      "text": "Assess https://checkout.lumina.com for web security issues.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 4,
-      "at": "2026-10-04T15:00:45+00:00",
+      "at": "2026-10-04T15:00:46+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Target parsed: live.contoso.com",
+      "text": "Target parsed: checkout.lumina.com",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 5,
-      "at": "2026-10-04T15:00:52+00:00",
+      "at": "2026-10-04T15:00:49+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Target identified: live.contoso.com (web application).",
+      "text": "Target identified: checkout.lumina.com (web application).",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 6,
-      "at": "2026-10-04T15:00:59+00:00",
+      "at": "2026-10-04T15:00:56+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -190,7 +186,7 @@
     },
     {
       "seq": 7,
-      "at": "2026-10-04T15:01:06+00:00",
+      "at": "2026-10-04T15:01:02+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -200,7 +196,7 @@
     },
     {
       "seq": 8,
-      "at": "2026-10-04T15:01:09+00:00",
+      "at": "2026-10-04T15:01:10+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -220,7 +216,7 @@
     },
     {
       "seq": 10,
-      "at": "2026-10-04T15:01:26+00:00",
+      "at": "2026-10-04T15:01:22+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -230,7 +226,7 @@
     },
     {
       "seq": 11,
-      "at": "2026-10-04T15:01:34+00:00",
+      "at": "2026-10-04T15:01:28+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -240,7 +236,7 @@
     },
     {
       "seq": 12,
-      "at": "2026-10-04T15:01:54+00:00",
+      "at": "2026-10-04T15:01:53+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -250,7 +246,7 @@
     },
     {
       "seq": 13,
-      "at": "2026-10-04T15:02:03+00:00",
+      "at": "2026-10-04T15:02:02+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -260,7 +256,7 @@
     },
     {
       "seq": 14,
-      "at": "2026-10-04T15:02:13+00:00",
+      "at": "2026-10-04T15:02:09+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -270,7 +266,7 @@
     },
     {
       "seq": 15,
-      "at": "2026-10-04T15:02:34+00:00",
+      "at": "2026-10-04T15:02:24+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -280,7 +276,7 @@
     },
     {
       "seq": 16,
-      "at": "2026-10-04T15:02:47+00:00",
+      "at": "2026-10-04T15:02:42+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -290,7 +286,7 @@
     },
     {
       "seq": 17,
-      "at": "2026-10-04T15:02:57+00:00",
+      "at": "2026-10-04T15:02:48+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -300,7 +296,7 @@
     },
     {
       "seq": 18,
-      "at": "2026-10-04T15:03:07+00:00",
+      "at": "2026-10-04T15:02:58+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -310,7 +306,17 @@
     },
     {
       "seq": 19,
-      "at": "2026-10-04T15:03:30+00:00",
+      "at": "2026-10-04T15:03:08+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Profiling the target: hosts, technology and exposed paths",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 20,
+      "at": "2026-10-04T15:03:38+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -319,8 +325,8 @@
       "rows": []
     },
     {
-      "seq": 20,
-      "at": "2026-10-04T15:03:40+00:00",
+      "seq": 21,
+      "at": "2026-10-04T15:03:46+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -331,9 +337,9 @@
   ],
   "requests": [
     {
-      "text": "Assess https://live.contoso.com for web security issues.",
+      "text": "Assess https://checkout.lumina.com for web security issues.",
       "at": "2026-10-04T15:00:22+00:00"
     }
   ],
-  "saved_at": "2026-10-04T15:04:01+00:00"
+  "saved_at": "2026-10-04T15:03:53+00:00"
 }

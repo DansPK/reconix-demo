@@ -8,7 +8,7 @@
    finding is selected and where it sits, not the whole article. */
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 
 import type { FindingRow } from "@/components/dashboard/derive";
 import { reviewLabel, validationOf } from "@/components/dashboard/filters";
@@ -41,6 +41,7 @@ export interface FindingDetailProps {
 /** A link back to the run a finding came from (the list spans several runs). */
 
 export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(function FindingDetail({ finding: f, position, prev, next, onSelect }, ref) {
+  const [unmasked, setUnmasked] = useState(false);
   return (
     <article
       ref={ref}
@@ -111,9 +112,24 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
 
         {f.evidence.length > 0 && (
           <section>
-            <h3 className="mb-1.5 text-[13px] font-medium text-foreground">Evidence</h3>
-            <ScrollRegion label="Evidence" className="dash-tile overflow-x-auto rounded-lg p-3 font-mono text-[11px] leading-relaxed">
-              {f.evidence.map((e, i) => (
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <h3 className="text-[13px] font-medium text-foreground">
+                {unmasked && f.evidenceUnmasked.length > 0 ? "Evidence — attacker's view (unmasked)" : "Evidence"}
+              </h3>
+              {f.evidenceUnmasked.length > 0 && (
+                <button type="button" onClick={() => setUnmasked((v) => !v)} aria-pressed={unmasked} className="ui-link text-[11px] font-medium">
+                  {unmasked ? "Hide" : "Reveal attacker's view"}
+                </button>
+              )}
+            </div>
+            <ScrollRegion
+              label="Evidence"
+              className={cn(
+                "dash-tile overflow-x-auto rounded-lg p-3 font-mono text-[11px] leading-relaxed",
+                unmasked && f.evidenceUnmasked.length > 0 && "ring-1 ring-[var(--sev-critical)]",
+              )}
+            >
+              {(unmasked && f.evidenceUnmasked.length > 0 ? f.evidenceUnmasked : f.evidence).map((e, i) => (
                 <div key={i} className={cn("whitespace-pre", EV_STYLE[e.tone])}>
                   {e.text}
                 </div>

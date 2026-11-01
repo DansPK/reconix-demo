@@ -31,9 +31,9 @@ def test_severity_override_drives_effective_severity():
 
 def test_override_matching_detected_severity_clears_it():
     run_to(None)
-    finding = store.triage_finding("001", severity="MEDIUM")   # 001 is already MEDIUM
+    finding = store.triage_finding("001", severity="HIGH")   # 001 is already HIGH
     assert finding.severity_override == ""
-    assert finding.effective_severity == "MEDIUM"
+    assert finding.effective_severity == "HIGH"
 
 
 def test_unknown_status_or_severity_is_rejected():

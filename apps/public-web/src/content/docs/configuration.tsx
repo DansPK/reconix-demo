@@ -30,7 +30,7 @@ export const configuration: GroupContent = {
         <DocSection title="Example">
           <p>Illustrative only:</p>
           <Code>{`targets:
-  - https://staging.example.com/api
+  - https://staging.lumina.com/api
 permitted: [discovery, auth-checks]
 exclusions: [/api/admin/*]
 limits: 5 req/s · 2h window`}</Code>

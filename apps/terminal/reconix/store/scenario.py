@@ -29,7 +29,7 @@ def check(text: str, first: bool = False) -> RunStep:
 
 
 def card(title: str, *rows: Tuple[str, str], tool: str = "") -> RunStep:
-    return RunStep("card", speaker="reconix", text=title, rows=tuple(rows), pause=2.5,
+    return RunStep("card", speaker="reconix", text=title, rows=tuple(rows), pause=1.8,
                    tool=tool)
 
 

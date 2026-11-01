@@ -3,9 +3,10 @@
 from ...models import Finding, ScopeManifest, Template
 from ...models.parser import ParsedTarget
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
+from ..scenario import card, log, say
 
 SPEC = Template("web_url", "Web URL", "Web application at a URL",
-                target_hint="the site's URL", example="https://shop.example.com")
+                target_hint="the site's URL", example="https://shop.lumina.com")
 
 
 def build_scope(parsed: ParsedTarget) -> ScopeManifest:
@@ -19,21 +20,70 @@ def build_scope(parsed: ParsedTarget) -> ScopeManifest:
     )
 
 
+# Finding 004 shows an "extracted sample" to make the SQL-injection impact concrete. The rows are
+# fabricated customers (reserved/placeholder data); the masked table bullets out the sensitive cells
+# and is what the saved report keeps, while the raw table (shown only when the analyst presses
+# "unmask") carries the real values. Local parts never contain a dot so the saved-copy host guard
+# only ever sees the email domain.
+_DUMP = (
+    ('Sophea Chan', 'sophea_chan@gmail.com', '+855 12 684 207', 'Visa', '4532 9859 9256 5466', '08/27', 'Sophea1995'),
+    ('Dara Kim', 'darakim88@gmail.com', '+855 11 904 221', 'Mastercard', '5425 3516 6185 6644', '11/26', 'darakim@18'),
+    ('Srey Mom', 'sreymom_k@yahoo.com', '+855 96 774 310', 'Visa', '4716 0591 7325 9790', '03/28', 'sreymom123'),
+    ('Vicheka Sok', 'vichekasok@outlook.com', '+855 92 448 177', 'Amex', '3714 438189 90163', '05/27', 'vicheka_99'),
+    ('Rathana Long', 'rathana_long@gmail.com', '+855 15 903 562', 'Visa', '4485 9003 3143 7951', '09/25', 'rathana2020'),
+    ('Bopha Nou', 'bophanou@gmail.com', '+855 78 112 845', 'Discover', '6011 0956 9380 8432', '12/27', 'bopha0808'),
+    ('Chanthou Meas', 'chanthou_m@hotmail.com', '+855 17 657 203', 'Mastercard', '5500 9288 8207 9706', '07/26', 'chanthou88'),
+    ('Pisey Heng', 'piseyheng@gmail.com', '+855 70 334 918', 'Visa', '4024 8785 8944 1206', '02/28', 'Pisey2016!'),
+    ('Vuthy Sam', 'vuthy_sam@yahoo.com', '+855 10 220 746', 'Visa', '4929 2513 7840 8263', '10/26', 'vuthysam007'),
+    ('Kunthea Yin', 'kuntheayin@gmail.com', '+855 86 905 114', 'Mastercard', '5168 5906 4207 5615', '04/27', 'kunthea2019'),
+    ('Makara Chea', 'makara_chea@outlook.com', '+855 99 471 028', 'Visa', '4539 3594 3327 6963', '06/25', 'makara#23'),
+    ('Vanna Prak', 'admin@lumina.com', '+855 23 900 004', 'Visa', '4716 8423 5693 9621', '01/29', 'Lumina@2024'),
+)
+_B = "•"   # the bullet used for masking across the demo
+
+
+def _dump_row(email: str, phone: str, brand: str, card_no: str, exp: str, pw: str) -> str:
+    return f"{email:<24} {phone:<16} {brand:<11} {card_no:<19} {exp:<6} {pw}"
+
+
+def _dump_table(masked: bool) -> list:
+    caption = ("users table · showing 12 of 48,215 rows (masked)" if masked
+               else "users table · showing 12 of 48,215 rows · hashes cracked offline "
+                    "(unsalted MD5)")
+    head = _dump_row("EMAIL", "PHONE", "BRAND", "CARD NUMBER", "EXP", "PASSWORD")
+    out = [caption, head, "-" * len(head)]
+    for _name, email, phone, brand, card_no, exp, pw in _DUMP:
+        if masked:
+            email = email[0] + _B * 3 + "@" + email.split("@")[1]
+            phone = " ".join(phone.split()[:2]) + " " + _B * 3
+            card_no = brand.lower() + " " + _B * 4 + card_no.replace(" ", "")[-4:]
+            exp = _B * 2 + "/" + _B * 2
+            pw = _B * 6
+        out.append(_dump_row(email, phone, brand, card_no, exp, pw))
+    return out
+
+
 def _findings(url: str) -> list:
     return [
         Finding(
-            "001", "MEDIUM", "Broken object-level authorization", "/api/orders/{id}", "CONFIRMED",
-            description="An order record owned by test account B was returned to test account A.",
+            "001", "HIGH", "Unauthenticated access to order records", "/api/orders/{id}", "CONFIRMED",
+            description="The order endpoint returns any order by its ID with no authentication. A "
+                        "request carrying no session cookie or API key returned an order that "
+                        "belongs to another customer.",
             affected_url=f"{url}/api/orders/10483",
-            impact="Users could read other customers' order details.",
-            remediation="Enforce server-side ownership checks on every order lookup.",
+            impact="Anyone on the internet can read every customer's orders just by changing the "
+                   "ID: the items, totals, and the delivery name, phone and address.",
+            remediation="Require authentication on the order endpoints and enforce a per-user "
+                        "ownership check on every lookup; return 404 for orders the caller "
+                        "does not own.",
             tool="OWASP ZAP",
             references=["OWASP A01:2021", "OWASP API1:2023", "CWE-639"],
-            cvss_score=6.5, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
+            cvss_score=7.5, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
             category="Web App",
-            evidence=["HTTP 200 · order_id: 10483",
-                      "owner: usr_••••42 · email: b•••@contoso.com",
-                      "token: •••••••••• (masked)"],
+            evidence=["GET /api/orders/10483  (no Authorization header) -> HTTP 200",
+                      "returned order owner: d•••@gmail.com · "
+                      "+855 •• ••• •••",
+                      "no session cookie or API key was sent with the request"],
         ),
         Finding(
             "002", "MEDIUM", "Reflected input in search page", "/search", "UNCONFIRMED",
@@ -58,22 +108,31 @@ def _findings(url: str) -> list:
             evidence=["Set-Cookie: session=••••••••; Secure; HttpOnly"],
         ),
         Finding(
-            "004", "CRITICAL", "SQL injection in product search", "/api/products", "CONFIRMED",
-            description="The 'category' parameter is concatenated into a SQL query. A "
-                        "boolean probe changed the result set and a time-based payload "
-                        "delayed the response, confirming injection.",
-            affected_url=f"{url}/api/products?category=",
-            impact="An attacker could read or modify the product and customer database, "
-                   "including order records and password hashes.",
-            remediation="Use parameterized queries / prepared statements for every database "
-                        "call and run the app with a least-privilege database account.",
+            "004", "CRITICAL", "SQL injection in catalog search", "/api/v1/products", "CONFIRMED",
+            description="The storefront catalog search is reachable without signing in, and the "
+                        "search term (the q parameter on GET /api/v1/products) is concatenated "
+                        "straight into a SQL query. A single always-true payload — ' OR 1=1 -- — "
+                        "made the search return every row, and a UNION payload pulled the customer "
+                        "table, confirming full read access to the database.",
+            affected_url=f"{url}/api/v1/products?q=",
+            impact="An unauthenticated attacker can read the entire customer database: names, "
+                   "emails, phone numbers, delivery addresses, saved card numbers, and password "
+                   "hashes. The passwords are stored as unsalted MD5 and crack back to plaintext "
+                   "in seconds.",
+            remediation="Use parameterized queries / prepared statements for every database call "
+                        "and run the app with a least-privilege database account. Store passwords "
+                        "with a slow salted hash (bcrypt or argon2), and never keep full card "
+                        "numbers, tokenize payments instead.",
             tool="Nuclei",
             references=["OWASP A03:2021", "CWE-89"],
             cvss_score=9.8, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
             category="Web App",
-            evidence=["GET /api/products?category=1' AND SLEEP(5)-- → response delayed 5.02s",
-                      "category=1 AND 1=1 → 142 rows · category=1 AND 1=2 → 0 rows",
-                      "error probe leaked DBMS banner: MySQL 5.7.x"],
+            evidence=[
+                "GET /api/v1/products?q=' OR 1=1 --   ->  HTTP 200, returned all 48,215 rows (no auth)",
+                "GET /api/v1/products?q=' UNION SELECT email,card,hash FROM users--  ->  customer table",
+                *_dump_table(masked=True),
+            ],
+            evidence_unmasked=_dump_table(masked=False),
         ),
         Finding(
             "005", "HIGH", "Outdated JavaScript dependency with a known CVE",
@@ -108,35 +167,50 @@ def build_run(assessment) -> RunBundle:
                          "Technology fingerprint: nginx · MySQL · lodash"),
         blocked=("GET", "/admin"),
         scan_card=("Scan · $tools",
-                   (("Potential issues", "5"), ("Needs login", "/api/orders/*"))),
+                   (("Potential issues", "5"), ("Access", "unauthenticated"))),
         scan_requests=(387, 166, 94),
-        login_area="/api/orders/*",
-        login_2fa=True,                    # the demo target sends a code after the password
-        candidate_note="Suspected issue on /api/orders/{id}: possible missing object-level "
-                       "access check. Proposing limited validation.",
-        candidate_log="Candidate F-001 · access control",
+        login_area="/api/v1/*",
+        login_2fa=False,                   # unauthenticated scan: no login, no one-time code
+        candidate_note="Suspected SQL injection on /api/v1/products: the q search parameter may "
+                       "reach the database directly, and the endpoint needs no login. Proposing "
+                       "limited validation.",
+        candidate_log="Candidate F-004 · SQL injection",
         medium=approval(
             "approval-001", risk="MEDIUM", action="Baseline request (read-only)",
-            target="GET {path}", method="GET", path="/api/orders/10482", param="Path",
-            purpose="Record the normal response for the test account's own order",
-            impact="Low. One read request, no data changes",
-            command=f"GET {url}{{path}} as test account A"),
+            target="GET {path}", method="GET",
+            path="/api/v1/products?q=cotton+socks", param="Path",
+            purpose="Record a normal search response to compare against the injection probes",
+            impact="Low. One read-only search request, no data changes",
+            command=f"GET {url}{{path}} (no authentication)"),
         high=approval(
-            "approval-002", risk="HIGH", action="limited_validation",
-            target="GET {path} (test account B)", method="GET",
-            path="/api/orders/10483", param="Path",
-            purpose="Check if account A can read an order owned by account B",
-            impact="May read synthetic test data. 1 request, no changes",
-            command=f"GET {url}{{path}} as test account A"),
+            "approval-002", risk="HIGH", action="Confirm the exposure",
+            target="GET {path}", method="GET",
+            path="/api/v1/products?q='+OR+1=1--",
+            param="Path",
+            purpose="Prove the injection returns the whole table with an always-true condition",
+            impact="Returns every customer row from the database. 1 request, no changes",
+            command=f"GET {url}{{path}} (no authentication)"),
         findings=findings,
-        analysis_steps=("Analyzing results", "Retrieving relevant OWASP and CWE guidance",
-                        "Correlating duplicate findings", "Masking sensitive evidence"),
-        plan=(("discovery", "Crawl & map endpoints"),
-              ("scanning", "Scan for vulnerabilities"),
-              ("validation", "Validate access controls"),
-              ("analysis", "Correlate & dedupe findings"),
-              ("report", "Generate report")),
+        analysis_steps=("Correlating findings", "Mapping to OWASP & CWE",
+                        "Masking sensitive evidence"),
+        # The reviewable plan shows only the assessment phases; the run still correlates findings
+        # and produces the report, but those are not steps the operator plans/approves.
+        plan=(("recon", "Reconnaissance"),
+              ("discovery", "Content discovery"),
+              ("scanning", "Vulnerability scanning"),
+              ("validation", "Finding validation")),
         methodology=("OWASP WSTG", "OWASP Top 10 (2021)"),
+        exploit_fid="004",
+        exploit_beat=(
+            say("SQL injection confirmed on /api/v1/products. The q parameter reaches the "
+                "database directly, and the endpoint needs no login.", tone="warn", pause=1.5),
+            say("Extending the plan to prove impact: reading a sample of the customer table "
+                "and testing the stored password hashes offline.", pause=1.6),
+            log("AI", "Extracting a sample of the users table and cracking the hashes offline",
+                pause=1.2),
+            card("Exploitation - impact proof", ("Rows readable", "48,215"),
+                 ("Sample pulled", "12"), ("Hashes cracked", "12/12")),
+        ),
     )
     return RunBundle(scope=scope, script=build_rest(profile),
                      approvals=[profile.medium, profile.high], findings=findings,

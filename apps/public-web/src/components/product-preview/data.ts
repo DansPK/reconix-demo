@@ -14,8 +14,8 @@ export type LogKind = "scope" | "policy" | "tool" | "finding" | "mask" | "gate" 
 
 export const ASSESSMENT = {
   id: "ASM-0142",
-  name: "Acme Web Security Assessment",
-  target: "app.acme.example",
+  name: "Lumina Web Security Assessment",
+  target: "www.lumina.com",
   template: "Web URL",
   type: "Web application",
   status: "Running",
@@ -35,9 +35,9 @@ export const SEVERITY: { level: Severity; count: number }[] = [
 export const FINDING_TOTAL = SEVERITY.reduce((n, s) => n + s.count, 0);
 
 export const SCOPE = {
-  target: "app.acme.example",
-  include: ["app.acme.example", "api.acme.example", "*.acme.example", "203.0.113.24"],
-  exclude: ["admin.acme.example", "/billing/*"],
+  target: "www.lumina.com",
+  include: ["www.lumina.com", "api.lumina.com", "*.lumina.com", "10.0.0.24"],
+  exclude: ["admin.lumina.com", "/billing/*"],
   actions: [
     { name: "Service discovery", tool: "Nmap", risk: "LOW" as Risk },
     { name: "Template checks", tool: "Nuclei", risk: "LOW" as Risk },
@@ -56,9 +56,9 @@ export type LogLine = { t: string; kind: LogKind; text: string };
 export const LOG: LogLine[] = [
   { t: "10:42:01", kind: "info", text: "Assessment ASM-0142 started" },
   { t: "10:42:04", kind: "scope", text: "Target scope validated against Scope Manifest v1" },
-  { t: "10:42:08", kind: "policy", text: "nmap -sV app.acme.example · risk LOW · auto-run" },
+  { t: "10:42:08", kind: "policy", text: "nmap -sV www.lumina.com · risk LOW · auto-run" },
   { t: "10:42:15", kind: "tool", text: "Discovered 4 hosts, 9 open services" },
-  { t: "10:42:17", kind: "policy", text: "admin.acme.example blocked · excluded target" },
+  { t: "10:42:17", kind: "policy", text: "admin.lumina.com blocked · excluded target" },
   { t: "10:42:21", kind: "tool", text: "Starting HTTP analysis · OWASP ZAP passive scan" },
   { t: "10:42:29", kind: "tool", text: "Running vulnerability checks · Nuclei templates" },
   { t: "10:42:31", kind: "mask", text: "1 session token masked in tool output" },
@@ -81,11 +81,11 @@ export type Finding = {
 };
 
 export const FINDINGS: Finding[] = [
-  { id: "F-001", title: "SQL injection in search parameter", severity: "CRITICAL", target: "app.acme.example/search?q=", tool: "OWASP ZAP", cwe: "CWE-89", rating: "CVSS 9.8" },
-  { id: "F-002", title: "Reflected cross-site scripting", severity: "HIGH", target: "app.acme.example/profile?name=", tool: "OWASP ZAP", cwe: "CWE-79", rating: "CVSS 7.4" },
-  { id: "F-003", title: "Exposed Redis service", severity: "HIGH", target: "203.0.113.24:6379", tool: "Nmap", cwe: "CWE-284", rating: "CVSS 8.6" },
-  { id: "F-004", title: "Weak TLS configuration (TLS 1.0 enabled)", severity: "MEDIUM", target: "api.acme.example:443", tool: "Nuclei", cwe: "CWE-326", rating: "scanner" },
-  { id: "F-005", title: "Missing security headers", severity: "LOW", target: "app.acme.example", tool: "Nuclei", cwe: "CWE-693", rating: "scanner" },
+  { id: "F-001", title: "SQL injection in catalog search", severity: "CRITICAL", target: "www.lumina.com/api/v1/products?q=", tool: "OWASP ZAP", cwe: "CWE-89", rating: "CVSS 9.8" },
+  { id: "F-002", title: "Reflected cross-site scripting", severity: "HIGH", target: "www.lumina.com/profile?name=", tool: "OWASP ZAP", cwe: "CWE-79", rating: "CVSS 7.4" },
+  { id: "F-003", title: "Exposed Redis service", severity: "HIGH", target: "10.0.0.24:6379", tool: "Nmap", cwe: "CWE-284", rating: "CVSS 8.6" },
+  { id: "F-004", title: "Weak TLS configuration (TLS 1.0 enabled)", severity: "MEDIUM", target: "api.lumina.com:443", tool: "Nuclei", cwe: "CWE-326", rating: "scanner" },
+  { id: "F-005", title: "Missing security headers", severity: "LOW", target: "www.lumina.com", tool: "Nuclei", cwe: "CWE-693", rating: "scanner" },
 ];
 
 /** The finding opened in the detail pane and quoted in the report. */

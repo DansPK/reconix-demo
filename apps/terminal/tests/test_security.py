@@ -25,7 +25,7 @@ def test_a_secret_never_prints_itself():
 
 
 def test_the_stored_account_never_shows_the_password():
-    run_to(None)
+    run_to(None, "test the API at https://api.example.com/v1")   # the API run stores a cookie
     account = lists.current().vault[-1]
     assert TEST_PASSWORD not in repr(account)
     assert TEST_PASSWORD not in repr(dataclasses.asdict(account))
@@ -36,7 +36,7 @@ def test_a_request_changed_after_it_was_shown_is_refused():
     run_to("approval:approval-001")
     request = store.get_approval("approval-001")
     shown_hash = request.command_hash
-    request.command = request.command.replace("10482", "99999")
+    request.command = request.command.replace("cotton", "intruder")
     with pytest.raises(store.StoreValidationError, match="changed"):
         store.approve("approval-001", command_hash=shown_hash)
 
@@ -58,12 +58,14 @@ def test_a_high_token_is_not_given_for_a_medium_action():
         store.request_confirmation("approval-001", request.command_hash)
 
 
-def test_the_password_cant_be_given_at_the_code_step():
-    run_to("code")
-    before = list(lists.current().vault)
-    with pytest.raises(store.StoreValidationError, match="digits"):
+def test_no_login_is_accepted_in_the_unauthenticated_scan():
+    # The web_url demo is an unauthenticated scan: it never opens a login gate, so a login is
+    # refused end to end and nothing is ever stored in the vault.
+    run_to(None)
+    assert store.login_kind() == "" and lists.current().vault == []
+    with pytest.raises(store.StoreValidationError, match="asks for one"):
         store.provide_auth({"identity": "intruder", "secret": "other-password"})
-    assert lists.current().vault == before and not store.is_code_verified()
+    assert lists.current().vault == []
 
 
 def test_a_template_is_chosen_once():

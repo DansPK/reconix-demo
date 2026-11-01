@@ -88,4 +88,4 @@ async def test_edit_steps_on_the_plan_changes_a_later_gate(app):
         await fill_and_submit(app, pilot, "/api/orders/10499")
         assert isinstance(app.screen, PlanScreen)
         assert store.get_approval("approval-002").path == "/api/orders/10499"
-        assert store.get_approval("approval-001").path == "/api/orders/10482"   # untouched
+        assert store.get_approval("approval-001").path == "/api/v1/products?q=cotton+socks"  # untouched

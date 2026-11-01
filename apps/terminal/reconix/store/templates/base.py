@@ -63,6 +63,8 @@ class RunProfile:
     scan_tool: str = "Nuclei"
     plan: Tuple[Tuple[str, str], ...] = ()  # the plan shown on the dashboard: (progress key, label)
     methodology: Tuple[str, ...] = ()       # standards followed (shown on the report)
+    exploit_fid: str = ""                   # a finding revealed after an extra "exploit" beat
+    exploit_beat: Tuple[RunStep, ...] = ()  # steps played just before that finding's reveal
 
 
 @dataclass
@@ -130,7 +132,12 @@ def build_rest(profile: RunProfile) -> List[RunStep]:
     template they chose. Findings are revealed in order.
     """
     fids = [f.fid for f in profile.findings]
-    first, rest = (fids[0] if fids else ""), fids[1:]
+    exploit = profile.exploit_fid
+    # The finding proved under the HIGH approval is revealed right after it (with the exploit
+    # beat); with no exploit set, the first finding is the candidate shown up front and the
+    # rest come in analysis.
+    candidate = exploit or (fids[0] if fids else "")
+    others = [f for f in fids if f != candidate]
     blocked_method, blocked_target = profile.blocked
     disc_bursts = list(profile.discovery_requests) or [0]
     scan_bursts = list(profile.scan_requests) or [0]
@@ -152,10 +159,14 @@ def build_rest(profile: RunProfile) -> List[RunStep]:
         RunStep("phase", name="testing", pause=0.0),
         # Longest narration beat (tool integration, the Kali backend): paced to speak over.
         say("Selected tools: $tools. Preparing requests with test data. Public "
-            "surface first.", pause=2.5),
+            "surface first.", pause=1.8),
         log("POLICY", "Scope check: passed", tone="ok", pause=1.2),
         log("TOOL", "Executing permitted scan · $tool", tool=profile.discovery_tool, pause=1.2),
     ]
+    # Reconnaissance: profile the target before crawling (a quick phase of its own).
+    steps.append(log("TOOL", "Profiling the target: hosts, technology and exposed paths",
+                     pause=1.2))
+    steps += _progress("recon", 100)
     steps += _progress("discovery", 45, disc_bursts[0])
     steps += [log("TOOL", line, pause=1.2) for line in profile.extra_discovery]
     steps += _progress("discovery", 100, disc_bursts[min(1, len(disc_bursts) - 1)])
@@ -192,10 +203,10 @@ def build_rest(profile: RunProfile) -> List[RunStep]:
 
     # Validate
     steps.append(RunStep("phase", name="validating", pause=0.0))
-    steps.append(say(profile.candidate_note, pause=2.0))
+    steps.append(say(profile.candidate_note, pause=1.5))
     steps.append(log("AI", profile.candidate_log, pause=1.0))
-    if first:
-        steps.append(_reveal(first))
+    if candidate and not exploit:
+        steps.append(_reveal(candidate))
     steps += _progress("validation", 20)
     steps.append(log("POLICY", "Risk: MEDIUM · approval required", tone="warn"))
     steps.append(gate(f"approval:{profile.medium.request_id}"))
@@ -206,6 +217,10 @@ def build_rest(profile: RunProfile) -> List[RunStep]:
     steps.append(gate(f"approval:{profile.high.request_id}"))
     steps.append(banner("HIGH action approved after a double check.", tone="ok"))
     steps.append(log("TOOL", "Running limited validation · 1 request"))
+    # When the approved HIGH action is the exploit, prove the impact now and reveal it here.
+    if exploit:
+        steps.extend(profile.exploit_beat)   # the beat may be empty; the reveal always runs
+        steps.append(_reveal(exploit))
     steps += _progress("validation", 100, 1)
     steps.append(say("Validation completed. Evidence recorded with sensitive values masked.",
                      tone="ok"))
@@ -216,7 +231,7 @@ def build_rest(profile: RunProfile) -> List[RunStep]:
     for i, text in enumerate(profile.analysis_steps):
         steps.append(check(text, first=(i == 0)))
         steps += _progress("analysis", min(100, 30 + i * 30))
-    for fid in rest:
+    for fid in others:
         steps.append(_reveal(fid))
     steps.append(log("AI", f"Duplicates merged · {len(fids)} unique findings"))
     steps += _progress("analysis", 100)

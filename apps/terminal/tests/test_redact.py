@@ -12,6 +12,10 @@ from reconix.store.redact import clean, redact
 
 from .support import add_finding, play_until_gate, run_to
 
+# web_url is now an unauthenticated scan (no login); the API template still needs a login,
+# so the login-gate tests target it.
+API_REQUEST = "test the API at https://api.example.com/v1"
+
 
 @pytest.mark.parametrize("text, secret", [
     ("Assess https://admin:Hunter2pw@staging.example.com now", "Hunter2pw"),
@@ -57,7 +61,7 @@ def test_credentials_typed_in_a_request_never_reach_the_saved_file():
 
 
 def test_the_prompt_refuses_text_while_a_login_is_asked_for():
-    run_to("account")
+    run_to("account", request=API_REQUEST)
     before = len(store.list_requests())
     with pytest.raises(store.StoreValidationError):
         store.say_to_assistant("session=abc123def456")

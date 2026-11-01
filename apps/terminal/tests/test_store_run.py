@@ -6,7 +6,9 @@ from reconix import store
 
 from .support import ASK_REQUEST, decide, event_kinds, play_until_gate, run_to
 
-GATES = ["scope", "plan", "account", "code", "approval:approval-001", "approval:approval-002"]
+# web_url is an unauthenticated scan: no account/code gates. The API template still logs in.
+GATES = ["scope", "plan", "approval:approval-001", "approval:approval-002"]
+API_REQUEST = "test the API at https://api.example.com/v1"
 
 
 def test_nothing_plays_before_the_run_starts():
@@ -46,14 +48,14 @@ def test_the_run_stops_at_every_gate_in_order(request_text, gates):
     assert store.display_phase() == "completed"
 
 
-@pytest.mark.parametrize("gate, phase", [
-    ("template", "planning"),
-    ("scope", "scope_pending"),
-    ("account", "waiting_account"),
-    ("approval:approval-001", "awaiting_approval"),
+@pytest.mark.parametrize("request_text, gate, phase", [
+    (ASK_REQUEST, "template", "planning"),
+    (ASK_REQUEST, "scope", "scope_pending"),
+    (API_REQUEST, "account", "waiting_account"),   # only the API template logs in
+    (ASK_REQUEST, "approval:approval-001", "awaiting_approval"),
 ])
-def test_a_waiting_gate_shows_its_waiting_phase(gate, phase):
-    run_to(gate, ASK_REQUEST)
+def test_a_waiting_gate_shows_its_waiting_phase(request_text, gate, phase):
+    run_to(gate, request_text)
     assert store.display_phase() == phase
     assert store.pipeline_stage() == "policy"
 
@@ -75,10 +77,10 @@ def test_out_of_scope_request_is_blocked_by_policy():
 
 
 def test_findings_are_revealed_as_the_run_finds_them():
-    run_to("approval:approval-001")
-    assert [f.fid for f in store.list_findings()] == ["001"]
+    run_to("approval:approval-002")       # the SQLi dump waits for a double check; nothing proven yet
+    assert [f.fid for f in store.list_findings()] == []
     run_to_end_from_here()
-    assert [f.fid for f in store.list_findings()] == ["004", "005", "001", "002", "003"]
+    assert [f.fid for f in store.list_findings()] == ["004", "001", "005", "002", "003"]
     assert store.findings_line() == "5 findings: 2 confirmed, 3 marked for review"
 
 

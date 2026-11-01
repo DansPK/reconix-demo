@@ -8,6 +8,7 @@ from reconix.store import lists
 from .support import ASK_REQUEST, TEST_PASSWORD, event_kinds, run_to
 
 MEDIUM, HIGH = "approval-001", "approval-002"
+API_REQUEST = "test the API at https://api.example.com/v1"   # the template that still signs in
 
 
 # --- template and scope ------------------------------------------------------------------
@@ -66,54 +67,48 @@ def test_policy_blocks_everything_before_the_scope_is_approved():
 
 
 # --- vault -----------------------------------------------------------------------------
-def _auth(identity="demo.tester", secret=TEST_PASSWORD):
-    return {"identity": identity, "secret": secret}
+_COOKIE = "session=abc123; Path=/"
 
 
 def test_login_only_when_asked_and_validated():
-    run_to("scope")
+    run_to("scope", API_REQUEST)                      # the API template signs in with a cookie
     with pytest.raises(store.StoreValidationError):
-        store.provide_auth(_auth())                   # not at the account gate
+        store.provide_auth({"secret": _COOKIE})       # not at the account gate
     run_to_account()
     challenge = store.current_auth_challenge()
-    assert challenge.kind == "password"               # email + password only: no code yet
-    assert [f.id for f in challenge.fields] == ["identity", "secret"]
-    for bad in [_auth(identity=""), _auth(identity="two words"), _auth(secret=""),
-                _auth(identity="u" * 65)]:
+    assert challenge.kind == "cookie"                 # a session cookie: one secret field
+    assert [f.id for f in challenge.fields] == ["secret"]
+    for bad in [{"secret": ""}, {"secret": "x" * 4097}]:
         with pytest.raises(store.StoreValidationError):
             store.provide_auth(bad)
-    store.provide_auth(_auth(identity="demo.tester"))
+    store.provide_auth({"secret": _COOKIE})
     assert store.is_authenticated() and store.has_test_account()
-    assert store.vault_scope() == "staging.example.com"
+    assert store.vault_scope() == "api.example.com"
     with pytest.raises(store.StoreValidationError):
-        store.provide_auth(_auth(identity="someone.else"))     # each step is taken once
+        store.provide_auth({"secret": _COOKIE})                # the login is taken once
 
 
-def test_the_code_is_asked_on_its_own_after_the_password():
+def test_the_cookie_login_completes_with_no_separate_code_step():
+    # The API signs in with a session cookie: one step, no one-time code afterwards. Once the
+    # cookie is given the login is done and the run plays straight on to the first approval.
     from .support import play_until_gate
-    run_to("scope")
+    run_to("scope", API_REQUEST)
     run_to_account()
-    store.provide_auth(_auth())
-    assert play_until_gate() == "code"
-    challenge = store.current_auth_challenge()
-    assert challenge.kind == "otp" and [f.id for f in challenge.fields] == ["code"]
-    assert not store.login_done()
-    for bad in ["12345", "abcdef", "", "1234567"]:
-        with pytest.raises(store.StoreValidationError):
-            store.provide_auth({"code": bad})
-    store.provide_auth({"code": "123456"})
-    assert store.is_code_verified() and store.login_done()
-    assert [e.kind for e in lists.current().vault] == ["password"]   # the code isn't kept
+    assert store.current_auth_challenge().kind == "cookie" and not store.login_done()
+    store.provide_auth({"secret": _COOKIE})
+    assert store.is_authenticated() and store.login_done()
+    assert [e.kind for e in lists.current().vault] == ["cookie"]
     with pytest.raises(store.StoreValidationError):
-        store.provide_auth({"code": "654321"})                       # once only
-    assert play_until_gate().startswith("approval:")
+        store.provide_auth({"secret": _COOKIE})                      # the login is taken once
+    assert play_until_gate() == "approval:approval-001"              # no code step in between
 
 
 @pytest.mark.parametrize("tools, kind", [
-    (["Nuclei", "OWASP ZAP"], "password+otp"),   # a test account covers the cookie tool
-    (["OWASP ZAP"], "password+otp"),
-    (["Nuclei"], "cookie"),
-    (["nmap"], ""),                              # no tool needs a login: no login steps
+    (["Nuclei", "OWASP ZAP"], ""),       # the web_url tools: an unauthenticated scan, no login
+    (["OWASP ZAP"], ""),
+    (["Postman"], "cookie"),             # the API tools still sign in with a session cookie
+    (["Nuclei", "ZAP API scan"], "cookie"),
+    (["nmap"], ""),                      # no tool needs a login: no login steps
 ])
 def test_the_scope_tools_decide_the_login(tools, kind):
     from .support import play_until_gate
@@ -126,8 +121,7 @@ def test_the_scope_tools_decide_the_login(tools, kind):
     gate = play_until_gate()
     assert gate == ("account" if kind else "approval:approval-001")
     if kind:
-        expected = "password" if kind == "password+otp" else kind
-        assert store.current_auth_challenge().kind == expected
+        assert store.current_auth_challenge().kind == kind
 
 
 def test_a_cookie_login_is_stored_for_the_api_host():
@@ -199,7 +193,7 @@ def test_high_needs_the_double_check_but_no_reason(high):
     token = store.request_confirmation(HIGH, high.command_hash)
     decision = store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token)
     assert decision.reason == "" and store.is_approved(HIGH)
-    assert "Approved: limited_validation (double-checked)" in [
+    assert "Approved: Confirm the exposure (double-checked)" in [
         e.message for e in store.list_activity()]
 
 

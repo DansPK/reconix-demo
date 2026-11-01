@@ -15,11 +15,12 @@ def _finding(severity: str, title: str = "T") -> Finding:
 def test_only_the_four_severities_are_stored():
     run_to(None)
     before = len(store.list_findings())
+    before_high = store.severity_counts().get("HIGH", 0)
     added = ingest_external([_finding("INFO", "a"), _finding("", "b"), _finding("BOGUS", "c"),
                              _finding("HIGH", "d")], prefix="AI")
     assert added == 1
     assert len(store.list_findings()) == before + 1
-    assert store.severity_counts()["HIGH"] == 1
+    assert store.severity_counts()["HIGH"] == before_high + 1
     assert set(store.severity_counts()) == {"CRITICAL", "HIGH", "MEDIUM", "LOW"}
 
 

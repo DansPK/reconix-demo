@@ -228,7 +228,7 @@ test("the selection survives a search of the table, by keyboard", async ({ page 
   await expect(pick(page).first()).toBeChecked();
 });
 
-// the two runs that saw the same Broken object-level authorization on api.example.com
+// the two runs that saw the same Broken object-level authorization on api.lumina.com
 const SHARED = ["20260930-160500-8a01_RCX-001", "20261003-101500-3ceb_RCX-002"];
 const STOPPED_EARLY = "20261001-083000-2265_RCX-003"; // stopped before its scope was approved: no manifest
 /** Click an option's visible label (its input is 1px, for screen readers) and expect it off. */
@@ -274,7 +274,7 @@ test("with evidence and LOW off the preview drops the evidence blocks and the LO
 test("a run with no saved scope is listed under Limitations as not recorded", async ({ page }) => {
   await openReports(page);
   await tickRun(page, SHARED[0]);
-  await page.getByRole("searchbox", { name: "Search saved assessments" }).fill("portal.example.net");
+  await page.getByRole("searchbox", { name: "Search saved assessments" }).fill("account.lumina.com");
   await tickRun(page, STOPPED_EARLY);
   await preview(page).click();
   const doc = frame(page);

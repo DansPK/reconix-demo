@@ -574,15 +574,15 @@ function sleep(ms: number) {
 /** Canned findings for the demo: a spread of severities across files that exist in a typical
  * JS/TS project. Everything else (snippet, review verdict, ids) is filled in by findingsFor(). */
 const DEMO_FINDINGS: Partial<Finding>[] = [
-  { path: "src/index.js", title: "SQL injection in user lookup", severity: "critical",
+  { path: "server/index.js", title: "SQL injection in catalog search", severity: "critical",
     rule_id: "javascript.express.sql-injection", cwe: "CWE-89", tools: ["semgrep"],
     start_line: 42, end_line: 42,
-    message: "User input is concatenated directly into a SQL query.",
-    snippet: "const q = `SELECT * FROM users WHERE id = ${req.query.id}`;",
+    message: "The product search term is concatenated directly into a SQL query.",
+    snippet: "const q = `SELECT id, name, price FROM products WHERE name LIKE '%${req.query.q}%'`;",
     verdict: "likely_real",
-    explanation: "The id query parameter reaches the database without escaping, so an attacker can read or modify any row.",
-    fix_recommendation: "Use a parameterised query: db.query('SELECT * FROM users WHERE id = ?', [req.query.id])." },
-  { path: "src/routes/exec.js", title: "OS command injection", severity: "critical",
+    explanation: "The q search parameter reaches the database without escaping and needs no login, so a UNION payload can read any table — including customer emails, saved cards and password hashes.",
+    fix_recommendation: "Use a parameterised query: db.all('... WHERE name LIKE ?', ['%' + req.query.q + '%'])." },
+  { path: "server/routes/exec.js", title: "OS command injection", severity: "critical",
     rule_id: "javascript.lang.command-injection", cwe: "CWE-78", tools: ["semgrep"],
     start_line: 17, end_line: 17,
     message: "Untrusted input is passed to child_process.exec.",
@@ -590,7 +590,7 @@ const DEMO_FINDINGS: Partial<Finding>[] = [
     verdict: "likely_real",
     explanation: "The host field is shelled out unescaped, letting an attacker run arbitrary commands.",
     fix_recommendation: "Use execFile with an argument array and validate the host against an allow-list." },
-  { path: "src/config.js", title: "Hard-coded API credential", severity: "high",
+  { path: "server/config.js", title: "Hard-coded API credential", severity: "high",
     rule_id: "gitleaks.generic-api-key", cwe: "CWE-798", tools: ["gitleaks"],
     start_line: 8, end_line: 8,
     message: "A secret-looking token is committed in source.",
@@ -598,7 +598,7 @@ const DEMO_FINDINGS: Partial<Finding>[] = [
     verdict: "likely_real",
     explanation: "Secrets in source are exposed to anyone with repository access and leak through history.",
     fix_recommendation: "Move the key to an environment variable and rotate the exposed one." },
-  { path: "src/views/profile.js", title: "Reflected XSS in profile page", severity: "medium",
+  { path: "server/views/profile.js", title: "Reflected XSS in profile page", severity: "medium",
     rule_id: "javascript.browser.dom-xss", cwe: "CWE-79", tools: ["semgrep"],
     start_line: 23, end_line: 23,
     message: "User input is written to innerHTML.",
@@ -606,7 +606,7 @@ const DEMO_FINDINGS: Partial<Finding>[] = [
     verdict: "likely_real",
     explanation: "The name parameter is rendered as HTML, so a crafted link can run script in the victim's session.",
     fix_recommendation: "Set textContent instead of innerHTML, or sanitise the value first." },
-  { path: "src/utils/hash.js", title: "Weak password hash (MD5)", severity: "low",
+  { path: "server/utils/hash.js", title: "Weak password hash (MD5)", severity: "low",
     rule_id: "javascript.crypto.weak-hash", cwe: "CWE-327", tools: ["semgrep"],
     start_line: 5, end_line: 5,
     message: "MD5 is used to hash passwords.",
@@ -619,20 +619,20 @@ const DEMO_FINDINGS: Partial<Finding>[] = [
 /** The secure replacement for each planted finding, as whole-line edits over the
  * Lumina sample. Keyed by the finding's file; shown as a diff and applied on "Fix". */
 const FIXES: Record<string, { start_line: number; end_line: number; replacement: string }> = {
-  // SQL injection: parameterise the query and bind the id (lines 42-43).
-  "src/index.js": { start_line: 42, end_line: 43,
-    replacement: '  const q = "SELECT * FROM users WHERE id = ?";\n  db.get(q, [req.query.id], (err, row) => {' },
+  // SQL injection: parameterise the query and bind the search term (lines 42-43).
+  "server/index.js": { start_line: 42, end_line: 43,
+    replacement: '  const q = "SELECT id, name, price FROM products WHERE name LIKE ?";\n  db.all(q, ["%" + req.query.q + "%"], (err, rows) => {' },
   // Command injection: execFile with an argument array instead of a shell string.
-  "src/routes/exec.js": { start_line: 17, end_line: 17,
+  "server/routes/exec.js": { start_line: 17, end_line: 17,
     replacement: '  require("child_process").execFile("ping", ["-c", "1", host]);' },
   // Hard-coded credential: read it from the environment.
-  "src/config.js": { start_line: 8, end_line: 8,
+  "server/config.js": { start_line: 8, end_line: 8,
     replacement: 'const STRIPE_KEY = process.env.STRIPE_KEY;' },
   // Reflected XSS: textContent escapes markup; innerHTML does not.
-  "src/views/profile.js": { start_line: 23, end_line: 23,
+  "server/views/profile.js": { start_line: 23, end_line: 23,
     replacement: "  el.textContent = params.get('name');" },
   // Weak hash: scrypt is a slow, salted KDF built into Node's crypto.
-  "src/utils/hash.js": { start_line: 5, end_line: 5,
+  "server/utils/hash.js": { start_line: 5, end_line: 5,
     replacement: '  return crypto.scryptSync(pw, "salt", 64).toString("hex");' },
 };
 

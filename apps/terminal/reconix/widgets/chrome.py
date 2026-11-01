@@ -84,6 +84,7 @@ class FlowProgress(Static):
 
     SUB_STEPS = {"detail": "findings"}    # screens shown under another step
     PASSED_IS_DONE = ("findings",)        # no settling event; done once you move past
+    LABELS = {"template": "Target"}       # display label overrides (internal key stays "template")
 
     def __init__(self, flow_name: str) -> None:
         super().__init__()
@@ -120,7 +121,7 @@ class FlowProgress(Static):
         full, compact = Text(), Text()
         for i, name in enumerate(steps):
             glyph, color = self._glyph(i, name, current, states)
-            label = name.title()
+            label = self.LABELS.get(name, name.title())
             if i == current:
                 label_style = f"bold {theme.CYAN}"
             elif glyph == "!":

@@ -4,8 +4,8 @@
   "session": "20261003-101500-3ceb",
   "label": "RCX-002",
   "assessment_id": "RCX-002",
-  "target": "api.contoso.com",
-  "target_url": "https://api.contoso.com",
+  "target": "api.lumina.com",
+  "target_url": "https://api.lumina.com",
   "target_kind": "API service",
   "template": {
     "id": "api",
@@ -14,14 +14,14 @@
   },
   "api_spec": null,
   "operator": "analyst",
-  "client": "Contoso",
+  "client": "Lumina",
   "mode": "Grey-box, Authorized",
   "methodology": [
     "OWASP API Security Top 10 (2023)",
     "OWASP WSTG"
   ],
   "report_version": "1.0",
-  "created_at": "2026-10-03T10:38:30+00:00",
+  "created_at": "2026-10-03T10:38:50+00:00",
   "status": "Stopped",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,11 +30,12 @@
   "session_closed": true,
   "run": {
     "phase": "stopped",
-    "started_at": "2026-10-03T10:39:44+00:00",
-    "finished_at": "2026-10-03T10:47:55+00:00",
+    "started_at": "2026-10-03T10:40:04+00:00",
+    "finished_at": "2026-10-03T10:48:25+00:00",
     "completed": false,
     "requests": 540,
     "progress": {
+      "recon": 100,
       "discovery": 100,
       "scanning": 100,
       "validation": 45,
@@ -76,7 +77,7 @@
   ],
   "scope": {
     "kind": "api",
-    "target_url": "https://api.contoso.com",
+    "target_url": "https://api.lumina.com",
     "assessment_type": "API",
     "status": "APPROVED",
     "allowed_actions": [
@@ -106,28 +107,28 @@
       "path": "/internal/metrics",
       "allowed": false,
       "reason": "Path outside approved scope",
-      "at": "2026-10-03T10:42:57+00:00"
+      "at": "2026-10-03T10:43:30+00:00"
     },
     {
       "method": "GET",
       "path": "/v1/orders/8842",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-03T10:45:59+00:00"
+      "at": "2026-10-03T10:46:34+00:00"
     },
     {
       "method": "GET",
       "path": "/v1/orders/8842",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-03T10:46:11+00:00"
+      "at": "2026-10-03T10:46:44+00:00"
     },
     {
       "method": "GET",
       "path": "/v1/orders/8843",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-03T10:47:34+00:00"
+      "at": "2026-10-03T10:47:58+00:00"
     }
   ],
   "approvals": [
@@ -140,8 +141,8 @@
       "path": "/v1/orders/8842",
       "purpose": "Record the normal response for the token's own order",
       "impact": "Low. One read request, no data changes",
-      "command": "GET https://api.contoso.com/v1/orders/8842 as token A",
-      "command_hash": "sha256:3c6853c49a8cdc1d3976f78c8099304fe0d8a730ade86bd22985ac1dfffb98bb"
+      "command": "GET https://api.lumina.com/v1/orders/8842 as token A",
+      "command_hash": "sha256:b036ca092336bd38dbffd0b9fab5092a39fe50c8141bf97a5dee1b6282880362"
     },
     {
       "request_id": "approval-002",
@@ -152,8 +153,8 @@
       "path": "/v1/orders/8843",
       "purpose": "Check if token A can read an order owned by account B",
       "impact": "May read synthetic test data. 1 request, no changes",
-      "command": "GET https://api.contoso.com/v1/orders/8843 as token A",
-      "command_hash": "sha256:f9fde196e2084fbe8c802d1e74738708f2699656a1ba39aee06b2e9431726621"
+      "command": "GET https://api.lumina.com/v1/orders/8843 as token A",
+      "command_hash": "sha256:2ebcdde9eb91c395d0411a6de1e435014e90c7a06bbc76bdeafca0a3afa506ea"
     }
   ],
   "decisions": [
@@ -162,16 +163,16 @@
       "decision": "APPROVED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:3c6853c49a8cdc1d3976f78c8099304fe0d8a730ade86bd22985ac1dfffb98bb",
-      "at": "2026-10-03T10:46:18+00:00"
+      "command_hash": "sha256:b036ca092336bd38dbffd0b9fab5092a39fe50c8141bf97a5dee1b6282880362",
+      "at": "2026-10-03T10:46:50+00:00"
     },
     {
       "request_id": "approval-002",
       "decision": "REJECTED",
       "operator": "analyst",
       "reason": "",
-      "command_hash": "sha256:f9fde196e2084fbe8c802d1e74738708f2699656a1ba39aee06b2e9431726621",
-      "at": "2026-10-03T10:47:38+00:00"
+      "command_hash": "sha256:2ebcdde9eb91c395d0411a6de1e435014e90c7a06bbc76bdeafca0a3afa506ea",
+      "at": "2026-10-03T10:48:01+00:00"
     }
   ],
   "findings": [
@@ -182,7 +183,7 @@
       "path": "/v1/orders/{id}",
       "validation": "CONFIRMED",
       "description": "Account A read an order owned by account B through the orders endpoint.",
-      "affected_url": "https://api.contoso.com/v1/orders/8842",
+      "affected_url": "https://api.lumina.com/v1/orders/8842",
       "impact": "Any authenticated client could read other tenants' records.",
       "remediation": "Check resource ownership on the server for every object id.",
       "tool": "ZAP API scan",
@@ -192,8 +193,9 @@
       ],
       "evidence": [
         "GET /v1/orders/8842 as token A → HTTP 200",
-        "owner: tenant_••7 · email: b•••@contoso.com"
+        "owner: tenant_••7 · email: b•••@lumina.com"
       ],
+      "evidence_unmasked": [],
       "cvss_score": 6.5,
       "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
       "category": "API",
@@ -216,12 +218,13 @@
       "path": "/docs",
       "validation": "UNCONFIRMED",
       "description": "Interactive API documentation is reachable without a login.",
-      "affected_url": "https://api.contoso.com/docs",
+      "affected_url": "https://api.lumina.com/docs",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
       "references": [],
       "evidence": [],
+      "evidence_unmasked": [],
       "cvss_score": 0.0,
       "cvss_vector": "",
       "category": "",
@@ -240,7 +243,7 @@
       "path": "/",
       "validation": "UNCONFIRMED",
       "description": "The Server header names the web server and its version.",
-      "affected_url": "https://api.contoso.com/",
+      "affected_url": "https://api.lumina.com/",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
@@ -248,6 +251,7 @@
       "evidence": [
         "Server: nginx/1.18.0"
       ],
+      "evidence_unmasked": [],
       "cvss_score": 0.0,
       "cvss_vector": "",
       "category": "",
@@ -266,12 +270,13 @@
       "path": "/",
       "validation": "UNCONFIRMED",
       "description": "Reported by nuclei.",
-      "affected_url": "https://api.contoso.com/",
+      "affected_url": "https://api.lumina.com/",
       "impact": "Review the finding and confirm its impact.",
       "remediation": "See the tool's guidance for remediation.",
       "tool": "nuclei",
       "references": [],
       "evidence": [],
+      "evidence_unmasked": [],
       "cvss_score": 0.0,
       "cvss_vector": "",
       "category": "",
@@ -286,8 +291,8 @@
   ],
   "timeline": [
     {
-      "seq": 49,
-      "at": "2026-10-03T10:38:23+00:00",
+      "seq": 50,
+      "at": "2026-10-03T10:38:41+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -296,8 +301,8 @@
       "rows": []
     },
     {
-      "seq": 50,
-      "at": "2026-10-03T10:38:26+00:00",
+      "seq": 51,
+      "at": "2026-10-03T10:38:46+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -306,38 +311,38 @@
       "rows": []
     },
     {
-      "seq": 51,
-      "at": "2026-10-03T10:38:51+00:00",
+      "seq": 52,
+      "at": "2026-10-03T10:39:14+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
-      "text": "Test the REST API at https://api.contoso.com/v1 for security issues.",
-      "tone": "default",
-      "rows": []
-    },
-    {
-      "seq": 52,
-      "at": "2026-10-03T10:39:11+00:00",
-      "type": "activity",
-      "who": "AI",
-      "kind": "line",
-      "text": "Target parsed: api.contoso.com",
+      "text": "Test the REST API at https://api.lumina.com/v1 for security issues.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 53,
-      "at": "2026-10-03T10:39:16+00:00",
-      "type": "chat",
-      "who": "reconix",
-      "kind": "text",
-      "text": "Target identified: api.contoso.com (API service).",
+      "at": "2026-10-03T10:39:31+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Target parsed: api.lumina.com",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 54,
-      "at": "2026-10-03T10:39:20+00:00",
+      "at": "2026-10-03T10:39:37+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Target identified: api.lumina.com (API service).",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 55,
+      "at": "2026-10-03T10:39:43+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -346,8 +351,8 @@
       "rows": []
     },
     {
-      "seq": 55,
-      "at": "2026-10-03T10:39:28+00:00",
+      "seq": 56,
+      "at": "2026-10-03T10:39:50+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -356,8 +361,8 @@
       "rows": []
     },
     {
-      "seq": 56,
-      "at": "2026-10-03T10:39:32+00:00",
+      "seq": 57,
+      "at": "2026-10-03T10:39:54+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -366,8 +371,8 @@
       "rows": []
     },
     {
-      "seq": 57,
-      "at": "2026-10-03T10:39:38+00:00",
+      "seq": 58,
+      "at": "2026-10-03T10:39:59+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -376,8 +381,8 @@
       "rows": []
     },
     {
-      "seq": 58,
-      "at": "2026-10-03T10:39:47+00:00",
+      "seq": 59,
+      "at": "2026-10-03T10:40:11+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -386,8 +391,8 @@
       "rows": []
     },
     {
-      "seq": 59,
-      "at": "2026-10-03T10:39:54+00:00",
+      "seq": 60,
+      "at": "2026-10-03T10:40:18+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -396,8 +401,8 @@
       "rows": []
     },
     {
-      "seq": 60,
-      "at": "2026-10-03T10:40:21+00:00",
+      "seq": 61,
+      "at": "2026-10-03T10:40:45+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -406,8 +411,8 @@
       "rows": []
     },
     {
-      "seq": 61,
-      "at": "2026-10-03T10:40:29+00:00",
+      "seq": 62,
+      "at": "2026-10-03T10:40:55+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -416,8 +421,8 @@
       "rows": []
     },
     {
-      "seq": 62,
-      "at": "2026-10-03T10:40:42+00:00",
+      "seq": 63,
+      "at": "2026-10-03T10:41:01+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -426,8 +431,8 @@
       "rows": []
     },
     {
-      "seq": 63,
-      "at": "2026-10-03T10:41:09+00:00",
+      "seq": 64,
+      "at": "2026-10-03T10:41:21+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -436,8 +441,8 @@
       "rows": []
     },
     {
-      "seq": 64,
-      "at": "2026-10-03T10:41:25+00:00",
+      "seq": 65,
+      "at": "2026-10-03T10:41:39+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -446,8 +451,8 @@
       "rows": []
     },
     {
-      "seq": 65,
-      "at": "2026-10-03T10:41:31+00:00",
+      "seq": 66,
+      "at": "2026-10-03T10:41:47+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -456,8 +461,8 @@
       "rows": []
     },
     {
-      "seq": 66,
-      "at": "2026-10-03T10:41:39+00:00",
+      "seq": 67,
+      "at": "2026-10-03T10:42:00+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -466,8 +471,18 @@
       "rows": []
     },
     {
-      "seq": 67,
-      "at": "2026-10-03T10:42:15+00:00",
+      "seq": 68,
+      "at": "2026-10-03T10:42:11+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Profiling the target: hosts, technology and exposed paths",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 69,
+      "at": "2026-10-03T10:42:44+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -489,8 +504,8 @@
       ]
     },
     {
-      "seq": 68,
-      "at": "2026-10-03T10:42:24+00:00",
+      "seq": 70,
+      "at": "2026-10-03T10:42:54+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -499,8 +514,8 @@
       "rows": []
     },
     {
-      "seq": 69,
-      "at": "2026-10-03T10:42:48+00:00",
+      "seq": 71,
+      "at": "2026-10-03T10:43:17+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -509,8 +524,8 @@
       "rows": []
     },
     {
-      "seq": 70,
-      "at": "2026-10-03T10:43:04+00:00",
+      "seq": 72,
+      "at": "2026-10-03T10:43:42+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -519,8 +534,8 @@
       "rows": []
     },
     {
-      "seq": 71,
-      "at": "2026-10-03T10:43:08+00:00",
+      "seq": 73,
+      "at": "2026-10-03T10:43:45+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -529,8 +544,8 @@
       "rows": []
     },
     {
-      "seq": 72,
-      "at": "2026-10-03T10:43:18+00:00",
+      "seq": 74,
+      "at": "2026-10-03T10:43:52+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -539,8 +554,8 @@
       "rows": []
     },
     {
-      "seq": 73,
-      "at": "2026-10-03T10:43:42+00:00",
+      "seq": 75,
+      "at": "2026-10-03T10:44:11+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -558,18 +573,18 @@
       ]
     },
     {
-      "seq": 74,
-      "at": "2026-10-03T10:43:53+00:00",
+      "seq": 76,
+      "at": "2026-10-03T10:44:18+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
-      "text": "Login needed for /v1/orders/*: a session cookie (for Nuclei, Postman and ZAP API scan)",
+      "text": "Login needed for /v1/orders/*: a session cookie (for Postman and ZAP API scan)",
       "tone": "warn",
       "rows": []
     },
     {
-      "seq": 75,
-      "at": "2026-10-03T10:44:06+00:00",
+      "seq": 77,
+      "at": "2026-10-03T10:44:30+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -578,8 +593,8 @@
       "rows": []
     },
     {
-      "seq": 76,
-      "at": "2026-10-03T10:44:18+00:00",
+      "seq": 78,
+      "at": "2026-10-03T10:44:46+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -588,8 +603,8 @@
       "rows": []
     },
     {
-      "seq": 77,
-      "at": "2026-10-03T10:44:39+00:00",
+      "seq": 79,
+      "at": "2026-10-03T10:45:06+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -598,8 +613,8 @@
       "rows": []
     },
     {
-      "seq": 78,
-      "at": "2026-10-03T10:44:44+00:00",
+      "seq": 80,
+      "at": "2026-10-03T10:45:18+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -608,8 +623,8 @@
       "rows": []
     },
     {
-      "seq": 79,
-      "at": "2026-10-03T10:45:11+00:00",
+      "seq": 81,
+      "at": "2026-10-03T10:45:48+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -618,8 +633,8 @@
       "rows": []
     },
     {
-      "seq": 80,
-      "at": "2026-10-03T10:45:21+00:00",
+      "seq": 82,
+      "at": "2026-10-03T10:45:57+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -628,8 +643,8 @@
       "rows": []
     },
     {
-      "seq": 81,
-      "at": "2026-10-03T10:45:40+00:00",
+      "seq": 83,
+      "at": "2026-10-03T10:46:18+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -638,8 +653,8 @@
       "rows": []
     },
     {
-      "seq": 82,
-      "at": "2026-10-03T10:46:23+00:00",
+      "seq": 84,
+      "at": "2026-10-03T10:46:57+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -648,8 +663,8 @@
       "rows": []
     },
     {
-      "seq": 83,
-      "at": "2026-10-03T10:46:42+00:00",
+      "seq": 85,
+      "at": "2026-10-03T10:47:20+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -658,8 +673,8 @@
       "rows": []
     },
     {
-      "seq": 84,
-      "at": "2026-10-03T10:46:51+00:00",
+      "seq": 86,
+      "at": "2026-10-03T10:47:25+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -668,8 +683,8 @@
       "rows": []
     },
     {
-      "seq": 85,
-      "at": "2026-10-03T10:47:15+00:00",
+      "seq": 87,
+      "at": "2026-10-03T10:47:42+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -678,8 +693,8 @@
       "rows": []
     },
     {
-      "seq": 86,
-      "at": "2026-10-03T10:47:45+00:00",
+      "seq": 88,
+      "at": "2026-10-03T10:48:07+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -688,8 +703,8 @@
       "rows": []
     },
     {
-      "seq": 87,
-      "at": "2026-10-03T10:48:01+00:00",
+      "seq": 89,
+      "at": "2026-10-03T10:48:32+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -698,8 +713,8 @@
       "rows": []
     },
     {
-      "seq": 88,
-      "at": "2026-10-03T10:48:06+00:00",
+      "seq": 90,
+      "at": "2026-10-03T10:48:39+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -708,8 +723,8 @@
       "rows": []
     },
     {
-      "seq": 89,
-      "at": "2026-10-03T10:48:10+00:00",
+      "seq": 91,
+      "at": "2026-10-03T10:48:43+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -720,9 +735,9 @@
   ],
   "requests": [
     {
-      "text": "Test the REST API at https://api.contoso.com/v1 for security issues.",
-      "at": "2026-10-03T10:38:39+00:00"
+      "text": "Test the REST API at https://api.lumina.com/v1 for security issues.",
+      "at": "2026-10-03T10:39:01+00:00"
     }
   ],
-  "saved_at": "2026-10-03T10:48:22+00:00"
+  "saved_at": "2026-10-03T10:49:00+00:00"
 }

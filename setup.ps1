@@ -4,9 +4,10 @@
 #   .\setup.ps1 tui      the terminal TUI            (interactive)
 #   .\setup.ps1 web      the web dashboard           http://127.0.0.1:3100
 #   .\setup.ps1 site     the public website          http://localhost:3000
+#   .\setup.ps1 store    the Lumina storefront       http://localhost:5173
 #   .\setup.ps1 scanner  the VS Code scanner server  http://127.0.0.1:7357 (token test-token)
 #   .\setup.ps1 vscode   build + install the VS Code extension
-#   .\setup.ps1 reset    restore the Lumina sample app to its original vulnerable state
+#   .\setup.ps1 reset    restore the Lumina storefront from apps\lumina-site.zip (after a fix demo)
 #
 # The TUI, web, site and scanner each take over a terminal, so run them in separate terminals.
 # Everything runs locally on bundled sample data - no accounts, no keys.
@@ -28,14 +29,16 @@ function Usage {
     }
 }
 
-# apps\Lumina is gitignored (edited during demos); on a fresh clone it is missing,
-# so extract the tracked pristine copy. '.\setup.ps1 reset' re-extracts it on demand.
-function Ensure-Lumina {
-    $dir = Join-Path $Root "apps\Lumina"
-    $zip = Join-Path $Root "apps\lumina.zip"
-    if ((Test-Path $dir) -or -not (Test-Path $zip)) { return }
-    Write-Host "Extracting the Lumina sample app (apps\Lumina)..."
-    Expand-Archive -Path $zip -DestinationPath (Join-Path $Root "apps") -Force
+# The storefront (the scan target; planted vulns in apps\lumina-site\server) is gitignored because
+# the VS Code demo edits it when you "Fix" a finding. The pristine copy is the tracked
+# apps\lumina-site.zip; extract it on a fresh clone, and '.\setup.ps1 reset' re-extracts on demand.
+$ScanTarget = Join-Path $Root "apps\lumina-site"
+$LuminaZip  = Join-Path $Root "apps\lumina-site.zip"
+
+function Ensure-Store {
+    if ((Test-Path $ScanTarget) -or -not (Test-Path $LuminaZip)) { return }
+    Write-Host "Extracting the Lumina storefront (apps\lumina-site)..."
+    Expand-Archive -Path $LuminaZip -DestinationPath (Join-Path $Root "apps") -Force
 }
 
 function Need-NodeModules($dir) {
@@ -73,14 +76,14 @@ function Invoke-Vscode {
     Write-Host "`n==> Done"
     Write-Host "Scanner server: $serverUrl  (token: $token)"
     Write-Host "Start it:       .\setup.ps1 scanner"
-    Write-Host "Sample app:     open apps\Lumina\ in VS Code (one issue per file)"
+    Write-Host "Scan target:    open apps\lumina-site\ in VS Code (planted issues in apps\lumina-site\server)"
     Write-Host 'Then in VS Code: Reload Window -> shield icon -> "Scan with Reconix".'
 
-    # Open Lumina as its OWN window. apps\Lumina is gitignored and the scanner honours
-    # .gitignore, so scanning the repo-root window would skip it (no findings).
+    # Open the storefront as its OWN window so the scan sees its source, including the planted
+    # vulnerable backend in apps\lumina-site\server.
     if (Get-Command code -ErrorAction SilentlyContinue) {
-        Write-Host "Opening apps\Lumina in VS Code (scan from this window)..."
-        code (Join-Path $Root "apps\Lumina")
+        Write-Host "Opening apps\lumina-site in VS Code (scan from this window)..."
+        code $ScanTarget
     }
 }
 
@@ -107,7 +110,7 @@ function Update-CodeSettings($path, $url, $token) {
 }
 
 switch ($Command) {
-    { $_ -in "tui","web","site","scanner","vscode","setup" } { Ensure-Lumina }
+    { $_ -in "store","scanner","vscode","setup" } { Ensure-Store }
 }
 
 switch ($Command) {
@@ -123,15 +126,15 @@ switch ($Command) {
     }
     "web"     { Need-NodeModules (Join-Path $Tui "web"); Push-Location (Join-Path $Tui "web"); npm run dev; break }
     "site"    { Need-NodeModules $Site; Push-Location $Site; npm run dev; break }
+    "store"   { Need-NodeModules $ScanTarget; Push-Location $ScanTarget; npm run dev; break }
     "scanner" { Need-NodeModules $Ext;  Push-Location $Ext;  npm run server; break }
     { $_ -in "vscode","setup" } { Invoke-Vscode; break }
     { $_ -in "reset","reset-lumina" } {
-        $zip = Join-Path $Root "apps\lumina.zip"
-        if (-not (Test-Path $zip)) { Write-Error "setup.ps1: missing apps\lumina.zip"; exit 1 }
-        $dir = Join-Path $Root "apps\Lumina"
-        if (Test-Path $dir) { Remove-Item -Recurse -Force $dir }
-        Expand-Archive -Path $zip -DestinationPath (Join-Path $Root "apps") -Force
-        Write-Host "Lumina reset to the original vulnerable sources (apps\Lumina)."
+        # Restore the storefront from the pristine zip after a "Fix" + rescan demo (overwrites
+        # source files in place; node_modules, which isn't in the zip, is left alone).
+        if (-not (Test-Path $LuminaZip)) { Write-Error "setup.ps1: missing apps\lumina-site.zip"; exit 1 }
+        Expand-Archive -Path $LuminaZip -DestinationPath (Join-Path $Root "apps") -Force
+        Write-Host "Lumina storefront reset to its original sources (apps\lumina-site)."
         Write-Host "Re-run the scan to see all findings again."
         break
     }

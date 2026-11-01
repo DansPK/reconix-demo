@@ -70,7 +70,7 @@ def test_json_report_is_written_and_recorded(reports_dir):
     assert shown == str(path)
     data = json.loads(path.read_text())
     assert data["assessment_id"] == "RCX-001"
-    assert [f["id"] for f in data["findings"]] == ["004", "005", "001", "002", "003"]
+    assert [f["id"] for f in data["findings"]] == ["004", "001", "005", "002", "003"]
     assert data["blocked_requests"] == [
         {"request": "GET /admin", "reason": "Path outside approved scope"}]
     assert [a["risk"] for a in data["approvals"]] == ["MEDIUM", "HIGH"]
@@ -102,9 +102,10 @@ def test_docx_report_has_every_section(reports_dir, monkeypatch):
                             "3 Approved scope & limitations", "4 Detailed findings",
                             "003 · Session cookie missing SameSite"]     # worst first
     assert [h for h in headings if h[0].isdigit() and " · " in h] == [
-        "003 · Session cookie missing SameSite", "004 · SQL injection in product search",
+        "003 · Session cookie missing SameSite", "004 · SQL injection in catalog search",
+        "001 · Unauthenticated access to order records",
         "005 · Outdated JavaScript dependency with a known CVE",
-        "001 · Broken object-level authorization", "002 · Reflected input in search page"]
+        "002 · Reflected input in search page"]
     assert headings[-3:] == ["5 Policy & governance", "Blocked by policy · 1",
                              "Human approvals · 2"]
     html = render_html(store.report_data())                 # the PDF has the same headings
@@ -118,10 +119,10 @@ def test_docx_report_has_every_section(reports_dir, monkeypatch):
     assert "References: OWASP A01:2021" in text
     assert "CONFIDENTIAL — AUTHORIZED RECIPIENTS ONLY" in text
     assert [["Critical", "High", "Medium", "Low", "Total"],
-            ["2", "1", "2", "0", "5"]] in tables                            # severity counts
+            ["2", "2", "1", "0", "5"]] in tables                            # severity counts
     summary = next(t for t in tables if t[0] == ["ID", "Finding", "Severity", "CVSS", "Status",
                                                   "Category"])
-    assert [row[0] for row in summary[1:]] == ["003", "004", "005", "001", "002"]
+    assert [row[0] for row in summary[1:]] == ["003", "004", "001", "005", "002"]
     scope = dict(next(t for t in tables if t[0][0] == "Approval status"))
     assert scope["Approval status"] == "Approved" and scope["Excluded paths"] == "/admin"
     assert scope["Standards"] == "OWASP WSTG · OWASP Top 10 (2021)"
@@ -160,12 +161,12 @@ def test_a_value_the_docx_cannot_hold_is_the_stores_verdict(tmp_path):
 def test_report_data_carries_cvss_category_and_engagement_metadata():
     run_to(None)
     data = store.report_data()
-    assert data["client"] == "Example"                   # derived from staging.example.com
+    assert data["client"] == "Lumina"                    # derived from www.lumina.com
     assert data["mode"] == "Grey-box, Authorized"
     assert data["methodology"] == ["OWASP WSTG", "OWASP Top 10 (2021)"]
     assert data["window"]["started"] and data["window"]["finished"]
     first = next(f for f in data["findings"] if f["id"] == "001")
-    assert first["cvss_score"] == 6.5
+    assert first["cvss_score"] == 7.5
     assert first["cvss_vector"].startswith("CVSS:3.1/")
     assert first["category"] == "Web App"
     assert first["cwe"] == ["CWE-639"]
@@ -178,10 +179,10 @@ def test_the_html_the_pdf_prints_is_a_full_styled_document():
     assert text.startswith("<!doctype html>")
     assert "Security Assessment Report" in text          # masthead title
     assert "RCX-001" in text                         # engagement id
-    assert "Broken object-level authorization" in text   # a finding
+    assert "Unauthenticated access to order records" in text   # a finding
     assert "Executive summary" in text and "Detailed findings" in text
-    assert "CVSS 6.5" in text                             # CVSS on the finding
-    assert "OWASP WSTG" in text and "Example" in text     # methodology + client cover
+    assert "CVSS 7.5" in text                             # CVSS on the finding
+    assert "OWASP WSTG" in text and "Lumina" in text      # methodology + client cover
     assert "•••" in text                                  # evidence stays masked
 
 

@@ -6,7 +6,7 @@ from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 
 SPEC = Template("source", "Source Code", "Static review of a repository",
                 target_hint="a git repo URL or a local path",
-                example="https://git.example.com/acme/app.git")
+                example="https://git.lumina.com/lumina/app.git")
 
 
 def build_scope(parsed: ParsedTarget) -> ScopeManifest:

@@ -47,7 +47,7 @@ async def test_attach_a_spec_from_the_scope_review(app, tmp_path):
         assert isinstance(app.screen, OpenApiForm)
         field = app.screen.query_one("#spec", Input)
         assert field.placeholder == (
-            "~/specs/openapi.yaml or https://api.example.com/openapi.json")
+            "~/specs/openapi.yaml or https://api.lumina.com/openapi.json")
         field.value = str(path)
         app.screen.query_one("#submit").press()
         await settle(pilot, 8)
@@ -207,7 +207,7 @@ async def test_the_form_reads_as_planned(app):
         assert str(form.query_one(".dialog").border_title) == "⇡ API TEMPLATE: BASE URL AND SPEC"
         base = form.query_one("#base_url", Input)
         assert base.value == "https://api.example.com"
-        assert base.placeholder == "https://api.example.com"
+        assert base.placeholder == "https://api.lumina.com"
         labels = [str(label.render()) for label in form.query(".field-label")]
         assert labels == ["API base URL", "OpenAPI spec (optional)"]
         assert str(form.query_one("#submit").label) == "Save"

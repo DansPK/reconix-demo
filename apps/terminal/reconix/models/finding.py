@@ -18,6 +18,7 @@ class Finding:
     tool: str
     references: List[str] = field(default_factory=list)
     evidence: List[str] = field(default_factory=list)   # already masked
+    evidence_unmasked: List[str] = field(default_factory=list)  # demo-only raw values, shown on "unmask"
     cvss_score: float = 0.0        # CVSS v3.1 base score; 0.0 means "not scored"
     cvss_vector: str = ""          # e.g. "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N"
     category: str = ""             # Web App | API | Network | Secret | Dependency | …

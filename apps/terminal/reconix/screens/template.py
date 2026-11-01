@@ -51,7 +51,7 @@ def _request_message() -> List[UserMessage]:
 
 class TemplateScreen(ReconixScreen):
     flow_name = "template"
-    mode_name = "TEMPLATE"
+    mode_name = "TARGET"
 
     BINDINGS = [
         Binding("enter", "choose", "select", show=False),
@@ -90,7 +90,7 @@ class TemplateScreen(ReconixScreen):
     def _compose_pick(self) -> ComposeResult:
         yield _ai_label("pick the kind of target, then type it · you approve the scope "
                         "before anything runs")
-        yield Question("Template", "Which kind of target?", _template_choices(),
+        yield Question("Target", "Which kind of target?", _template_choices(),
                        hint=menu_hint("go back"), typing=False, chat=False,
                        menu_id="template-menu")
         with Vertical(id="target-row") as row:
@@ -108,7 +108,7 @@ class TemplateScreen(ReconixScreen):
                         "· it fits more than one template")
         choices = _template_choices(assessment.template_id)
         default = next((i for i, c in enumerate(choices) if c.recommended), 0)
-        yield Question("Template", "Which kind of target is it?", choices, default=default,
+        yield Question("Target", "Which kind of target is it?", choices, default=default,
                        hint=menu_hint("decide later"), typing=False, menu_id="template-menu")
 
     def _compose_busy(self) -> ComposeResult:
@@ -167,14 +167,14 @@ class TemplateScreen(ReconixScreen):
         yield from self._manifest_panel(approved=True)
         yield Question("Scope", "The scope is locked. Review the test plan?",
                        [Choice("plan", "Review the test plan",
-                               "Every phase, the login it may need, and the risky steps.",
+                               "Every phase and the risky steps it will ask you to approve.",
                                recommended=True)],
                        hint=menu_hint("go back"), typing=False, menu_id="scope-menu")
 
     def _compose_stopped(self) -> ComposeResult:
         yield from _request_message()
         yield _ai_label(f"this assessment stopped before testing: {store.get_run().stopped}")
-        yield Question("Template", "Start again?",
+        yield Question("Target", "Start again?",
                        [Choice("new", "Start a new assessment",
                                "Pick a template and type a target.", recommended=True),
                         Choice("start", "Back to the start")],
@@ -216,7 +216,9 @@ class TemplateScreen(ReconixScreen):
              "unspec": self.app.remove_api_spec,
              "edit": self.app.edit_scope, "reject": self.app.reject_scope}[choice]()
         elif state == "approved":
-            self.app.goto("plan")
+            # "Review the test plan": run on from the approved scope; the run advances to the
+            # plan gate, which opens the Plan screen.
+            self.app.resume_run()
         elif state == "stopped" and choice == "new":
             self.app.new_assessment()
         elif state == "stopped":

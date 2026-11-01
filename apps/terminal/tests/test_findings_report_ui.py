@@ -27,7 +27,7 @@ async def test_findings_appear_as_the_run_reveals_them(app):
         run_to(None)
         app.refresh_view()
         await settle(pilot)
-        assert row_ids(app) == ["004", "005", "001", "002", "003"]
+        assert row_ids(app) == ["004", "001", "005", "002", "003"]
 
 
 async def test_filter_and_sort(app):
@@ -39,7 +39,7 @@ async def test_filter_and_sort(app):
         assert isinstance(app.screen, ChoiceScreen)
         await pilot.press("down", "down", "enter")                     # Medium
         await settle(pilot)
-        assert row_ids(app) == ["001", "002"]
+        assert row_ids(app) == ["002"]                                 # only 002 is Medium now
         app.findings_filter = "all"
         await pilot.press("s")                                         # severity → validation
         await settle(pilot)
@@ -62,22 +62,22 @@ async def test_triage_from_the_list_and_the_detail(app):
     run_to(None)
     async with app.run_test(size=SIZE) as pilot:
         await show(app, pilot, "findings")
-        await pilot.press("down", "t")                                 # 005 (2nd row)
+        await pilot.press("down", "t")                                 # 001 (2nd row)
         await settle(pilot)
         assert isinstance(app.screen, ChoiceScreen)
         await pilot.press("4")                                         # False positive
         await settle(pilot)
-        assert store.get_finding("005").status == "false-positive"
+        assert store.get_finding("001").status == "false-positive"
         assert isinstance(app.screen, FindingsListScreen)
-        await pilot.press("enter")                                     # open 005
+        await pilot.press("enter")                                     # open 001
         await settle(pilot)
         assert isinstance(app.screen, FindingDetailScreen)
-        assert app.selected_finding == "005"
+        assert app.selected_finding == "001"
         await pilot.press("t")
         await settle(pilot)
         await pilot.press("2")                                         # Fixed
         await settle(pilot)
-        assert store.get_finding("005").status == "fixed"
+        assert store.get_finding("001").status == "fixed"
         assert isinstance(app.screen, FindingDetailScreen)
 
 
@@ -88,7 +88,7 @@ async def test_detail_steps_through_the_list_order(app):
         await settle(pilot)
         await pilot.press("right_square_bracket")
         await settle(pilot)
-        assert app.selected_finding == "005"
+        assert app.selected_finding == "001"
         await pilot.press("left_square_bracket", "left_square_bracket")
         await settle(pilot)
         assert app.selected_finding == "004"                           # no wrap-around

@@ -50,6 +50,11 @@ RESERVED_DOMAINS = ("example.com", "example.org", "example.net",
                     "fabrikam.com", "fabrikam.org", "fabrikam.net",
                     "northwind.com", "northwind.org", "northwind.net",
                     "lumina.com")   # the demo's own showcase target
+# Consumer email providers that appear ONLY inside finding 004's fabricated breach sample
+# (made-up customers with made-up local parts). They are real domains but name no real person
+# or assessment target, so the leaked-data table can look realistic without the host guard
+# flagging them; any other real host in a saved copy still fails the check below.
+DEMO_LEAK_DOMAINS = ("gmail.com", "yahoo.com", "outlook.com", "hotmail.com")
 RESERVED_NETWORKS = [ipaddress.ip_network(n) for n in (
     "192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24",   # RFC 5737 documentation
     "10.0.0.0/8", "127.0.0.0/8",                           # private, loopback
@@ -96,7 +101,10 @@ def test_every_value_is_in_its_allowed_set(completed):
     assert [a.risk for a in approvals] == ["MEDIUM", "HIGH"]
     assert len({a.request_id for a in approvals}) == len(approvals)
     statuses = {task.key: task.status for task in store.plan_tasks()}
-    assert statuses.pop("report") == "active"            # done once a report is exported
+    # web_url's plan ends at validation (recon/discovery/scanning/validation); the other
+    # templates still plan the analysis + report tail, with report active until it is exported.
+    if template_id != "web_url":
+        assert statuses.pop("report") == "active"
     assert set(statuses.values()) == {"done"}
 
 
@@ -231,7 +239,7 @@ def _is_reserved(host: str) -> bool:
     except ValueError:
         if host.lower().endswith(_FILES) or host in _NOT_HOSTS:
             return True                                   # a file name or an id, not a host
-        return host.lower().endswith(RESERVED_DOMAINS)
+        return host.lower().endswith(RESERVED_DOMAINS + DEMO_LEAK_DOMAINS)
     return any(address in network for network in RESERVED_NETWORKS)
 
 
@@ -241,6 +249,19 @@ def test_saved_copy_names_only_reserved_hosts_and_no_secret(completed):
     hosts = {match.group(1) for match in _HOST.finditer(text)}
     strange = sorted(h for h in hosts if not _is_reserved(h))
     assert not strange, strange
+
+
+def test_sqli_dump_is_masked_in_saved_copy_and_report_but_raw_only_for_unmask():
+    run_to(None)                                     # the default demo: the Lumina web_url run
+    finding = store.get_finding("004")
+    assert finding.evidence and finding.evidence_unmasked
+    masked, raw = "\n".join(finding.evidence), "\n".join(finding.evidence_unmasked)
+    assert "•" in masked and "4532 9859 9256 5466" not in masked   # values are hidden
+    assert "4532 9859 9256 5466" in raw and "sophea_chan@gmail.com" in raw
+    row = next(f for f in snapshot(lists.current())["findings"] if f["id"] == "004")
+    assert row["evidence_unmasked"]                  # the dashboard can reveal it
+    report = next(f for f in store.report_data()["findings"] if f["id"] == "004")
+    assert "evidence_unmasked" not in report         # the PDF/DOCX report stays masked
 
 
 def test_client_label_reads_well(completed):

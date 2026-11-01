@@ -31,10 +31,12 @@ On **Windows**, use the PowerShell launcher with the same subcommands: `.\setup.
 - **`apps/terminal/`** — the terminal TUI (`python -m reconix`, a scripted assessment) and the
   web dashboard (Next.js, reads `web/sample-data/`, no sign-in).
 - **`apps/scanner/`** — the VS Code extension plus a bundled **Reconix scanner server**
-  (`npm run server`, token `test-token`). Scan the sample **`apps/Lumina/`** app (one issue per
-  file): open it, click the shield → "Scan with Reconix", and the findings land on their lines.
+  (`npm run server`, token `test-token`). Scan the **`apps/lumina-site/`** storefront: open it,
+  click the shield → "Scan with Reconix", and the findings land on their lines.
 - **`apps/public-web/`** — the public Reconix marketing site (Next.js). `./setup.sh site`.
-- **`apps/Lumina/`** — a small, intentionally vulnerable sample app, the scan target. It is
-  gitignored and extracted from `apps/lumina.zip` on first run; `./setup.sh reset` restores it.
+- **`apps/lumina-site/`** — the Lumina storefront (React/Vite), the demo target. It runs offline
+  on mock data (`npm run dev`); its planted vulnerable backend lives in `apps/lumina-site/server/`.
+  The folder is gitignored (the VS Code demo edits it); the pristine copy is `apps/lumina-site.zip`,
+  extracted on first run, and `./setup.sh reset` re-extracts it to undo a fix/rescan.
 
 Each app's own README has the detail.

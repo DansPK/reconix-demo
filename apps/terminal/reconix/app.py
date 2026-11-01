@@ -55,6 +55,7 @@ class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
     def __init__(self) -> None:
         super().__init__()
         self.selected_finding: str = ""          # finding id shown on the Detail screen
+        self.finding_unmasked: bool = False      # Detail screen: raw evidence revealed (demo)
         self.pending_prompt: str = ""            # draft for the Start prompt ("Chat about this")
         self.template_pick: Optional[str] = None  # template chosen with /template <id>
         self.findings_filter: str = "all"        # Findings list view (kept across screens)

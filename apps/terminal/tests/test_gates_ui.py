@@ -13,6 +13,8 @@ from .support import (
     SIZE, TEST_PASSWORD, auth_values, event_kinds, pass_gate, run_ui_to, settle,
 )
 
+API_REQUEST = "test the API at https://api.example.com/v1"   # the template that still signs in
+
 
 def screen_text(app) -> str:
     return " ".join(str(w.render()) for w in app.screen.query(Static))
@@ -20,7 +22,7 @@ def screen_text(app) -> str:
 
 async def test_run_plan_starts_testing_and_opens_execution(app):
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, "plan")
+        await run_ui_to(app, pilot, "plan", request=API_REQUEST)   # the API run needs a login
         assert isinstance(app.screen, PlanScreen)
         assert store.phase_progress()["discovery"] == 0
         await pilot.press("1")                                  # Run plan
@@ -32,11 +34,11 @@ async def test_run_plan_starts_testing_and_opens_execution(app):
 
 async def test_the_login_form_saves_and_clears_its_secrets(app):
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, "account")
+        await run_ui_to(app, pilot, "account", request=API_REQUEST)
         form = app.screen
         assert isinstance(form, LoginForm)
-        assert form.query_one("#secret", Input).password          # masked
-        assert not form.query("#code")                             # no code with the password
+        assert form.query_one("#secret", Input).password          # masked cookie
+        assert [w.id for w in form.query(Input)] == ["secret"]     # cookie: one field, no code
         for field_id, value in auth_values(store.current_auth_challenge()).items():
             form.query_one(f"#{field_id}", Input).value = value
         inputs = list(form.query(Input))
@@ -44,37 +46,37 @@ async def test_the_login_form_saves_and_clears_its_secrets(app):
         await settle(pilot)
         assert store.is_authenticated()
         assert all(widget.value == "" for widget in inputs)       # cleared on close
-        assert store.waiting_gate() == "code"
-        assert isinstance(app.screen, LoginForm)                   # then the code, on its own
-        assert [w.id for w in app.screen.query(Input)] == ["code"]
+        assert store.waiting_gate() == "approval:approval-001"     # plays on; no code step
+        assert isinstance(app.screen, ApprovalScreen)              # straight to the MEDIUM approval
         assert TEST_PASSWORD not in screen_text(app)
 
 
-async def test_the_code_form_asks_only_for_the_code_then_plays_on(app):
+async def test_the_cookie_login_plays_on_without_a_code_step(app):
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, "code")
+        await run_ui_to(app, pilot, "account", request=API_REQUEST)
         assert isinstance(app.screen, LoginForm)
-        app.screen.query_one("#code", Input).value = "123456"
+        assert [w.id for w in app.screen.query(Input)] == ["secret"]   # just the cookie, no code
+        app.screen.query_one("#secret", Input).value = "session=abc123; Path=/"
         app.screen.query_one("#submit").press()
         await settle(pilot)
-        assert store.is_code_verified()
-        assert isinstance(app.screen, ApprovalScreen)             # played on to MEDIUM
+        assert store.is_authenticated()
+        assert isinstance(app.screen, ApprovalScreen)             # played on to MEDIUM; no code
 
 
-async def test_a_wrong_code_keeps_the_form_open(app):
+async def test_a_bad_cookie_keeps_the_form_open(app):
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, "code")
-        app.screen.query_one("#code", Input).value = "12ab"
+        await run_ui_to(app, pilot, "account", request=API_REQUEST)
+        app.screen.query_one("#secret", Input).value = ""          # an empty cookie is refused
         app.screen.query_one("#submit").press()
         await settle(pilot)
         assert isinstance(app.screen, LoginForm)
-        assert "6 digits" in str(app.screen.query_one("#form-error", Static).render())
-        assert not store.is_code_verified()
+        assert "session cookie" in str(app.screen.query_one("#form-error", Static).render()).lower()
+        assert not store.is_authenticated()
 
 
 async def test_cancelled_login_pauses_and_enter_on_execution_reopens_it(app):
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, "account")
+        await run_ui_to(app, pilot, "account", request=API_REQUEST)
         await pilot.press("escape")
         await settle(pilot)
         assert isinstance(app.screen, ExecutionScreen)
@@ -204,9 +206,10 @@ async def test_scope_text_with_markup_is_shown_literally(app):
     async with app.run_test(size=SIZE) as pilot:
         await run_ui_to(app, pilot, "scope")
         store.edit_scope(tools=["[/oops] ZAP", "[bold]x"])
-        await pass_gate(app, pilot)                             # approve
+        await pass_gate(app, pilot)                             # approve the scope
+        await pass_gate(app, pilot)                             # review the test plan
         await pass_gate(app, pilot)                             # run the plan
-        await pilot.press("escape")                             # leave the login for later
+        await pilot.press("escape")                             # defer the approval for later
         await settle(pilot)
         assert isinstance(app.screen, ExecutionScreen)
         subtitle = app.screen.query_one(RunLog).border_subtitle     # stored escaped

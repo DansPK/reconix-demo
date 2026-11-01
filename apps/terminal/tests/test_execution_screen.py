@@ -56,7 +56,7 @@ async def test_the_spinner_shows_while_running_and_hides_when_paused(app):
         await show(app, pilot, "execution")
         spinner = app.screen.query_one("#exec-spinner", Spinner)
         assert spinner.display
-        assert "Validate access controls…" in str(spinner.render())
+        assert "Finding validation…" in str(spinner.render())
         assert "^C to stop" in str(spinner.render())
         play_until_gate()                                    # the HIGH approval
         app.refresh_view()

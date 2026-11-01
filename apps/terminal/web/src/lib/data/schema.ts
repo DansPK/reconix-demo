@@ -32,6 +32,7 @@ export const FindingSchema = z.object({
   references: z.array(text),
   evidence: z.array(text),
   // Enriched fields (older saved files predate them, so each has a default).
+  evidence_unmasked: z.array(text).default([]),   // raw values, revealed by the detail "unmask" toggle
   cvss_score: z.number().default(0),
   cvss_vector: text.default(""),
   category: text.default(""),

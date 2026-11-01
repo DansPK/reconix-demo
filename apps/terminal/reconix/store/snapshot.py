@@ -135,6 +135,7 @@ def _findings(assessment: Assessment) -> List[Dict[str, Any]]:
         "validation": f.validation, "description": f.description,
         "affected_url": f.affected_url, "impact": f.impact, "remediation": f.remediation,
         "tool": f.tool, "references": list(f.references), "evidence": list(f.evidence),
+        "evidence_unmasked": list(f.evidence_unmasked),
         "cvss_score": f.cvss_score, "cvss_vector": f.cvss_vector, "category": f.category,
         "cwe": f.cwe, "owasp": f.owasp, "cve": f.cve,
         "status": f.status, "severity_override": f.severity_override,

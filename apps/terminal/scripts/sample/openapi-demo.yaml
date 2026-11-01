@@ -2,9 +2,9 @@ openapi: 3.0.3
 info:
   title: Orders API
   version: 1.2.0
-  description: A small demo specification for api.example.com (fake data only).
+  description: A small demo specification for api.lumina.com (fake data only).
 servers:
-  - url: https://api.example.com/v1
+  - url: https://api.lumina.com/v1
 paths:
   /orders:
     get:

@@ -58,7 +58,7 @@ async def test_chat_about_this_opens_the_prompt_with_context(app):
         assert isinstance(app.screen, StartScreen)
         box = app.screen.query_one(PromptBox)
         assert box.input.value == ("About Baseline request (read-only) on "
-                                   "staging.example.com: ")
+                                   "www.lumina.com: ")
         assert "approval.chat" in event_kinds()
 
 

@@ -32,9 +32,9 @@ class OpenApiForm(FormScreen):
         scope = store.get_scope()
         return [
             FormField("base_url", "API base URL", value=scope.target_url if scope else "",
-                      placeholder="https://api.example.com"),
+                      placeholder="https://api.lumina.com"),
             FormField("spec", "OpenAPI spec (optional)",
-                      placeholder="~/specs/openapi.yaml or https://api.example.com/openapi.json"),
+                      placeholder="~/specs/openapi.yaml or https://api.lumina.com/openapi.json"),
         ]
 
     def note(self) -> Optional[Text]:

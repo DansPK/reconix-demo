@@ -4,14 +4,16 @@ Every typed line after the run is a chat turn about that same assessment, with i
 and context. A new assessment starts only with /new or /template.
 """
 
-import pytest
-
 from reconix import store
 from reconix.store import replies
 from reconix.store.snapshot import uid_for
 from reconix.widgets import PromptBox
 
 from .support import SIZE, run_ui_to, settle, type_request
+
+# web_url is now an unauthenticated scan (no login); the API template still needs a login,
+# so the login-gate test targets it.
+API_REQUEST = "test the API at https://api.example.com/v1"
 
 
 def _uid() -> str:
@@ -147,17 +149,19 @@ async def test_c_on_finding_detail_drafts_about_the_finding(app):
 
 
 # --- stopped at the login: a pasted password never reaches the chat ---------------------------
-@pytest.mark.parametrize("gate", ["account", "code"])
-async def test_password_pasted_after_a_stop_at_the_login_is_refused(
-        app, monkeypatch, gate):
+# No template needs a password login now (the API template's login is a cookie, with no
+# one-time code), so the OTP "code" gate is unreachable in the demo; the account login is the
+# one gate left to exercise this at.
+async def test_password_pasted_after_a_stop_at_the_login_is_refused(app, monkeypatch):
     from reconix.store import lists, persist
 
     from .support import TEST_PASSWORD, screen_text
 
+    gate = "account"
     warnings = []
     monkeypatch.setattr(app, "notify", lambda msg, **kw: warnings.append(str(msg)))
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, gate)
+        await run_ui_to(app, pilot, gate, request=API_REQUEST)
         store.stop_run()
         assert store.get_run().stopped and store.get_run().stopped_at_gate == gate
         chat_before = len(store.list_chat())

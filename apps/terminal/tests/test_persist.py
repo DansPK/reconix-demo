@@ -51,8 +51,8 @@ def test_a_finished_run_has_findings_decisions_verdicts_and_plan():
     assert [f["severity"] for f in data["findings"]] == [f.severity for f in store.list_findings()]
     assert {d["decision"] for d in data["decisions"]} == {"APPROVED"}
     assert any(not v["allowed"] for v in data["verdicts"])
-    assert [t["status"] for t in data["plan"]][:4] == ["done"] * 4
-    assert data["login"] == {"kind": "password+otp", "provided": True}
+    assert [t["status"] for t in data["plan"]] == ["done"] * 4   # web_url plans 4 phases
+    assert data["login"] == {"kind": "", "provided": False}      # unauthenticated web scan
     seqs = [row["seq"] for row in data["timeline"]]
     assert seqs == sorted(seqs) and len(seqs) > 10
 
@@ -66,7 +66,7 @@ def test_a_pending_high_approval_is_named():
         decide(gate)
     store.autosave()
     data = load(saved_files()[0])
-    assert data["waiting_for"] == "HIGH approval for limited_validation"
+    assert data["waiting_for"] == "HIGH approval for Confirm the exposure"
 
 
 def test_no_secret_reaches_the_saved_file():

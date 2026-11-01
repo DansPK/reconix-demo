@@ -4,9 +4,10 @@
 #   ./setup.sh tui      the terminal TUI            (interactive)
 #   ./setup.sh web      the web dashboard           http://127.0.0.1:3100
 #   ./setup.sh site     the public website          http://localhost:3000
+#   ./setup.sh store    the Lumina storefront       http://localhost:5173
 #   ./setup.sh scanner  the VS Code scanner server  http://127.0.0.1:7357 (token test-token)
 #   ./setup.sh vscode   build + install the VS Code extension
-#   ./setup.sh reset    restore the Lumina sample app to its original vulnerable state
+#   ./setup.sh reset    restore the Lumina storefront from apps/lumina-site.zip (after a fix demo)
 #
 # The TUI, web, site and scanner each take over a terminal, so run them in separate terminals.
 # Everything runs locally on bundled sample data — no accounts, no keys.
@@ -16,19 +17,23 @@ TUI=$ROOT/apps/terminal
 EXT=$ROOT/apps/scanner/extension
 SITE=$ROOT/apps/public-web
 
-usage() { sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+# Print the leading comment block (minus the title line), stopping at the first code line.
+usage() { awk 'NR==1{next} /^#/{sub(/^# ?/,"");print;next} {exit}' "$0"; exit "${1:-0}"; }
 
-# apps/Lumina is gitignored (edited during demos); on a fresh clone it is missing,
-# so extract the tracked pristine copy. ./setup.sh reset re-extracts it on demand.
-ensure_lumina() {
-  [ -d "$ROOT/apps/Lumina" ] && return 0
-  [ -f "$ROOT/apps/lumina.zip" ] || return 0
-  echo "Extracting the Lumina sample app (apps/Lumina)…"
-  unzip -oq "$ROOT/apps/lumina.zip" -d "$ROOT/apps"
+# The storefront (the scan target; planted vulns in apps/lumina-site/server) is gitignored because
+# the VS Code demo edits it when you "Fix" a finding. The pristine copy is the tracked
+# apps/lumina-site.zip; extract it on a fresh clone, and './setup.sh reset' re-extracts on demand.
+SCAN_TARGET=$ROOT/apps/lumina-site
+LUMINA_ZIP=$ROOT/apps/lumina-site.zip
+ensure_store() {
+  [ -d "$SCAN_TARGET" ] && return 0
+  [ -f "$LUMINA_ZIP" ] || return 0
+  echo "Extracting the Lumina storefront (apps/lumina-site)…"
+  unzip -oq "$LUMINA_ZIP" -d "$ROOT/apps"
 }
 
 case "${1:-}" in
-  tui|web|site|scanner|vscode|setup) ensure_lumina ;;
+  store|scanner|vscode|setup) ensure_store ;;
 esac
 
 case "${1:-}" in
@@ -47,6 +52,11 @@ case "${1:-}" in
     [ -d node_modules ] || npm install
     exec npm run dev
     ;;
+  store)
+    cd "$SCAN_TARGET"
+    [ -d node_modules ] || npm install
+    exec npm run dev
+    ;;
   scanner)
     cd "$EXT"
     [ -d node_modules ] || npm install
@@ -54,20 +64,19 @@ case "${1:-}" in
     ;;
   vscode|setup)
     "$ROOT/apps/scanner/setup.sh"
-    # Open Lumina as its OWN VS Code window. apps/Lumina is gitignored and the scanner
-    # honours .gitignore, so a scan from the repo-root window would skip it (no findings);
-    # opening the folder directly keeps it in scope.
+    # Open the storefront as its OWN VS Code window so the scan sees its source, including the
+    # planted vulnerable backend in apps/lumina-site/server.
     if command -v code >/dev/null; then
-      echo "Opening apps/Lumina in VS Code (scan from this window)…"
-      code "$ROOT/apps/Lumina"
+      echo "Opening apps/lumina-site in VS Code (scan from this window)…"
+      code "$SCAN_TARGET"
     fi
     ;;
   reset|reset-lumina)
-    # Restore Lumina to its original vulnerable state from the tracked zip.
-    [ -f "$ROOT/apps/lumina.zip" ] || { echo "setup.sh: missing apps/lumina.zip" >&2; exit 1; }
-    rm -rf "$ROOT/apps/Lumina"
-    unzip -oq "$ROOT/apps/lumina.zip" -d "$ROOT/apps"
-    echo "Lumina reset to the original vulnerable sources (apps/Lumina)."
+    # Restore the storefront from the pristine zip after a "Fix" + rescan demo (overwrites source
+    # files in place; node_modules, which isn't in the zip, is left alone).
+    [ -f "$LUMINA_ZIP" ] || { echo "setup.sh: missing apps/lumina-site.zip" >&2; exit 1; }
+    unzip -oq "$LUMINA_ZIP" -d "$ROOT/apps"
+    echo "Lumina storefront reset to its original sources (apps/lumina-site)."
     echo "Re-run the scan to see all findings again."
     ;;
   -h|--help|help|"") usage 0 ;;

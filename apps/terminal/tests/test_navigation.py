@@ -82,5 +82,5 @@ async def test_flow_line_marks_the_step_that_waits_for_you(app):
         await start_demo(pilot)
         line = str(app.screen.query_one(FlowProgress).render())
         assert "✓ Start" in line
-        assert "! Template" in line
+        assert "! Target" in line            # the flow line labels the Template frame "Target"
         assert "○ Plan" in line

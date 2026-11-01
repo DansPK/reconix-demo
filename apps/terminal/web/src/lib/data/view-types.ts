@@ -39,6 +39,7 @@ export interface FindingView {
   description: string;
   impact: string;
   evidence: EvidenceLine[];
+  evidenceUnmasked: EvidenceLine[];   // raw values, shown when the detail view is unmasked (demo)
   remediation: string[];
   references: string[];
 }

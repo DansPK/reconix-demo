@@ -35,7 +35,7 @@ async def test_summary_after_a_run_shows_the_findings_line(app):
         assert "RCX-001" in text
         summary = store.assessment_summary()
         assert f"{summary.confirmed} confirmed" in text
-        assert store.findings_line().startswith("3 findings")
+        assert store.findings_line().startswith("5 findings")
 
 
 async def test_summary_before_any_run_does_not_crash(app):

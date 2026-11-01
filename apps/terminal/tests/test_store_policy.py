@@ -12,7 +12,7 @@ from .support import decide, play_until_gate, run_to
 BLOCKED_ADMIN = [
     "/admin", "/Admin", "/ADMIN", "/admin?x=1", "/admin#a", "/./admin", "/foo/../admin",
     "/%61dmin", "/admin;jsessionid=1", "/admin/", "/admin/users",
-    "https://staging.example.com/admin", "https://staging.example.com:443/admin",
+    "https://www.lumina.com/admin", "https://www.lumina.com:443/admin",
 ]
 MALFORMED_OR_FOREIGN = [
     "//admin", "admin", "/admin\t", "/%2561dmin", "/a%2fb", "/a%5cb", "/a\\b",
@@ -39,7 +39,7 @@ def test_ambiguous_or_foreign_targets_are_blocked(approved_scope, target):
 
 
 @pytest.mark.parametrize("target", ["/administrator", "/products?id=1", "/api/orders/10482",
-                                    "https://staging.example.com/search"])
+                                    "https://www.lumina.com/search"])
 def test_in_scope_targets_are_allowed(approved_scope, target):
     assert store.check_request("GET", target).allowed
 
@@ -50,23 +50,22 @@ def test_requests_stop_once_the_time_limit_has_passed(approved_scope):
     assert (verdict.allowed, verdict.reason) == (False, "Time limit reached")
 
 
-def test_the_run_stops_when_the_time_limit_has_passed(approved_scope):
-    decide("account")
+def test_the_run_stops_when_the_time_limit_has_passed():
+    run_to("plan")                                           # scope approved, at the plan gate
+    decide("plan")                                           # run the plan; the scan begins
     lists.current().run.started_at -= timedelta(hours=1)
-    assert store.advance() is None
+    assert play_until_gate() is None                         # the time limit stops the run
     assert store.display_phase() == "stopped"
     assert "time limit" in store.get_run().stopped
 
 
 def test_an_approval_outside_the_scope_never_reaches_a_human():
-    run_to("account")
+    run_to("plan")                                           # scope approved, at the plan gate
     lists.current().approvals[0].path = "/admin/orders"      # the AI proposes an excluded path
-    decide("account")
-    assert play_until_gate() == "code"
-    decide("code")
-    assert play_until_gate() is None
+    decide("plan")                                           # run the plan
+    assert play_until_gate() is None                         # the out-of-scope action stops the run
     assert store.display_phase() == "stopped"
-    assert store.decision_for("approval-001") is None
+    assert store.decision_for("approval-001") is None        # it never reached a human
     assert store.blocked_count() == 2
 
 

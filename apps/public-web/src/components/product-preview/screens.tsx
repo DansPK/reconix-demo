@@ -230,7 +230,7 @@ export function ExecutionScreen() {
       </ol>
       <div className="mt-4 rounded-lg border border-accent/50 bg-accent/5 p-3.5">
         <p className="text-accent">⚠ Approval required · risk MEDIUM</p>
-        <p className="mt-1 text-foreground/90">OWASP ZAP active scan → https://app.acme.example</p>
+        <p className="mt-1 text-foreground/90">OWASP ZAP active scan → https://www.lumina.com</p>
         <p className="mt-2.5 flex flex-wrap gap-2 text-[11px]">
           <span className="rounded border border-accent/60 bg-accent/15 px-2 py-0.5 text-accent">[a] approve</span>
           <span className="rounded border border-border px-2 py-0.5 text-muted-foreground">[s] skip</span>

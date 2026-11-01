@@ -106,7 +106,9 @@ class ActionsMixin:
         except store.StoreValidationError as exc:
             self._warn(exc)
             return
-        self.resume_run()
+        # Don't run on yet: the Template screen now shows the "Review the test plan?" step; the
+        # operator opens the plan from there (see TemplateScreen, the "approved" state).
+        self.reload_screen()
 
     def edit_scope(self) -> None:
         self.open_dialog(ScopeEditForm(), lambda _result: self.refresh_view())
@@ -221,6 +223,7 @@ class ActionsMixin:
     # --- findings and chat ------------------------------------------------------------------
     def open_finding(self, fid: str) -> None:
         self.selected_finding = fid
+        self.finding_unmasked = False        # always open masked; the analyst reveals with u
         self.goto("detail")
 
     def open_chat(self, draft: str = "") -> None:

@@ -20,7 +20,7 @@ flowchart LR
 | --- | --- |
 | [**VS Code extension**](extension/) | The chat panel. Sends the open folder to the server, shows findings in the editor, and applies fixes you accept. |
 | **Scanner server** | Bundled in [`extension/server/`](extension/server/). Serves findings and answers chat over a local connection. Started with `npm run server`. |
-| [**Lumina**](../Lumina/) | A small, intentionally vulnerable sample app (`apps/Lumina/`) — one planted issue per file — for trying the scanner. |
+| [**Lumina storefront**](../lumina-site/) | The demo target (`apps/lumina-site/`); its planted vulnerable backend (`apps/lumina-site/server/`) has one issue per file for trying the scanner. |
 
 ## Quick start
 
@@ -32,7 +32,7 @@ cd extension && npm run server        # starts the scanner server on :7357 (toke
 Then in VS Code:
 
 1. **Developer: Reload Window** (Command Palette).
-2. Open a folder to scan — [`apps/Lumina/`](../Lumina/) is a ready-made sample.
+2. Open a folder to scan — [`apps/lumina-site/`](../lumina-site/) (planted issues in `server/`).
 3. Click the **shield icon** in the activity bar, or right-click a file/folder → **Scan with Reconix**.
 
 Findings appear in the panel, as squiggles in the code, and in the Problems panel. Click one
@@ -81,7 +81,7 @@ scanner/
     └── SETUP.md          setup by hand, HTTPS, troubleshooting
 ```
 
-The sample app to scan lives alongside this at [`apps/Lumina/`](../Lumina/).
+The app to scan lives alongside this at [`apps/lumina-site/`](../lumina-site/) (planted issues in `server/`).
 
 ## For developers
 

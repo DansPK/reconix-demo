@@ -16,11 +16,12 @@ from .vault import login_done, login_kind, login_tools
 
 # What each phase does (the labels themselves are template-specific).
 PHASE_DETAIL = {
-    "discovery": "map the permitted surface",
-    "scanning": "policy-checked checks on what discovery found",
-    "validation": "limited validation of the candidates",
-    "analysis": "merge duplicates · map to OWASP / CWE · score CVSS",
-    "report": "executive summary + findings · export from the Report screen",
+    "recon": "fingerprint the target and map the attack surface",
+    "discovery": "enumerate the in-scope targets and endpoints",
+    "scanning": "run policy-checked security checks on what was found",
+    "validation": "safely confirm the real findings; risky steps need your approval",
+    "analysis": "correlate findings, remove duplicates and score severity",
+    "report": "compile the executive summary and detailed findings",
 }
 LOGIN_LABEL = {
     "cookie": "session cookie", "password": "test account",

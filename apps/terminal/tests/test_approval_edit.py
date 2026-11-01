@@ -80,11 +80,13 @@ def test_a_value_of_the_wrong_shape_is_refused(request_text, good, blocked, wron
 
 
 # --- when an edit is allowed -------------------------------------------------------------------
+# The API template still logs in, so it keeps the running-but-pre-approval checkpoint (the
+# account gate) that this test uses; web_url is now an unauthenticated scan with no such gate.
 def test_edits_only_at_the_plan_or_the_actions_own_gate():
-    run_to("scope")
+    run_to("scope", "test the API at https://api.example.com/v1")
     assert not store.can_edit(FIRST)
     with pytest.raises(store.StoreValidationError):
-        store.edit_approval(FIRST, "/api/orders/10490")      # the scope isn't approved yet
+        store.edit_approval(FIRST, "/v1/orders/9000")        # the scope isn't approved yet
     decide("scope")
     assert play_until_gate() == "plan"
     assert store.can_edit(FIRST) and store.can_edit(SECOND)
@@ -95,10 +97,10 @@ def test_edits_only_at_the_plan_or_the_actions_own_gate():
     run_until(f"approval:{FIRST}")
     assert store.can_edit(FIRST) and not store.can_edit(SECOND)   # only the one asked
     with pytest.raises(store.StoreValidationError):
-        store.edit_approval(SECOND, "/api/orders/10491")
+        store.edit_approval(SECOND, "/v1/orders/9001")
     decide(f"approval:{FIRST}")
     with pytest.raises(store.StoreValidationError, match="already decided"):
-        store.edit_approval(FIRST, "/api/orders/10490")
+        store.edit_approval(FIRST, "/v1/orders/9000")
 
 
 def run_until(gate: str) -> None:

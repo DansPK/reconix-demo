@@ -28,6 +28,7 @@ class FindingDetailScreen(ReconixScreen):
 
     BINDINGS = [
         Binding("t", "triage", "triage"),
+        Binding("u", "unmask", "unmask"),
         Binding("r", "report", "report"),
         Binding("c", "chat", "chat"),
         Binding("left_square_bracket", "step(-1)", "previous finding", show=False),
@@ -44,7 +45,8 @@ class FindingDetailScreen(ReconixScreen):
 
     def view_state(self) -> object:
         f = self._finding()
-        return (f.fid, f.status, f.effective_severity, f.triage_note) if f else None
+        return ((f.fid, f.status, f.effective_severity, f.triage_note,
+                 self.app.finding_unmasked) if f else None)
 
     def compose_body(self) -> ComposeResult:
         f = self._finding()
@@ -76,8 +78,15 @@ class FindingDetailScreen(ReconixScreen):
                 yield _heading("Affected URL", theme.DIM)
                 yield _para(f.affected_url, theme.CYAN)
                 yield Static("")
-                yield _heading("Evidence (masked)", theme.DIM)
-                for line in f.evidence:
+                if self.app.finding_unmasked and f.evidence_unmasked:
+                    yield _heading("ATTACKER'S VIEW — UNMASKED (press u to hide)", theme.CRITICAL)
+                    lines = f.evidence_unmasked
+                else:
+                    label = ("Evidence (masked — press u to reveal)" if f.evidence_unmasked
+                             else "Evidence (masked)")
+                    yield _heading(label, theme.DIM)
+                    lines = f.evidence
+                for line in lines:
                     yield _para(line, theme.STRING)
                 yield Static("")
                 if f.needs_review:
@@ -131,6 +140,15 @@ class FindingDetailScreen(ReconixScreen):
     def action_triage(self) -> None:
         if self._finding() is not None:
             self.app.triage_finding(self.app.selected_finding)
+
+    def action_unmask(self) -> None:
+        """Reveal (or re-hide) the raw, unmasked evidence — the demo's attacker view."""
+        f = self._finding()
+        if f is None or not f.evidence_unmasked:
+            self.app.bell()                      # nothing to unmask on this finding
+            return
+        self.app.finding_unmasked = not self.app.finding_unmasked
+        self.app.reload_screen()
 
     def action_chat(self) -> None:
         """Chat about the open finding; the draft names it (plain text, never markup)."""

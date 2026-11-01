@@ -42,7 +42,7 @@ def test_severity_trend_lists_each_run_oldest_first():
     trend = store.severity_trend()
     assert len(trend) == 2
     assert all(point["total"] == 5 for point in trend)
-    assert trend[0]["counts"]["MEDIUM"] == 2 and trend[0]["counts"]["HIGH"] == 1
+    assert trend[0]["counts"]["MEDIUM"] == 1 and trend[0]["counts"]["HIGH"] == 2
 
 
 def test_retest_shows_in_report_data_and_html():

@@ -40,7 +40,7 @@ export type WorkflowStep = {
 /**
  * The seven steps of an assessment, shown by WorkflowStepper. Copy must stay in
  * step with showcase-data.ts and docs/architecture: no claims beyond those.
- * Preview data is illustrative only (example.com / RFC 5737 addresses).
+ * Preview data is illustrative only (lumina.com / RFC 5737 addresses).
  */
 export const WORKFLOW_STEPS: WorkflowStep[] = [
   {
@@ -97,7 +97,7 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
       title: "scope-manifest.yaml",
       lines: [
         { text: "targets:", tone: "primary" },
-        { text: "  - https://staging.example.com/api", tone: "foreground" },
+        { text: "  - https://staging.lumina.com/api", tone: "foreground" },
         { text: "permitted: [discovery, auth-checks]", tone: "foreground" },
         { text: "exclusions: [/api/admin/*]", tone: "foreground" },
         { text: "limits: 5 req/s · 2h window", tone: "foreground" },

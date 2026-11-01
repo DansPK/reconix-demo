@@ -8,10 +8,10 @@ from its tool registry.
 
 from typing import Dict, List, Sequence, Tuple
 
-# tool (lower case) -> "cookie" | "password"
+# tool (lower case) -> "cookie" | "password". Tools not listed scan unauthenticated.
+# Nuclei and OWASP ZAP run against the public surface here (the web_url demo is an unauthenticated
+# scan), so they are not listed; the API template still exercises login via Postman / ZAP API scan.
 TOOL_LOGIN: Dict[str, str] = {
-    "owasp zap": "password",      # signs in through the target's login form
-    "nuclei": "cookie",           # sends the session cookie with its checks
     "zap api scan": "cookie",
     "postman": "cookie",
 }

@@ -236,12 +236,12 @@ const MASKED_RUN = "20260929-112000-8c51_RCX-001";
 
 test("a login in a target is masked in the finding's detail and in the Word export", async ({ page }) => {
   await go(page, `/?uid=${MASKED_RUN}&view=findings&finding=IMP-001`);
-  await expect(detail(page)).toContainText("••••@portal.example.com");
+  await expect(detail(page)).toContainText("••••@portal.lumina.com");
   await expect(detail(page)).not.toContainText("hunter2");
   const res = await page.request.get(`/api/assessments/${MASKED_RUN}/export?format=docx`);
   expect(res.status()).toBe(200);
   const doc = unzip(await res.body()).get("word/document.xml") ?? "";
-  expect(doc).toContain("••••@portal.example.com");
+  expect(doc).toContain("••••@portal.lumina.com");
   expect(doc).not.toContain("hunter2");
 });
 

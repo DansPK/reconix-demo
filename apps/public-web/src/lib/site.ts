@@ -30,7 +30,7 @@ export type CommunityLink = { label: string; href: string; icon?: LucideIcon };
 /**
  * Contact / community links for the footer (Community column + icon row), empty until the team
  * has real ones. Examples:
- *   { label: "Email", href: "mailto:team@example.com", icon: Mail },
+ *   { label: "Email", href: "mailto:team@lumina.com", icon: Mail },
  *   { label: "Discord", href: "https://discord.gg/<invite>", icon: MessagesSquare },
  */
 export const SITE_COMMUNITY: CommunityLink[] = [];

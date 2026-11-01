@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 # The phase bars on the status panel, in order.
-PROGRESS_BARS: Tuple[str, ...] = ("discovery", "scanning", "validation", "analysis", "report")
+PROGRESS_BARS: Tuple[str, ...] = ("recon", "discovery", "scanning", "validation", "analysis", "report")
 
 # Gates the run stops at until a human decides. Approval gates are "approval:<request id>".
 GATE_TEMPLATE = "template"

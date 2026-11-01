@@ -83,6 +83,7 @@ export function findingView(f: Finding): FindingView {
     description: f.description,
     impact: f.impact,
     evidence: f.evidence.map((text) => ({ text, tone: evidenceTone(text) })),
+    evidenceUnmasked: f.evidence_unmasked.map((text) => ({ text, tone: evidenceTone(text) })),
     remediation: f.remediation
       .split(/;\s+/)
       .map((r) => r.trim())

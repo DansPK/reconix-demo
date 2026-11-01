@@ -17,7 +17,9 @@ def test_testing_waits_for_the_plan_to_run():
     assert store.phase_progress()["discovery"] == 0          # nothing tested yet
     store.run_plan()
     assert store.is_plan_started()
-    assert play_until_gate() == "account"
+    # The web_url scan is unauthenticated, so after the plan runs it goes straight on to the
+    # first approval gate (no login step in between).
+    assert play_until_gate() == "approval:approval-001"
     assert store.phase_progress()["discovery"] == 100
     assert "plan.run" in event_kinds()
 
@@ -73,20 +75,22 @@ def test_reject_scope_only_at_the_scope_gate():
 # --- the plan rows ------------------------------------------------------------------------------
 def test_plan_rows_name_phases_login_and_gated_actions():
     assert store.plan_overview() == []                       # no template yet
-    run_to("scope")
+    run_to("scope")                                          # the unauthenticated web_url scan
     rows = store.plan_overview()
-    assert [r.num for r in rows] == ["1", "2", "2a", "3", "3a", "3b", "4", "5"]
-    assert [r.gate for r in rows] == ["auto", "auto", "login", "auto", "approve", "approve",
-                                      "auto", "auto"]
+    # Four phases, no login row; the two approval gates hang off the validation phase (4).
+    assert [r.num for r in rows] == ["1", "2", "3", "4", "4a", "4b"]
+    assert [r.gate for r in rows] == ["auto", "auto", "auto", "auto", "approve", "approve"]
     medium, high = rows[4], rows[5]
     assert (medium.risk, high.risk) == ("MEDIUM", "HIGH")
-    assert medium.command.startswith("GET https://staging.example.com/api/orders/")
+    assert medium.command.startswith("GET https://www.lumina.com/api/v1/products")
+    assert medium.command.endswith("(no authentication)")   # the scan carries no credentials
     assert all(r.status == "pending" for r in rows)
     assert store.gated_count() == 2
 
 
 def test_plan_rows_follow_the_run():
-    run_to("approval:approval-002")
+    # The API template still signs in, so its plan keeps the login row (2a) this exercises.
+    run_to("approval:approval-002", request="test the API at https://api.example.com/v1")
     status = {r.num: r.status for r in store.plan_overview()}
     assert status["1"] == status["2"] == "done"
     assert status["2a"] == "done"                            # logged in
@@ -106,16 +110,16 @@ def test_a_network_plan_has_no_login_row():
 def test_filters_sorts_and_counts():
     run_to(None)
     ids = lambda rows: [f.fid for f in rows]                 # noqa: E731
-    assert ids(store.find_findings()) == ["004", "005", "001", "002", "003"]
-    assert ids(store.find_findings("high_up")) == ["004", "005"]   # CRITICAL + HIGH
-    assert ids(store.find_findings("medium")) == ["001", "002"]
+    assert ids(store.find_findings()) == ["004", "001", "005", "002", "003"]
+    assert ids(store.find_findings("high_up")) == ["004", "001", "005"]  # CRITICAL + HIGH
+    assert ids(store.find_findings("medium")) == ["002"]
     assert ids(store.find_findings("low")) == ["003"]
     assert ids(store.find_findings("confirmed")) == ["004", "001"]
     assert ids(store.find_findings("needs_review")) == ["005", "002", "003"]
     assert ids(store.find_findings("all", "validation")) == ["004", "001", "005", "002", "003"]
     assert [sid for sid, _ in store.FINDING_SORTS] == ["severity", "validation"]
     assert "info" not in dict(store.FINDING_FILTERS)
-    assert store.severity_counts() == {"CRITICAL": 1, "HIGH": 1, "MEDIUM": 2, "LOW": 1}
+    assert store.severity_counts() == {"CRITICAL": 1, "HIGH": 2, "MEDIUM": 1, "LOW": 1}
     assert store.filter_counts()["all"] == 5
     with pytest.raises(store.StoreValidationError):
         store.find_findings("nope")
@@ -131,28 +135,27 @@ def test_triage_moves_findings_between_filters_and_override_counts():
     with pytest.raises(store.StoreValidationError):
         store.triage_finding("003", severity="INFO")          # there is no Info severity
     store.triage_finding("003", status="false-positive", severity="MEDIUM")
-    assert [f.fid for f in store.find_findings("open")] == ["004", "005", "001", "002"]
+    assert [f.fid for f in store.find_findings("open")] == ["004", "001", "005", "002"]
     assert [f.fid for f in store.find_findings("triaged")] == ["003"]
-    assert [f.fid for f in store.find_findings("medium")] == ["001", "002", "003"]  # override
+    assert [f.fid for f in store.find_findings("medium")] == ["002", "003"]  # 003 override
     assert store.severity_counts()["LOW"] == 0
-    assert [f.fid for f in store.key_findings(limit=2)] == ["004", "005"]
+    assert [f.fid for f in store.key_findings(limit=2)] == ["004", "001"]
 
 
 # --- the flow line -------------------------------------------------------------------------------
 def test_step_states_follow_the_run():
     assert store.step_states() == {}
-    run_to("scope")
+    # The API template signs in (cookie), so execution pauses at its login gate; the default
+    # web_url scan is unauthenticated and would never stop there.
+    run_to("scope", "test the API at https://api.example.com/v1")
     assert store.step_states() == {"start": "done", "template": "waiting"}
     decide("scope")
     play_until_gate()
     assert store.step_states()["plan"] == "waiting"
     decide("plan")
-    play_until_gate()                                       # account
+    play_until_gate()                                       # the target login
     assert store.step_states()["execution"] == "waiting"
     decide("account")
-    play_until_gate()                                       # the one-time code, on its own
-    assert store.step_states()["execution"] == "waiting"
-    decide("code")
     play_until_gate()                                       # MEDIUM approval
     assert store.step_states()["approval"] == "waiting"
     run_to_end()

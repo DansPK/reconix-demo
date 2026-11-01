@@ -228,22 +228,22 @@ def main() -> None:
     utc = timezone.utc
     snapshots = []
     snapshots += session(datetime(2026, 9, 28, 9, 12, tzinfo=utc), [
-        dict(text="Review the source repository git@git.contoso.com:shop/storefront.git "
+        dict(text="Review the source repository git@git.lumina.com:shop/storefront.git "
                   "for security issues.", fmt="docx"),
     ])
     snapshots += session(datetime(2026, 9, 30, 16, 5, tzinfo=utc), [
-        dict(text="Test the REST API at https://api.contoso.com/v1 for security issues.",
+        dict(text="Test the REST API at https://api.lumina.com/v1 for security issues.",
              fmt="docx", spec=str(SPEC)),
     ])
     snapshots += session(datetime(2026, 10, 3, 10, 15, tzinfo=utc), [
-        dict(text="Scan the network host 192.0.2.10 for exposed services.", fmt="json"),
-        dict(text="Test the REST API at https://api.contoso.com/v1 for security issues.",
+        dict(text="Scan the network host 10.0.0.10 for exposed services.", fmt="json"),
+        dict(text="Test the REST API at https://api.lumina.com/v1 for security issues.",
              high="reject", rows=NUCLEI, gap=12),
     ])
     snapshots += session(datetime(2026, 10, 5, 14, 3, tzinfo=utc), [
-        dict(text="Assess https://staging.contoso.com for web security issues.", fmt="docx",
+        dict(text="Assess https://staging.lumina.com for web security issues.", fmt="docx",
              rows=NUCLEI.split("\n")[0]),
-        dict(text="Review the source repository git@git.contoso.com:shop/storefront.git "
+        dict(text="Review the source repository git@git.lumina.com:shop/storefront.git "
                   "for security issues.", high="wait", gap=6),
     ], closed=False)
 
@@ -257,23 +257,23 @@ def main() -> None:
     #   2026-10-02  a second repository review, its report in JSON (a finding two runs share)
     #   2026-10-04  a run still Running in a session left open (the TUI is on it now)
     snapshots += session(datetime(2026, 9, 29, 11, 20, tzinfo=utc), [
-        dict(text="Assess https://ops:hunter2@portal.contoso.com for web security issues.",
+        dict(text="Assess https://ops:hunter2@portal.lumina.com for web security issues.",
              rows=NUCLEI_EDGE, after=triage_false_positive),
-        dict(text="Test the REST API at https://api.fabrikam.com/v2 for security issues.",
+        dict(text="Test the REST API at https://api.lumina.com/v2 for security issues.",
              rows=NUCLEI_MANY, gap=9),
     ])
     snapshots += session(datetime(2026, 10, 1, 8, 30, tzinfo=utc), [
-        dict(text="Assess https://quiet.contoso.com for web security issues.", no_findings=True),
-        dict(text="Assess https://calm.contoso.com for web security issues.", no_findings=True,
+        dict(text="Assess https://blog.lumina.com for web security issues.", no_findings=True),
+        dict(text="Assess https://careers.lumina.com for web security issues.", no_findings=True,
              gap=7),
-        dict(text="Check portal.northwind.com", stop_at="scope", gap=5),
+        dict(text="Check account.lumina.com", stop_at="scope", gap=5),
     ])
     snapshots += session(datetime(2026, 10, 2, 13, 40, tzinfo=utc), [
-        dict(text="Review the source repository git@git.contoso.com:shop/checkout.git "
+        dict(text="Review the source repository git@git.lumina.com:shop/checkout.git "
                   "for security issues.", fmt="json"),
     ])
     snapshots += session(datetime(2026, 10, 4, 15, 0, tzinfo=utc), [
-        dict(text="Assess https://live.contoso.com for web security issues.", running_steps=12),
+        dict(text="Assess https://checkout.lumina.com for web security issues.", running_steps=12),
     ], closed=False)
     # The flagship showcase (newest, so the dashboard opens on it): the Lumina web app, with a
     # finding of every severity, a title with markup kept as text, and one triaged false positive.

@@ -83,9 +83,9 @@ async def test_reopening_shows_where_it_stands(app):
 async def test_reopening_a_running_assessment_resumes_it(app):
     # Drive the first assessment to a between-gates running state (no waiting gate).
     store.start_run(store.DEMO_REQUEST)            # the URL picks Web URL itself
-    for _ in range(4):                             # scope, plan, account, code
+    for _ in range(2):                             # scope, plan (the unauthenticated scan logs in nowhere)
         decide(play_until_gate())
-    store.advance()                                # play past the code gate
+    store.advance()                                # play on past the plan into the scan
     assert store.waiting_gate() == "" and not store.is_finished()
     store.new_assessment()
 

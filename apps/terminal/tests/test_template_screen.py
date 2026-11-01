@@ -26,7 +26,7 @@ async def test_pick_a_template_then_type_its_target(app):
         await settle(pilot)
         target = app.screen.query_one("#target", Input)
         assert target.has_focus
-        assert target.placeholder == "https://shop.example.com"
+        assert target.placeholder == "https://shop.lumina.com"
         target.value = "https://staging.example.com"
         await pilot.press("enter")
         await settle(pilot)
@@ -76,12 +76,13 @@ async def test_approve_goes_on_to_the_plan(app):
         await start_demo(pilot)
         await pilot.press("1")                                      # Approve scope
         await settle(pilot)
-        assert isinstance(app.screen, PlanScreen)
-        assert app.screen.state() == "ready"
-        assert store.is_scope_approved()
-        app.goto("template")
-        await settle(pilot)
+        assert isinstance(app.screen, TemplateScreen)               # stops to review the plan
         assert app.screen.state() == "approved"
+        assert store.is_scope_approved()
+        await pilot.press("1")                                      # Review the test plan
+        await settle(pilot)
+        assert isinstance(app.screen, PlanScreen)                   # now on the plan
+        assert app.screen.state() == "ready"
 
 
 async def test_edit_manifest_saves_through_the_store(app):
@@ -128,7 +129,7 @@ async def test_reject_stops_it_and_starts_fresh(app):
 
 
 async def test_template_past_the_scope_starts_a_new_assessment(app):
-    run_to("account")
+    run_to("approval:approval-001")          # scope approved, testing under way
     async with app.run_test(size=SIZE) as pilot:
         await open_template(app, pilot)
         assert app.screen.state() == "pick"

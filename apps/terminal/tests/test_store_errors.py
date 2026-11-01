@@ -31,7 +31,7 @@ def test_network_scope_edits_are_checked():
 
 # --- the target login ------------------------------------------------------------------------
 def test_an_oversized_secret_is_refused():
-    run_to("account")
+    run_to("account", "test the API at https://api.example.com/v1")   # the API run asks for a login
     values = auth_values(store.current_auth_challenge())
     secret_field = next(f.id for f in store.current_auth_challenge().fields if f.secret)
     values[secret_field] = "x" * 4097
@@ -96,5 +96,5 @@ def test_a_rejected_high_action_is_saved_as_stopped():
     assert play_until_gate() is None
     saved = json.loads(json.dumps(snapshot(lists.current())))
     assert saved["status"] == "Stopped"
-    assert "limited_validation" in saved["stopped_reason"]
+    assert "Confirm the exposure" in saved["stopped_reason"]
     assert saved["run"]["completed"] is False

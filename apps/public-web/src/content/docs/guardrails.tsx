@@ -181,7 +181,7 @@ export const guardrails: GroupContent = {
             </li>
           </ol>
           <Code>{`# .env
-LLM_BASE_URL=https://llm.example.com/v1   # any OpenAI-compatible endpoint`}</Code>
+LLM_BASE_URL=https://llm.lumina.com/v1   # any OpenAI-compatible endpoint`}</Code>
           <Callout variant="draft">
             The settings for the model name and the endpoint&apos;s API key are still to document.
           </Callout>

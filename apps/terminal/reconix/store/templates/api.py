@@ -5,7 +5,7 @@ from ...models.parser import ParsedTarget
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 
 SPEC = Template("api", "API", "REST and GraphQL endpoints",
-                target_hint="the API's base URL", example="https://api.example.com/v1")
+                target_hint="the API's base URL", example="https://api.lumina.com/v1")
 
 
 def build_scope(parsed: ParsedTarget) -> ScopeManifest:
@@ -31,7 +31,7 @@ def _findings(url: str) -> list:
             cvss_score=6.5, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
             category="API",
             evidence=["GET /v1/orders/8842 as token A → HTTP 200",
-                      "owner: tenant_••7 · email: b•••@contoso.com"],
+                      "owner: tenant_••7 · email: b•••@lumina.com"],
         ),
         Finding(
             "002", "MEDIUM", "Missing authorization on export endpoint", "/v1/reports/export",

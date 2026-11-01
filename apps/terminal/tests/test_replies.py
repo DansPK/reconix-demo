@@ -6,6 +6,10 @@ from reconix import store
 
 from .support import TEST_PASSWORD, run_to
 
+# web_url is now an unauthenticated scan (no login); the API template still needs a login,
+# so the login-gate test targets it.
+API_REQUEST = "test the API at https://api.example.com/v1"
+
 
 def last_reply() -> str:
     return store.list_chat()[-1].text
@@ -60,7 +64,7 @@ def test_during_a_run_greetings_get_a_friendly_line():
 
 
 def test_the_login_gate_still_refuses_chat():
-    run_to("account")
+    run_to("account", request=API_REQUEST)
     with pytest.raises(store.StoreValidationError, match="secure input"):
         store.submit_prompt(TEST_PASSWORD)
     assert all(TEST_PASSWORD not in c.text for c in store.list_chat())

@@ -9,7 +9,7 @@ from .support import SIZE, run_to, start_demo
 
 # (request, headline start, the access line in "What it may do", never-touch paths)
 CASES = [
-    (store.DEMO_REQUEST, "Reconix will test https://staging.example.com as a web application.",
+    (store.DEMO_REQUEST, "Reconix will test https://www.lumina.com as a web application.",
      "Send only GET and POST requests", ["/admin"]),
     ("Test the API at https://api.example.com/v1", "Reconix will test https://api.example.com",
      "Send only GET and POST requests", ["/internal", "/admin"]),
