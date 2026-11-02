@@ -19,7 +19,23 @@ import type { Slot } from "./slot";
 import { pageScope, type OpenState } from "./use-open-conversation";
 
 const MAX_SHOWN = 40_000; // characters of one streamed reply kept on screen
+const THINKING_DELAY_MS = 2_000; // hold the loading state briefly before the answer starts
 const newId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+
+/** A delay that a Stop can cut short: rejects with an AbortError when the signal fires. */
+const waitBeforeAnswer = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    if (signal.aborted) return reject(new DOMException("Aborted", "AbortError"));
+    const id = setTimeout(resolve, ms);
+    signal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(id);
+        reject(new DOMException("Aborted", "AbortError"));
+      },
+      { once: true },
+    );
+  });
 
 /** A question as it is shown and sent: masked first, then cut, as the server keeps it. */
 export const asQuestion = (text: string) => redact(text.trim()).trim().slice(0, MAX_QUESTION);
@@ -58,6 +74,7 @@ export function useAsking({
 
       void (async () => {
         try {
+          await waitBeforeAnswer(THINKING_DELAY_MS, controller.signal); // show the loading state first
           const result = await api.askQuestion(
             { conversationId: opened?.id ?? undefined, uid: now.scope.uid, question, retry },
             controller.signal,

@@ -17,6 +17,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  devIndicators: false, // hide the floating Next.js dev badge during the demo
+
   turbopack: { root: process.cwd() },
   experimental: {
     /* src/proxy.ts runs before every route, so Next.js keeps a copy of each request body for it,
