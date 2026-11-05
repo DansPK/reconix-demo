@@ -12,10 +12,12 @@ isn't a private directory of this user is refused rather than written into. `clo
 import hashlib
 import json
 import os
+import queue
 import stat
 import tempfile
+import threading
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from ..models import Assessment
 from ..models.base import utc_now
@@ -63,8 +65,82 @@ def close_session() -> bool:
     """The app is quitting: save every started assessment once more, marked closed."""
     if not ENABLED:
         return True
+    flush_saves()        # let any queued background write land before the final closed snapshot
     results = [save(a, session_closed=True) for a in lists.ASSESSMENTS if a.run.started]
     return all(results)
+
+
+# --- background writer -----------------------------------------------------------------------
+# The run plays on the UI thread and asks to save after every step. Building the snapshot is
+# quick and must stay on this thread (it reads the live store), but the disk write — a temp
+# file, an fsync-like replace, and on some systems an antivirus scan — can stall the UI. So
+# `autosave_async()` snapshots here and hands the bytes to a daemon thread that does the write,
+# coalescing to the newest pending content per file. The synchronous `save()`/`autosave()`
+# stay for the tests and for `close_session()`.
+_queue: "queue.Queue[Optional[Tuple[Path, str, str]]]" = queue.Queue()
+_queued: Dict[str, str] = {}          # path -> digest already queued (so we don't re-queue it)
+_writer: Optional[threading.Thread] = None
+_writer_lock = threading.Lock()
+_save_failed = False
+
+
+def _writer_loop() -> None:
+    global _save_failed
+    while True:
+        job = _queue.get()
+        try:
+            if job is None:
+                return
+            path, text, digest = job
+            try:
+                _write_private(path, text)
+                _written[str(path)] = digest
+            except (OSError, ValueError, TypeError):
+                _save_failed = True
+        finally:
+            _queue.task_done()
+
+
+def _ensure_writer() -> None:
+    global _writer
+    with _writer_lock:
+        if _writer is None or not _writer.is_alive():
+            _writer = threading.Thread(target=_writer_loop, name="reconix-save", daemon=True)
+            _writer.start()
+
+
+def autosave_async() -> None:
+    """Non-blocking autosave for the UI: snapshot on this thread, write on a background thread,
+    so the run never stalls on disk I/O. A no-op when nothing changed since the last save."""
+    if not ENABLED:
+        return
+    assessment = lists.current()
+    if not assessment.run.started:
+        return
+    path = file_for(assessment)
+    key = str(path)
+    try:
+        data = snapshot(assessment)
+        body = json.dumps(data, sort_keys=True)
+        digest = hashlib.sha256(body.encode("ascii")).hexdigest()
+    except (OSError, ValueError, TypeError):
+        return
+    if _queued.get(key) == digest or (_written.get(key) == digest and path.exists()):
+        return                                       # already written or already queued
+    data["saved_at"] = utc_now().isoformat(timespec="seconds")
+    _queued[key] = digest
+    _ensure_writer()
+    _queue.put((path, json.dumps(data, indent=2) + "\n", digest))
+
+
+def flush_saves() -> None:
+    """Wait for queued background writes to finish (the app calls this before it quits)."""
+    _queue.join()
+
+
+def save_failed() -> bool:
+    """True if a background write has failed since the app started (best-effort UI warning)."""
+    return _save_failed
 
 
 def save(assessment: Assessment, *, session_closed: bool = False) -> bool:

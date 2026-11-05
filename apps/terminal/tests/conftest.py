@@ -25,7 +25,14 @@ def instant_ui(monkeypatch, tmp_path):
     monkeypatch.setattr(report, "REPORTS_DIR", tmp_path / "reports")
     monkeypatch.setattr(persist, "DATA_DIR", tmp_path / "assessments")
     monkeypatch.setattr(persist, "WEB_URL_FILE", tmp_path / "web.url")
+    # Fresh save bookkeeping per test; drain any queued background write so it can't land in the
+    # next test's temp folder (the async autosave writer is process-wide).
+    persist.flush_saves()
     monkeypatch.setattr(persist, "_written", {})
+    monkeypatch.setattr(persist, "_queued", {})
+    monkeypatch.setattr(persist, "_save_failed", False)
+    yield
+    persist.flush_saves()
 
 
 @pytest.fixture(autouse=True)

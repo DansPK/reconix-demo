@@ -35,7 +35,9 @@ from .openapi import (
     api_spec_methods_outside, attach_api_spec, can_attach_api_spec, get_api_spec,
     remove_api_spec,
 )
-from .persist import autosave, close_session, web_dashboard_url
+from .persist import (
+    autosave, autosave_async, close_session, flush_saves, save_failed, web_dashboard_url,
+)
 from .plan import gated_count, plan_overview
 from .progress import step_states
 from .providers import (
@@ -109,7 +111,8 @@ __all__ = [
     "current_operator", "log_event", "list_events", "add_feedback", "list_feedback",
     "add_history", "list_history",
     # the saved copy the web dashboard reads
-    "autosave", "close_session", "web_dashboard_url",
+    "autosave", "autosave_async", "close_session", "flush_saves", "save_failed",
+    "web_dashboard_url",
     # the API template's OpenAPI spec
     "attach_api_spec", "remove_api_spec", "get_api_spec", "can_attach_api_spec", "save_api_form",
     "api_spec_handoff", "api_spec_methods_outside",

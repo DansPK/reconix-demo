@@ -40,6 +40,7 @@ class RunHostMixin:
             self._deferred_gate = gate        # a dialog is open: when it closes
             return
         self._deferred_gate = ""
+        store.flush_saves()      # paused at a gate: let the background write land (no UI stall here)
         if is_form_gate(gate):
             self._login_open = True
             self.open_dialog(LoginForm(), self._login_closed)
@@ -68,11 +69,13 @@ class RunHostMixin:
 
     def run_finished(self) -> None:
         self.refresh_view()
+        store.flush_saves()      # the run ended: make sure the final copy is on disk
         if store.is_completed():
             self.notify(f"Assessment complete. Findings: {len(store.list_findings())} · "
                         "report and exports: 8.", title="Reconix")
 
     def run_failed(self, message: str) -> None:
+        store.flush_saves()      # the run stopped: persist the final state
         self.notify(message, title="The run stopped", severity="error", markup=False)
 
     # --- helpers for screens and actions -----------------------------------------------------
@@ -119,8 +122,12 @@ class RunHostMixin:
                     "to continue.", title="Paused")
 
     def _save(self) -> None:
-        """Keep the saved copy the web dashboard reads in step (the store skips no-ops)."""
-        if not store.autosave() and not self._save_warned:
+        """Keep the saved copy the web dashboard reads in step (the store skips no-ops).
+
+        The snapshot is built here but written on a background thread (`autosave_async`), so a
+        slow disk never stalls the run. A failed write is reported once, a step later."""
+        store.autosave_async()
+        if store.save_failed() and not self._save_warned:
             self._save_warned = True
             self.notify("Couldn't save this assessment for the web dashboard. Check that "
                         "~/.reconix/assessments is writable.", title="Not saved",
