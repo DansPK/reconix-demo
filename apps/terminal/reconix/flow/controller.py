@@ -24,7 +24,7 @@ class RunHost(Protocol):
 
 
 class RunController:
-    SPEED = 1.0   # multiplies each step's pause; 0 plays instantly (tests)
+    SPEED = 0.7   # multiplies each step's pause; < 1 plays the run faster, 0 instantly (tests)
 
     def __init__(self, host: RunHost) -> None:
         self._host = host
