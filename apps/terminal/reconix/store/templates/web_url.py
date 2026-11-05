@@ -205,6 +205,9 @@ def build_run(assessment) -> RunBundle:
             purpose="Record a normal search response to compare against the injection probes",
             impact="Low. One read-only search request, no data changes",
             command=f"GET {url}{{path}} (no authentication)"),
+        # The HIGH action stays defined (not dropped), but gate_high=False keeps it out of this
+        # demo's plan steps: the operator approves only the one MEDIUM gate, and the impact proof
+        # (exploit_beat) plays straight after it.
         high=approval(
             "approval-002", risk="HIGH", action="Confirm the exposure",
             target="GET {path}", method="GET",
@@ -213,6 +216,7 @@ def build_run(assessment) -> RunBundle:
             purpose="Prove the injection returns the whole table with an always-true condition",
             impact="Returns every customer row from the database. 1 request, no changes",
             command=f"GET {url}{{path}} (no authentication)"),
+        gate_high=False,
         findings=findings,
         analysis_steps=("Correlating findings", "Mapping to OWASP & CWE",
                         "Masking sensitive evidence"),
@@ -236,6 +240,6 @@ def build_run(assessment) -> RunBundle:
         ),
     )
     return RunBundle(scope=scope, script=build_rest(profile),
-                     approvals=[profile.medium, profile.high], findings=findings,
+                     approvals=[profile.medium], findings=findings,
                      login_2fa=profile.login_2fa, plan=make_plan(profile.plan),
                      methodology=list(profile.methodology))

@@ -59,6 +59,8 @@ class RunProfile:
     analysis_steps: Tuple[str, ...]
     login_area: str = "the signed-in area"  # what the tools test behind the target login
     login_2fa: bool = False                # the target asks for a one-time code after the password
+    gate_high: bool = True                 # False: the HIGH action is defined but kept out of this
+                                           #   run's plan steps, so the operator approves once (MEDIUM)
     extra_discovery: Tuple[str, ...] = ()  # extra activity-log lines during discovery
     scan_tool: str = "Nuclei"
     plan: Tuple[Tuple[str, str], ...] = ()  # the plan shown on the dashboard: (progress key, label)
@@ -213,9 +215,13 @@ def build_rest(profile: RunProfile) -> List[RunStep]:
     steps.append(banner("MEDIUM action approved by analyst.", tone="ok"))
     steps.append(log("TOOL", "Executing baseline request"))
     steps += _progress("validation", 45, 1)
-    steps.append(log("POLICY", "Risk: HIGH · needs a double check", tone="warn"))
-    steps.append(gate(f"approval:{profile.high.request_id}"))
-    steps.append(banner("HIGH action approved after a double check.", tone="ok"))
+    # The HIGH double-check is part of the run only when gate_high is set. A template that keeps the
+    # HIGH action defined but out of its plan (gate_high=False) runs on the single MEDIUM approval
+    # above, so the operator approves once and validation proceeds straight on.
+    if profile.gate_high:
+        steps.append(log("POLICY", "Risk: HIGH · needs a double check", tone="warn"))
+        steps.append(gate(f"approval:{profile.high.request_id}"))
+        steps.append(banner("HIGH action approved after a double check.", tone="ok"))
     steps.append(log("TOOL", "Running limited validation · 1 request"))
     # When the approved HIGH action is the exploit, prove the impact now and reveal it here.
     if exploit:

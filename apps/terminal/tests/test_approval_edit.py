@@ -114,14 +114,15 @@ def run_until(gate: str) -> None:
 
 
 def test_an_edit_on_the_plan_is_what_the_gate_asks_later():
-    run_to("plan")
-    edited = store.edit_approval(SECOND, "/api/orders/10499")
+    # web_url keeps its HIGH action out of the plan, so editing the HIGH (SECOND) uses the API run.
+    run_to("plan", "test the API at https://api.example.com/v1")
+    edited = store.edit_approval(SECOND, "/v1/orders/9000")
     decide("plan")
     run_until(f"approval:{SECOND}")
     shown = store.get_approval(SECOND)
-    assert shown.path == "/api/orders/10499" and shown.command_hash == edited.command_hash
+    assert shown.path == "/v1/orders/9000" and shown.command_hash == edited.command_hash
     row = next(r for r in store.plan_overview() if r.label == shown.action)
-    assert "/api/orders/10499" in row.command
+    assert "/v1/orders/9000" in row.command
 
 
 def test_the_same_value_changes_nothing():
@@ -143,10 +144,10 @@ def test_an_unknown_or_uneditable_action_is_refused():
 
 # --- HIGH risk: an edit voids the confirmation ------------------------------------------------
 def test_an_edit_voids_an_open_high_confirmation():
-    run_to(f"approval:{SECOND}")
+    run_to(f"approval:{SECOND}", "test the API at https://api.example.com/v1")
     request = store.get_approval(SECOND)
     token = store.request_confirmation(SECOND, request.command_hash)
-    edited = store.edit_approval(SECOND, "/api/orders/10499")
+    edited = store.edit_approval(SECOND, "/v1/orders/9000")
     assert edited.risk == "HIGH"                              # an edit never lowers the risk
     with pytest.raises(store.StoreValidationError):
         store.approve(SECOND, command_hash=edited.command_hash, confirmation_token=token)

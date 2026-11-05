@@ -91,10 +91,11 @@ def test_triage_can_reopen_a_finding():
 
 # --- a stopped run's saved copy ---------------------------------------------------------------
 def test_a_rejected_high_action_is_saved_as_stopped():
-    run_to("approval:approval-002")
+    # web_url keeps its HIGH action out of the plan, so the HIGH double-check runs on the API scan.
+    run_to("approval:approval-002", "test the API at https://api.example.com/v1")
     store.reject("approval-002")
     assert play_until_gate() is None
     saved = json.loads(json.dumps(snapshot(lists.current())))
     assert saved["status"] == "Stopped"
-    assert "Confirm the exposure" in saved["stopped_reason"]
+    assert "limited_validation" in saved["stopped_reason"]
     assert saved["run"]["completed"] is False

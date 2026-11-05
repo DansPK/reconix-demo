@@ -87,9 +87,11 @@ async def test_cancelled_login_pauses_and_enter_on_execution_reopens_it(app):
         assert isinstance(app.screen, LoginForm)
 
 
+# web_url keeps its HIGH action out of the plan, so the MEDIUM→HIGH sequence and the double
+# check run on the API template (which approves twice).
 async def test_medium_approval_runs_the_one_request(app):
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, "approval:approval-001")
+        await run_ui_to(app, pilot, "approval:approval-001", request=API_REQUEST)
         assert isinstance(app.screen, ApprovalScreen)
         assert app.focused.highlighted_id == "details"           # a stray Enter is harmless
         await pilot.press("1")                                   # Approve & run
@@ -101,7 +103,7 @@ async def test_medium_approval_runs_the_one_request(app):
 
 async def test_high_asks_for_no_reason_only_a_double_check(app):
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, "approval:approval-002")
+        await run_ui_to(app, pilot, "approval:approval-002", request=API_REQUEST)
         assert not app.screen.query(Input)                       # nothing to type
         assert app.focused.highlighted_id == "details"           # a stray Enter is harmless
         await pilot.press("1")                                   # Approve & run
@@ -113,7 +115,7 @@ async def test_high_asks_for_no_reason_only_a_double_check(app):
 
 async def test_high_confirmation_defaults_to_no_and_voids_the_token(app):
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, "approval:approval-002")
+        await run_ui_to(app, pilot, "approval:approval-002", request=API_REQUEST)
         await pilot.press("1")
         await settle(pilot)
         assert isinstance(app.screen, ChoiceScreen)
@@ -129,7 +131,7 @@ async def test_high_confirmation_defaults_to_no_and_voids_the_token(app):
 
 async def test_high_double_checked_with_yes_completes_the_run(app):
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, "approval:approval-002")
+        await run_ui_to(app, pilot, "approval:approval-002", request=API_REQUEST)
         await pass_gate(app, pilot)
         assert store.is_completed()
         decision = store.decision_for("approval-002")
@@ -199,7 +201,7 @@ async def test_approval_without_a_waiting_action_lists_the_decisions(app):
         await settle(pilot)
         text = screen_text(app)
         assert "no action is waiting" in text
-        assert text.count("✓ approved") == 2
+        assert text.count("✓ approved") == 1   # web_url approves once (its HIGH is out of the plan)
 
 
 async def test_scope_text_with_markup_is_shown_literally(app):

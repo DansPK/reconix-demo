@@ -51,18 +51,20 @@ async def test_nothing_on_the_screen_is_a_percentage(app):
 
 
 async def test_the_spinner_shows_while_running_and_hides_when_paused(app):
-    _testing_running()
+    gate = _testing_at_first_approval()              # waiting at the single approval gate
     async with app.run_test(size=SIZE) as pilot:
         await show(app, pilot, "execution")
         spinner = app.screen.query_one("#exec-spinner", Spinner)
+        assert not spinner.display                   # paused at the gate: no spinner
+        assert "paused · waiting for you" in _shown(app)
+        decide(gate)                                 # approve it; validation runs on
+        for _ in range(3):
+            store.advance()
+        app.refresh_view()
+        await settle(pilot)
         assert spinner.display
         assert "Finding validation…" in str(spinner.render())
         assert "^C to stop" in str(spinner.render())
-        play_until_gate()                                    # the HIGH approval
-        app.refresh_view()
-        await settle(pilot)
-        assert not spinner.display
-        assert "paused · waiting for you" in _shown(app)
 
 
 async def test_every_log_line_reads_time_who_message(app):

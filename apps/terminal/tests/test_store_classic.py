@@ -77,15 +77,16 @@ def test_plan_rows_name_phases_login_and_gated_actions():
     assert store.plan_overview() == []                       # no template yet
     run_to("scope")                                          # the unauthenticated web_url scan
     rows = store.plan_overview()
-    # Four phases, no login row; the two approval gates hang off the validation phase (4).
-    assert [r.num for r in rows] == ["1", "2", "3", "4", "4a", "4b"]
-    assert [r.gate for r in rows] == ["auto", "auto", "auto", "auto", "approve", "approve"]
-    medium, high = rows[4], rows[5]
-    assert (medium.risk, high.risk) == ("MEDIUM", "HIGH")
+    # Four phases, no login row; the single MEDIUM approval hangs off the validation phase (4).
+    # The HIGH action is defined but kept out of this demo's plan, so there is no 4b row.
+    assert [r.num for r in rows] == ["1", "2", "3", "4", "4a"]
+    assert [r.gate for r in rows] == ["auto", "auto", "auto", "auto", "approve"]
+    medium = rows[4]
+    assert medium.risk == "MEDIUM"
     assert medium.command.startswith("GET https://www.lumina.com/api/v1/products")
     assert medium.command.endswith("(no authentication)")   # the scan carries no credentials
     assert all(r.status == "pending" for r in rows)
-    assert store.gated_count() == 2
+    assert store.gated_count() == 1
 
 
 def test_plan_rows_follow_the_run():
@@ -177,8 +178,8 @@ def test_step_states_mark_where_a_run_stopped():
     store.reject_scope()
     assert store.step_states()["template"] == "stopped"
     store.new_assessment()
-    run_to("approval:approval-002")
-    store.reject(store.get_approval("approval-002").request_id)
+    run_to("approval:approval-001")       # web_url's single approval gate
+    store.reject(store.get_approval("approval-001").request_id)
     store.advance()
     states = store.step_states()
     assert states["approval"] == states["execution"] == "stopped"

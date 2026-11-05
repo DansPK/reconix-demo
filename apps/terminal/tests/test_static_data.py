@@ -98,7 +98,9 @@ def test_every_value_is_in_its_allowed_set(completed):
         assert finding.validation in VALIDATION_ORDER
         assert finding.status in store.TRIAGE_STATUS
     approvals = lists.current().approvals
-    assert [a.risk for a in approvals] == ["MEDIUM", "HIGH"]
+    # web_url keeps its HIGH action out of the plan, so it carries only the MEDIUM approval.
+    assert [a.risk for a in approvals] == (["MEDIUM"] if template_id == "web_url"
+                                           else ["MEDIUM", "HIGH"])
     assert len({a.request_id for a in approvals}) == len(approvals)
     statuses = {task.key: task.status for task in store.plan_tasks()}
     # web_url's plan ends at validation (recon/discovery/scanning/validation); the other
