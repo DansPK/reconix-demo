@@ -10,7 +10,7 @@ import { assessmentView } from "../data/adapt";
 import { clock, parseTime } from "../data/format";
 import type { Assessment } from "../data/schema";
 import type { AssessmentView, FindingView } from "../data/view-types";
-import { cut, type Located, rankFindings, reviewOf, runRef, safe, scopedViews, severityCounts, waitingOn } from "./insights";
+import { cut, type Located, matchFindings, rankFindings, reviewOf, runRef, safe, scopedViews, severityCounts, waitingOn } from "./insights";
 import { findingKey, readIntent } from "./intent";
 import { type Card, type CardOf, CardSchema, type FindingItem, MAX_CARDS } from "./protocol";
 
@@ -253,7 +253,11 @@ export function pickCards(library: Assessment[], uid: string | null, question: s
     }
   }
   for (const located of named) cards.push(findingCard(located));
-  if (!named.length && has("top")) {
+  // No id named, but the question names a particular weakness ("the XSS", "the IDOR", "the
+  // outdated dependency"): open that finding, not the worst one again.
+  const matched = named.length ? [] : matchFindings(views, question);
+  for (const located of matched) cards.push(findingCard(located));
+  if (!named.length && !matched.length && has("top")) {
     const top = rankFindings(views)[0];
     if (top) cards.push(findingCard(top));
   }

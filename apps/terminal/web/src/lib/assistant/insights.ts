@@ -61,6 +61,69 @@ export function rankFindings(views: AssessmentView[]): Located[] {
     );
 }
 
+// Weakness words mapped from a finding's CWE, so "the XSS" or "the IDOR" opens that finding even
+// when its title never spells the acronym ("Reflected input in search page" is CWE-79). A one-word
+// term is matched as a whole word (so "tls" never matches "details"); a phrase, as a substring.
+const WEAKNESS_TERMS: Record<string, readonly string[]> = {
+  "CWE-79": ["xss", "cross-site scripting", "reflected input", "reflected", "script injection"],
+  "CWE-89": ["sqli", "sql injection", "sql", "union select"],
+  "CWE-639": ["idor", "object-level", "broken object", "direct object", "order records"],
+  "CWE-285": ["authorization", "authorisation", "access control", "export endpoint"],
+  "CWE-284": ["access control", "management console", "admin console"],
+  "CWE-798": ["hardcoded", "hard-coded", "secret", "credential", "api key", "database password"],
+  "CWE-307": ["brute force", "brute-force", "rate limit", "rate-limiting"],
+  "CWE-327": ["tls", "ssl", "cipher", "weak hash", "md5", "deprecated tls"],
+  "CWE-1104": ["dependency", "dependencies", "outdated", "component", "cve"],
+  "CWE-1321": ["prototype pollution", "dependency", "outdated javascript", "cve"],
+  "CWE-1275": ["samesite", "session cookie", "cookie"],
+  "CWE-200": ["information disclosure", "banner", "version disclosure"],
+};
+
+// Stop-words plus the question's own furniture, so matching keys off the weakness, not "finding".
+const STOP = new Set([
+  "the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "this", "that", "it", "is", "are",
+  "was", "were", "about", "tell", "me", "what", "which", "show", "explain", "any", "there", "did",
+  "you", "reconix", "finding", "findings", "vulnerability", "vulnerabilities", "issue", "issues",
+  "page", "with", "how", "why", "can", "does",
+]);
+
+function questionTokens(s: string): Set<string> {
+  return new Set((s.toLowerCase().match(/[a-z0-9]+/g) ?? []).filter((t) => t.length >= 3 && !STOP.has(t)));
+}
+
+/** Findings a question names by its weakness (acronym/phrase from the CWE) or by its title words,
+    best first and distinct, so a question about one weakness opens that finding instead of the
+    worst one again. Empty when the question names no particular weakness (then the caller lists). */
+export function matchFindings(views: AssessmentView[], question: string, limit = 2): Located[] {
+  const q = question.toLowerCase();
+  const qTokens = questionTokens(question);
+  const hit = (term: string) => (term.includes(" ") ? q.includes(term) : qTokens.has(term));
+  const scored: { loc: Located; score: number }[] = [];
+  for (const view of views) {
+    for (const finding of realFindings(view)) {
+      let score = 0;
+      for (const cwe of String(finding.cwe ?? "").toUpperCase().match(/CWE-\d+/g) ?? []) {
+        if (q.includes(cwe.toLowerCase())) score += 3;
+        for (const term of WEAKNESS_TERMS[cwe] ?? []) if (hit(term)) score += 3;
+      }
+      for (const t of questionTokens(finding.title)) if (qTokens.has(t)) score += 1;
+      if (score > 0) scored.push({ loc: { finding, view }, score });
+    }
+  }
+  scored.sort((a, b) => b.score - a.score || rank(a.loc.finding.severity) - rank(b.loc.finding.severity));
+  const out: Located[] = [];
+  const seen = new Set<string>();
+  for (const { loc, score } of scored) {
+    if (score < 2) continue; // one stray title word isn't enough; a weakness term or two words is
+    const key = `${loc.view.uid}|${loc.finding.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(loc);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
 export function severityCounts(views: AssessmentView[]): Record<Severity, number> {
   const counts: Record<Severity, number> = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
   for (const v of views) for (const f of realFindings(v)) counts[f.severity] += 1;
