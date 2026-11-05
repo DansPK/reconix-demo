@@ -31,7 +31,7 @@
   "run": {
     "phase": "completed",
     "started_at": "2026-10-05T14:04:20+00:00",
-    "finished_at": "2026-10-05T14:15:49+00:00",
+    "finished_at": "2026-10-05T14:14:32+00:00",
     "completed": true,
     "requests": 1202,
     "progress": {
@@ -115,20 +115,6 @@
       "allowed": true,
       "reason": "Within approved scope",
       "at": "2026-10-05T14:09:58+00:00"
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/products?q='+OR+1=1--",
-      "allowed": true,
-      "reason": "Within approved scope",
-      "at": "2026-10-05T14:11:21+00:00"
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/products?q='+OR+1=1--",
-      "allowed": true,
-      "reason": "Within approved scope",
-      "at": "2026-10-05T14:11:48+00:00"
     }
   ],
   "approvals": [
@@ -143,18 +129,6 @@
       "impact": "Low. One read-only search request, no data changes",
       "command": "GET https://staging.lumina.com/api/v1/products?q=cotton+socks (no authentication)",
       "command_hash": "sha256:aef8e422d82e8ab219df3aabfdb0e6d852d8860c950e63c6eafcfb4b014d685c"
-    },
-    {
-      "request_id": "approval-002",
-      "risk": "HIGH",
-      "action": "Confirm the exposure",
-      "target": "GET /api/v1/products?q='+OR+1=1--",
-      "method": "GET",
-      "path": "/api/v1/products?q='+OR+1=1--",
-      "purpose": "Prove the injection returns the whole table with an always-true condition",
-      "impact": "Returns every customer row from the database. 1 request, no changes",
-      "command": "GET https://staging.lumina.com/api/v1/products?q='+OR+1=1-- (no authentication)",
-      "command_hash": "sha256:48a62841f813b03c5adc7a10d29cd10b1c9268d23b3beb7718ea62e68e7162a4"
     }
   ],
   "decisions": [
@@ -165,14 +139,6 @@
       "reason": "",
       "command_hash": "sha256:aef8e422d82e8ab219df3aabfdb0e6d852d8860c950e63c6eafcfb4b014d685c",
       "at": "2026-10-05T14:10:04+00:00"
-    },
-    {
-      "request_id": "approval-002",
-      "decision": "APPROVED",
-      "operator": "analyst",
-      "reason": "",
-      "command_hash": "sha256:48a62841f813b03c5adc7a10d29cd10b1c9268d23b3beb7718ea62e68e7162a4",
-      "at": "2026-10-05T14:11:53+00:00"
     }
   ],
   "findings": [
@@ -789,36 +755,6 @@
       "seq": 35,
       "at": "2026-10-05T14:11:06+00:00",
       "type": "activity",
-      "who": "POLICY",
-      "kind": "line",
-      "text": "Risk: HIGH · needs a double check",
-      "tone": "warn",
-      "rows": []
-    },
-    {
-      "seq": 36,
-      "at": "2026-10-05T14:11:59+00:00",
-      "type": "activity",
-      "who": "USER",
-      "kind": "line",
-      "text": "Approved: Confirm the exposure (double-checked)",
-      "tone": "ok",
-      "rows": []
-    },
-    {
-      "seq": 37,
-      "at": "2026-10-05T14:12:19+00:00",
-      "type": "chat",
-      "who": "policy",
-      "kind": "banner",
-      "text": "HIGH action approved after a double check.",
-      "tone": "ok",
-      "rows": []
-    },
-    {
-      "seq": 38,
-      "at": "2026-10-05T14:12:30+00:00",
-      "type": "activity",
       "who": "TOOL",
       "kind": "line",
       "text": "Running limited validation · 1 request",
@@ -826,8 +762,8 @@
       "rows": []
     },
     {
-      "seq": 39,
-      "at": "2026-10-05T14:12:37+00:00",
+      "seq": 36,
+      "at": "2026-10-05T14:11:15+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -836,8 +772,8 @@
       "rows": []
     },
     {
-      "seq": 40,
-      "at": "2026-10-05T14:12:49+00:00",
+      "seq": 37,
+      "at": "2026-10-05T14:11:29+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -846,8 +782,8 @@
       "rows": []
     },
     {
-      "seq": 41,
-      "at": "2026-10-05T14:12:55+00:00",
+      "seq": 38,
+      "at": "2026-10-05T14:11:41+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -856,8 +792,8 @@
       "rows": []
     },
     {
-      "seq": 42,
-      "at": "2026-10-05T14:13:06+00:00",
+      "seq": 39,
+      "at": "2026-10-05T14:11:53+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -879,8 +815,8 @@
       ]
     },
     {
-      "seq": 43,
-      "at": "2026-10-05T14:13:27+00:00",
+      "seq": 40,
+      "at": "2026-10-05T14:12:19+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -889,8 +825,8 @@
       "rows": []
     },
     {
-      "seq": 44,
-      "at": "2026-10-05T14:13:40+00:00",
+      "seq": 41,
+      "at": "2026-10-05T14:12:30+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -899,8 +835,8 @@
       "rows": []
     },
     {
-      "seq": 45,
-      "at": "2026-10-05T14:13:58+00:00",
+      "seq": 42,
+      "at": "2026-10-05T14:12:43+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "check",
@@ -909,8 +845,8 @@
       "rows": []
     },
     {
-      "seq": 46,
-      "at": "2026-10-05T14:14:14+00:00",
+      "seq": 43,
+      "at": "2026-10-05T14:12:55+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -919,8 +855,8 @@
       "rows": []
     },
     {
-      "seq": 47,
-      "at": "2026-10-05T14:14:27+00:00",
+      "seq": 44,
+      "at": "2026-10-05T14:13:11+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -929,8 +865,8 @@
       "rows": []
     },
     {
-      "seq": 48,
-      "at": "2026-10-05T14:15:05+00:00",
+      "seq": 45,
+      "at": "2026-10-05T14:13:46+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -939,8 +875,8 @@
       "rows": []
     },
     {
-      "seq": 49,
-      "at": "2026-10-05T14:15:17+00:00",
+      "seq": 46,
+      "at": "2026-10-05T14:14:02+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -949,8 +885,8 @@
       "rows": []
     },
     {
-      "seq": 50,
-      "at": "2026-10-05T14:15:26+00:00",
+      "seq": 47,
+      "at": "2026-10-05T14:14:14+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -959,8 +895,8 @@
       "rows": []
     },
     {
-      "seq": 51,
-      "at": "2026-10-05T14:15:40+00:00",
+      "seq": 48,
+      "at": "2026-10-05T14:14:24+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -969,8 +905,8 @@
       "rows": []
     },
     {
-      "seq": 52,
-      "at": "2026-10-05T14:16:08+00:00",
+      "seq": 49,
+      "at": "2026-10-05T14:14:47+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -979,8 +915,8 @@
       "rows": []
     },
     {
-      "seq": 53,
-      "at": "2026-10-05T14:16:12+00:00",
+      "seq": 50,
+      "at": "2026-10-05T14:14:53+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -989,8 +925,8 @@
       "rows": []
     },
     {
-      "seq": 54,
-      "at": "2026-10-05T14:16:15+00:00",
+      "seq": 51,
+      "at": "2026-10-05T14:15:01+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -1005,5 +941,5 @@
       "at": "2026-10-05T14:03:21+00:00"
     }
   ],
-  "saved_at": "2026-10-05T14:30:19+00:00"
+  "saved_at": "2026-10-05T14:28:52+00:00"
 }
