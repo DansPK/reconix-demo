@@ -128,6 +128,20 @@ describe("pickCards", () => {
     expect(card.item.id).toBe("F-002");
     expect(card.item.run.uid).toBe(completed.uid);
   });
+  it("opens the specific finding a question names, not the worst one every time", () => {
+    // A run with both the critical SQLi and a different, lower weakness (the reflected XSS).
+    const rich = samples.find(
+      (a) => real(a).some((f) => (f.cwe ?? "").includes("CWE-79")) && real(a).some((f) => (f.cwe ?? "").includes("CWE-89")),
+    )!;
+    const xss = of(pickCards(samples, rich.uid, "Tell me about the reflected XSS"), "finding");
+    expect(xss.item.title.toLowerCase()).toContain("reflected");
+    expect(xss.item.title.toLowerCase()).not.toContain("sql injection");
+    // asking it as a plain finding question returns that one finding, not the worst-first list
+    expect(kinds(pickCards(samples, rich.uid, "Tell me about the reflected XSS"))).toEqual(["finding"]);
+    const dep = of(pickCards(samples, rich.uid, "What about the outdated dependency?"), "finding");
+    expect(dep.item.title.toLowerCase()).toContain("dependency");
+    expect(dep.item.id).not.toBe(xss.item.id); // different questions → different findings
+  });
   it("shows plan progress with the saved phase states", () => {
     const card = of(pickCards(samples, waiting.uid, "Review the assessment progress"), "progress");
     expect(card.runs).toHaveLength(1);

@@ -129,7 +129,14 @@ switch ($Command) {
         Write-Host "       . `"$activate`"; reconix"
         break
     }
-    "web"     { Need-NodeModules (Join-Path $Tui "web"); Push-Location (Join-Path $Tui "web"); npm run dev; break }
+    "web"     {
+        Need-NodeModules (Join-Path $Tui "web"); Push-Location (Join-Path $Tui "web")
+        # Serve the same runs the TUI's /web shows (~/.reconix/assessments by default, or
+        # $env:RECONIX_DATA_DIR if set), so both launch paths open the identical dashboard. It is
+        # empty until you have run an assessment in the TUI; those autosave here.
+        if (-not $env:RECONIX_DATA_DIR) { $env:RECONIX_DATA_DIR = Join-Path $HOME ".reconix\assessments" }
+        npm run dev; break
+    }
     "site"    { Need-NodeModules $Site; Push-Location $Site; npm run dev; break }
     "store"   { Need-NodeModules $ScanTarget; Push-Location $ScanTarget; npm run dev; break }
     "scanner" { Need-NodeModules $Ext;  Push-Location $Ext;  npm run server; break }
