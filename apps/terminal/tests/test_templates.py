@@ -60,7 +60,8 @@ def test_each_template_runs_and_blocks_its_out_of_scope_probe(template_id):
     assert lists.current().template_id == template_id
     assert store.is_completed()
     counts = store.counters()
-    assert counts["approvals"] == 2
+    # web_url approves once (its HIGH action is kept out of the plan); the others double-check.
+    assert counts["approvals"] == (1 if template_id == "web_url" else 2)
     assert counts["findings"] == (5 if template_id == "web_url" else 3)
     assert counts["blocked"] == 1
     assert store.get_scope().kind == template_id

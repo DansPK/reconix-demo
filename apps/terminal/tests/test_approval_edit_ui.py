@@ -59,10 +59,12 @@ async def test_a_refused_value_keeps_the_form_open_with_the_reason(app):
 
 async def test_a_high_action_edited_is_still_double_checked(app):
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, "approval:approval-002")
+        # web_url keeps its HIGH action out of the plan, so the HIGH edit + double check uses API.
+        await run_ui_to(app, pilot, "approval:approval-002",
+                        request="test the API at https://api.example.com/v1")
         await pilot.press("4")
         await settle(pilot)
-        await fill_and_submit(app, pilot, "/api/orders/10499")
+        await fill_and_submit(app, pilot, "/v1/orders/9000")
         edited = store.get_approval("approval-002")
         assert edited.risk == "HIGH"
         await pilot.press("1")                                   # Approve & run
@@ -78,14 +80,15 @@ async def test_a_high_action_edited_is_still_double_checked(app):
 
 async def test_edit_steps_on_the_plan_changes_a_later_gate(app):
     async with app.run_test(size=SIZE) as pilot:
-        await run_ui_to(app, pilot, "plan")
+        # web_url's plan has a single gated action, so editing a later HIGH step uses the API run.
+        await run_ui_to(app, pilot, "plan", request="test the API at https://api.example.com/v1")
         assert isinstance(app.screen, PlanScreen)
         await pilot.press("2")                                   # Edit steps
         await settle(pilot)
         assert isinstance(app.screen, ChoiceScreen)              # which step?
         await pilot.press("2")                                   # the HIGH one
         await settle(pilot)
-        await fill_and_submit(app, pilot, "/api/orders/10499")
+        await fill_and_submit(app, pilot, "/v1/orders/9000")
         assert isinstance(app.screen, PlanScreen)
-        assert store.get_approval("approval-002").path == "/api/orders/10499"
-        assert store.get_approval("approval-001").path == "/api/v1/products?q=cotton+socks"  # untouched
+        assert store.get_approval("approval-002").path == "/v1/orders/9000"
+        assert store.get_approval("approval-001").path == "/v1/orders/8842"  # untouched

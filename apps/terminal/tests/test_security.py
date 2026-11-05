@@ -42,7 +42,8 @@ def test_a_request_changed_after_it_was_shown_is_refused():
 
 
 def test_only_the_newest_confirmation_token_works():
-    run_to(f"approval:{HIGH}")
+    # web_url keeps its HIGH action out of the plan; the HIGH double-check runs on the API scan.
+    run_to(f"approval:{HIGH}", "test the API at https://api.example.com/v1")
     request = store.get_approval(HIGH)
     first = store.request_confirmation(HIGH, request.command_hash)
     second = store.request_confirmation(HIGH, request.command_hash)

@@ -58,7 +58,8 @@ def test_a_finished_run_has_findings_decisions_verdicts_and_plan():
 
 
 def test_a_pending_high_approval_is_named():
-    store.start_run(store.DEMO_REQUEST)
+    # web_url keeps its HIGH action out of the plan, so a pending HIGH is reached via the API scan.
+    store.start_run("test the API at https://api.example.com/v1")
     while True:
         gate = play_until_gate()
         if gate.startswith("approval:") and store.get_approval(gate.split(":")[1]).risk == "HIGH":
@@ -66,7 +67,7 @@ def test_a_pending_high_approval_is_named():
         decide(gate)
     store.autosave()
     data = load(saved_files()[0])
-    assert data["waiting_for"] == "HIGH approval for Confirm the exposure"
+    assert data["waiting_for"] == "HIGH approval for limited_validation"
 
 
 def test_no_secret_reaches_the_saved_file():

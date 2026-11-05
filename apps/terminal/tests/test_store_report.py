@@ -73,7 +73,7 @@ def test_json_report_is_written_and_recorded(reports_dir):
     assert [f["id"] for f in data["findings"]] == ["004", "001", "005", "002", "003"]
     assert data["blocked_requests"] == [
         {"request": "GET /admin", "reason": "Path outside approved scope"}]
-    assert [a["risk"] for a in data["approvals"]] == ["MEDIUM", "HIGH"]
+    assert [a["risk"] for a in data["approvals"]] == ["MEDIUM"]   # web_url's HIGH is out of the plan
     assert store.get_run().report_path == shown
     assert store.phase_progress()["report"] == 100
     assert store.list_events()[-1].kind == "report.generated"
@@ -107,7 +107,7 @@ def test_docx_report_has_every_section(reports_dir, monkeypatch):
         "005 · Outdated JavaScript dependency with a known CVE",
         "002 · Reflected input in search page"]
     assert headings[-3:] == ["5 Policy & governance", "Blocked by policy · 1",
-                             "Human approvals · 2"]
+                             "Human approvals · 1"]
     html = render_html(store.report_data())                 # the PDF has the same headings
     for heading in ("Executive summary", "Findings summary", "Approved scope &amp; limitations",
                     "Detailed findings", "Policy &amp; governance"):
@@ -127,7 +127,7 @@ def test_docx_report_has_every_section(reports_dir, monkeypatch):
     assert scope["Approval status"] == "Approved" and scope["Excluded paths"] == "/admin"
     assert scope["Standards"] == "OWASP WSTG · OWASP Top 10 (2021)"
     approvals = next(t for t in tables if t[0][0] == "Risk")
-    assert [row[0] for row in approvals[1:]] == ["Medium", "High"]
+    assert [row[0] for row in approvals[1:]] == ["Medium"]   # web_url's HIGH is out of the plan
     assert "•••" in _docx_text(reports_dir / "RCX-001.docx")      # evidence stays masked
 
 
@@ -259,5 +259,6 @@ def test_summary_counts_every_human_approval():
     run_to(None)
     summary = store.assessment_summary()
     assert summary.status == "Completed"
-    assert summary.approvals == ["scope", "MEDIUM", "HIGH"]
+    # web_url approves once (scope + the MEDIUM); its HIGH action is kept out of the plan.
+    assert summary.approvals == ["scope", "MEDIUM"]
     assert (summary.blocked, summary.confirmed, summary.for_review) == (1, 2, 3)

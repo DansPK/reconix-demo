@@ -6,8 +6,9 @@ from reconix import store
 
 from .support import ASK_REQUEST, decide, event_kinds, play_until_gate, run_to
 
-# web_url is an unauthenticated scan: no account/code gates. The API template still logs in.
-GATES = ["scope", "plan", "approval:approval-001", "approval:approval-002"]
+# web_url is an unauthenticated scan: no account/code gates, and a single approval (the MEDIUM;
+# the HIGH double-check is dropped for this demo). The API template still logs in and double-checks.
+GATES = ["scope", "plan", "approval:approval-001"]
 API_REQUEST = "test the API at https://api.example.com/v1"
 
 
@@ -77,7 +78,7 @@ def test_out_of_scope_request_is_blocked_by_policy():
 
 
 def test_findings_are_revealed_as_the_run_finds_them():
-    run_to("approval:approval-002")       # the SQLi dump waits for a double check; nothing proven yet
+    run_to("approval:approval-001")       # the SQLi dump waits for the approval; nothing proven yet
     assert [f.fid for f in store.list_findings()] == []
     run_to_end_from_here()
     assert [f.fid for f in store.list_findings()] == ["004", "001", "005", "002", "003"]
@@ -95,7 +96,7 @@ def test_a_full_run_matches_the_design_counts():
     run_to(None)
     counters = store.counters()
     assert counters["blocked"] == 1
-    assert counters["approvals"] == 2
+    assert counters["approvals"] == 1
     assert counters["findings"] == 5
     assert counters["requests"] > 1000
     assert all(v == 100 for k, v in store.phase_progress().items() if k != "report")

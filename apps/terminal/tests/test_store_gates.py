@@ -182,7 +182,8 @@ def test_medium_needs_the_matching_hash_and_is_decided_once():
 
 @pytest.fixture
 def high():
-    run_to(f"approval:{HIGH}")
+    # web_url is single-approval now, so the HIGH double-check is exercised on the API template.
+    run_to(f"approval:{HIGH}", API_REQUEST)
     return store.get_approval(HIGH)
 
 
@@ -193,7 +194,7 @@ def test_high_needs_the_double_check_but_no_reason(high):
     token = store.request_confirmation(HIGH, high.command_hash)
     decision = store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token)
     assert decision.reason == "" and store.is_approved(HIGH)
-    assert "Approved: Confirm the exposure (double-checked)" in [
+    assert "Approved: limited_validation (double-checked)" in [
         e.message for e in store.list_activity()]
 
 
