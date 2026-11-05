@@ -21,7 +21,7 @@
     "OWASP Top 10 (2021)"
   ],
   "report_version": "1.0",
-  "created_at": "2026-10-06T09:00:24+00:00",
+  "created_at": "2026-10-06T09:00:20+00:00",
   "status": "Completed",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,8 +30,8 @@
   "session_closed": true,
   "run": {
     "phase": "completed",
-    "started_at": "2026-10-06T09:01:21+00:00",
-    "finished_at": "2026-10-06T09:13:24+00:00",
+    "started_at": "2026-10-06T09:01:24+00:00",
+    "finished_at": "2026-10-06T09:11:55+00:00",
     "completed": true,
     "requests": 1202,
     "progress": {
@@ -100,35 +100,21 @@
       "path": "/admin",
       "allowed": false,
       "reason": "Path outside approved scope",
-      "at": "2026-10-06T09:05:17+00:00"
+      "at": "2026-10-06T09:04:52+00:00"
     },
     {
       "method": "GET",
       "path": "/api/v1/products?q=cotton+socks",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-06T09:07:22+00:00"
+      "at": "2026-10-06T09:06:47+00:00"
     },
     {
       "method": "GET",
       "path": "/api/v1/products?q=cotton+socks",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-06T09:07:33+00:00"
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/products?q='+OR+1=1--",
-      "allowed": true,
-      "reason": "Within approved scope",
-      "at": "2026-10-06T09:08:52+00:00"
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/products?q='+OR+1=1--",
-      "allowed": true,
-      "reason": "Within approved scope",
-      "at": "2026-10-06T09:09:11+00:00"
+      "at": "2026-10-06T09:06:57+00:00"
     }
   ],
   "approvals": [
@@ -143,18 +129,6 @@
       "impact": "Low. One read-only search request, no data changes",
       "command": "GET https://www.lumina.com/api/v1/products?q=cotton+socks (no authentication)",
       "command_hash": "sha256:5ce80fb64266d68c0d8ca9320959cd8aff74d780e048b94a22a0246d1dda26ab"
-    },
-    {
-      "request_id": "approval-002",
-      "risk": "HIGH",
-      "action": "Confirm the exposure",
-      "target": "GET /api/v1/products?q='+OR+1=1--",
-      "method": "GET",
-      "path": "/api/v1/products?q='+OR+1=1--",
-      "purpose": "Prove the injection returns the whole table with an always-true condition",
-      "impact": "Returns every customer row from the database. 1 request, no changes",
-      "command": "GET https://www.lumina.com/api/v1/products?q='+OR+1=1-- (no authentication)",
-      "command_hash": "sha256:99ef31bc10406d1f77df143260df302058abf2b76718471b8b4801aa0bb7bd22"
     }
   ],
   "decisions": [
@@ -164,15 +138,7 @@
       "operator": "analyst",
       "reason": "",
       "command_hash": "sha256:5ce80fb64266d68c0d8ca9320959cd8aff74d780e048b94a22a0246d1dda26ab",
-      "at": "2026-10-06T09:07:36+00:00"
-    },
-    {
-      "request_id": "approval-002",
-      "decision": "APPROVED",
-      "operator": "analyst",
-      "reason": "",
-      "command_hash": "sha256:99ef31bc10406d1f77df143260df302058abf2b76718471b8b4801aa0bb7bd22",
-      "at": "2026-10-06T09:09:14+00:00"
+      "at": "2026-10-06T09:07:02+00:00"
     }
   ],
   "findings": [
@@ -525,7 +491,7 @@
   "timeline": [
     {
       "seq": 1,
-      "at": "2026-10-06T09:00:12+00:00",
+      "at": "2026-10-06T09:00:11+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -535,7 +501,7 @@
     },
     {
       "seq": 2,
-      "at": "2026-10-06T09:00:16+00:00",
+      "at": "2026-10-06T09:00:17+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -545,7 +511,7 @@
     },
     {
       "seq": 3,
-      "at": "2026-10-06T09:00:35+00:00",
+      "at": "2026-10-06T09:00:33+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
@@ -555,7 +521,7 @@
     },
     {
       "seq": 4,
-      "at": "2026-10-06T09:00:51+00:00",
+      "at": "2026-10-06T09:00:52+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -565,7 +531,7 @@
     },
     {
       "seq": 5,
-      "at": "2026-10-06T09:00:56+00:00",
+      "at": "2026-10-06T09:00:59+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -575,7 +541,7 @@
     },
     {
       "seq": 6,
-      "at": "2026-10-06T09:01:02+00:00",
+      "at": "2026-10-06T09:01:05+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -585,7 +551,7 @@
     },
     {
       "seq": 7,
-      "at": "2026-10-06T09:01:06+00:00",
+      "at": "2026-10-06T09:01:11+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -595,7 +561,7 @@
     },
     {
       "seq": 8,
-      "at": "2026-10-06T09:01:13+00:00",
+      "at": "2026-10-06T09:01:15+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -605,7 +571,7 @@
     },
     {
       "seq": 9,
-      "at": "2026-10-06T09:01:18+00:00",
+      "at": "2026-10-06T09:01:19+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -615,7 +581,7 @@
     },
     {
       "seq": 10,
-      "at": "2026-10-06T09:01:25+00:00",
+      "at": "2026-10-06T09:01:28+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -625,7 +591,7 @@
     },
     {
       "seq": 11,
-      "at": "2026-10-06T09:01:31+00:00",
+      "at": "2026-10-06T09:01:33+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -635,7 +601,7 @@
     },
     {
       "seq": 12,
-      "at": "2026-10-06T09:01:52+00:00",
+      "at": "2026-10-06T09:01:55+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -645,7 +611,7 @@
     },
     {
       "seq": 13,
-      "at": "2026-10-06T09:02:03+00:00",
+      "at": "2026-10-06T09:02:01+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -665,7 +631,7 @@
     },
     {
       "seq": 15,
-      "at": "2026-10-06T09:02:40+00:00",
+      "at": "2026-10-06T09:02:33+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -675,7 +641,7 @@
     },
     {
       "seq": 16,
-      "at": "2026-10-06T09:02:52+00:00",
+      "at": "2026-10-06T09:02:55+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -685,7 +651,7 @@
     },
     {
       "seq": 17,
-      "at": "2026-10-06T09:03:06+00:00",
+      "at": "2026-10-06T09:03:05+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -695,7 +661,7 @@
     },
     {
       "seq": 18,
-      "at": "2026-10-06T09:03:18+00:00",
+      "at": "2026-10-06T09:03:14+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -705,7 +671,7 @@
     },
     {
       "seq": 19,
-      "at": "2026-10-06T09:03:31+00:00",
+      "at": "2026-10-06T09:03:21+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -715,7 +681,7 @@
     },
     {
       "seq": 20,
-      "at": "2026-10-06T09:04:01+00:00",
+      "at": "2026-10-06T09:03:43+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -725,7 +691,7 @@
     },
     {
       "seq": 21,
-      "at": "2026-10-06T09:04:12+00:00",
+      "at": "2026-10-06T09:03:53+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -735,7 +701,7 @@
     },
     {
       "seq": 22,
-      "at": "2026-10-06T09:04:36+00:00",
+      "at": "2026-10-06T09:04:09+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -758,7 +724,7 @@
     },
     {
       "seq": 23,
-      "at": "2026-10-06T09:04:42+00:00",
+      "at": "2026-10-06T09:04:19+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -768,7 +734,7 @@
     },
     {
       "seq": 24,
-      "at": "2026-10-06T09:05:07+00:00",
+      "at": "2026-10-06T09:04:43+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -778,7 +744,7 @@
     },
     {
       "seq": 25,
-      "at": "2026-10-06T09:05:31+00:00",
+      "at": "2026-10-06T09:05:04+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -788,7 +754,7 @@
     },
     {
       "seq": 26,
-      "at": "2026-10-06T09:05:37+00:00",
+      "at": "2026-10-06T09:05:09+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -798,7 +764,7 @@
     },
     {
       "seq": 27,
-      "at": "2026-10-06T09:05:48+00:00",
+      "at": "2026-10-06T09:05:21+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -808,7 +774,7 @@
     },
     {
       "seq": 28,
-      "at": "2026-10-06T09:06:13+00:00",
+      "at": "2026-10-06T09:05:40+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -827,7 +793,7 @@
     },
     {
       "seq": 29,
-      "at": "2026-10-06T09:06:39+00:00",
+      "at": "2026-10-06T09:06:07+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -837,7 +803,7 @@
     },
     {
       "seq": 30,
-      "at": "2026-10-06T09:06:50+00:00",
+      "at": "2026-10-06T09:06:18+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -847,7 +813,7 @@
     },
     {
       "seq": 31,
-      "at": "2026-10-06T09:07:07+00:00",
+      "at": "2026-10-06T09:06:30+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -857,7 +823,7 @@
     },
     {
       "seq": 32,
-      "at": "2026-10-06T09:07:43+00:00",
+      "at": "2026-10-06T09:07:08+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -867,7 +833,7 @@
     },
     {
       "seq": 33,
-      "at": "2026-10-06T09:08:07+00:00",
+      "at": "2026-10-06T09:07:30+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -877,7 +843,7 @@
     },
     {
       "seq": 34,
-      "at": "2026-10-06T09:08:20+00:00",
+      "at": "2026-10-06T09:07:45+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -887,37 +853,7 @@
     },
     {
       "seq": 35,
-      "at": "2026-10-06T09:08:38+00:00",
-      "type": "activity",
-      "who": "POLICY",
-      "kind": "line",
-      "text": "Risk: HIGH · needs a double check",
-      "tone": "warn",
-      "rows": []
-    },
-    {
-      "seq": 36,
-      "at": "2026-10-06T09:09:22+00:00",
-      "type": "activity",
-      "who": "USER",
-      "kind": "line",
-      "text": "Approved: Confirm the exposure (double-checked)",
-      "tone": "ok",
-      "rows": []
-    },
-    {
-      "seq": 37,
-      "at": "2026-10-06T09:09:42+00:00",
-      "type": "chat",
-      "who": "policy",
-      "kind": "banner",
-      "text": "HIGH action approved after a double check.",
-      "tone": "ok",
-      "rows": []
-    },
-    {
-      "seq": 38,
-      "at": "2026-10-06T09:09:51+00:00",
+      "at": "2026-10-06T09:08:05+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -926,8 +862,8 @@
       "rows": []
     },
     {
-      "seq": 39,
-      "at": "2026-10-06T09:10:01+00:00",
+      "seq": 36,
+      "at": "2026-10-06T09:08:18+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -936,8 +872,8 @@
       "rows": []
     },
     {
-      "seq": 40,
-      "at": "2026-10-06T09:10:06+00:00",
+      "seq": 37,
+      "at": "2026-10-06T09:08:28+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -946,8 +882,8 @@
       "rows": []
     },
     {
-      "seq": 41,
-      "at": "2026-10-06T09:10:22+00:00",
+      "seq": 38,
+      "at": "2026-10-06T09:08:43+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -956,8 +892,8 @@
       "rows": []
     },
     {
-      "seq": 42,
-      "at": "2026-10-06T09:10:32+00:00",
+      "seq": 39,
+      "at": "2026-10-06T09:08:53+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -979,8 +915,8 @@
       ]
     },
     {
-      "seq": 43,
-      "at": "2026-10-06T09:11:02+00:00",
+      "seq": 40,
+      "at": "2026-10-06T09:09:22+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -989,8 +925,8 @@
       "rows": []
     },
     {
-      "seq": 44,
-      "at": "2026-10-06T09:11:17+00:00",
+      "seq": 41,
+      "at": "2026-10-06T09:09:37+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -999,8 +935,8 @@
       "rows": []
     },
     {
-      "seq": 45,
-      "at": "2026-10-06T09:11:27+00:00",
+      "seq": 42,
+      "at": "2026-10-06T09:09:47+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "check",
@@ -1009,8 +945,8 @@
       "rows": []
     },
     {
-      "seq": 46,
-      "at": "2026-10-06T09:11:37+00:00",
+      "seq": 43,
+      "at": "2026-10-06T09:10:05+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -1019,8 +955,8 @@
       "rows": []
     },
     {
-      "seq": 47,
-      "at": "2026-10-06T09:11:55+00:00",
+      "seq": 44,
+      "at": "2026-10-06T09:10:22+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -1029,8 +965,8 @@
       "rows": []
     },
     {
-      "seq": 48,
-      "at": "2026-10-06T09:12:34+00:00",
+      "seq": 45,
+      "at": "2026-10-06T09:11:06+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -1039,8 +975,8 @@
       "rows": []
     },
     {
-      "seq": 49,
-      "at": "2026-10-06T09:12:50+00:00",
+      "seq": 46,
+      "at": "2026-10-06T09:11:21+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -1049,8 +985,8 @@
       "rows": []
     },
     {
-      "seq": 50,
-      "at": "2026-10-06T09:13:04+00:00",
+      "seq": 47,
+      "at": "2026-10-06T09:11:34+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -1059,8 +995,8 @@
       "rows": []
     },
     {
-      "seq": 51,
-      "at": "2026-10-06T09:13:13+00:00",
+      "seq": 48,
+      "at": "2026-10-06T09:11:44+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -1069,8 +1005,8 @@
       "rows": []
     },
     {
-      "seq": 52,
-      "at": "2026-10-06T09:13:36+00:00",
+      "seq": 49,
+      "at": "2026-10-06T09:12:07+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -1082,8 +1018,8 @@
   "requests": [
     {
       "text": "Assess https://www.lumina.com for web security issues.",
-      "at": "2026-10-06T09:00:30+00:00"
+      "at": "2026-10-06T09:00:24+00:00"
     }
   ],
-  "saved_at": "2026-10-06T09:13:43+00:00"
+  "saved_at": "2026-10-06T09:12:16+00:00"
 }
