@@ -70,7 +70,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 #app { display: flex; flex-direction: column; height: 100vh; min-height: 0; }
-.hidden { display: none !important; }
+.hidden, [hidden] { display: none !important; }
 .ico { width: 16px; height: 16px; flex: none; }
 .spacer { flex: 1; }
 a { color: var(--primary); }
@@ -137,14 +137,14 @@ button.link:hover:not(:disabled) { background: none; text-decoration-color: var(
 .ai-btn-outline.attention { color: var(--primary-foreground); background: var(--primary-strong); border-color: var(--primary-strong); }
 .ai-btn-outline.attention:hover:not(:disabled) { color: var(--primary-foreground); background: var(--primary); }
 
-/* --- the orb (brand mark and assistant avatar) --- */
+/* --- the Reconix logo (brand mark and assistant avatar); the URL is relative to this file --- */
 .orb {
   flex: none;
   width: 22px;
   height: 22px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 34% 30%, var(--primary-strong), var(--primary) 38%, var(--primary-dim) 72%, color-mix(in oklab, var(--primary-dim) 50%, var(--background)));
-  box-shadow: 0 0 14px -2px color-mix(in oklab, var(--primary) 55%, transparent), inset 0 -2px 4px color-mix(in oklab, var(--background) 35%, transparent);
+  border-radius: 6px;
+  background: url("logo.svg") center / contain no-repeat;
+  box-shadow: 0 0 12px -4px color-mix(in oklab, var(--primary) 55%, transparent);
 }
 .orb[data-live] { position: relative; }
 .orb[data-live]::after {
@@ -389,7 +389,7 @@ button.danger-solid:hover:not(:disabled) { color: var(--foreground); background:
 .ai-reply { display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; min-width: 0; }
 @media (max-width: 280px) { .ai-row-assistant > .orb { display: none; } }
 .note-line { align-self: center; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border); font-size: 11.5px; color: var(--muted-foreground); text-align: center; }
-.confirm { display: flex; gap: 6px; padding-left: 32px; }
+.confirm { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 32px; }
 
 .ai-typing { display: inline-flex; align-items: center; gap: 5px; height: 24px; }
 .ai-typing > span { width: 6px; height: 6px; border-radius: 999px; background: var(--muted-foreground); animation: ai-dot 1.2s ease-in-out infinite; }
@@ -555,6 +555,7 @@ code { font-family: var(--font-mono); }
 .ai-send .ico { width: 16px; height: 16px; }
 .ai-send:active:not(:disabled) { transform: scale(0.95); }
 .ai-send:disabled { color: var(--muted-foreground); background: color-mix(in oklab, var(--foreground) 10%, transparent); opacity: 1; }
+.ai-footnote .ai-dot { display: inline-block; margin-right: 6px; vertical-align: 1px; }
 .ai-footnote { padding-inline: 8px; text-align: center; font-size: 11px; line-height: 1.5; color: var(--muted-foreground); }
 
 /* --- cards (summary, fix agent) --- */
@@ -614,7 +615,7 @@ button.sc-fix-text:hover:not(:disabled) { background: none; color: var(--primary
 @keyframes agent-pulse { 50% { opacity: 0.3; } }
 
 /* --- findings --- */
-.findings-panel .ai-column { display: flex; flex-direction: column; gap: 12px; padding-block: 12px 16px; }
+.findings-panel .ai-column { display: flex; flex-direction: column; gap: 10px; padding-block: 12px 16px; }
 .filters { display: flex; flex-direction: column; gap: 8px; }
 .filter-row { display: flex; align-items: flex-start; gap: 6px; }
 .chips { flex: 1; display: flex; flex-wrap: wrap; gap: 4px; }
@@ -632,7 +633,7 @@ button.sc-fix-text:hover:not(:disabled) { background: none; color: var(--primary
 .sev-high { --sev: var(--sev-high); }
 .sev-medium { --sev: var(--sev-medium); }
 .sev-low { --sev: var(--sev-low); }
-.sev-info { --sev: var(--sev-info); }
+.sev-info, .sev-unknown, .sev-none { --sev: var(--sev-info); }
 
 .findings { display: flex; flex-direction: column; gap: 12px; }
 .group { display: flex; flex-direction: column; gap: 4px; }
@@ -648,13 +649,13 @@ button.sc-fix-text:hover:not(:disabled) { background: none; color: var(--primary
 .finding { position: relative; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in oklab, var(--card-2) 75%, transparent); overflow: hidden; transition: border-color 0.15s ease; }
 .finding::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--sev); }
 .finding:hover, .finding.open { border-color: color-mix(in oklab, var(--sev) 35%, var(--border)); }
-.finding-head { justify-content: flex-start; align-items: flex-start; width: 100%; height: auto; gap: 10px; padding: 11px 12px 11px 15px; border: 0; border-radius: 0; background: none; color: var(--foreground); text-align: left; font-weight: 400; white-space: normal; }
+.finding-head { justify-content: flex-start; align-items: flex-start; width: 100%; height: auto; gap: 9px; padding: 9px 10px 9px 13px; border: 0; border-radius: 0; background: none; color: var(--foreground); text-align: left; font-weight: 400; white-space: normal; }
 .finding-head:hover:not(:disabled) { background: color-mix(in oklab, var(--foreground) 3%, transparent); }
-.badge { flex: none; width: 42px; margin-top: 1px; padding: 2px 0; border-radius: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-align: center; color: var(--sev); background: color-mix(in oklab, var(--sev) 12%, transparent); border: 1px solid color-mix(in oklab, var(--sev) 35%, transparent); }
-.finding-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
-.finding-title { font-size: 14px; font-weight: 500; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.badge { flex: none; width: 38px; margin-top: 1px; padding: 1px 0; border-radius: 6px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.03em; text-align: center; color: var(--sev); background: color-mix(in oklab, var(--sev) 12%, transparent); border: 1px solid color-mix(in oklab, var(--sev) 35%, transparent); }
+.finding-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.finding-title { font-size: 13px; font-weight: 500; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .finding.open .finding-title { -webkit-line-clamp: unset; }
-.finding-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 12.5px; color: var(--muted-foreground); }
+.finding-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 11.5px; color: var(--muted-foreground); }
 .loc { font-family: var(--font-mono); }
 .verdict.real { color: var(--sev-high); }
 .verdict.fp { color: var(--success); }
