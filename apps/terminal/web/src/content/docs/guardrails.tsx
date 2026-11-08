@@ -137,10 +137,6 @@ export const guardrails: GroupContent = {
               Every string in a report, the saved copies for the dashboard and the context sent to a model goes through
               redaction; reports never contain the test account.
             </li>
-            <li>
-              The dashboard&apos;s sign-in link is printed only to a terminal, never to{" "}
-              <Mono>~/.reconix/web.log</Mono>.
-            </li>
           </ul>
         </DocSection>
       </>
@@ -177,9 +173,7 @@ export const guardrails: GroupContent = {
           </Callout>
           <p>
             Chat lines and replies are kept in <Mono>~/.reconix/llm.db</Mono> (redacted). The dashboard&apos;s AI Assistant
-            is separate: you choose its model with the model chip, local or cloud (cloud providers are allowed by
-            default, and the assistant says when your questions go off this machine); it builds its context from the saved
-            files with no evidence, and masks the questions before they leave.
+            answers from the saved files only, with no evidence, and masks questions before they are used.
           </p>
         </DocSection>
         <DocSection title="What it never does">

@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 /** One docs page's content: a part of its group's page. Title and position come from DOCS_NAV (src/lib/docs-nav.ts). */
 export type DocContent = {
   lede: string;
+  /** the page's content is not final yet: an amber "Under review" callout above the body */
+  notice?: string;
   body: ReactNode;
 };
 
