@@ -106,7 +106,6 @@ class ExecutionScreen(ReconixScreen):
         Binding("ctrl+c", "stop", "stop the run", show=False),
         Binding("escape", "detach", "back to plan", show=False),
         Binding("end", "follow", "follow the live output", show=False),
-        Binding("ctrl+o", "toggle_steps", "open / fold the steps", show=False),
     ]
 
     def __init__(self) -> None:
@@ -235,11 +234,6 @@ class ExecutionScreen(ReconixScreen):
 
     def action_detach(self) -> None:
         self.app.goto("plan")
-
-    def action_toggle_steps(self) -> None:
-        """Ctrl+O: the app's toggle, which also opens or folds the live output's blocks."""
-        self.app.action_toggle_activity()
-        self.query_one("#live-log", RunLog).set_expanded(self.app.activity_expanded)
 
     def action_follow(self) -> None:
         self.query_one("#live-log", RunLog).follow()

@@ -40,14 +40,14 @@ class CommandBarScreen(ModalScreen[Optional[str]]):
             return
         check = self.app.check_command(event.text)
         if not check.ok:
-            self.notify(check.error, severity="warning", markup=False)
+            event.box.show_error(check.error)    # one line under the input, until you type
             return
         self.dismiss(event.text)
 
     def on_prompt_box_submitted(self, event: PromptBox.Submitted) -> None:
         event.stop()
         if event.text:
-            self.notify("Commands start with / — type / to see them.", severity="warning")
+            event.box.show_error("Commands start with / — type / to see them.")
         else:
             self.dismiss(None)
 

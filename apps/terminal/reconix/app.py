@@ -22,7 +22,7 @@ from .shell import (
     ActionsMixin, DialogsMixin, KnowledgeMixin, LlmMixin, NavigationMixin,
     RunHostMixin, WebDashboardMixin,
 )
-from .widgets import ActivityStatus
+from .widgets import ActivityStatus, RunLog
 
 
 class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
@@ -106,6 +106,8 @@ class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
         self.activity_expanded = not self.activity_expanded
         for status in self.screen.query(ActivityStatus):
             status.set_expanded(self.activity_expanded)
+        for log in self.screen.query(RunLog):          # the live output's thinking blocks
+            log.set_expanded(self.activity_expanded)
 
     def action_command_bar(self) -> None:
         self.open_dialog(CommandBarScreen(), self._on_command_bar)
@@ -117,7 +119,7 @@ class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
     # --- slash commands ------------------------------------------------------------------------
     def check_command(self, text: str) -> CommandCheck:
         """Is `/name [arg]` a command that can run? Runs nothing."""
-        return check_command_line(COMMANDS, text)
+        return check_command_line(COMMANDS, text, self)
 
     @staticmethod
     def is_path_line(text: str) -> bool:

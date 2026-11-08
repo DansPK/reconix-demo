@@ -57,6 +57,20 @@ FooterKey:hover {
 .user-msg   { color: $text; background: $raised; padding: 0 1; margin-bottom: 1; }
 /* Echo of free-text feedback typed at a question. */
 .feedback-echo { height: auto; margin-bottom: 1; }
+
+/* step chat + tick / order lists */
+.step-chat { height: auto; margin-top: 1; }
+.chat-line { height: auto; margin-bottom: 1; }
+.chat-bar { dock: bottom; height: auto; padding: 0 1; background: $bg; }
+.chat-bar .menu-hint { margin: 0; }
+.tick-list {
+    height: auto;
+    border: round $border-strong;
+    padding: 0 1;
+    margin-bottom: 1;
+}
+.tick-list SelectionList { height: auto; max-height: 14; background: $surface; }
+.tick-list OptionList { height: auto; max-height: 14; background: $surface; }
 .ai-label   { color: $dim; margin-bottom: 1; }
 .muted      { color: $muted; }
 .dim        { color: $dim; }
@@ -331,6 +345,43 @@ RichLog, RunLog {
     scrollbar-color: $border-strong;
 }
 
+/* run log: message lines + thinking blocks */
+.message-line {
+    height: auto;
+}
+
+.thinking {
+    height: auto;
+}
+
+.thinking-title {
+    height: 1;
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+}
+
+.thinking-title:hover {
+    background: $raised;
+}
+
+.thinking-title:focus {
+    background: $cyan-bg;
+}
+
+.thinking-latest {
+    height: 1;
+    padding-left: 2;
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+}
+
+.thinking-body {
+    height: auto;
+    padding-left: 2;
+    border-left: vkey $border-strong;
+    margin-left: 1;
+}
+
 /* The live output takes the rest of the Execution screen. */
 #live-log {
     height: 1fr;
@@ -425,13 +476,19 @@ HelpScreen {
 }
 
 #help-box {
-    width: 64;
+    width: 96%;              /* uses a wide terminal; long rows wrap under their own text */
+    max-width: 104;
     height: auto;
+    max-height: 100%;
     background: $surface;
     border: round $cyan-dim;
     border-title-color: $cyan;
     padding: 1 2;
 }
+
+#help-box .help-row { height: auto; }
+#help-box .help-keys { width: 11; }
+#help-box .help-desc { width: 1fr; }
 
 /* -------------------------------------------------------- command bar */
 CommandBarScreen {
@@ -598,3 +655,6 @@ FormScreen {
     height: auto;
     margin-top: 1;
 }
+
+/* approval */
+ApprovalScreen .menu-hint { margin-bottom: 0; }
