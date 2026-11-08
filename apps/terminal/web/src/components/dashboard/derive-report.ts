@@ -4,8 +4,11 @@
  * are not summed here (they left the Overview too); they stay in the saved files, the TUI and
  * the downloaded reports.
  *
- * "Masked evidence" counts the activity log's masking lines (the run masking a sensitive value
- * before it saved it), not the values themselves.
+ * "Masked evidence" counts the saved evidence lines that carry a masked value — what a reader of
+ * the run actually sees. It used to count the activity log's masking lines instead, which read 0
+ * on a run that ended before the masking step although its evidence is masked, and 1 on a run
+ * whose evidence holds nothing masked (QA-LOCAL-WEB-REPORT, QAL-005). The log's masking lines
+ * still have their own "Mask" lane in the Overview's Activity Timeline.
  */
 import { redact } from "@/lib/assistant/redact";
 import { duration, hourMinute, minutesLimit, shortDay } from "@/lib/data/format";
@@ -29,7 +32,10 @@ export const REPORT_TOP_FINDINGS = 3;
 /** The Overview's Findings by Severity with the top list cut to the Report view's length. */
 export const reportSlice = (slice: FindingsSlice): FindingsSlice => ({ ...slice, top: slice.top.slice(0, REPORT_TOP_FINDINGS) });
 
-const masked = (v: AssessmentView) => v.log.filter((l) => l.kind === "mask").length;
+/** Saved evidence lines whose value was masked (every finding: the masking happened whatever the
+    triage said afterwards). */
+const masked = (v: AssessmentView) =>
+  v.findings.reduce((n, f) => n + f.evidence.filter((e) => e.tone === "masked").length, 0);
 const counted = (v: AssessmentView) => v.findings.filter((f) => !f.falsePositive);
 
 /** The worst severity among findings (false positives left out), or null. */
@@ -122,7 +128,7 @@ export function reportCards(v: AssessmentView, findings: FindingRow[], slice: Fi
         note: v.requests === 0 ? "No request sent yet" : tools.length ? `by ${tools.join(", ")}` : "by the approved tools",
         link: null,
       },
-      maskedStat(masked(v), masked(v) ? "times the run masked sensitive values before saving" : "Nothing needed masking"),
+      maskedStat(masked(v), masked(v) ? "evidence lines saved with a sensitive value masked" : "Nothing needed masking"),
     ],
     details: [
       { label: "Assessment", value: v.id, badge: null },
@@ -237,7 +243,7 @@ export function overallReportCards(views: AssessmentView[], slice: FindingsSlice
       },
       maskedStat(
         views.reduce((s, v) => s + masked(v), 0),
-        "times the runs masked sensitive values before saving",
+        "evidence lines saved with a sensitive value masked",
       ),
     ],
     findings: reportSlice(slice),

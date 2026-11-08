@@ -51,7 +51,6 @@ export const EXPORT_FILES: Record<ExportFormat, FileSpec> = {
 
 /** The combined report's two files, in the order of their buttons. */
 export const COMBINED_FILES: Record<CombinedFile, FileSpec> = { pdf: EXPORT_FILES.pdf, docx: EXPORT_FILES.docx };
-export const COMBINED_FILE_IDS: CombinedFile[] = ["pdf", "docx"];
 
 /** `of`: the run the file is about, named in the messages where several runs offer files. */
 export type FileState =

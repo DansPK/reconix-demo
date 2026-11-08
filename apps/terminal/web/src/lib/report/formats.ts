@@ -19,9 +19,8 @@ export interface ExportSpec {
   blurb: string;
 }
 
-/** The formats a report is saved in. The PDF is printed by a headless Chrome on the dashboard
-    machine (lib/report/pdf.ts; 501 with the DOCX link when none is found). The report HTML
-    remains the combined report's preview, never a download. */
+/** The three formats a report is saved in, everywhere (the TUI's /export offers the same). The
+    report HTML is only the PDF's source and the combined report's preview: never a download. */
 export const EXPORT_FORMATS: readonly ExportSpec[] = [
   {
     id: "pdf",
