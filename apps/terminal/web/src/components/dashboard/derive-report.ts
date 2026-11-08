@@ -216,7 +216,7 @@ export function overallReportCards(views: AssessmentView[], slice: FindingsSlice
   return {
     mode: "all",
     tag: `All ${plural(n, "run")}`,
-    about: `Reports are made per run: open one for its full report and downloads, or download it from the table. Pick up to five runs to combine them into one report.`,
+    about: `Reports are made per run: open one for its full report and downloads, or download it from the table.`,
     stats: [
       {
         label: "Runs",

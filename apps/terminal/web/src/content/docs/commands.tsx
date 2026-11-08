@@ -153,6 +153,23 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
       { message: "Execution starts after you run the plan (3 or /plan).", meaning: "The plan has not been run yet; the screen stays where it is." },
     ],
   },
+  stop: {
+    purpose: "Stops the running assessment, after asking first.",
+    when: "Whenever a run is in progress and should not go on: at the scope review, the plan, an approval, on Execution or Findings.",
+    syntax: "/stop",
+    example: "/stop",
+    behaviour: (
+      <>
+        Same as <Kbd>Ctrl+C</Kbd> on any flow screen. A dialog asks <strong>Stop this assessment?</strong> with{" "}
+        <strong>Keep running</strong> highlighted; <strong>Stop now</strong> ends the run. Nothing else plays, the
+        findings so far are kept, and the assessment stays listed under <Mono>/assessments</Mono>. With no run in
+        progress it only says so.
+      </>
+    ),
+    errors: [
+      { message: "No assessment is running. Ctrl+Q quits Reconix.", meaning: "There is no run in progress to stop." },
+    ],
+  },
   findings: {
     purpose: "Opens the Findings list.",
     when: "As soon as the run reveals findings, and afterwards to filter, sort or triage.",

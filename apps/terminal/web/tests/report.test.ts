@@ -40,7 +40,7 @@ describe("one run's report", () => {
     expect(stat(r.stats, "Requests sent").value).toBe(String(a.run.requests));
     const done = a.plan.filter((p) => p.status === "done").length;
     expect(stat(r.stats, "Plan steps").value).toBe(`${done}/${a.plan.length}`);
-    const masks = assessmentView(a).log.filter((l) => l.kind === "mask").length;
+    const masks = assessmentView(a).findings.reduce((n, f) => n + f.evidence.filter((e) => e.tone === "masked").length, 0);
     expect(stat(r.stats, "Masked evidence").value).toBe(String(masks));
     expect(r.rows).toHaveLength(a.findings.length);
     expect(r.plan.map((p) => p.label)).toEqual(a.plan.map((p) => p.label));
