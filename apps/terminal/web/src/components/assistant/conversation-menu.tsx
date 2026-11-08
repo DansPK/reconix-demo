@@ -79,12 +79,13 @@ function Row({ c, now, active, onOpen }: { c: ConversationSummary; now: number; 
           Delete <span className="font-medium">“{c.title}”</span>? This can&apos;t be undone.
         </p>
         {error && <p className="ai-error-text mt-1">{error}</p>}
+        {/* Cancel on the right, under the bin: a double-click on the bin keeps it */}
         <div className="mt-2 flex justify-end gap-1.5">
-          <button type="button" autoFocus onClick={() => setMode("idle")} className="ai-btn ai-btn-small ai-btn-outline">
-            Cancel
-          </button>
           <button type="button" onClick={remove} disabled={saving} className="ai-btn ai-btn-small ai-btn-danger-solid">
             Delete
+          </button>
+          <button type="button" autoFocus onClick={() => setMode("idle")} className="ai-btn ai-btn-small ai-btn-outline">
+            Cancel
           </button>
         </div>
       </li>
@@ -242,10 +243,8 @@ export function ConversationMenu() {
               <div className="flex w-full flex-col gap-2" role="group" aria-label="Delete all conversations?">
                 <p className="text-[12.5px] text-foreground">Delete all {history.items.length} conversations? This can&apos;t be undone.</p>
                 {allError && <p className="ai-error-text">{allError}</p>}
+                {/* Cancel on the right, under "Delete all": a double-click there keeps them */}
                 <div className="flex justify-end gap-1.5">
-                  <button type="button" autoFocus onClick={() => setConfirmAll(false)} className="ai-btn ai-btn-small ai-btn-outline">
-                    Cancel
-                  </button>
                   <button
                     type="button"
                     onClick={async () => {
@@ -256,6 +255,9 @@ export function ConversationMenu() {
                     className="ai-btn ai-btn-small ai-btn-danger-solid"
                   >
                     Delete all conversations
+                  </button>
+                  <button type="button" autoFocus onClick={() => setConfirmAll(false)} className="ai-btn ai-btn-small ai-btn-outline">
+                    Cancel
                   </button>
                 </div>
               </div>

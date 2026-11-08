@@ -223,7 +223,7 @@ const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 /** The cards for `question` about one saved run (`uid`) or every run (null), in the order they
     are shown, at most MAX_CARDS. Every card passes CardSchema (anything else is dropped). */
 export function pickCards(library: Assessment[], uid: string | null, question: string): Card[] {
-  const { intents, findingIds } = readIntent(question);
+  const { intents, findingIds, findingNumbers } = readIntent(question);
   const pairs = library.map((a) => ({ a, v: assessmentView(a) }));
   const byUid = new Map(pairs.map((p) => [p.v.uid, p]));
   let views = scopedViews(
@@ -250,6 +250,15 @@ export function pickCards(library: Assessment[], uid: string | null, question: s
     for (const v of views) {
       const f = v.findings.find((x) => findingKey(x.id) === key);
       if (f && named.length < 2) named.push({ finding: f, view: v });
+    }
+  }
+  // "explain finding 001": the finding with that number (whatever its prefix), when no id was named
+  if (!named.length) {
+    for (const n of findingNumbers) {
+      for (const v of views) {
+        const f = v.findings.find((x) => Number(/(\d+)$/.exec(x.id)?.[1] ?? NaN) === n);
+        if (f && named.length < 2) named.push({ finding: f, view: v });
+      }
     }
   }
   for (const located of named) cards.push(findingCard(located));
