@@ -139,6 +139,7 @@ export function setPartsOut(p: Parts): void {
     "inherit", as the intro leaves them (dashboard.css hides cards until the intro shows them). */
 export function clearParts(p: Parts): void {
   const els = moving(p);
+  if (!els.length) return; // none on this view: GSAP would warn "target not found"
   gsap.killTweensOf(els);
   gsap.set(els, { clearProps: "transform,opacity" });
   gsap.set(els, { visibility: "inherit" });

@@ -28,3 +28,11 @@ export function nextStick(s: StickState, m: ScrollMetrics): StickState {
   if (top > s.lastTop + EPSILON && gap <= NEAR_PX) return { pinned: true, seeking: s.seeking, lastTop: top }; // back down
   return { ...s, lastTop: top };
 }
+
+/** A short mark of what a conversation holds (how many messages, how long the last one is, its
+    cards and state: a streaming reply grows), so the page can tell whether anything arrived
+    while the reader was scrolled up: only then is "New messages" offered. */
+export function contentMark(messages: readonly { content: string; state?: string; cards?: readonly unknown[] }[]): string {
+  const last = messages[messages.length - 1];
+  return last ? `${messages.length}:${last.content.length}:${last.cards?.length ?? 0}:${last.state ?? ""}` : "0";
+}

@@ -5,7 +5,9 @@
    documents it may quote; its label hidden on a phone), History, New chat and
    minimize (back to the dashboard). The model is chosen in the composer (model-chip.tsx). */
 import { BookLock, Crosshair, Minimize2, SquarePen } from "lucide-react";
+import { DashCardHelp } from "@/components/dashboard/dash-card-help";
 import { leaveAssistant } from "@/components/dashboard/view-url";
+import { DOCS } from "@/lib/docs-nav";
 import { IconButton } from "@/components/ui/icon-button";
 import { ReconixMark } from "@/components/ui/reconix-mark";
 import { useAssistant } from "./assistant-provider";
@@ -21,6 +23,8 @@ export function AssistantHeader({ onMinimize }: { onMinimize: () => void }) {
       <div className="ai-brand">
         <ReconixMark size={26} className="shrink-0" />
         <h1 className="ai-title">Reconix AI Assistant</h1>
+        {/* the dashboard cards' own help, so this view explains itself too (QAL-009) */}
+        <DashCardHelp title="the AI Assistant" docsHref={DOCS.panelAssistant} />
       </div>
       <span className="ai-divider" aria-hidden />
       <div className="ai-context" title={`${conversation.id ? "This conversation is" : "A new conversation will be"} about ${conversation.scope.label}`}>
