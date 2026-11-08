@@ -17,6 +17,7 @@ import type {
   PhaseView,
   ScopeView,
 } from "./view-types";
+import { groupTimeline, liveStateOf } from "./thinking";
 
 // --- log ---------------------------------------------------------------------------------
 
@@ -181,6 +182,7 @@ export function assessmentView(a: Assessment): AssessmentView {
     progress: progressOf(a),
     phases: phases(a),
     log: lines,
+    stream: groupTimeline(a.timeline, liveStateOf(a.status), parseTime(a.saved_at)),
     findings: a.findings.map(findingView),
     scope: scopeView(a),
     apiSpec: a.api_spec

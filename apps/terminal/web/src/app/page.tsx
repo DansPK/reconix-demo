@@ -13,8 +13,10 @@ import { assessmentsCards, overallReportCards, reportCards, runRow } from "@/com
 import { AssessmentsView } from "@/components/dashboard/assessments-view";
 import { EmptyView } from "@/components/dashboard/empty-view";
 import { FindingsView } from "@/components/dashboard/findings-view";
+import { runLogData } from "@/components/dashboard/derive-run-log";
 import { OverviewView } from "@/components/dashboard/overview-view";
 import { ReportsView } from "@/components/dashboard/reports-view";
+import { RunLogView } from "@/components/dashboard/run-log-view";
 import { TopBar } from "@/components/dashboard/top-bar";
 import { Viewer } from "@/components/dashboard/viewer";
 import { KnowledgeView } from "@/components/knowledge/knowledge-view";
@@ -89,6 +91,7 @@ export default async function Home({ searchParams }: Props) {
           empty
         )
       }
+      log={<RunLogView data={chosen ? runLogData(chosen) : null} />}
       reports={report ? <ReportsView key={chosen?.uid ?? "all"} data={report} /> : empty}
       knowledge={<KnowledgeView />}
       assistant={assistant}
