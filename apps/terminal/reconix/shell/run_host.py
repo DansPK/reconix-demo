@@ -8,10 +8,14 @@ until the dialog closes, so a pop-up is never pulled out from under the operator
 
 from typing import Optional
 
+from textual.actions import SkipAction
+from textual.widgets import Input
+
 from .. import store
 from ..flow import RunController, is_form_gate, screen_for
-from ..models import GATE_SCOPE
+from ..models import GATE_SCOPE, Choice
 from ..screens.base import ReconixScreen
+from ..screens.choice import ChoiceScreen
 from ..screens.forms import LoginForm
 
 
@@ -72,7 +76,7 @@ class RunHostMixin:
         store.flush_saves()      # the run ended: make sure the final copy is on disk
         if store.is_completed():
             self.notify(f"Assessment complete. Findings: {len(store.list_findings())} · "
-                        "report and exports: 8.", title="Reconix")
+                        "report and exports: Alt+8.", title="Reconix")
 
     def run_failed(self, message: str) -> None:
         store.flush_saves()      # the run stopped: persist the final state
@@ -118,8 +122,42 @@ class RunHostMixin:
             self.resume_run()
             return
         self.refresh_view()
-        self.notify("Nothing runs until you finish the sign-in. Press Enter on Execution (5) "
+        self.notify("Nothing runs until you finish the sign-in. Press Enter on Execution (Alt+5) "
                     "to continue.", title="Paused")
+
+    # --- stopping the run: Ctrl+C on any flow screen, /stop ------------------------------------
+    def action_stop_assessment(self) -> None:
+        """Ctrl+C: stop the running assessment (it asks first), on every flow screen.
+
+        Left to the next binding (SkipAction): inside a dialog or the help, and in a field
+        with selected text (Ctrl+C copies it)."""
+        if not isinstance(self.screen, ReconixScreen):
+            raise SkipAction()
+        focused = self.focused
+        if isinstance(focused, Input) and focused.selected_text:
+            raise SkipAction()
+        self.confirm_stop()
+
+    def confirm_stop(self) -> None:
+        """Ask "Stop this assessment?"; "Stop now" stops it through the store (`stop_run`).
+        With no run in progress it only says so."""
+        if not store.get_run().started or store.is_finished():
+            self.notify("No assessment is running. Ctrl+Q quits Reconix.", title="Stop")
+            return
+
+        def answer(choice: Optional[str]) -> None:
+            if choice == "stop":
+                self.stop_run()
+
+        self.open_dialog(ChoiceScreen(
+            "Stop the run", "Stop this assessment?",
+            [
+                Choice("keep", "Keep running", "Let the plan finish."),
+                Choice("stop", "Stop now", "Nothing else runs; findings so far are kept.",
+                       "danger"),
+            ],
+            chip="Assessment", danger=True,
+        ), answer)
 
     def _save(self) -> None:
         """Keep the saved copy the web dashboard reads in step (the store skips no-ops).

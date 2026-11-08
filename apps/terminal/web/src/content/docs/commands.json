@@ -1,6 +1,6 @@
 {
   "source": "reconix/commands/builtin.py",
-  "count": 18,
+  "count": 19,
   "groups": [
     {
       "id": "start",
@@ -67,6 +67,15 @@
             "execution"
           ],
           "description": "Live execution (after the plan runs)",
+          "takes_argument": false,
+          "ask": false,
+          "question": "",
+          "empty": ""
+        },
+        {
+          "name": "stop",
+          "aliases": [],
+          "description": "Stop the running assessment (asks first)",
           "takes_argument": false,
           "ask": false,
           "question": "",

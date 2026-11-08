@@ -18,6 +18,7 @@ export type Intent =
 export interface Asked {
   intents: Intent[];
   findingIds: string[]; // finding ids named in the question, as findingKey() spells them
+  findingNumbers: number[]; // "finding 001", "finding #3": a number without its prefix
 }
 
 // planning: a planning verb right before its object ("plan a security assessment", "start a
@@ -51,6 +52,8 @@ const ERRORS = /\berrors?\b|\bfail(ed|ure|ures|ing|s)?\b|\bcrash(ed|es)?\b|\bwen
 const RUN_WORDS = /\b(runs?|assessments?|scans?|steps?|tools?|phases?|execution|pentests?|tui)\b/;
 // "F-003", "f-3", "IMP-002"; the run-label prefix "RCX" (e.g. "RCX-001") is filtered out below.
 const FINDING_ID = /(?<![\w-])([a-z]{1,4})-(\d{1,4})\b/gi;
+// "finding 001", "finding #3": the number alone (the run's own prefix is F-, IMP-, AI-…)
+const FINDING_NUMBER = /\bfinding\s*#?\s*(\d{1,4})\b/gi;
 
 /** A finding id in one spelling: "F-003" and "f-3" are both "F-3". */
 export const findingKey = (id: string) => id.toUpperCase().replace(/^([A-Z]{1,4})-0*(\d)/, "$1-$2");
@@ -76,5 +79,6 @@ export function readIntent(question: string): Asked {
   const findingIds = [...new Set([...question.matchAll(FINDING_ID)]
     .filter((m) => m[1].toUpperCase() !== "RCX")   // "RCX-001" is a run label, not a finding id
     .map((m) => findingKey(`${m[1]}-${m[2]}`)))].slice(0, 3);
-  return { intents, findingIds };
+  const findingNumbers = [...new Set([...question.matchAll(FINDING_NUMBER)].map((m) => Number(m[1])))].slice(0, 3);
+  return { intents, findingIds, findingNumbers };
 }

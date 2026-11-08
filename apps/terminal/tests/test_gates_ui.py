@@ -10,7 +10,7 @@ from reconix.screens.forms import LoginForm
 from reconix.widgets import RunLog
 
 from .support import (
-    SIZE, TEST_PASSWORD, auth_values, event_kinds, pass_gate, run_ui_to, settle,
+    SIZE, TEST_PASSWORD, auth_values, choose_by_keys, event_kinds, pass_gate, run_ui_to, settle,
 )
 
 API_REQUEST = "test the API at https://api.example.com/v1"   # the template that still signs in
@@ -143,7 +143,7 @@ async def test_high_double_checked_with_yes_completes_the_run(app):
 async def test_reject_stops_the_run(app):
     async with app.run_test(size=SIZE) as pilot:
         await run_ui_to(app, pilot, "approval:approval-001")
-        await pilot.press("2")                                   # Reject
+        await choose_by_keys(pilot, "reject")   # destructive: no digit picks it
         await settle(pilot)
         assert isinstance(app.screen, ExecutionScreen)
         assert store.is_finished() and not store.is_completed()
@@ -187,9 +187,9 @@ async def test_execution_streams_the_run(app):
         app.goto("execution")
         await settle(pilot)
         log = app.screen.query_one(RunLog)
-        lines = [str(line.text) for line in log.lines]
+        lines = log.plain_lines()                                # folded steps too
         text = "\n".join(lines)
-        assert any("  policy   Blocked:" in line for line in lines)
+        assert any("  policy  Blocked:" in line for line in lines)
         assert "Assessment completed" in text
         assert TEST_PASSWORD not in text
 

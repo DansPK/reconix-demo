@@ -123,6 +123,8 @@ export class Controller implements vscode.Disposable {
     this.post({ type: "state", connection: this.connection, sessions: this.sessions, current: this.current,
                 scanning: this.scanning !== null, busy: this.busy, changed: this.editedWithFindings.size,
                 providers: this.providers, activeModel: this.activeModel });
+    // Swaps the chat view's title buttons (Scan/Rescan ↔ Stop), as in the real extension.
+    void vscode.commands.executeCommand("setContext", "reconix.scanRunning", this.scanning !== null);
     this.changed.fire();
   }
 

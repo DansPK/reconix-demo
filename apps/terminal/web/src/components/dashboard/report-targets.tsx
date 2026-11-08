@@ -24,7 +24,7 @@ export function ReportTargets({ targets }: { targets: ReportTargetRow[] }) {
     <DashCard
       id="report-targets"
       title="Targets"
-      docsHref={DOCS.exporting}
+      docsHref={DOCS.panelTargets}
       meta={count(targets.length, "target")}
       className="dash-panel rep-targets"
       bodyClassName="rep-targets-body"

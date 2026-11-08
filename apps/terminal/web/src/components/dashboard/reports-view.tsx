@@ -2,14 +2,14 @@
    Overview's style. Findings by Severity lists the top 3 CVSS findings here (the Overview's card
    shows more). One run: the summary strip, its details and plan, Findings by Severity and
    the findings table, with every export format to download. Every run: the strip, Findings by
-   Severity beside the targets (7 a page, the same height), and the runs with their reports —
-   plus the Selection panel and preview
-   that combine up to five of them into one report (ReportCombine). Server component. */
+   Severity beside the targets (7 a page, the same height), and the runs with their reports.
+   The combine-runs panel (ReportCombine) is left out: this build has no /api/reports/combined
+   route, so its Preview/Generate would 404. Server component. */
 import { FindingsCard } from "@/components/dashboard/findings-card";
 import { ReportDetails } from "@/components/dashboard/report-details";
 import { ReportDownloads } from "@/components/dashboard/report-downloads";
 import { ReportFindings } from "@/components/dashboard/report-findings";
-import { ReportCombine } from "@/components/dashboard/report-selection";
+import { ReportRuns } from "@/components/dashboard/report-runs";
 import { ReportTargets } from "@/components/dashboard/report-targets";
 import type { ReportCards } from "@/components/dashboard/report-types";
 import { StatStrip } from "@/components/dashboard/stat-strip";
@@ -34,7 +34,7 @@ export function ReportsView({ data }: { data: ReportCards }) {
         <div className="dash-panels">
           <FindingsCard id="report-severity" data={data.findings} />
           <ReportTargets targets={data.targets} />
-          <ReportCombine runs={data.runs} />
+          <ReportRuns runs={data.runs} />
         </div>
       )}
     </div>

@@ -7,6 +7,10 @@ gsap.registerPlugin(useGSAP);
 
 const q = (s: string) => Array.from(document.querySelectorAll<HTMLElement>(s));
 
+/** Its targets, or null when there are none: GSAP warns "GSAP target not found" for an empty
+    list (a run without chart bars has no [data-bar], the docs have no Overview cards). */
+const some = (els: HTMLElement[]): HTMLElement[] | null => (els.length ? els : null);
+
 // Count a number element up from 0 to its (already-correct) server text, keeping its format.
 function countUp(el: HTMLElement, delay: number) {
   const fmt = el.dataset.countFormat ?? "int";
@@ -59,7 +63,7 @@ export function Intro() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       // autoAlpha sets visibility to inherit, not visible: a hidden parent (the top bar under
       // the open assistant) keeps its controls out of reach
-      gsap.set(reveal, { autoAlpha: 1 });
+      if (reveal.length) gsap.set(reveal, { autoAlpha: 1 });
       return;
     }
 
@@ -68,27 +72,28 @@ export function Intro() {
     const group = (name: string) => q(`[data-motion="${name}"] .dash-card`);
     const cards = [...group("top"), ...group("right"), ...group("bottom"), ...group("hero")];
 
-    gsap.set(reveal, { autoAlpha: 0 });
+    if (reveal.length) gsap.set(reveal, { autoAlpha: 0 });
 
     const tl = gsap.timeline();
-    tl.fromTo(frame, { scale: 0.985 }, { scale: 1, duration: 0.8, ease: "expo.out", clearProps: "transform" }, 0);
-    tl.fromTo(q(".dash-navbtn"), { autoAlpha: 0, x: -12 }, { autoAlpha: 1, x: 0, duration: 0.6, ease: "expo.out", stagger: 0.04, clearProps: "transform" }, 0.1);
-    tl.fromTo(q("header .dash-reveal"), { autoAlpha: 0, y: -10 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: "expo.out", stagger: 0.05, clearProps: "transform" }, 0.15);
-    tl.fromTo(
-      q('[data-motion="hero"] .dash-reveal'),
-      { autoAlpha: 0, y: 20 },
-      { autoAlpha: 1, y: 0, duration: 0.9, ease: "expo.out", stagger: 0.08, clearProps: "transform" },
-      0.25,
-    );
-    tl.fromTo(
-      cards,
-      { autoAlpha: 0, y: 24, filter: "blur(8px)" },
-      { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: 0.9, ease: "expo.out", stagger: 0.07, clearProps: "transform,filter" },
-      0.45,
-    );
+    if (frame) tl.fromTo(frame, { scale: 0.985 }, { scale: 1, duration: 0.8, ease: "expo.out", clearProps: "transform" }, 0);
+    const nav = some(q(".dash-navbtn"));
+    if (nav) tl.fromTo(nav, { autoAlpha: 0, x: -12 }, { autoAlpha: 1, x: 0, duration: 0.6, ease: "expo.out", stagger: 0.04, clearProps: "transform" }, 0.1);
+    const head = some(q("header .dash-reveal"));
+    if (head) tl.fromTo(head, { autoAlpha: 0, y: -10 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: "expo.out", stagger: 0.05, clearProps: "transform" }, 0.15);
+    const hero = some(q('[data-motion="hero"] .dash-reveal'));
+    if (hero) tl.fromTo(hero, { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: "expo.out", stagger: 0.08, clearProps: "transform" }, 0.25);
+    if (cards.length)
+      tl.fromTo(
+        cards,
+        { autoAlpha: 0, y: 24, filter: "blur(8px)" },
+        { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: 0.9, ease: "expo.out", stagger: 0.07, clearProps: "transform,filter" },
+        0.45,
+      );
     // chart reveals
-    tl.from(q("[data-bar]"), { scaleY: 0, transformOrigin: "center bottom", duration: 0.7, ease: "expo.out", stagger: 0.006, clearProps: "transform" }, 0.9);
-    tl.from(q("[data-bar-x]"), { scaleX: 0, transformOrigin: "left center", duration: 1.0, ease: "expo.out", stagger: 0.03, clearProps: "transform" }, 0.95);
+    const bars = some(q("[data-bar]"));
+    if (bars) tl.from(bars, { scaleY: 0, transformOrigin: "center bottom", duration: 0.7, ease: "expo.out", stagger: 0.006, clearProps: "transform" }, 0.9);
+    const barsX = some(q("[data-bar-x]"));
+    if (barsX) tl.from(barsX, { scaleX: 0, transformOrigin: "left center", duration: 1.0, ease: "expo.out", stagger: 0.03, clearProps: "transform" }, 0.95);
 
     // count-ups start as the cards come in
     counts.forEach((el, i) => countUp(el, 0.6 + i * 0.03));

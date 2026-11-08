@@ -82,7 +82,7 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
         )}
       </header>
 
-      <div className="dash-finding-body">
+      <ScrollRegion label="Finding details" className="dash-finding-body">
         <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
           {[
             ["Target", f.target],
@@ -160,7 +160,7 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
             </span>
           )}
         </footer>
-      </div>
+      </ScrollRegion>
     </article>
   );
 });

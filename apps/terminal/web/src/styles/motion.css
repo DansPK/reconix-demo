@@ -193,6 +193,12 @@
   [data-assistant-backdrop] { display: none; }
 }
 @media (min-width: 768px) { .dash-frame[data-assistant-open] > header { visibility: hidden; } }
+/* Nothing in the content area can be reached while the assistant is over it, so it is no longer
+   a scrollable region either (axe scrollable-region-focusable on `main`). `hidden`, not `clip`:
+   the Overview's scroll position has to survive the close. */
+@media (min-width: 1280px) and (min-height: 760px) {
+  .dash-content[data-under-assistant] { overflow-y: hidden; }
+}
 
 /* ---- Breathing: one cycle (BREATH_MS, breath.ts) for the AI icon and the globe, on [data-breath]
    elements the transition never animates. Nothing that holds text breathes: the chat panel and its

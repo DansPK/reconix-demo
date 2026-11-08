@@ -58,7 +58,8 @@ class ActionsMixin:
             return True
         try:
             result = store.submit_prompt(text or store.DEMO_REQUEST)
-        except store.StoreValidationError as exc:
+        except (store.StoreValidationError, ValueError) as exc:
+            # ValueError: a backstop, so a line the parser can't read never ends the app
             self._warn(exc)
             return False
         if text:
@@ -68,12 +69,21 @@ class ActionsMixin:
             self.controller.resume()
         return True
 
+    def leave_assessment(self) -> None:
+        """About to leave the current assessment (a switch or /new): void any open HIGH-risk
+        confirmation token, so coming back to a HIGH gate always needs the double check
+        again, and stop the run playing."""
+        for request in store.get_assessment().approvals:
+            if request.risk == "HIGH" and store.decision_for(request.request_id) is None:
+                store.decline_confirmation(request.request_id)
+        self.controller.stop()
+
     # --- template and scope (the Template screen) --------------------------------------------
     def open_template(self, template_id: Optional[str] = None) -> None:
         """`/template`: the Template screen; a fresh assessment if the current one is past it."""
         run = store.get_run()
         if run.started and (store.is_scope_approved() or run.stopped):
-            self.controller.stop()
+            self.leave_assessment()
             store.new_assessment()
             self.notify("Started a new assessment. The previous one is under /assessments.")
         self.template_pick = template_id if not store.get_run().started else None
@@ -82,7 +92,7 @@ class ActionsMixin:
     def start_with_template(self, text: str, template_id: str) -> None:
         """The target typed for a picked template: start the run on it."""
         if store.get_run().started:
-            self.controller.stop()
+            self.leave_assessment()
             store.new_assessment()
         try:
             store.start_run(text, template_id)
@@ -161,10 +171,12 @@ class ActionsMixin:
         except store.StoreValidationError as exc:
             self._warn(exc)
             return
+        # Stay on this assessment: its Template step shows it stopped, the "Scope rejected"
+        # lines stay in its chat, and the Template screen asks "Start again?".
         self.controller.stop()
-        self.notify("Scope rejected — nothing was tested. Starting a new assessment.",
-                    title="Scope")
-        self.new_assessment()
+        self.notify("Scope rejected — nothing was tested.", title="Scope")
+        self.goto("template")
+        self.refresh_view()
 
     # --- the plan and the run ------------------------------------------------------------------
     def run_plan(self) -> None:
@@ -187,7 +199,7 @@ class ActionsMixin:
     # --- assessments ----------------------------------------------------------------------------
     def new_assessment(self, target: Optional[str] = None) -> None:
         """Start over on a fresh assessment (earlier ones stay listed); optionally on `target`."""
-        self.controller.stop()
+        self.leave_assessment()  # nothing in flight may write into the new run
         store.new_assessment()
         self.selected_finding = ""
         self.findings_filter = "all"
@@ -197,7 +209,7 @@ class ActionsMixin:
 
     def switch_assessment(self, index: int) -> None:
         """Reopen another assessment where it stands; a run that was playing plays on."""
-        self.controller.stop()
+        self.leave_assessment()  # nothing in flight may write into the run we open
         try:
             store.switch_assessment(index)
         except store.StoreValidationError as exc:

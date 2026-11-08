@@ -263,14 +263,13 @@ export const troubleshooting: GroupContent = {
         <DocSection title="Reading the log">
           <Code>{`tail -n 50 ~/.reconix/web.log`}</Code>
           <p>
-            The log is readable by your user only. It may mention the dashboard&apos;s address; the sign-in link itself is
-            printed only to a terminal, never to the log.
+            The log is readable by your user only. It may mention the dashboard&apos;s address.
           </p>
         </DocSection>
         <DocSection title="Running it yourself">
-          <Code>{`cd web && npm install && npm run dev       # prints a sign-in link; /web opens the same one
+          <Code>{`cd web && npm install && npm run dev       # /web starts the same dashboard
 RECONIX_DATA_DIR=sample-data npm run dev    # browse the bundled sample assessments
-npm run dev -- --no-open                    # print the link without opening a browser`}</Code>
+npm run dev -- --no-open                    # start it without opening a browser`}</Code>
           <Callout>
             The dashboard binds to 127.0.0.1 only and refuses other Host headers. A dashboard the terminal started stops
             when the terminal quits; one you started yourself keeps running.

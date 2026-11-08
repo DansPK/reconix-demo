@@ -128,6 +128,11 @@ describe("pickCards", () => {
     expect(card.item.id).toBe("F-002");
     expect(card.item.run.uid).toBe(completed.uid);
   });
+  it("shows a finding named by its number alone", () => {
+    expect(readIntent("Explain finding #2 and finding 004").findingNumbers).toEqual([2, 4]);
+    const card = of(pickCards(samples, completed.uid, "Explain finding 002"), "finding");
+    expect(card.item.id).toBe("F-002");
+  });
   it("opens the specific finding a question names, not the worst one every time", () => {
     // A run with both the critical SQLi and a different, lower weakness (the reflected XSS).
     const rich = samples.find(

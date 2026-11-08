@@ -2,6 +2,7 @@
    viewer uses (log lines with a kind, findings with display fields, the scope as lists).
    Types only, so client components may import them freely. */
 import type { Severity, Status } from "./schema";
+import type { StreamItem } from "./thinking";
 
 export type { Severity, Status };
 
@@ -92,6 +93,7 @@ export interface AssessmentView {
   progress: number; // 0–100
   phases: PhaseView[];
   log: LogLine[];
+  stream: StreamItem[]; // the whole timeline: messages, the steps between them folded (thinking.ts)
   findings: FindingView[];
   scope: ScopeView | null;
   apiSpec: { label: string; endpoints: number } | null; // the attached OpenAPI file, if any

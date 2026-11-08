@@ -37,7 +37,7 @@ export function ReportPreview({ state, runs, stale, onRetry }: { state: Exclude<
       tabIndex={-1}
       id="report-preview"
       title="Preview"
-      docsHref={DOCS.exporting}
+      docsHref={DOCS.panelPreview}
       meta={`${plural(runs, "run")} · exactly what the PDF prints`}
       className="is-wide rep-preview-card"
     >

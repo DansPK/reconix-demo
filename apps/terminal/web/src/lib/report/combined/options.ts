@@ -34,11 +34,12 @@ export const COMBINED_ROUTE = "/api/reports/combined";
 
 const OPTION_KEYS: (keyof CombineOptions)[] = ["evidence", "low", "appendix"];
 
-/** The route that builds the report: `?uids=a,b&format=preview&evidence=1&low=1&appendix=1`
-    (an option is sent only when it is on). */
+/** The route that builds the report: `?uids=a,b&format=preview&evidence=1&low=0&appendix=1`.
+    Every option is spelled out, on or off: the route's own default is on (query.ts), so leaving
+    an unticked one out would turn it back on (QA-LOCAL-WEB-REPORT, QAL-010). */
 export function combinedHref(uids: readonly string[], format: CombinedFormat, opts: CombineOptions): string {
   const search = new URLSearchParams({ uids: uids.join(","), format });
-  for (const key of OPTION_KEYS) if (opts[key]) search.set(key, "1");
+  for (const key of OPTION_KEYS) search.set(key, opts[key] ? "1" : "0");
   return `${COMBINED_ROUTE}?${search}`;
 }
 

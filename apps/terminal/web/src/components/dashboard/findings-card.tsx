@@ -18,8 +18,8 @@ export function FindingsCard({ data, id = "findings-card" }: { data: FindingsSli
     <DashCard
       id={id}
       title="Findings by Severity"
-      docsHref={DOCS.findings}
-      meta={plural(data.total, "finding")}
+      docsHref={DOCS.panelFindingsBySeverity}
+      meta={data.total ? <ViewLink view="findings" label={`Show all ${plural(data.total, "finding")}`} className="underline-offset-2 hover:text-foreground hover:underline">{plural(data.total, "finding")}</ViewLink> : plural(data.total, "finding")}
       className="dash-panel h-full"
       bodyClassName="flex flex-col gap-3"
     >

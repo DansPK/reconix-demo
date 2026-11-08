@@ -16,13 +16,13 @@ from textual.app import App
 from textual.binding import Binding
 
 from . import store, theme
-from .commands import COMMANDS, Command, find, parse
+from .commands import COMMANDS, Command, CommandCheck, check_command_line, parse
 from .screens import ChoiceScreen, CommandBarScreen, HelpScreen, StartScreen
 from .shell import (
     ActionsMixin, DialogsMixin, KnowledgeMixin, LlmMixin, NavigationMixin,
     RunHostMixin, WebDashboardMixin,
 )
-from .widgets import ActivityStatus
+from .widgets import ActivityStatus, RunLog
 
 
 class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
@@ -41,15 +41,21 @@ class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
         Binding("question_mark", "help", "help", key_display="?"),
         Binding("ctrl+q", "quit", "quit"),
         Binding("ctrl+o", "toggle_activity", "expand steps", show=False),
-        # Quick jumps for presenting — hidden to keep the footer clean.
-        Binding("1", "jump('start')", "start", show=False),
-        Binding("2", "jump('template')", "template", show=False),
-        Binding("3", "jump('plan')", "plan", show=False),
-        Binding("4", "jump('approval')", "approval", show=False),
-        Binding("5", "jump('execution')", "execution", show=False),
-        Binding("6", "jump('findings')", "findings", show=False),
-        Binding("7", "jump('detail')", "detail", show=False),
-        Binding("8", "jump('report')", "report", show=False),
+        # Priority, so Ctrl+C stops a run (it asks first) on every flow screen, also with the
+        # Start prompt focused; in a dialog or a field with selected text it is left to them.
+        Binding("ctrl+c", "stop_assessment", "stop", show=False, priority=True),
+        Binding("ctrl+y", "copy_selection", "copy", show=False),
+        # Quick jumps for presenting — hidden to keep the footer clean. On Alt, never on a
+        # bare digit: a menu's digits pick a choice, and the same key must not mean "show
+        # me screen N" on one screen and "decide this gate" on the next.
+        Binding("alt+1", "jump('start')", "start", show=False),
+        Binding("alt+2", "jump('template')", "template", show=False),
+        Binding("alt+3", "jump('plan')", "plan", show=False),
+        Binding("alt+4", "jump('approval')", "approval", show=False),
+        Binding("alt+5", "jump('execution')", "execution", show=False),
+        Binding("alt+6", "jump('findings')", "findings", show=False),
+        Binding("alt+7", "jump('detail')", "detail", show=False),
+        Binding("alt+8", "jump('report')", "report", show=False),
     ]
 
     def __init__(self) -> None:
@@ -85,10 +91,23 @@ class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
         else:
             self.push_screen(HelpScreen.for_screen(self.screen))
 
+    def action_copy_selection(self) -> None:
+        """Ctrl+Y: copy the selected text (drag to select) to the clipboard. Ctrl+C is Stop,
+        so copy is its own key. Paste works in any input."""
+        text = self.screen.get_selected_text()
+        if text:
+            self.copy_to_clipboard(text)
+            self.notify(f"Copied {len(text)} characters.", title="Clipboard", timeout=2)
+        else:
+            self.notify("Select text first (drag with the mouse), then Ctrl+Y.", title="Copy",
+                        timeout=3)
+
     def action_toggle_activity(self) -> None:
         self.activity_expanded = not self.activity_expanded
         for status in self.screen.query(ActivityStatus):
             status.set_expanded(self.activity_expanded)
+        for log in self.screen.query(RunLog):          # the live output's thinking blocks
+            log.set_expanded(self.activity_expanded)
 
     def action_command_bar(self) -> None:
         self.open_dialog(CommandBarScreen(), self._on_command_bar)
@@ -98,19 +117,30 @@ class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
             self.run_command_line(line)
 
     # --- slash commands ------------------------------------------------------------------------
+    def check_command(self, text: str) -> CommandCheck:
+        """Is `/name [arg]` a command that can run? Runs nothing."""
+        return check_command_line(COMMANDS, text, self)
+
+    @staticmethod
+    def is_path_line(text: str) -> bool:
+        """`/home/me/app` is a local path, not a command (its "name" holds a slash)."""
+        return "/" in parse(text)[0]
+
     def run_command_line(self, text: str) -> bool:
-        """Run `/name [arg]`. Returns False (and warns) for an unknown command."""
-        name, arg = parse(text)
-        command = find(COMMANDS, name)
-        if command is None and "/" in name:
+        """Run `/name [arg]`. Returns False (and warns) when the line can't run."""
+        if self.is_path_line(text):
             return self.submit_request(text)   # a local path (/home/me/app), not a command
-        if command is None:
-            self.notify(f"Unknown command /{name}. Type / to see the list.",
-                        severity="warning", markup=False)
+        check = self.check_command(text)
+        if not check.ok:
+            self.notify(check.error, severity="warning", markup=False)
             return False
-        self._remember(text)
-        self.run_command(command, arg)
+        self.run_checked(text, check)
         return True
+
+    def run_checked(self, text: str, check: CommandCheck) -> None:
+        """Run a line `check_command` already passed (kept in the history like the bar's)."""
+        self._remember(text)
+        self.run_command(check.command, check.arg)
 
     def run_command(self, command: Command, arg: Optional[str] = None) -> None:
         """Run a command; if it needs a choice that wasn't typed, ask with a menu."""

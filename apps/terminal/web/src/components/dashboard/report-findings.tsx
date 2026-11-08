@@ -14,7 +14,7 @@ export function ReportFindings({ rows }: { rows: ReportFindingRow[] }) {
     <DashCard
       id="report-findings"
       title="Findings"
-      docsHref={DOCS.findings}
+      docsHref={DOCS.panelReportFindings}
       meta={reportFindingsMeta(rows)}
       className="is-wide"
     >

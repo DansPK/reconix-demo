@@ -11,6 +11,12 @@ from .. import browser, store, theme
 from ..models import Choice
 from ..screens import ChoiceScreen
 from ..screens.choice import details_body
+from ..widgets.findings import mask
+from ..wording import clock, counted
+
+# The summary's status colour, for the statuses `store.assessment_status()` returns.
+STATUS_COLORS = {"Completed": theme.GREEN, "Stopped": theme.CRITICAL,
+                 "Awaiting input": theme.MEDIUM, "New": theme.MUTED}
 
 
 class DialogsMixin:
@@ -19,8 +25,8 @@ class DialogsMixin:
     # --- assessments ----------------------------------------------------------------------------
     def open_assessments(self) -> None:
         cards = store.list_assessments()
-        choices = [Choice(str(c.index), f"{c.label} · {c.target}",
-                          f"{c.template} · {c.status} · {c.findings} finding(s)",
+        choices = [Choice(str(c.index), f"{mask(c.label)} · {mask(c.target)}",
+                          f"{c.template} · {c.status} · {counted(c.findings, 'finding')}",
                           tag="CURRENT" if c.current else "") for c in cards]
         choices.append(Choice("new", "New assessment", "Start fresh; these stay listed.",
                               separated=True))
@@ -48,7 +54,7 @@ class DialogsMixin:
         current = (store.TRIAGE_STATUS.index(finding.status)
                    if finding.status in store.TRIAGE_STATUS else 0)
         self.open_dialog(ChoiceScreen(f"TRIAGE · {fid}", f"Set the status of {fid} · "
-                                      f"{finding.title}:", choices, default=current,
+                                      f"{mask(finding.title)}:", choices, default=current,
                                       chip="Triage"),
                          partial(self._triaged, fid))
 
@@ -64,8 +70,20 @@ class DialogsMixin:
 
     # --- report exports ------------------------------------------------------------------------
     def export_report(self, fmt: Optional[str]) -> None:
+        """Write the report in `fmt`. The store refuses with its own sentence (not complete
+        yet, not installed), shown as a warning. Writing blocks (a PDF takes seconds), so a
+        "Writing…" note is drawn first and the work runs after that redraw."""
+        fmt = (fmt or "").lower()
+        if not store.is_completed():
+            self._write_report(fmt)              # refused at once, with the store's reason
+            return
+        self.notify(f"Writing the {fmt.upper() or 'report'} report…", title="Report",
+                    timeout=3, markup=False)
+        self.call_after_refresh(self._write_report, fmt)
+
+    def _write_report(self, fmt: str) -> None:
         try:
-            path = store.generate_report((fmt or "").lower())
+            path = store.generate_report(fmt)
         except (store.StoreValidationError, OSError) as exc:
             self._warn(exc)
             return
@@ -86,16 +104,16 @@ class DialogsMixin:
     # --- read-only views --------------------------------------------------------------------------
     def show_audit(self) -> None:
         """The activity log, the audit trail and any feedback typed at questions."""
-        activity = [(e.created_at.strftime("%H:%M:%S"), f"[{e.source}] {e.message}",
+        activity = [(clock(e.created_at), mask(f"[{e.source}] {e.message}"),
                      theme.TONE.get(e.tone, theme.MUTED)) for e in store.list_activity()[-40:]]
-        events = [(e.created_at.strftime("%H:%M:%S"),
-                   f"{e.kind} · {e.detail}" if e.detail else e.kind, theme.MUTED)
+        events = [(clock(e.created_at),
+                   mask(f"{e.kind} · {e.detail}" if e.detail else e.kind), theme.MUTED)
                   for e in store.list_events()[-40:]] or [("", "No actions recorded yet.",
                                                           theme.DIM)]
         sections = [("Activity log", activity), ("Audit trail", events)]
         feedback = store.list_feedback()
         if feedback:
-            sections.append(("Your feedback", [(f.gate, f.text, theme.MUTED) for f in feedback]))
+            sections.append(("Your feedback", [(f.gate, mask(f.text), theme.MUTED) for f in feedback]))
         self.open_dialog(ChoiceScreen("▤ ACTIVITY & AUDIT TRAIL", "", [Choice("close", "Close")],
                                       body=details_body(sections), chip="Audit"))
 
@@ -113,14 +131,17 @@ class DialogsMixin:
     @staticmethod
     def _summary_body() -> List[RenderableType]:
         summary = store.assessment_summary()
-        color = {"Completed": theme.GREEN, "Stopped": theme.CRITICAL}.get(summary.status,
-                                                                          theme.CYAN)
+        card = next((c for c in store.list_assessments() if c.current), None)
+        status = card.status if card else store.assessment_status(store.get_assessment())
+        color = STATUS_COLORS.get(status, theme.CYAN)
+        template = card.template if card else "—"
         approvals = (f"{len(summary.approvals)} ({', '.join(summary.approvals)})"
                      if summary.approvals else "none")
         body = details_body([("Assessment", [
             ("id", summary.assessment_id, theme.KEY),
-            ("target", summary.target or "—", theme.TEXT),
-            ("status", summary.status, color),
+            ("target", mask(summary.target) or "—", theme.TEXT),
+            ("status", status, color),
+            ("template", template, theme.TEXT),
             ("findings", f"{summary.confirmed} confirmed · {summary.for_review} for review",
              theme.TEXT),
             ("human approvals", approvals, theme.MUTED),

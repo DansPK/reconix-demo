@@ -1,5 +1,6 @@
 """How a finding's fields look wherever they are shown (findings list, detail, report)."""
 
+from dataclasses import replace
 from typing import Dict
 
 from rich.text import Text
@@ -8,6 +9,39 @@ from textual.widgets import Static
 from .. import theme
 from ..models import Finding
 from ..store import SEVERITY_ORDER
+from ..store.redact import redact, redact_lines
+
+
+def mask(text: str) -> str:
+    """Mask secrets in one string before it is shown (display only; store data is unchanged).
+
+    The single seam used by the Findings list, the detail, the triage dialog subtitle and the
+    chat draft, so a token, a credential URL or a password that rode into any finding field never
+    reaches the screen, a dialog title or the model.
+    """
+    return redact(text or "")
+
+
+def for_display(finding: Finding) -> Finding:
+    """A copy of `finding` with every shown free-text field masked (display only).
+
+    Ids, severities, validation, status, scores and vectors are untouched, so search, filter,
+    sort and the cursor key still work on the real values; only the rendered text is masked.
+    The store's data and the report export (which masks on its own) are never changed.
+    """
+    return replace(
+        finding,
+        title=mask(finding.title),
+        path=mask(finding.path),
+        affected_url=mask(finding.affected_url),
+        description=mask(finding.description),
+        impact=mask(finding.impact),
+        remediation=mask(finding.remediation),
+        category=mask(finding.category),
+        references=redact_lines(list(finding.references)),
+        evidence=redact_lines(list(finding.evidence)),
+        triage_note=mask(finding.triage_note),
+    )
 
 
 def severity_text(finding: Finding) -> Text:

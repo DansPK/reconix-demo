@@ -7,6 +7,7 @@ import {
   FileText,
   Layers,
   LayoutGrid,
+  ScrollText,
   Sparkles,
   TriangleAlert,
   type LucideIcon,
@@ -22,6 +23,7 @@ const VIEWS: NavItem[] = [
   { icon: Sparkles, label: "AI Assistant", view: "assistant" },
   { icon: Layers, label: "Assessments", view: "assessments" },
   { icon: TriangleAlert, label: "Findings", view: "findings" },
+  { icon: ScrollText, label: "Run log", view: "log" },
   { icon: FileText, label: "Reports", view: "reports" },
 ];
 const DOC_ITEMS: DocItem[] = [

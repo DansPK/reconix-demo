@@ -237,7 +237,7 @@ export const reports: GroupContent = {
           <p>
             The combined report has ten sections and counts <strong>unique findings</strong> (same title, weakness and
             target) separately from their <strong>occurrences</strong> across runs. It is built on request from the saved
-            files by <Mono>GET /api/reports/combined?uids=…&amp;format=preview|pdf|docx</Mono>, which needs you signed in,
+            files by <Mono>GET /api/reports/combined?uids=…&amp;format=preview|pdf|docx</Mono>,
             accepts one to five valid run ids (otherwise 400), only reads, and writes nothing. Missing data, a failed
             preview and a failed export each show their own state. The terminal keeps its own per-run export; combining
             runs is web-only.
@@ -246,6 +246,172 @@ export const reports: GroupContent = {
             The dashboard needs Node.js 20 or later; the PDF needs a Chrome/Chromium on the machine. See{" "}
             <DocRef>Troubleshooting · The web dashboard</DocRef>.
           </Callout>
+        </DocSection>
+      </>
+    ),
+  },
+  panels: {
+    lede: "Every panel on the dashboard carries a help icon; this is what each one shows, how its numbers are counted, and what you can click.",
+    body: (
+      <>
+        <DocSection title="Activity Timeline">
+          <p>
+            With one run open it draws that run&apos;s log as labelled lanes, one lane per kind of event, over a time
+            axis; with every run shown it draws the runs started per day as stacked bars, coloured by how each run
+            ended. The note beside the title is the window it covers.
+          </p>
+          <p>
+            Every mark has a tooltip, and clicking or focusing one expands it to the events behind it. The legend under
+            the chart names each colour and, on the per-day bars, each status.
+          </p>
+        </DocSection>
+        <DocSection title="Execution Timeline">
+          <p>
+            With one run open it lists that run&apos;s plan steps as rows: the step, its status badge, a progress bar
+            and how far it got; under them the tool steps sit on a time track, and the row for a gate shows what the run
+            is waiting on. The note beside the title says which run it is.
+          </p>
+          <p>
+            With every run shown it becomes the newest eight runs, one row each, with status and a{" "}
+            <Mono>4/5</Mono>-style count of finished plan steps. A row opens that run.
+          </p>
+        </DocSection>
+        <DocSection title="Findings by Severity">
+          <p>
+            A stacked bar of the severity mix, then one row per severity with its badge, a share bar, the count and the
+            percentage. The four rows &mdash; Critical, High, Medium, Low &mdash; are always all there, each shown even
+            at 0, because that is the whole scale; there is no Info level. The count beside the title, the bar and the
+            percentages are those four levels only, and <strong>false positives are left out of every one of them</strong>{" "}
+            (see <DocRef>Reports &middot; The web dashboard &middot; False positives</DocRef>).
+          </p>
+          <p>
+            The chips below are the review state of those same findings: <strong>confirmed</strong> means validated with
+            evidence, <strong>need review</strong> means open and not confirmed yet, and <strong>closed</strong> (shown
+            only when there are any) means fixed, accepted or a false positive. <strong>Top findings &middot; CVSS</strong>{" "}
+            ranks the highest-scored findings by their CVSS rating, highest first; the Report view cuts that list to
+            three.
+          </p>
+          <p>
+            A severity row with at least one finding opens the Findings view filtered to that severity, the count beside
+            the title opens Findings unfiltered, and a row of the top list opens that finding. Severity and CVSS
+            themselves are explained in <DocRef>Reports &middot; Understanding findings</DocRef>.
+          </p>
+        </DocSection>
+        <DocSection title="Assessment">
+          <p>
+            One run&apos;s facts at the head of its report: what was assessed, by whom and when, its state and its scope,
+            each as a labelled value and some as badges.
+          </p>
+          <p>
+            Under them, <strong>Plan</strong> lists the run&apos;s steps in order, each with a status badge, a progress
+            bar and how far it got as a percentage. Before the scope is approved there is no plan yet, and the panel
+            says so.
+          </p>
+        </DocSection>
+        <DocSection title="Findings">
+          <p>
+            Every finding in the open run as a table: ID, severity, the finding, its review state, the tool that found
+            it, its weakness (CWE) and its rating. The worst severities come first.
+          </p>
+          <p>
+            The note beside the title names false positives beside the count rather than inside it. Clicking an{" "}
+            <strong>ID</strong> opens that finding in the Findings view with its evidence and remediation, and a false
+            positive is opened with false positives shown, so the link never lands on a hidden row.
+          </p>
+        </DocSection>
+        <DocSection title="Preview">
+          <p>
+            Exactly what the combined PDF will print, rendered in a fully sandboxed frame that scrolls inside itself. It
+            appears after <strong>Preview report</strong> and takes focus, so the keyboard and screen readers land on it.
+          </p>
+          <p>
+            Changing the selection or the options after a preview marks it out of date and the Generate buttons wait for
+            a new one; a preview that fails offers <strong>Retry</strong>.
+          </p>
+        </DocSection>
+        <DocSection title="Runs">
+          <p>
+            Every saved run, newest first: Run, Target, Status, Findings and Plan, with the run&apos;s own report to
+            download in each format beside it. The note beside the title is how many are saved, or how many a search is
+            showing.
+          </p>
+          <p>
+            From seven runs up a search narrows the rows by ID, template, target or status; ten rows show at a time.
+            Clicking a run&apos;s name opens that run&apos;s report. One status line under the table names the run a
+            download belongs to &mdash; the formats themselves are in <DocRef>Reports &middot; Exporting</DocRef>.
+          </p>
+        </DocSection>
+        <DocSection title="Combine runs">
+          <p>
+            Builds one report out of several saved runs. Tick up to five runs in the table below it; the note beside the
+            title counts what is picked, and the sixth tick is refused with the reason.
+          </p>
+          <p>
+            The options are include the masked evidence, include LOW findings (off: only Critical, High and Medium) and
+            include the appendix. <strong>Preview report</strong> shows it, then <strong>Generate</strong> saves it as
+            one PDF or one Word document, and <strong>Clear selection</strong> empties the picks. A finding seen in
+            several runs is counted once, with each run as an occurrence; the whole flow is in{" "}
+            <DocRef>Reports &middot; The web dashboard</DocRef>.
+          </p>
+        </DocSection>
+        <DocSection title="Targets">
+          <p>
+            Every target across the saved runs, the most findings first, with its number of runs, its number of findings
+            and the worst severity among them (or &quot;no findings&quot;). The note beside the title counts the
+            targets.
+          </p>
+          <p>
+            Seven targets show at a time, with Previous and Next under the list; the page is kept in the address, so a
+            reload lands on the same one. A row opens that target&apos;s newest run report.
+          </p>
+        </DocSection>
+        <DocSection title="Assessments">
+          <p>
+            Every saved run, newest first, ten to a page: the run and its target, when it was saved, its status, the
+            template it used and how many findings it holds. A row opens that run&apos;s Overview.
+          </p>
+          <p>
+            The search box and the status and template chips narrow the rows, and what you pick lives in the address
+            (<Mono>?view=assessments&amp;q=api&amp;status=Completed&amp;page=2</Mono>), so a reload or a shared link
+            lands on the same rows. When nothing matches, the view says so and the chips stay, so one click clears it.
+          </p>
+        </DocSection>
+        <DocSection title="Findings list">
+          <p>
+            Every finding across the runs this view covers — one run, or all of them — worst severity first, with its
+            ID, severity, title, review state, tool and rating. Choosing a row opens that finding beside the list: its
+            description, its masked evidence, its remediation and its references.
+          </p>
+          <p>
+            The search box and the severity, review and tool filters narrow the list, and the open finding and the
+            filters live in the address (<Mono>?view=findings&amp;sev=MEDIUM&amp;finding=F-001</Mono>). False positives
+            are counted but hidden until you ask for them. Nothing here changes a run: decisions stay in the terminal.
+          </p>
+        </DocSection>
+        <DocSection title="Run log">
+          <p>
+            The open run&apos;s activity as it happened, newest last: what the operator did, what the policy engine
+            checked or blocked, what each tool ran, and the assistant&apos;s own lines. The note beside the title says
+            which run it is and how much of it is shown.
+          </p>
+          <p>
+            The model&apos;s longer reasoning is folded into a <strong>thinking</strong> block you can open. Sensitive
+            values were masked when the run saved them, so the log shows them as <Mono>••••</Mono> and never holds the
+            original. With no run open, the view asks you to pick one in the top bar&apos;s run switcher.
+          </p>
+        </DocSection>
+        <DocSection title="AI Assistant">
+          <p>
+            A conversation about the saved runs. It reads the same saved copies the rest of the dashboard shows and
+            answers from them; the numbers on any card it draws come from those files, never from the model. The header
+            names what the conversation is about — one run, or every run — with that scope&apos;s status.
+          </p>
+          <p>
+            <strong>Security knowledge</strong> opens the
+            documents it may quote, and <strong>History</strong> lists earlier conversations, which survive a reload.
+            Questions are masked before they are sent, and the assistant can neither approve, reject nor change
+            anything: those stay in the terminal.
+          </p>
         </DocSection>
       </>
     ),

@@ -15,6 +15,7 @@ from .. import store
 from ..models import Choice
 from ..screens import ChoiceScreen
 from ..screens.forms import AddOnForm
+from ..wording import counted
 
 _ADD = "add"
 _CLEAR = "__clear_all__"
@@ -43,7 +44,7 @@ class KnowledgeMixin:
         choices = [Choice(_ADD, "Add a file…", "A document the AI can quote from (never run)")]
         for i, source in enumerate(sources):
             choices.append(Choice(
-                source.id, f"{source.name} · {source.kind} · {source.chunks} passages",
+                source.id, f"{source.name} · {source.kind} · {counted(source.chunks, 'passage')}",
                 "Remove this add-on", separated=(i == 0)))
         if sources:
             choices.append(Choice(_CLEAR, "Remove all", "Delete every knowledge file",
@@ -107,7 +108,7 @@ class KnowledgeMixin:
             form.finish("added")
         self.refresh_view()
         cut = f", {source.cut}" if source.cut else ""
-        message = f"Added {source.name} — {source.chunks:,} passage(s){cut}."
+        message = f"Added {source.name} — {counted(source.chunks, 'passage')}{cut}."
         if remote:
             message += f" Passages from it may be sent to {remote} with your questions."
         self.notify(message, title=_TITLE, markup=False)
@@ -161,4 +162,4 @@ class KnowledgeMixin:
         """Remove every knowledge file; works on an unreadable index too."""
         count = store.clear_knowledge()
         self.refresh_view()
-        self.notify(f"Removed all {count} add-on(s).", title=_TITLE, markup=False)
+        self.notify(f"Removed all {counted(count, 'add-on')}.", title=_TITLE, markup=False)

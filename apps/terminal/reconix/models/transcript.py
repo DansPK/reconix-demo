@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Union
 
 from .base import utc_now
 
@@ -34,3 +34,33 @@ class ActivityEntry:
     tone: str = "default"      # "default" | "ok" | "warn" | "block"
     created_at: datetime = field(default_factory=utc_now)
     seq: int = 0               # session-monotonic order (chat and activity share one stream)
+
+
+Entry = Union[ChatEntry, ActivityEntry]
+
+
+@dataclass
+class MessageItem:
+    """A line the live output always shows: what you typed, a Reconix reply or a banner."""
+
+    entry: ChatEntry
+
+
+@dataclass
+class ThinkingItem:
+    """The steps between two messages, folded into one block like Claude's thinking.
+
+    `key` is the `seq` of the first step, so it stays the same while the block grows.
+    `state` is "running" | "paused" | "stopped" | "done"; `verb` is "Thought" when no
+    tool ran and "Worked" otherwise; `seconds` is how long the block took (so far).
+    """
+
+    key: int
+    steps: Tuple[Entry, ...]
+    state: str = "done"
+    verb: str = "Worked"
+    seconds: int = 0
+    blocked: int = 0           # steps the policy blocked (tone "block")
+
+
+StreamItem = Union[MessageItem, ThinkingItem]
