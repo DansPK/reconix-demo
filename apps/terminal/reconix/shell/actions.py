@@ -171,10 +171,12 @@ class ActionsMixin:
         except store.StoreValidationError as exc:
             self._warn(exc)
             return
+        # Stay on this assessment: its Template step shows it stopped, the "Scope rejected"
+        # lines stay in its chat, and the Template screen asks "Start again?".
         self.controller.stop()
-        self.notify("Scope rejected — nothing was tested. Starting a new assessment.",
-                    title="Scope")
-        self.new_assessment()
+        self.notify("Scope rejected — nothing was tested.", title="Scope")
+        self.goto("template")
+        self.refresh_view()
 
     # --- the plan and the run ------------------------------------------------------------------
     def run_plan(self) -> None:

@@ -144,8 +144,8 @@ async def test_numbers_on_the_api_review_without_a_spec(app):
         await settle(pilot)
         await choose_by_keys(pilot, "reject")   # destructive: no digit picks it
         await settle(pilot)
-        assert isinstance(app.screen, StartScreen)
-        assert not store.get_run().started
+        assert isinstance(app.screen, TemplateScreen)
+        assert app.screen.state() == "stopped"
 
 
 async def test_numbers_with_a_spec_and_remove(app, tmp_path):
