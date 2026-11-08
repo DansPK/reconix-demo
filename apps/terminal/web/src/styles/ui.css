@@ -97,3 +97,24 @@
   .ui-split { height: 100%; min-height: 0; align-items: stretch; }
   .ui-split-list, .ui-split-detail { min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: thin; }
 }
+
+/* ---- A modal dialog (components/ui/use-modal-dialog.ts): the knowledge upload, the assistant's
+   "Switch the chat?" ---- */
+.ui-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 24px 60px color-mix(in oklab, var(--background) 70%, transparent);
+}
+.ui-dialog:focus { outline: none; } /* focused itself (focusSelf): a frame, not a control */
+.ui-dialog::backdrop { background: color-mix(in oklab, var(--background) 72%, transparent); }
+.ui-dialog-body { display: flex; flex-direction: column; gap: 14px; padding: 16px 18px 18px; }
+.ui-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ui-dialog-title { font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
+.ui-dialog-text { font-size: 12.5px; line-height: 1.5; color: var(--muted-foreground); }
+.ui-dialog-foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding-top: 2px; }

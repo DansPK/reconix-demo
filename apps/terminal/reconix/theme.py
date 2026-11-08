@@ -87,6 +87,8 @@ SEVERITY = {
     "HIGH": HIGH,
     "MEDIUM": MEDIUM,
     "LOW": LOW,
+    "NONE": INFO,       # informational (an open port): the Core API's NONE
+    "UNKNOWN": MUTED,   # a result the tool couldn't rate
 }
 
 # Risk of a gated action (plan rows, approval panel)
@@ -104,14 +106,16 @@ STATUS = {
     "done":         (GREEN,  "✓"),
     "active":       (CYAN,   "◌"),
     "pending":      (DIM,    "·"),
+    "skipped":      (CRITICAL, "✕"),   # a step whose every gated check you rejected
 }
 
-# (color, label) for an analyst's triage status
+# (color, label) for an analyst's triage status. The labels are the store's TRIAGE_LABELS
+# words, so the list, the report and the triage dialog say the same thing.
 TRIAGE = {
     "open":           (MUTED,    "Open"),
     "fixed":          (GREEN,    "Fixed"),
-    "accepted":       (MEDIUM,   "Accepted"),
-    "false-positive": (VIOLET,   "False +"),
+    "accepted":       (MEDIUM,   "Accepted risk"),
+    "false-positive": (VIOLET,   "False positive"),
 }
 
 # Text color for a tone ("ok", "warn", "block", ...) used by chat, log and dialogs
@@ -139,6 +143,7 @@ SOURCE = {"SYS": TEXT, "AI": CYAN, "USER": VIOLET, "TOOL": TEAL, "POLICY": MEDIU
 
 SEVERITY_CHIP = {
     "CRITICAL": "red", "HIGH": "red", "MEDIUM": "amber", "LOW": "cyan",
+    "NONE": "muted", "UNKNOWN": "muted",
 }
 RISK_CHIP = {"LOW": "green", "MEDIUM": "amber", "HIGH": "red"}
 

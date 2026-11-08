@@ -7,7 +7,7 @@ from reconix.screens import PlanScreen, StartScreen, TemplateScreen
 from reconix.screens.forms import ScopeEditForm
 from reconix.widgets import PromptBox, ScopeManifestView
 
-from .support import ASK_REQUEST, SIZE, event_kinds, run_to, settle, start_demo
+from .support import ASK_REQUEST, SIZE, choose_by_keys, event_kinds, run_to, settle, start_demo
 
 WEB_URL = 4      # the catalog order: Network, API, Source Code, Web URL
 
@@ -119,7 +119,7 @@ async def test_a_bad_edit_shows_the_store_error_and_changes_nothing(app):
 async def test_reject_stops_it_and_starts_fresh(app):
     async with app.run_test(size=SIZE) as pilot:
         await start_demo(pilot)
-        await pilot.press("3")                                      # Reject
+        await choose_by_keys(pilot, "reject")   # destructive: no digit picks it
         await settle(pilot)
         assert isinstance(app.screen, StartScreen)
         assert not store.get_run().started
