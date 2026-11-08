@@ -1,86 +1,61 @@
-"""The live output of a run: assistant lines and activity-log rows in one ordered stream.
+"""The live output of a run, read like a Claude conversation.
 
-Every line has the same shape, in aligned columns: time · who · message (wrapped text
-stays under its message). The log follows the newest line while you're at the bottom;
-scroll up to read and it stays put, counting what arrived, until you're back at the end.
+Messages (what you typed, what Reconix tells you, policy banners) stay on screen; the steps
+between two messages fold into one `ThinkingBlock` (see `store.group_stream`). The log
+follows the newest line while you're at the bottom; scroll up to read and it stays put,
+counting what arrived, until you're back at the end.
 """
 
-from typing import List, Union
+from typing import Dict, List, Optional
 
-from rich.table import Table
 from rich.text import Text
-from textual.widgets import RichLog
+from textual.containers import VerticalScroll
+from textual.widget import Widget
+from textual.widgets import Static
 
 from .. import store, theme
-from ..models import ActivityEntry, ChatEntry
-
-Entry = Union[ChatEntry, ActivityEntry]
-
-# who said it, in plain words: chat speakers, then activity-log sources
-SPEAKER_NAME = {"reconix": "reconix", "you": "you", "policy": "policy"}
-SOURCE_NAME = {"AI": "reconix", "USER": "you", "TOOL": "tool", "POLICY": "policy",
-               "SYS": "system"}
-WHO_WIDTH = max(len(name) for name in (*SPEAKER_NAME.values(), *SOURCE_NAME.values()))
+from ..models import MessageItem, StreamItem, ThinkingItem
+from .log_rows import message_line
+from .thinking_block import ThinkingBlock
 
 
-def stream() -> List[Entry]:
-    """Chat and activity entries of the current assessment, in the order they happened."""
-    entries: List[Entry] = list(store.list_chat()) + list(store.list_activity())
-    return sorted(entries, key=lambda entry: entry.seq)
+def item_key(item: StreamItem) -> str:
+    """Stable per item: a message by its seq, a block by its first step's seq."""
+    return f"m{item.entry.seq}" if isinstance(item, MessageItem) else f"t{item.key}"
 
 
-def _who(entry: Entry) -> Text:
-    if isinstance(entry, ActivityEntry):
-        name, color = SOURCE_NAME.get(entry.source, ""), theme.SOURCE.get(entry.source)
-    else:
-        name, color = SPEAKER_NAME.get(entry.speaker, ""), theme.SPEAKER.get(entry.speaker)
-    return Text(name, style=f"bold {color or theme.MUTED}")
+class MessageLine(Static):
+    """One message: a glyph in the speaker's colour and the text (never markup)."""
+
+    def __init__(self, item: MessageItem) -> None:
+        super().__init__(message_line(item.entry), classes="message-line")
+        self.item = item
+        self._shown = (item.entry.text, item.entry.tone)
+
+    def show(self, item: MessageItem) -> None:
+        """Redraw if the message changed (a streamed reply grows in place)."""
+        if (item.entry.text, item.entry.tone) != self._shown:
+            self._shown = (item.entry.text, item.entry.tone)
+            self.update(message_line(item.entry))
 
 
-def _message(entry: Entry) -> Text:
-    """The message column. Built as Text, so tool output and typed text are never markup."""
-    tone = theme.TONE.get(entry.tone, theme.TEXT)
-    if isinstance(entry, ActivityEntry):
-        return Text(entry.message, style=tone)
-    if entry.kind == "banner":
-        return Text(entry.text, style=f"bold {tone}")
-    if entry.kind == "check":
-        return Text.assemble(("✓ ", theme.GREEN), (entry.text, tone))
-    if entry.kind == "card":
-        line = Text(entry.text, style=f"bold {theme.TEXT}")
-        for label, value in entry.rows:
-            line.append("   ")
-            line.append(f"{label} ", style=theme.DIM)
-            line.append(value, style=theme.TEAL)
-        return line
-    return Text(entry.text, style=tone)
+class RunLog(VerticalScroll):
+    """Messages and thinking blocks. `sync(live)` adds what the stream has that it doesn't.
 
-
-def entry_row(entry: Entry) -> Table:
-    """One log line: time · who · message, in fixed columns."""
-    grid = Table.grid(padding=(0, 2))
-    grid.add_column(no_wrap=True)
-    grid.add_column(no_wrap=True, width=WHO_WIDTH)
-    grid.add_column()
-    grid.add_row(Text(entry.created_at.strftime("%H:%M:%S"), style=theme.DIM),
-                 _who(entry), _message(entry))
-    return grid
-
-
-class RunLog(RichLog):
-    """A RichLog that appends the stream entries it hasn't shown yet (`sync()`).
-
-    It follows new lines only while scrolled to the bottom. `set_status()` sets the text
-    in the bottom border, which also says how many lines arrived while you scrolled up.
+    `live` is where the run stands ("running" | "paused" | "stopped" | "done"); it decides
+    how the last block reads. `set_expanded()` opens or folds every block (the app's
+    Ctrl+O); new blocks follow it. `set_status()` sets the text in the bottom border, which
+    also says how many entries arrived while you scrolled up.
     """
 
-    def __init__(self, **kwargs) -> None:
-        # min_width=1: lines wrap at the log's width (the default 78 overflows 80 columns)
-        super().__init__(markup=False, highlight=False, wrap=True, auto_scroll=False,
-                         min_width=1, **kwargs)
+    def __init__(self, *, expanded: bool = False, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._items: Dict[str, Widget] = {}
+        self._live = "done"
+        self._expanded = expanded
         self._last_seq = 0
-        self._following = True     # at the bottom: new lines scroll into view
-        self._unseen = 0           # lines that arrived while you were scrolled up
+        self._following = True  # at the bottom: new lines scroll into view
+        self._unseen = 0  # entries that arrived while you were scrolled up
         self._status = ""
 
     @property
@@ -94,17 +69,35 @@ class RunLog(RichLog):
     def on_mount(self) -> None:
         self.sync()
 
-    def sync(self) -> None:
-        new = [entry for entry in stream() if entry.seq > self._last_seq]
-        for entry in new:
-            # expand: lay each line out at the log's own width, not the console's
-            self.write(entry_row(entry), expand=True, scroll_end=self._following)
-        if not new:
-            return
-        self._last_seq = new[-1].seq
-        if not self._following:
-            self._unseen += len(new)
-            self._show_status()
+    def sync(self, live: Optional[str] = None) -> None:
+        self._live = live or self._live
+        entries = store.stream()
+        items = store.group_stream(entries, self._live)
+        keys = {item_key(item) for item in items}
+        for key in [k for k in self._items if k not in keys]:  # another assessment
+            self._items.pop(key).remove()
+        new: List[Widget] = []
+        for item in items:
+            key = item_key(item)
+            widget = self._items.get(key)
+            if widget is None:
+                widget = self._make(item)
+                self._items[key] = widget
+                new.append(widget)
+            elif isinstance(widget, ThinkingBlock) and isinstance(item, ThinkingItem):
+                widget.show(item)
+            elif isinstance(widget, MessageLine) and isinstance(item, MessageItem):
+                widget.show(item)
+        if new:
+            self.mount_all(new)
+        self._count_new([entry.seq for entry in entries])
+        if self._following:
+            self.call_after_refresh(self.scroll_end, animate=False)
+
+    def set_expanded(self, expanded: bool) -> None:
+        self._expanded = expanded
+        for block in self.query(ThinkingBlock):
+            block.set_expanded(expanded)
 
     def set_status(self, status: str) -> None:
         self._status = status
@@ -114,11 +107,35 @@ class RunLog(RichLog):
         """Jump to the newest line and follow again."""
         self.scroll_end(animate=False)
 
+    def plain_lines(self, include_folded: bool = True) -> List[str]:
+        """What the log holds, as plain text (folded steps too unless told otherwise)."""
+        lines: List[str] = []
+        for widget in self._items.values():
+            if isinstance(widget, ThinkingBlock):
+                lines += widget.plain_lines(include_folded)
+            else:
+                lines.append(message_line(widget.item.entry).plain)
+        return lines
+
+    def _make(self, item: StreamItem) -> Widget:
+        if isinstance(item, MessageItem):
+            return MessageLine(item)
+        return ThinkingBlock(item, expanded=self._expanded)
+
+    def _count_new(self, seqs: List[int]) -> None:
+        arrived = [seq for seq in seqs if seq > self._last_seq]
+        if not arrived:
+            return
+        self._last_seq = arrived[-1]
+        if not self._following:
+            self._unseen += len(arrived)
+            self._show_status()
+
     def watch_scroll_y(self, old_value: float, new_value: float) -> None:
         super().watch_scroll_y(old_value, new_value)
-        if self.is_vertical_scroll_end:          # checked first: a resize can clamp upward
+        if self.is_vertical_scroll_end:  # checked first: a resize can clamp upward
             following = True
-        elif new_value < old_value:              # only you scroll up; writes scroll down
+        elif new_value < old_value:  # only you scroll up; new lines scroll down
             following = False
         else:
             return

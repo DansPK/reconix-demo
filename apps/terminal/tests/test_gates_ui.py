@@ -187,9 +187,9 @@ async def test_execution_streams_the_run(app):
         app.goto("execution")
         await settle(pilot)
         log = app.screen.query_one(RunLog)
-        lines = [str(line.text) for line in log.lines]
+        lines = log.plain_lines()                                # folded steps too
         text = "\n".join(lines)
-        assert any("  policy   Blocked:" in line for line in lines)
+        assert any("  policy  Blocked:" in line for line in lines)
         assert "Assessment completed" in text
         assert TEST_PASSWORD not in text
 
