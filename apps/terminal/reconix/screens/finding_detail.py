@@ -11,7 +11,9 @@ from textual.widgets import Static
 from .base import ReconixScreen
 from .. import store, theme
 from ..models import Finding
-from ..widgets.findings import cvss_text, severity_text, triage_text, validation_text
+from ..widgets.findings import (
+    cvss_text, for_display, mask, severity_text, triage_text, validation_text,
+)
 
 
 def _heading(text: str, color: str) -> Static:
@@ -20,6 +22,13 @@ def _heading(text: str, color: str) -> Static:
 
 def _para(text: str, color: str = theme.MUTED) -> Static:
     return Static(Text(text, style=color))
+
+
+def _url(url: str, color: str = theme.CYAN) -> Static:
+    """A URL the terminal makes clickable (ctrl/cmd+click opens it in the browser)."""
+    if url.startswith(("http://", "https://")):
+        return Static(Text(url, style=f"link {url} {color}"))
+    return _para(url, color)
 
 
 class FindingDetailScreen(ReconixScreen):
@@ -64,33 +73,33 @@ class FindingDetailScreen(ReconixScreen):
             ("← findings", theme.CYAN), ("  /  ", theme.BORDER), (f.fid, f"bold {theme.MUTED}"),
             (f"  {where}", theme.DIM), ("  ·  [ prev  ·  ] next", theme.DIM),
         ), id="breadcrumb")
+        d = for_display(f)               # mask secrets in every shown field (display only)
         with Vertical(classes="panel", id="detail-header"):
-            yield Static(Text.assemble(severity_text(f), "   ", (f.title, f"bold {theme.TEXT}"),
-                                       "      ", validation_text(f), "   ", triage_text(f)))
-            refs = " · ".join(f.cve + f.cwe + f.owasp) or "—"
+            yield Static(Text.assemble(severity_text(d), "   ", (d.title, f"bold {theme.TEXT}"),
+                                       "      ", validation_text(d), "   ", triage_text(d)))
+            refs = " · ".join(d.cve + d.cwe + d.owasp) or "—"
             yield Static(Text.assemble(
-                (f"{f.fid} · {f.path} · detected by {f.tool}", theme.MUTED), "    ",
-                (f"CVSS {cvss_text(f)} · {refs}", theme.KEY)))
+                (f"{d.fid} · {d.path} · detected by {d.tool}", theme.MUTED), "    ",
+                (f"CVSS {cvss_text(d)} · {refs}", theme.KEY)))
         with Horizontal(id="detail-cols"):
             with Vertical(classes="panel") as evidence:
                 evidence.border_title = "▤ EVIDENCE"
-                evidence.border_subtitle = Text(f.tool)     # imported text: never markup
+                evidence.border_subtitle = Text(d.tool)     # imported text: never markup
                 yield _heading("Affected URL", theme.DIM)
-                yield _para(f.affected_url, theme.CYAN)
+                yield _url(d.affected_url, theme.CYAN)
                 yield Static("")
                 if self.app.finding_unmasked and f.evidence_unmasked:
                     yield _heading("ATTACKER'S VIEW — UNMASKED (press u to hide)", theme.CRITICAL)
-                    lines = f.evidence_unmasked
+                    lines = f.evidence_unmasked      # the reveal path: raw, not for_display'd
                 else:
-                    label = ("Evidence (masked — press u to reveal)" if f.evidence_unmasked
-                             else "Evidence (masked)")
-                    yield _heading(label, theme.DIM)
-                    lines = f.evidence
+                    yield _heading("Evidence (masked — press u to reveal)" if f.evidence_unmasked
+                                   else "Evidence (masked)", theme.DIM)
+                    lines = d.evidence
                 for line in lines:
                     yield _para(line, theme.STRING)
                 yield Static("")
-                if f.needs_review:
-                    note = (f"○ {f.validation.title()} — needs analyst review. Press t to set "
+                if d.needs_review:
+                    note = (f"○ {d.validation.title()} — needs analyst review. Press t to set "
                             "its status.", theme.MEDIUM)
                 else:
                     note = ("✓ Confirmed during the run by the limited validation you "
@@ -100,22 +109,22 @@ class FindingDetailScreen(ReconixScreen):
                 analysis.border_title = "✦ AI ANALYSIS"
                 analysis.border_subtitle = "grounded in OWASP · CWE · NVD"
                 yield _heading("Description", theme.TEXT)
-                yield _para(f.description)
+                yield _para(d.description)
                 yield Static("")
                 yield _heading("Impact", theme.HIGH)
-                yield _para(f.impact)
+                yield _para(d.impact)
                 yield Static("")
                 yield _heading("Remediation", theme.TEAL)
-                yield _para(f.remediation)
+                yield _para(d.remediation)
                 yield Static("")
                 yield _heading("Classification", theme.LOW)
-                yield _para(f"{f.category or '—'} · {f.cvss_vector or 'not scored'}")
-                for ref in f.references:
+                yield _para(f"{d.category or '—'} · {d.cvss_vector or 'not scored'}")
+                for ref in d.references:
                     yield Static(Text.assemble(("• ", theme.DIM), (ref, theme.KEY)))
-                if f.triage_note:
+                if d.triage_note:
                     yield Static("")
                     yield _heading("Triage note", theme.MEDIUM)
-                    yield _para(f.triage_note)
+                    yield _para(d.triage_note)
 
     # --- previous / next in the Findings list order -----------------------------------------
     def _order(self) -> Tuple[List[str], bool]:
@@ -142,7 +151,7 @@ class FindingDetailScreen(ReconixScreen):
             self.app.triage_finding(self.app.selected_finding)
 
     def action_unmask(self) -> None:
-        """Reveal (or re-hide) the raw, unmasked evidence — the demo's attacker view."""
+        """Reveal (or re-hide) the raw, unmasked evidence — the attacker's view."""
         f = self._finding()
         if f is None or not f.evidence_unmasked:
             self.app.bell()                      # nothing to unmask on this finding
@@ -153,7 +162,7 @@ class FindingDetailScreen(ReconixScreen):
     def action_chat(self) -> None:
         """Chat about the open finding; the draft names it (plain text, never markup)."""
         finding = self._finding()
-        self.chat_about(f"About {finding.fid} {finding.title}: " if finding else "")
+        self.chat_about(f"About {finding.fid} {mask(finding.title)}: " if finding else "")
 
     def action_report(self) -> None:
         self.app.goto("report")
