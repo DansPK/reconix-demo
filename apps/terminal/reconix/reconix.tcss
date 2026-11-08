@@ -162,6 +162,12 @@ PromptBox {
     padding: 0 1;
 }
 
+/* An error or notice may wrap, but never grows past three lines. */
+#prompt-hint.-message {
+    height: auto;
+    max-height: 3;
+}
+
 /* ------------------------------------------------- lists & tables (arrow keys) */
 OptionList {
     background: $surface;
@@ -233,9 +239,11 @@ SuggestionMenu {
     offset-y: -100%;
     width: 100%;
     background: $surface2;
-    border-top: solid $border-strong;
+    /* A whole box: it floats over what is above the prompt (the Start card at 80×24), so it
+       must read as a popup, not as a row cut into that card's border. */
+    border: round $border-strong;
     padding: 0 1;
-    max-height: 8;
+    max-height: 10;
 }
 
 /* Question widget: chip, bold question, numbered choices, key hint. */
@@ -313,7 +321,7 @@ DataTable > .datatable--even-row {
 }
 
 /* --------------------------------------------------------------- log */
-RichLog {
+RichLog, RunLog {
     background: $surface2;
     border: round $border;
     border-title-color: $muted;
@@ -530,6 +538,19 @@ FormScreen {
 
 .field-label.-warn {
     color: $medium;
+}
+
+/* The fields scroll inside the form; the error line and the buttons stay pinned under them. */
+.form-body {
+    height: auto;
+    scrollbar-color: $border-strong;
+    scrollbar-background: $surface;
+    scrollbar-size-vertical: 1;
+}
+
+/* "↓ more fields below": shown only while some fields are below the fold */
+#form-more {
+    height: 1;
 }
 
 #form-error {

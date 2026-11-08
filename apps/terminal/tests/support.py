@@ -121,6 +121,21 @@ async def show(app, pilot, name: str) -> None:
     await settle(pilot)
 
 
+async def choose_by_keys(pilot, choice_id: str) -> None:
+    """Pick `choice_id` in the focused menu the way a person must pick a destructive choice
+    (no digit reaches it): move the highlight with ↓ / ↑, then press Enter."""
+    from reconix.widgets import ChoiceMenu
+
+    menu = pilot.app.screen.focused
+    assert isinstance(menu, ChoiceMenu), f"no menu has focus: {menu!r}"
+    ids = [choice.id for choice in menu._choices]
+    target = ids.index(choice_id)
+    while menu.highlighted != target:
+        await pilot.press("down" if menu.highlighted < target else "up")
+    await pilot.press("enter")
+    await settle(pilot)
+
+
 async def start_demo(pilot) -> None:
     """Enter on the empty Start prompt runs the demo request; it stops at the scope."""
     await pilot.press("enter")
