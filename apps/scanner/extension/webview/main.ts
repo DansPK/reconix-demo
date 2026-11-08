@@ -234,6 +234,9 @@ const input = el("textarea", { rows: "1", placeholder: "Ask anything, or tell me
 const sendBtn = el("button", { class: "ai-send", title: "Send", "aria-label": "Send" }, icon("arrowUp"));
 // connection problems sit just above the composer
 const status = el("div", { class: "ai-reason hidden", role: "status" });
+// the footnote's dot + label: the connection at a glance, as in the real extension
+const connectionDot = el("span", { class: "ai-dot", "data-tone": "warning" });
+const connectionLabel = el("span", { text: "Connecting…" });
 // the model menu sits in a wrapper around the message box, so it lines up with the box and opens just above it
 const composer = el("div", { class: "ai-column ai-composer-area" }, status,
   el("div", { class: "ai-composer-wrap" },
@@ -241,7 +244,7 @@ const composer = el("div", { class: "ai-column ai-composer-area" }, status,
       el("div", { class: "ai-composer-bar" }, modelPill,
         el("span", { class: "ai-composer-hint", text: "Enter to send · Shift+Enter for new line" }), sendBtn)),
     modelPanel),
-  el("div", { class: "ai-footnote", text: "Scans run on your harness. Fixes are shown as a diff before anything changes." }));
+  el("div", { class: "ai-footnote" }, connectionDot, connectionLabel, " · Fixes are shown as a diff before anything changes."));
 
 // Shown while the chat is empty: action cards. Each either sends a message or seeds the input box.
 interface Example { icon: string; title: string; desc: string; text?: string; prefill?: string }
@@ -338,6 +341,8 @@ function setTab(tab: UiState["tab"]) {
 
 function setStatus(c: ConnectionStatus) {
   connected = c.state === "connected";
+  connectionDot.dataset.tone = connected ? "success" : c.state === "connecting" ? "warning" : "danger";
+  connectionLabel.textContent = connected ? "Connected" : c.state === "connecting" ? "Connecting…" : "Not connected";
   status.replaceChildren();
   status.classList.toggle("hidden", connected);
   if (c.state === "connecting") {
@@ -695,7 +700,7 @@ function showFinding(id: string) {
   expanded.add(id);
   saveUi();
   renderFindings();
-  findingsList.querySelector(`[data-id="${id}"]`)?.scrollIntoView({ block: "center" });
+  findingsList.querySelector(`[data-id="${CSS.escape(id)}"]`)?.scrollIntoView({ block: "center" });
 }
 
 function showFile(path: string) {
