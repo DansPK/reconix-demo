@@ -152,7 +152,7 @@ async def test_the_notice_says_when_the_file_was_cut(app, notes, tmp_path, monke
     async with app.run_test(size=SIZE) as pilot:
         app.run_command_line(f"/add-on {p}")
         await wait_until(pilot, lambda: notes, what="a notification")
-        assert notes[0][0] == "Added big.txt — 5 passage(s), cut to the first 5 passages."
+        assert notes[0][0] == "Added big.txt — 5 passages, cut to the first 5 passages."
 
 
 async def test_notice_never_names_a_remote_model(app, notes, tmp_path):
@@ -160,7 +160,7 @@ async def test_notice_never_names_a_remote_model(app, notes, tmp_path):
     async with app.run_test(size=SIZE) as pilot:
         app.run_command_line(f"/add-on {_write(tmp_path)}")
         await wait_until(pilot, lambda: notes, what="a notification")
-        assert notes[0][0] == "Added runbook.md — 1 passage(s)."
+        assert notes[0][0] == "Added runbook.md — 1 passage."
 
 
 # --- an unreadable index: the menu still opens, with only "Remove all" ---------------------
