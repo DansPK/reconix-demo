@@ -2,12 +2,14 @@
 
 from typing import Callable, List, Optional, Sequence
 
+from rich.text import Text
 from textual import events
 from textual.actions import SkipAction
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
 from textual.message import Message
+from textual.screen import ModalScreen
 from textual.widgets import Input, Static
 
 from .. import theme
@@ -26,6 +28,8 @@ class PromptInput(Input):
         Binding("tab", "prompt('tab')", "complete", show=False),
         Binding("escape", "prompt('escape')", "close / clear", show=False),
         Binding("ctrl+r", "prompt('search')", "search history", show=False),
+        Binding("left", "arrow(-1)", "cursor left", show=False),
+        Binding("right", "arrow(1)", "cursor right", show=False),
     ]
 
     def __init__(self, box: "PromptBox", **kwargs) -> None:
@@ -35,6 +39,16 @@ class PromptInput(Input):
     def action_prompt(self, key: str) -> None:
         if not self._box.handle_prompt_key(key):
             raise SkipAction()   # let Tab move focus / Esc reach the screen
+
+    def action_arrow(self, direction: int) -> None:
+        """←/→ move the cursor in typed text; on an empty prompt of a flow screen they pass
+        on to the app, which moves to the previous / next screen."""
+        if not self.value and not isinstance(self.screen, ModalScreen):
+            raise SkipAction()
+        if direction < 0:
+            self.action_cursor_left()
+        else:
+            self.action_cursor_right()
 
     def _on_key(self, event: events.Key) -> None:
         # Runs before Input._on_key: "?" on an empty prompt opens help instead of typing.
@@ -48,8 +62,10 @@ class PromptBox(Vertical):
     """Prompt input + slash-command suggestions + a contextual hint line.
 
     Posts `Submitted` for plain text and `CommandSubmitted` for `/command` lines.
-    The host acts on them and calls `clear()` when they succeed. The box never
-    writes to the store itself.
+    The host acts on them and calls `clear()` when they succeed, `show_error()` when they
+    can't run (the message stays until the next keystroke), or `release()` when it refused
+    them some other way. Until then a repeated Enter sends nothing: one line, one
+    submission. The box never writes to the store itself.
     """
 
     class Submitted(Message):
@@ -81,6 +97,10 @@ class PromptBox(Vertical):
         self._arg_command: Optional[Command] = None   # arg mode
         self._history_matches: List[str] = []         # history-search mode
         self._history_draft = ""              # input text saved while searching
+        self._menu_moved = False              # ↑/↓ moved the command highlight
+        self._message = ""                    # an error or notice shown in the hint line
+        self._message_style = ""
+        self._awaiting = False                # a line was sent; the host hasn't answered yet
 
     def compose(self) -> ComposeResult:
         # The menu is a CSS overlay drawn just above the input, so opening it
@@ -127,11 +147,37 @@ class PromptBox(Vertical):
     def clear(self) -> None:
         self._history.reset()
         self._mode = ""
+        self._awaiting = False
         self._set_text("")
+
+    def release(self) -> None:
+        """The host refused the line without a message here (e.g. a pop-up): Enter works again."""
+        self._awaiting = False
+
+    # --- messages in the hint line (plain Text: typed input is never markup) -------------
+    @property
+    def message(self) -> str:
+        return self._message
+
+    def show_error(self, message: str) -> None:
+        """Why the line can't run, in the warning colour, until the next keystroke."""
+        self._show_message(message, theme.TONE["warn"])
+
+    def show_notice(self, message: str) -> None:
+        """A short hint in the muted colour, until the next keystroke."""
+        self._show_message(message, theme.MUTED)
+
+    def _show_message(self, message: str, style: str) -> None:
+        self._awaiting = False
+        self._message = " ".join(message.split())
+        self._message_style = style
+        self._update_hint()
 
     # --- typing -----------------------------------------------------------------------
     def on_input_changed(self, event: Input.Changed) -> None:
         event.stop()
+        self._message = ""                        # the next keystroke clears an error
+        self._awaiting = False
         if self._mode == "history":
             self._refresh_history(event.value)
             return
@@ -143,6 +189,7 @@ class PromptBox(Vertical):
         self._mode = ""
         self._matches = []
         self._arg_command = None
+        self._menu_moved = False
         choices: List[Choice] = []
         if text.startswith("/"):
             name, sep, rest = text[1:].partition(" ")
@@ -193,9 +240,15 @@ class PromptBox(Vertical):
             inp.value = text
         inp.cursor_position = len(text)
         self.menu.display = False
+        self._message = ""
         self._update_hint()
 
     def _update_hint(self) -> None:
+        line = self.query_one("#prompt-hint", Static)
+        line.set_class(bool(self._message), "-message")
+        if self._message:
+            line.update(Text(self._message, style=self._message_style))
+            return
         esc = "esc clear" if self._escape_clears else "esc close"
         if self._mode == "history":
             hint = "type to search history · ↑↓ pick · ↵ insert · esc cancel"
@@ -207,7 +260,7 @@ class PromptBox(Vertical):
             hint = f"↵ send · {esc}"
         else:
             hint = "/ for commands · ↑ history · ^R search · ? for shortcuts"
-        self.query_one("#prompt-hint", Static).update(f"[{theme.DIM}]{hint}[/]")
+        line.update(Text(hint, style=theme.DIM))
 
     # --- keys forwarded by PromptInput (False = let the key fall through) -------------
     def handle_prompt_key(self, key: str) -> bool:
@@ -220,6 +273,7 @@ class PromptBox(Vertical):
         if key in ("up", "down"):
             if self.menu_open:
                 self.menu.action_cursor_up() if key == "up" else self.menu.action_cursor_down()
+                self._menu_moved = True
             elif self._mode != "history":
                 text = (self._history.older(self.input.value) if key == "up"
                         else self._history.newer())
@@ -286,6 +340,12 @@ class PromptBox(Vertical):
         if self._mode == "history":
             self._accept_history()           # Enter inserts the match; it is not run
             return
+        if event.value.strip() == "/" and not self._menu_moved:
+            self._refresh("/")               # a bare "/" shows the list and runs nothing
+            return
+        if self._awaiting:
+            return                           # a repeated Enter: the line was already sent
+        self._awaiting = True
         text = self._submission_text(event.value)
         if text.startswith("/"):
             self.post_message(self.CommandSubmitted(self, text))
