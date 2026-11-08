@@ -21,6 +21,7 @@ from .. import store, theme
 from ..commands import COMMANDS
 from ..models import ChatEntry
 from ..widgets import ActivityStatus, PromptBox, UserMessage
+from ..widgets.step_chat import speaker_label
 
 # Colored by `#logo` in reconix.tcss.
 LOGO = r"""██████╗ ███████╗ ██████╗ ██████╗ ███╗   ██╗██╗██╗  ██╗
@@ -34,11 +35,20 @@ LOGO = r"""██████╗ ███████╗ ██████╗ 
 QUICKSTART = (
     ("1", "Pick a template, type its target", "/template"),
     ("2", "Or just type a target", '"https://www.lumina.com"'),
-    ("3", "Approve scope · run plan · approve risks", "↵ at each gate"),
+    ("3", "Approve scope, plan and risks", "↵ at each gate"),
 )
 
-PLACEHOLDER = "Type a target (URL, IPv4, repo or path), a question, or / for commands"
+PLACEHOLDER = "Type a target (URL, IPv4, repo, path), a question, or / commands"
 READING = "reconix is reading the target…"
+
+
+def length_error(text: str) -> str:
+    """Why a line is too long to send ("" when it fits); the store enforces the same limit."""
+    length = len(" ".join(text.split()))
+    if length <= store.MAX_REQUEST_LENGTH:
+        return ""
+    return (f"That line has {length:,} characters — keep it to at most "
+            f"{store.MAX_REQUEST_LENGTH} (a target, a question, or / for commands).")
 
 
 def _quickstart_steps() -> Table:
@@ -62,12 +72,12 @@ def _answer(replies: List[ChatEntry]) -> Text:
     """Reconix's latest answer to your line (empty until it has one)."""
     if not replies:
         return Text("")
-    return Text.assemble(("◆ reconix  ", f"bold {theme.CYAN}"), (replies[-1].text, theme.MUTED))
+    return Text.assemble((speaker_label(), f"bold {theme.CYAN}"), (replies[-1].text, theme.MUTED))
 
 
 def _reconix_line(entry: ChatEntry) -> Text:
     """A past Reconix line in the scrollback (tone-colored, plain text)."""
-    return Text.assemble(("◆ reconix  ", f"bold {theme.CYAN}"),
+    return Text.assemble((speaker_label(), f"bold {theme.CYAN}"),
                          (entry.text, theme.TONE.get(entry.tone, theme.MUTED)))
 
 
@@ -77,7 +87,7 @@ class StartScreen(ReconixScreen):
     scroll = False
 
     BINDINGS = [
-        Binding("enter", "begin", "start assessment"),
+        Binding("enter", "begin", "continue"),
         Binding("question_mark", "help", "help", key_display="?"),
     ]
 
@@ -170,7 +180,11 @@ class StartScreen(ReconixScreen):
         if working:
             status.show([e.text for e in replies])
         else:
+            conversation = self.query_one("#start-conversation", VerticalScroll)
+            at_end = conversation.is_vertical_scroll_end
             reply.update(_answer(replies))
+            if at_end:                      # a streamed reply grows: keep its end in view
+                conversation.call_after_refresh(conversation.scroll_end, animate=False)
 
     # --- keys and the prompt -----------------------------------------------------------------
     def action_begin(self) -> None:
@@ -182,10 +196,32 @@ class StartScreen(ReconixScreen):
 
     def on_prompt_box_submitted(self, event: PromptBox.Submitted) -> None:
         event.stop()
-        if self.app.submit_request(event.text):
-            event.box.clear()
+        self._send(event.box, event.text)
 
     def on_prompt_box_command_submitted(self, event: PromptBox.CommandSubmitted) -> None:
         event.stop()
+        if self.app.is_path_line(event.text):
+            self._send(event.box, event.text)        # /home/me/app: a target, not a command
+            return
+        check = self.app.check_command(event.text)
+        if not check.ok:
+            event.box.show_error(check.error)
+            return
         if self.app.run_command_line(event.text):
             event.box.clear()
+        else:
+            event.box.release()                      # refused with a pop-up
+
+    def _send(self, box: PromptBox, text: str) -> None:
+        """A plain line: say why it can't be sent, or hand it to the app."""
+        text = text.strip()
+        error = length_error(text)
+        if error:
+            box.show_error(error)
+            box.input.select_all()                   # kept to edit; typing replaces it
+            return
+        if self.app.submit_request(text):
+            box.clear()
+        else:
+            box.release()                            # refused with a pop-up
+            box.input.select_all()

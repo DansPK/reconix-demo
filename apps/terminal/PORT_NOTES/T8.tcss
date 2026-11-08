@@ -1,0 +1,3 @@
+/* T8 (start, report, choice, prompt): no new rules.
+   `#prompt-hint.-message` is already in the foundation reconix.tcss; the choice dialog's
+   body/menu fitting is done in Python (ChoiceScreen._fit_body / _fit_menu). */

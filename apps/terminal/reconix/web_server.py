@@ -21,6 +21,7 @@ from urllib.parse import urlsplit
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 LOG_FILE = Path(os.environ.get("RECONIX_WEB_LOG") or "~/.reconix/web.log").expanduser()
 PORTS_BUSY = 2   # web/scripts/serve.mjs exits with this when its ports are already taken
+BUSY_IN_LOG = "Another next dev server is already running"   # Next.js's own words for it
 
 
 def problem() -> str:
@@ -30,6 +31,25 @@ def problem() -> str:
     if not shutil.which("npm") or not shutil.which("node"):
         return "The web dashboard needs Node.js (node and npm)."
     return ""
+
+
+def log_size() -> int:
+    """How long the log is now, so a start can be read on its own (0 when there is none)."""
+    try:
+        return LOG_FILE.stat().st_size
+    except OSError:
+        return 0
+
+
+def busy_in_log(since: int = 0) -> bool:
+    """A start that failed because another `next dev` holds the dashboard's lock (serve.mjs
+    passes Next.js's exit code through; this line of its own is all that says so)."""
+    try:
+        with LOG_FILE.open("rb") as log:
+            log.seek(max(0, since))
+            return BUSY_IN_LOG.encode() in log.read()
+    except OSError:
+        return False
 
 
 def needs_install() -> bool:
