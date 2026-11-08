@@ -205,7 +205,6 @@ python run.py         # the launcher in the repository root`}</Code>
             rows={[
               { key: "RECONIX_DATA_DIR", value: <>Where saved copies go (default <Mono>~/.reconix/assessments</Mono>). The folder is created 0700 and each file is 0600; a folder of yours with looser permissions is tightened to 0700, and one that belongs to another user is refused.</> },
               { key: "RECONIX_SAVE", value: <><Mono>0</Mono>, <Mono>false</Mono>, <Mono>no</Mono> or <Mono>off</Mono> turns saving off.</> },
-              { key: "RECONIX_WEB_URL_FILE", value: <>Where the dashboard leaves its sign-in link for <Mono>/web</Mono> (default <Mono>~/.reconix/web.url</Mono>). Only a loopback http link is accepted.</> },
               { key: "RECONIX_WEB_LOG", value: <>The dashboard&apos;s log when <Mono>/web</Mono> starts it (default <Mono>~/.reconix/web.log</Mono>).</> },
               { key: "RECONIX_CHROME", value: "A Chrome/Chromium binary for the PDF export, when it is not on the PATH." },
               { key: "LLM_BASE_URL, LLM_MODEL, LLM_TIMEOUT", value: <>The built-in &quot;Reconix&quot; provider&apos;s endpoint, model and timeout, read from <Mono>.env</Mono>. See <DocRef>Configuration</DocRef>.</> },
@@ -214,13 +213,6 @@ python run.py         # the launcher in the repository root`}</Code>
               { key: "KALI_MCP_*, HARNESS_DB_PATH", value: <>The AI agent&apos;s Kali MCP server and database, from <Mono>.env</Mono>. See <DocRef>The AI agent</DocRef>.</> },
             ]}
           />
-        </DocSection>
-        <DocSection title="In the browser">
-          <p>
-            The web dashboard&apos;s <strong>Terminal</strong> page runs this same terminal in a browser tab, with the same
-            screens, commands and gates, once you are signed in with the link the dashboard prints. Inside it,{" "}
-            <Mono>/web</Mono> only tells you that you are already in the dashboard.
-          </p>
         </DocSection>
       </>
     ),

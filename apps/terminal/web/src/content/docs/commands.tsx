@@ -356,7 +356,7 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
     example: "/web",
     behaviour: (
       <>
-        If a dashboard is listening at the saved sign-in link, the browser opens it. Otherwise the first call installs
+        If a dashboard is already running, the browser opens it. Otherwise the first call installs
         the dashboard&apos;s packages if needed, starts <Mono>npm run dev</Mono> in <Mono>web/</Mono> quietly (log:{" "}
         <Mono>~/.reconix/web.log</Mono>) and the dashboard opens the browser when ready; it stops when you quit. The
         Report screen has no button for it: type <Mono>/web</Mono> there too. See <DocRef>The web dashboard</DocRef>.
