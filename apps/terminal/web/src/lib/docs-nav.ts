@@ -220,5 +220,19 @@ export const DOCS = {
   exporting: "/docs/reports#exporting",
   dashboard: "/docs/reports#dashboard",
   knowledge: "/docs/reports#dashboard", // the dashboard and its Security knowledge page
+  // One section per dashboard panel, so a card's help icon lands on the part that explains it.
+  panelActivity: "/docs/reports#panels-activity-timeline",
+  panelExecution: "/docs/reports#panels-execution-timeline",
+  panelFindingsBySeverity: "/docs/reports#panels-findings-by-severity",
+  panelAssessment: "/docs/reports#panels-assessment",
+  panelReportFindings: "/docs/reports#panels-findings",
+  panelPreview: "/docs/reports#panels-preview",
+  panelRuns: "/docs/reports#panels-runs",
+  panelCombine: "/docs/reports#panels-combine-runs",
+  panelTargets: "/docs/reports#panels-targets",
+  panelAssessments: "/docs/reports#panels-assessments",
+  panelFindingsList: "/docs/reports#panels-findings-list",
+  panelRunLog: "/docs/reports#panels-run-log",
+  panelAssistant: "/docs/reports#panels-ai-assistant",
 } as const;
 export type DocsLink = (typeof DOCS)[keyof typeof DOCS];
