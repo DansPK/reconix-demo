@@ -44,16 +44,20 @@ class ScopeEditForm(FormScreen):
             fields.append(FormField("ports", "Allowed ports", _csv(scope.allowed_ports)))
         fields += [
             FormField("tools", "Tools", _csv(scope.tools)),
-            FormField("time-limit", "Time limit (minutes)", str(scope.time_limit_minutes)),
+            FormField("time-limit", "Time limit (minutes, 0 = no limit)",
+                      str(scope.time_limit_minutes)),
         ]
         return fields
 
     def note(self) -> Optional[Text]:
-        return Text(f"Target {self._scope.target_url} is fixed for this assessment. Edit the "
-                    "limits below; commas separate list items.", style=theme.MUTED)
+        target = (f"Target {self._scope.target_url}: change the API base URL with the OpenAPI "
+                  "spec choice." if self._scope.kind == "api"
+                  else f"Target {self._scope.target_url} is fixed for this assessment.")
+        return Text(f"{target} Edit the limits below; commas separate list items.",
+                    style=theme.MUTED)
 
     def footer(self) -> str:
-        return "Saved changes go back to the manifest for approval · Esc to cancel"
+        return "Saved changes go back to the manifest for approval · Ctrl+U clears"
 
     def submit(self, values: Dict[str, str]) -> Optional[str]:
         changes = dict(
