@@ -1,5 +1,6 @@
 """Slash-command definitions and lookup. No UI imports, so any layer can use it."""
 
+import difflib
 from dataclasses import dataclass
 from typing import Any, Callable, List, Optional, Sequence, Tuple
 
@@ -63,3 +64,47 @@ def match(commands: Sequence[Command], query: str) -> List[Command]:
         elif any(query in name for name in (command.name,) + command.aliases):
             contains.append(command)
     return exact + by_name + by_alias + contains
+
+
+@dataclass(frozen=True)
+class CommandCheck:
+    """A typed command line: the command and its argument, or why it can't run."""
+
+    command: Optional[Command] = None
+    arg: Optional[str] = None
+    error: str = ""
+
+    @property
+    def ok(self) -> bool:
+        return not self.error
+
+
+ALL_COMMANDS_HINT = "Type / to see all commands."
+
+
+def suggest(commands: Sequence[Command], name: str) -> Optional[Command]:
+    """The command whose name or alias is closest to a mistyped `name`, if any is close."""
+    names = {alias: command for command in commands
+             for alias in (command.name,) + command.aliases}
+    close = difflib.get_close_matches(name.lower(), list(names), n=1, cutoff=0.6)
+    return names[close[0]] if close else None
+
+
+def check_command_line(commands: Sequence[Command], text: str) -> CommandCheck:
+    """Check `/name [arg]` against the registry. Never runs anything.
+
+    shortcut: checks the name only; argument checks (NONE/REQUIRED) come with T6's
+    `Command.arg` fields."""
+    from ..store.redact import redact  # (imported here: no store import at load)
+
+    name, arg = parse(text)
+    if not name:
+        return CommandCheck(error=f"Type a command after /, e.g. /help. {ALL_COMMANDS_HINT}")
+    command = find(commands, name)
+    if command is None:
+        shown = redact(name)
+        shown = shown if len(shown) <= 30 else shown[:29] + "…"
+        near = suggest(commands, name)
+        did_you_mean = f" Did you mean /{near.name}?" if near else ""
+        return CommandCheck(error=f'Unknown command "/{shown}".{did_you_mean} {ALL_COMMANDS_HINT}')
+    return CommandCheck(command, arg)

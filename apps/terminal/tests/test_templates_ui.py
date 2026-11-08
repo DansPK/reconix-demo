@@ -51,7 +51,7 @@ async def test_template_runs_through_the_ui_to_an_exported_report(
         assert isinstance(app.screen, FindingsListScreen)
         assert app.screen.query_one(DataTable).row_count == 3
 
-        await pilot.press("8")
+        await pilot.press("alt+8")
         await settle(pilot)
         assert isinstance(app.screen, ReportScreen)
         await pilot.press("j")
