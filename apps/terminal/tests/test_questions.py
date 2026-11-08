@@ -6,10 +6,11 @@ from textual.widgets import Static
 
 from reconix import store
 from reconix.app import ReconixApp
-from reconix.screens import ApprovalScreen, HelpScreen, StartScreen, TemplateScreen
-from reconix.widgets import ChoiceMenu, PromptBox
+from reconix.screens import ApprovalScreen, HelpScreen, TemplateScreen
+from reconix.widgets import ChoiceMenu
+from reconix.widgets.step_chat import StepChat
 
-from .support import SIZE, event_kinds, run_ui_to, settle, start_demo
+from .support import SIZE, event_kinds, run_ui_to, screen_text, settle, start_demo
 
 
 def prompt_text(menu: ChoiceMenu, index: int) -> str:
@@ -50,15 +51,15 @@ async def test_typing_never_triggers_screen_shortcuts(app):
         assert "dy1" in prompt_text(app.focused, 4)
 
 
-async def test_chat_about_this_opens_the_prompt_with_context(app):
+async def test_chat_about_this_opens_the_chat_in_the_step(app):
     async with app.run_test(size=SIZE) as pilot:
         await run_ui_to(app, pilot, "approval:approval-001")
         await pilot.press("6")                                   # Chat about this
         await settle(pilot)
-        assert isinstance(app.screen, StartScreen)
-        box = app.screen.query_one(PromptBox)
-        assert box.input.value == ("About Baseline request (read-only) on "
-                                   "www.lumina.com: ")
+        assert isinstance(app.screen, ApprovalScreen)            # stays on the step
+        chat = app.screen.query_one(StepChat)
+        assert chat.input.has_focus
+        assert "Baseline request (read-only)" in screen_text(chat)   # approval_text()
         assert "approval.chat" in event_kinds()
 
 

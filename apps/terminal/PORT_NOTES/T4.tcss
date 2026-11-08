@@ -1,0 +1,2 @@
+/* T4: approval screen (merge into reconix/reconix.tcss) */
+ApprovalScreen .menu-hint { margin-bottom: 0; }
