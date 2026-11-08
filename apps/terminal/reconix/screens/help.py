@@ -16,7 +16,7 @@ Row = Tuple[str, str]
 
 GLOBAL_ROWS: List[Row] = [
     ("←  /  →", "previous / next screen in the flow"),
-    ("1 … 8", "jump to a screen (when no menu has focus)"),
+    ("Alt+1 … 8", "jump to a screen"),
     ("/", "command suggestions (any screen)"),
     ("?", "toggle this help"),
     ("^O", "expand / collapse the steps Reconix finished"),

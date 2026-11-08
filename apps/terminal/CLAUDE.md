@@ -162,7 +162,7 @@ Key invariants:
   lives only in `FLOW` (`shell/navigation.py`). Execution opens only after the plan has run
   (`can_enter_execution`); ←/→ step over it until then. `_show` closes dialogs before it
   switches, so never call `goto()` from inside a modal anyway — dismiss and act in the callback.
-  A new flow screen goes in `FLOW`, `screens/__init__.py`, the `1…8` bindings, `help.py`
+  A new flow screen goes in `FLOW`, `screens/__init__.py`, the `alt+1…8` bindings, `help.py`
   and the README.
 - **Every flow screen subclasses `ReconixScreen`** and sets `flow_name`, `mode_name`,
   optionally `scroll = False`, and implements `compose_body()`.

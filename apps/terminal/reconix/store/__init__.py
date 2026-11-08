@@ -13,8 +13,8 @@ from .approvals import (
     request_confirmation,
 )
 from .assessment import (
-    AssessmentCard, add_request, assessment_label, assessment_status, get_assessment,
-    list_assessments, list_requests, switch_assessment,
+    MAX_REQUEST_LENGTH, AssessmentCard, add_request, assessment_label, assessment_status,
+    get_assessment, list_assessments, list_requests, recorded_line, switch_assessment,
 )
 from .errors import StoreValidationError
 from .findings import (
@@ -39,6 +39,8 @@ from .persist import (
     autosave, autosave_async, close_session, flush_saves, save_failed, web_dashboard_url,
 )
 from .plan import gated_count, plan_overview
+from .plan_order import answer_plan_reorder, reorder_gated, wants_plan_reorder
+from .plan_order import movable as movable_checks
 from .progress import step_states
 from .providers import (
     activate, active_model, get_provider, list_providers, set_provider, test_provider,
@@ -47,6 +49,10 @@ from .providers import (
 from .report import (
     assessment_summary, generate_report, list_report_formats, list_report_sections,
     report_data,
+)
+from .replies import (
+    ScopeChoices, answer_scope_change, asks_about_decision, decision_reply, step_reply,
+    view_reply, wants_decision, wants_scope_change, wants_view,
 )
 from .retest import compare_findings, previous_assessment, retest, severity_trend
 from .run import (
@@ -64,6 +70,7 @@ from .seed import DEMO_REQUEST, load_demo_data
 from .targets import check_target
 from .templates import get_template, list_templates, select_template, selected_template
 from .transcript import last_exchange, list_activity, list_chat
+from .thinking import block_seconds, group_stream, stream
 from .tools import tool_login, tools_login
 from .vault import (
     code_needed, current_auth_challenge, has_test_account, is_authenticated, is_code_verified,
@@ -75,9 +82,9 @@ load_demo_data()
 reset = load_demo_data   # tests: restore the demo rows between runs
 
 __all__ = [
-    "StoreValidationError", "reset", "DEMO_REQUEST",
+    "StoreValidationError", "reset", "DEMO_REQUEST", "MAX_REQUEST_LENGTH",
     # assessment and requests
-    "get_assessment", "assessment_label", "list_requests", "add_request",
+    "get_assessment", "assessment_label", "list_requests", "add_request", "recorded_line",
     "list_assessments", "switch_assessment", "assessment_status", "AssessmentCard",
     # the run
     "submit_prompt", "start_run", "check_target", "say_to_assistant", "say_operator_line",
@@ -91,6 +98,10 @@ __all__ = [
     "get_scope", "approve_scope", "edit_scope", "is_scope_approved", "reject_scope",
     "describe_scope", "check_request", "run_plan", "is_plan_started",
     "list_verdicts", "blocked_count",
+    # the chat inside a step: built-in answers (store/replies.py), the plan's order
+    "wants_decision", "asks_about_decision", "wants_view", "view_reply", "decision_reply",
+    "step_reply", "wants_scope_change", "answer_scope_change", "ScopeChoices",
+    "wants_plan_reorder", "answer_plan_reorder", "reorder_gated", "movable_checks",
     "provide_auth", "current_auth_challenge", "has_test_account",
     "is_authenticated", "is_code_verified", "vault_scope",
     "login_kind", "login_tools", "login_done", "code_needed", "tool_login", "tools_login",
@@ -108,6 +119,7 @@ __all__ = [
     "retest", "severity_trend", "compare_findings", "previous_assessment",
     # transcript, audit, history
     "list_chat", "last_exchange", "list_activity",
+    "stream", "group_stream", "block_seconds",
     "current_operator", "log_event", "list_events", "add_feedback", "list_feedback",
     "add_history", "list_history",
     # the saved copy the web dashboard reads
