@@ -1,8 +1,8 @@
-/* Export one assessment, generated from the saved, already-redacted data, masked once more at
-   this boundary (lib/report/mask.ts) before any format is built. `?format=` is one of
-   lib/report/formats.ts (pdf, json, docx); every format is served as a download. The PDF needs a
-   headless Chrome on this machine: 501 with the Word document's link otherwise. A Word document
-   past DOCX_MAX_MIB of text is a 413 (DOCX_TOO_LARGE). Every answer is no-store. */
+/* Export one assessment , generated from the saved, already-redacted data, masked
+   once more at this boundary (lib/report/mask.ts) before any format is built. `?format=` is
+   one of lib/report/formats.ts (pdf, json, docx); every format is served as a download. The PDF
+   needs a headless Chrome on this machine: 501 with the Word document's link otherwise. A Word
+   document past DOCX_MAX_MIB of text is a 413 (DOCX_TOO_LARGE). Every answer is no-store. */
 import { NextResponse } from "next/server";
 
 import { loadAssessment } from "@/lib/data/store";
@@ -34,7 +34,13 @@ export async function GET(request: Request, ctx: { params: Promise<{ uid: string
   if (format === "pdf") {
     const pdf = await renderPdf(renderReportHtml(assessment)).catch(() => null);
     if (!pdf) {
-      return NextResponse.json({ detail: NO_PRINTER, docx: downloadHref(assessment.uid, "docx") }, { status: 501, headers: NO_STORE });
+      return NextResponse.json(
+        {
+          detail: NO_PRINTER,
+          docx: downloadHref(assessment.uid, "docx"),
+        },
+        { status: 501, headers: NO_STORE },
+      );
     }
     return new NextResponse(pdf, { headers });
   }

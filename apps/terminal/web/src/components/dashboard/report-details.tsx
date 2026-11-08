@@ -9,7 +9,7 @@ import { DOCS } from "@/lib/docs-nav";
 
 export function ReportDetails({ details, plan }: { details: DetailRow[]; plan: PlanRow[] }) {
   return (
-    <DashCard id="report-details" title="Assessment" docsHref={DOCS.dashboard} className="dash-panel" bodyClassName="flex flex-col gap-4">
+    <DashCard id="report-details" title="Assessment" docsHref={DOCS.panelAssessment} className="dash-panel" bodyClassName="flex flex-col gap-4">
       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
         {details.map((d) => (
           <div key={d.label} className="flex min-w-0 flex-col gap-1">

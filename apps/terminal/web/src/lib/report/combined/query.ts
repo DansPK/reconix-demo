@@ -7,11 +7,13 @@ import { UID } from "@/lib/data/store";
 
 import { COMBINE_MAX, type CombinedFormat, type CombineOptions } from "./options";
 
-/** "1" or "true" turns an option on; absent, "", "0" and "false" leave it off. */
+/* The three options default to on, as the Report view always has them: a hand-built or bookmarked
+   link used to drop masked evidence and every LOW finding without saying so (QA-LOCAL-WEB-REPORT,
+   QAL-010). "0", "false" and "" turn one off; "1" and "true" turn it on, as before. */
 const flag = z
   .enum(["", "0", "1", "true", "false"])
   .optional()
-  .transform((v) => v === "1" || v === "true");
+  .transform((v) => v === undefined || v === "1" || v === "true");
 
 export const CombinedQuerySchema = z.object({
   uids: z
