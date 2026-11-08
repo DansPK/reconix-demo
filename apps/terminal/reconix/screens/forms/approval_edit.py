@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 from rich.text import Text
 
 from ... import store, theme
+from ...store.redact import redact
 from .base import FormField, FormScreen
 
 
@@ -25,6 +26,8 @@ class ApprovalEditForm(FormScreen):
         self._request = store.get_approval(request_id)
 
     def fields(self) -> List[FormField]:
+        # The input keeps the real current value so the operator edits what actually runs;
+        # only the note below is masked.
         req = self._request
         return [FormField("param", req.param_label, req.path, max_length=200)]
 
@@ -33,12 +36,16 @@ class ApprovalEditForm(FormScreen):
         risk = theme.RISK.get(req.risk, theme.MUTED)
         check = ("you still double-check it before it runs" if req.risk == "HIGH"
                  else "you still approve it before it runs")
-        return Text.assemble(
-            (req.action, f"bold {theme.TEXT}"), ("  ", ""), (f"{req.risk} RISK", f"bold {risk}"),
-            ("\n$ ", f"bold {theme.GREEN}"), (req.command, theme.TEXT),
+        action, command = redact(req.action), redact(req.command)   # display only
+        note = Text.assemble(
+            (action, f"bold {theme.TEXT}"), ("  ", ""), (f"{req.risk} RISK", f"bold {risk}"),
+            ("\n$ ", f"bold {theme.GREEN}"), (command, theme.TEXT),
             (f"\nChange the {req.param_label.lower()} only. The policy engine checks it; the "
              f"risk stays {req.risk} and {check}.", theme.MUTED),
         )
+        if action != req.action or command != req.command:
+            note.append("\nsecrets masked on screen", style=theme.DIM)
+        return note
 
     def footer(self) -> str:
         return "The exact request is rebuilt from it · Esc to cancel"
