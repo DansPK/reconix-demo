@@ -1,0 +1,5 @@
+/* T3 (Plan screen): no new rules needed.
+   PlanPanel (widgets/plan_rows.py) uses the existing `.panel.accent` / `.panel-body` rules;
+   the screen's #plan-list, #plan-results and #plan-edit-note use `.panel-note` and the
+   existing OptionList styling. The real reconix.tcss has no plan-specific rules beyond the
+   demo's current ones (diffed). */
