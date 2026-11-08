@@ -45,12 +45,21 @@ export default async function Home({ searchParams }: Props) {
     retentionDays: retentionDays(),
     model,
   };
+  // An address naming a run this folder doesn't hold falls back to the all-runs view, with a note.
+  const missing = wanted && !chosen && views.length > 0;
   const empty = <EmptyView dir={dir} problems={library.problems} compact />;
   const runs = views.map(runRow); // once: the Assessments view and the all-runs Report share it
   const report = chosen && dash ? reportCards(chosen, dash.findings, dash.cards.findings) : overall ? overallReportCards(views, overall.cards.findings, runs) : null;
 
   return (
     <Viewer
+      notice={
+        missing ? (
+          <p role="status" className="dash-missing-run">
+            That assessment isn&apos;t in this folder — showing all runs.
+          </p>
+        ) : null
+      }
       topBar={
         <TopBar
           dash={dash}

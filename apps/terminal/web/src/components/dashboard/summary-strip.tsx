@@ -27,7 +27,9 @@ export function SummaryStrip({ data }: { data: Summary }) {
             </Hint>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        {/* justify-between, like the row above: the badge keeps to the card's edge, so the
+            middle of the card stays the drill-down link's (a toggletip sits above it, z-index). */}
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
           <p className="dash-stat-note">
             {findings.worst
               ? `${findings.worst.count} ${SEVERITY_META[findings.worst.level].label.toLowerCase()} · worst severity`
