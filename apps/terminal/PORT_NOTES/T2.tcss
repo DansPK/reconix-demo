@@ -1,0 +1,6 @@
+/* T2 (Template / scope screen): no new rules.
+   ScopePanel (widgets/manifest.py) reuses the existing `.panel`, `.panel.accent`,
+   `.panel.success`, `.panel-body` and `.panel-note` rules already in reconix/reconix.tcss,
+   as the real repo does; the step chat's card gets the same box. The real repo's
+   `#scope-suggest-ticks` list is not ported (its suggestions are LLM-backed), so it needs
+   no rule either; it reuses T1's `.tick-list` if it is ever added. */
