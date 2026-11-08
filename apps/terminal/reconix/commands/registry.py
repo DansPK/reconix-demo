@@ -22,10 +22,34 @@ class Command:
     empty: str = ""                            # said when there are no choices yet
     ask: bool = True                           # no argument typed: ask with a menu (False:
                                                #   run without one; choices only suggest)
+    arg: str = "NONE"                          # the argument: NONE | OPTIONAL | REQUIRED
+    arg_name: str = ""                         # how usage names it, e.g. "target"
 
     @property
     def takes_argument(self) -> bool:
         return self.choices is not None
+
+    @property
+    def usage(self) -> str:
+        """'/plan', '/new [target]' or '/assess <target>'."""
+        if self.arg == "OPTIONAL":
+            return f"/{self.name} [{self.arg_name}]"
+        if self.arg == "REQUIRED":
+            return f"/{self.name} <{self.arg_name}>"
+        return f"/{self.name}"
+
+
+@dataclass(frozen=True)
+class CommandCheck:
+    """A typed command line: the command and its argument, or why it can't run."""
+
+    command: Optional[Command] = None
+    arg: Optional[str] = None
+    error: str = ""
+
+    @property
+    def ok(self) -> bool:
+        return not self.error
 
 
 def parse(text: str) -> Tuple[str, Optional[str]]:
@@ -66,19 +90,6 @@ def match(commands: Sequence[Command], query: str) -> List[Command]:
     return exact + by_name + by_alias + contains
 
 
-@dataclass(frozen=True)
-class CommandCheck:
-    """A typed command line: the command and its argument, or why it can't run."""
-
-    command: Optional[Command] = None
-    arg: Optional[str] = None
-    error: str = ""
-
-    @property
-    def ok(self) -> bool:
-        return not self.error
-
-
 ALL_COMMANDS_HINT = "Type / to see all commands."
 
 
@@ -90,21 +101,47 @@ def suggest(commands: Sequence[Command], name: str) -> Optional[Command]:
     return names[close[0]] if close else None
 
 
-def check_command_line(commands: Sequence[Command], text: str) -> CommandCheck:
-    """Check `/name [arg]` against the registry. Never runs anything.
-
-    shortcut: checks the name only; argument checks (NONE/REQUIRED) come with T6's
-    `Command.arg` fields."""
+def _masked(text: str) -> str:
+    """Typed text repeated in an error, masked: it may be a pasted password or token."""
     from ..store.redact import redact  # (imported here: no store import at load)
 
+    return redact(text)
+
+
+def unknown_message(commands: Sequence[Command], name: str) -> str:
+    name = _masked(name)
+    shown = name if len(name) <= 30 else name[:29] + "…"
+    near = suggest(commands, name)
+    did_you_mean = f" Did you mean /{near.name}?" if near else ""
+    return f'Unknown command "/{shown}".{did_you_mean} {ALL_COMMANDS_HINT}'
+
+
+def check_command_line(commands: Sequence[Command], text: str,
+                       app: Any = None) -> CommandCheck:
+    """Check `/name [arg]` against the registry. With `app`, a choice argument is checked
+    against the command's current choices too. Never runs anything.
+    """
     name, arg = parse(text)
     if not name:
         return CommandCheck(error=f"Type a command after /, e.g. /help. {ALL_COMMANDS_HINT}")
     command = find(commands, name)
     if command is None:
-        shown = redact(name)
-        shown = shown if len(shown) <= 30 else shown[:29] + "…"
-        near = suggest(commands, name)
-        did_you_mean = f" Did you mean /{near.name}?" if near else ""
-        return CommandCheck(error=f'Unknown command "/{shown}".{did_you_mean} {ALL_COMMANDS_HINT}')
-    return CommandCheck(command, arg)
+        return CommandCheck(error=unknown_message(commands, name))
+    return CommandCheck(command, arg, _arg_error(command, arg, app))
+
+
+def _arg_error(command: Command, arg: Optional[str], app: Any) -> str:
+    """Why `arg` doesn't fit `command` ("" when it does), ending with the usage line."""
+    if arg is None and command.arg == "REQUIRED":
+        return f"/{command.name} needs a {command.arg_name}. Usage: {command.usage}"
+    if arg is not None and command.arg == "NONE":
+        return f"/{command.name} takes no argument. Usage: {command.usage}"
+    if arg is not None and command.choices is not None and app is not None:
+        ids = [choice.id for choice in command.choices(app)]
+        if ids and arg.lower() not in ids:
+            masked = _masked(arg)
+            shown = masked if len(masked) <= 30 else masked[:29] + "…"
+            more = ", …" if len(ids) > 8 else ""
+            return (f"\"{shown}\" isn't a {command.arg_name} here. Usage: {command.usage} "
+                    f"— one of: {', '.join(ids[:8])}{more}")
+    return ""

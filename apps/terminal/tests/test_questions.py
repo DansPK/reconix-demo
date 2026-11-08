@@ -77,7 +77,7 @@ async def test_help_lists_the_keys_of_this_screen(app):
         await pilot.press("question_mark")
         await settle(pilot)
         assert isinstance(app.screen, HelpScreen)
-        assert "APPROVAL" in app.screen.query_one("#help-box").border_title
+        assert "Approval" in app.screen.query_one("#help-box").border_title
         text = " ".join(str(w.render()) for w in app.screen.query(Static))
         for phrase in ("pick a numbered choice", "details", "decide later",
                        "jump to a screen"):

@@ -8,7 +8,7 @@ from textual.containers import Vertical
 from textual.screen import ModalScreen
 
 from .. import store
-from ..commands import COMMANDS, find, parse
+from ..commands import COMMANDS
 from ..widgets import PromptBox
 
 
@@ -33,10 +33,14 @@ class CommandBarScreen(ModalScreen[Optional[str]]):
 
     def on_prompt_box_command_submitted(self, event: PromptBox.CommandSubmitted) -> None:
         event.stop()
-        name, _ = parse(event.text)
-        if find(COMMANDS, name) is None:
-            self.notify(f"Unknown command /{name} — pick one from the list.",
-                        severity="warning", markup=False)
+        if self is not self.app.screen:
+            return                   # a second Enter queued before the bar closed
+        if self.app.is_path_line(event.text):
+            self.dismiss(event.text)    # a local path is a target; the app takes it
+            return
+        check = self.app.check_command(event.text)
+        if not check.ok:
+            self.notify(check.error, severity="warning", markup=False)
             return
         self.dismiss(event.text)
 
