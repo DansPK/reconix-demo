@@ -1,5 +1,6 @@
 """A Claude-style "working" line: a spinning glyph and what Reconix is doing."""
 
+from datetime import timedelta
 from typing import Optional
 
 from rich.text import Text
@@ -8,6 +9,15 @@ from textual.widgets import Static
 from .. import theme
 
 FRAMES = ("✻", "✶", "✽", "✢", "·", "✢", "✽", "✶")
+
+
+def duration_text(delta: Optional[timedelta]) -> str:
+    """'45s', '3m 07s', '1h 02m'."""
+    minutes, seconds = divmod(int(delta.total_seconds()) if delta else 0, 60)
+    hours, minutes = divmod(minutes, 60)
+    if hours:
+        return f"{hours}h {minutes:02d}m"
+    return f"{minutes}m {seconds:02d}s" if minutes else f"{seconds}s"
 
 
 def spinner_line(frame: int, message: str, hint: str = "") -> Text:

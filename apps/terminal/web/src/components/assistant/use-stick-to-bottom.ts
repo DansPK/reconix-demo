@@ -2,7 +2,8 @@
 
 /* Keeps a scrolling box (the conversation) on its newest content while the reader is at the
    bottom, and leaves them alone once they scroll up: then `atBottom` is false and the page offers
-   "↓ New messages" (scroll-to-bottom.tsx), whose click calls `scrollToBottom()`.
+   a ↓ button (scroll-to-bottom.tsx; "New messages" once something arrived), whose click calls
+   `scrollToBottom()`.
 
      const { ref, atBottom, scrollToBottom } = useStickToBottom<HTMLDivElement>();
      <div ref={ref} role="log" className="min-h-0 flex-1 overflow-y-auto">…</div>

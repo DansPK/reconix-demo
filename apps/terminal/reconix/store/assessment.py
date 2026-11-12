@@ -7,6 +7,7 @@ from ..models import Assessment, UserRequest
 from . import lists
 from .activity import log_event
 from .errors import StoreValidationError
+from .redact import redact
 
 MAX_REQUEST_LENGTH = 500
 
@@ -89,9 +90,15 @@ def clean_request(text: str) -> str:
     return text
 
 
+def recorded_line(text: str) -> str:
+    """A typed line as Reconix records it: cleaned (`clean_request`) and with credentials,
+    tokens and keys masked. Chat, the audit trail and the history only ever get this form."""
+    return redact(clean_request(text))
+
+
 def add_request(text: str) -> UserRequest:
-    """Store a plain-language request typed at the prompt."""
-    request = UserRequest(clean_request(text))
+    """Store a plain-language request typed at the prompt (masked, see `recorded_line`)."""
+    request = UserRequest(recorded_line(text))
     lists.current().requests.append(request)
     log_event("request.submitted", request.text)
     return request

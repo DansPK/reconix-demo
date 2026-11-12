@@ -43,7 +43,8 @@
       {
         "command": "reconix.scanWorkspace",
         "title": "Scan Workspace",
-        "category": "Reconix"
+        "category": "Reconix",
+        "icon": "$(play)"
       },
       {
         "command": "reconix.rescan",
@@ -54,7 +55,8 @@
       {
         "command": "reconix.cancelScan",
         "title": "Cancel Scan",
-        "category": "Reconix"
+        "category": "Reconix",
+        "icon": "$(debug-stop)"
       },
       {
         "command": "reconix.selectModel",
@@ -247,6 +249,10 @@
         {
           "command": "reconix.explainSelection",
           "when": "editorHasSelection"
+        },
+        {
+          "command": "reconix.cancelScan",
+          "when": "reconix.scanRunning"
         }
       ],
       "explorer/context": [
@@ -281,6 +287,21 @@
         }
       ],
       "view/title": [
+        {
+          "command": "reconix.scanWorkspace",
+          "when": "view == reconix.chat && !reconix.scanRunning",
+          "group": "navigation"
+        },
+        {
+          "command": "reconix.rescan",
+          "when": "view == reconix.chat && !reconix.scanRunning",
+          "group": "navigation@1"
+        },
+        {
+          "command": "reconix.cancelScan",
+          "when": "view == reconix.chat && reconix.scanRunning",
+          "group": "navigation"
+        },
         {
           "command": "reconix.rescan",
           "when": "view == reconix.findings",
@@ -413,5 +434,6 @@
     "@vscode/test-electron": "^3.1.0",
     "esbuild": "^0.28.2",
     "typescript": "^5.9.3"
-  }
+  },
+  "icon": "media/logo.png"
 }

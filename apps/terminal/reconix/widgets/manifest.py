@@ -1,6 +1,8 @@
 """The scope manifest in plain words (Template screen): what Reconix may and won't do."""
 
 from rich.text import Text
+from textual.app import ComposeResult
+from textual.containers import Vertical
 from textual.widgets import Static
 
 from .. import store, theme
@@ -46,3 +48,21 @@ class ScopeManifestView(Static):
 
     def show(self, scope: ScopeManifest) -> None:
         self.update(manifest_text(scope))
+
+
+class ScopePanel(Vertical):
+    """The ⛉ SCOPE card: the manifest in a bordered panel, marked draft or approved.
+
+    The Template screen shows it, and so does the step chat whenever the scope is new or
+    changed, so both always draw the same card."""
+
+    def __init__(self, scope: ScopeManifest, *, body_id: str = "", **kwargs) -> None:
+        approved = scope.status == "APPROVED"
+        super().__init__(classes="panel success" if approved else "panel accent", **kwargs)
+        self.border_title = "⛉ SCOPE"
+        self.border_subtitle = "approved · locked" if approved else "draft · needs your approval"
+        self._scope = scope
+        self._body_id = body_id or None
+
+    def compose(self) -> ComposeResult:
+        yield ScopeManifestView(self._scope, classes="panel-body", id=self._body_id)

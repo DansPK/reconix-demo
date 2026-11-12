@@ -1,6 +1,7 @@
+import { Callout } from "@/components/docs-primitives";
 import { DocsSidebar } from "@/components/docs-sidebar";
 import { DocsToc } from "@/components/docs-toc";
-import type { DocGroup } from "@/lib/docs-nav";
+import { DOCS_HOME_GROUP, type DocGroup } from "@/lib/docs-nav";
 import { groupSearchIndex } from "@/lib/docs-search-index";
 
 /**
@@ -8,6 +9,9 @@ import { groupSearchIndex } from "@/lib/docs-search-index";
  * every one of its pages (centre), "On this page" (right, xl). Nothing here leads to another
  * page except the docs sidebar's groups: the docs read in place (docs/WEB_DOCS_INLINE_PLAN.md).
  * The search index is built once on the server, for this group only.
+ *
+ * The first group carries the review notice for the whole documentation, so it shows at both
+ * addresses that render it: `/docs` and `/docs/getting-started`.
  */
 export function DocsLayout({ group, children }: { group: DocGroup; children: React.ReactNode }) {
   return (
@@ -21,6 +25,16 @@ export function DocsLayout({ group, children }: { group: DocGroup; children: Rea
         </p>
         <h1 className="break-words text-3xl font-semibold tracking-tight sm:text-[2rem]">{group.title}</h1>
         <p className="mt-3 text-base leading-relaxed text-muted-foreground sm:text-lg">{group.description}</p>
+
+        {group.id === DOCS_HOME_GROUP && (
+          <div className="mt-8">
+            <Callout variant="warning" title="Documentation under review">
+              Some documentation is still being reviewed and updated as Reconix development progresses. Certain
+              instructions, configurations and technical details may change. Treat the current content as a
+              preliminary reference.
+            </Callout>
+          </div>
+        )}
 
         <div data-docs-content className="mt-10 space-y-14">
           {children}

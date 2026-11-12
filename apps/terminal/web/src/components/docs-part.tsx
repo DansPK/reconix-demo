@@ -1,11 +1,12 @@
-import { withPage } from "@/components/docs-primitives";
+import { Callout, withPage } from "@/components/docs-primitives";
 import type { DocContent } from "@/content/docs/types";
 import type { DocPage } from "@/lib/docs-nav";
 
 /**
  * One page of a group, shown in place on the group's page: an h2 with the page's title (the
- * anchor `#<slug>`, which its old address redirects to), its lede, then its body, whose sections
- * are h3s anchored `#<slug>-<section>`. Server component.
+ * anchor `#<slug>`, which its old address redirects to), its lede, its `notice` when the page's
+ * content is not final yet, then its body, whose sections are h3s anchored `#<slug>-<section>`.
+ * Server component.
  */
 export function DocPart({ page, content }: { page: DocPage; content: DocContent }) {
   return (
@@ -16,6 +17,11 @@ export function DocPart({ page, content }: { page: DocPage; content: DocContent 
         </h2>
         <p className="text-base leading-relaxed text-muted-foreground">{content.lede}</p>
       </header>
+      {content.notice && (
+        <Callout variant="warning" title="Under review">
+          {content.notice}
+        </Callout>
+      )}
       <div className="space-y-8">{withPage(content.body, page.slug)}</div>
     </section>
   );

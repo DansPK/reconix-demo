@@ -1,9 +1,10 @@
 "use client";
 
 /* The Findings view's list pane: one page of rows (ten at most) and the pager under them
-   (shown only with more than one page). On the fixed desktop frame the rows scroll on their own
-   under the filters, with the pager kept in reach (styles/findings.css); elsewhere they grow with
-   the window. The view owns the page and the selection (both in the address) and hands them
+   (shown only with more than one page). With two panes (≥1024) the rows scroll on their own,
+   with the pager kept in reach: under the filters on the fixed desktop frame, in a sticky pane
+   one screen tall elsewhere (styles/findings.css); on a phone or tablet they grow with the
+   window. The view owns the page and the selection (both in the address) and hands them
    down; the view turns the chosen page into an address change (filters.ts pagePatch keeps the
    selection when its row is on that page). */
 import { useEffect, useRef } from "react";

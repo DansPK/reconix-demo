@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createStickToBottom } from "@/lib/scroll/stick-controller";
-import { distanceToBottom, NEAR_PX, nextStick, type StickState } from "@/lib/scroll/stick-rules";
+import { contentMark, distanceToBottom, NEAR_PX, nextStick, type StickState } from "@/lib/scroll/stick-rules";
 
 const held: StickState = { pinned: true, seeking: false, lastTop: 700 };
 const at = (scrollTop: number, scrollHeight = 1000, clientHeight = 300) => ({ scrollTop, scrollHeight, clientHeight });
@@ -223,5 +223,22 @@ describe("createStickToBottom", () => {
     release();
     expect(next.listening).toBe(false);
     expect(stick.ref.current).toBeNull();
+  });
+});
+
+describe("contentMark", () => {
+  const msg = (content: string, state?: string, cards: unknown[] = []) => ({ content, state, cards });
+  it("stays the same while nothing arrives, so a scroll up alone offers no New messages", () => {
+    const now = [msg("hi"), msg("Answer", "done")];
+    expect(contentMark(now)).toBe(contentMark([msg("hi"), msg("Answer", "done")]));
+    expect(contentMark([])).toBe("0");
+  });
+
+  it("changes when a message arrives, a reply grows, gets a card or finishes", () => {
+    const base = contentMark([msg("hi"), msg("Ans", "streaming")]);
+    expect(contentMark([msg("hi"), msg("Ans", "streaming"), msg("more")])).not.toBe(base);
+    expect(contentMark([msg("hi"), msg("Answer", "streaming")])).not.toBe(base);
+    expect(contentMark([msg("hi"), msg("Ans", "streaming", [{}])])).not.toBe(base);
+    expect(contentMark([msg("hi"), msg("Ans", "done")])).not.toBe(base);
   });
 });

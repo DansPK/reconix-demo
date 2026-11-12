@@ -126,6 +126,7 @@ const GROUPS: GroupSpec[] = [
       { title: "Understanding findings", slug: "understanding-findings", description: "Severity, validation, CVSS, triage, filters and imports." },
       { title: "Exporting", slug: "exporting", description: "PDF, JSON and DOCX from the terminal, saved under ./reports/." },
       { title: "The web dashboard", slug: "dashboard", description: "Single downloads, the preview, and the combined report of up to five runs." },
+      { title: "Dashboard panels", slug: "panels", description: "What each panel on the dashboard shows, how its numbers are counted and what you can click." },
     ],
   },
   {
@@ -191,11 +192,17 @@ export const DOCS_ROUTES: string[] = ["/docs", ...DOCS_NAV.map((g) => g.href)];
  * pages that route shows. (Section anchors, `#<page>-<section>`, are checked by the tests
  * against the content: lib/docs-search-index.ts.)
  */
+/** The section part of a `<page>-<section>` anchor. */
+const SECTION_PART = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 export function isDocsAddress(href: string): boolean {
   const [path, anchor] = href.split("#", 2);
   if (!DOCS_ROUTES.includes(path)) return false;
   if (anchor === undefined) return true;
-  return docsGroupOf(path)?.pages.some((p) => p.slug === anchor) ?? false;
+  const pages = docsGroupOf(path)?.pages ?? [];
+  if (pages.some((p) => p.slug === anchor)) return true;
+  // a section of one of those pages: `<page>-<section>`; that it exists is checked in the tests
+  return pages.some((p) => anchor.startsWith(`${p.slug}-`) && SECTION_PART.test(anchor.slice(p.slug.length + 1)));
 }
 
 /**
@@ -220,5 +227,19 @@ export const DOCS = {
   exporting: "/docs/reports#exporting",
   dashboard: "/docs/reports#dashboard",
   knowledge: "/docs/reports#dashboard", // the dashboard and its Security knowledge page
+  // One section per dashboard panel, so a card's help icon lands on the part that explains it.
+  panelActivity: "/docs/reports#panels-activity-timeline",
+  panelExecution: "/docs/reports#panels-execution-timeline",
+  panelFindingsBySeverity: "/docs/reports#panels-findings-by-severity",
+  panelAssessment: "/docs/reports#panels-assessment",
+  panelReportFindings: "/docs/reports#panels-findings",
+  panelPreview: "/docs/reports#panels-preview",
+  panelRuns: "/docs/reports#panels-runs",
+  panelCombine: "/docs/reports#panels-combine-runs",
+  panelTargets: "/docs/reports#panels-targets",
+  panelAssessments: "/docs/reports#panels-assessments",
+  panelFindingsList: "/docs/reports#panels-findings-list",
+  panelRunLog: "/docs/reports#panels-run-log",
+  panelAssistant: "/docs/reports#panels-ai-assistant",
 } as const;
 export type DocsLink = (typeof DOCS)[keyof typeof DOCS];

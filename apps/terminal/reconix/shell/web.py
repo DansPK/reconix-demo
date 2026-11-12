@@ -36,10 +36,12 @@ class WebDashboardMixin:
             return
         why = web_server.problem()
         if why:
-            self._web_note(f"{why} Or start it yourself:  cd web && npm run dev",
-                           severity="warning")
+            # Without Node.js "start it yourself with npm" can't work either: say what to install.
+            has_folder = (web_server.WEB_DIR / "package.json").is_file()
+            how = " Install Node.js (nodejs.org), then type /web again." if has_folder else ""
+            self._web_note(f"{why}{how}", severity="warning")
             return
-        first = " First time: installing its packages takes a few minutes." \
+        first = " Its packages are installed (or updated) first: that takes a few minutes." \
             if web_server.needs_install() else ""
         self._web_note(f"Starting the web dashboard… it opens in your browser when it's "
                        f"ready.{first}")
@@ -68,12 +70,14 @@ class WebDashboardMixin:
         if self._web_quit.is_set():
             return None
         self._web_process = process = web_server.start(persist.DATA_DIR, persist.WEB_URL_FILE)
+        log_from = web_server.log_size()      # read this start's lines, not an older one's
         waited = 0.0
         while waited < READY_TIMEOUT and not self._web_quit.is_set():
             code = process.poll()
             if code is not None:
                 self._web_process = None
-                if code == web_server.PORTS_BUSY:
+                # another dashboard, or another `next dev` holding web/.next/dev/lock
+                if code == web_server.PORTS_BUSY or web_server.busy_in_log(log_from):
                     return ("Another web dashboard already uses its port on 127.0.0.1 (an older "
                             "one left running?). Stop it, then run /web again. Details: "
                             f"{log}", "error")

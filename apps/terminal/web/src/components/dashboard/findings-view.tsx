@@ -141,7 +141,7 @@ export function FindingsView({ findings, across = null }: { findings: FindingRow
   return (
     <div ref={root} className="dash-view dash-findings" data-pane={pane} data-ready={ready ? "" : undefined}>
       <div className="mb-3">
-        <ViewHeader title="Findings" about={findingsHeadline(counted.length, across, falsePositives)} />
+        <ViewHeader title="Findings" about={findingsHeadline(counted.length, across, falsePositives)} docsHref={DOCS.panelFindingsList} />
       </div>
 
       {findings.length > 0 && (

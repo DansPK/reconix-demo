@@ -8,7 +8,7 @@ import { useCallback } from "react";
 // (no "audit", "scope" or "terminal": the Audit log, Scope and Terminal views were removed; old
 // ?view=audit, ?view=scope and ?view=terminal links open the Overview). "knowledge" is the Security knowledge page, opened from
 // the AI Assistant's header (no sidebar item).
-export const VIEWS = ["overview", "assessments", "findings", "reports", "assistant", "knowledge"] as const;
+export const VIEWS = ["overview", "assessments", "findings", "log", "reports", "assistant", "knowledge"] as const;
 export type View = (typeof VIEWS)[number];
 
 /** The Assessments view's own address parameters (its filters, its page). */
@@ -29,8 +29,22 @@ export const VIEW_FILTERS: Partial<Record<View, readonly string[]>> = {
 
 export type ViewParams = Record<string, string | undefined>;
 
-export const parseView = (value: string | null | undefined): View =>
-  (VIEWS as readonly string[]).includes(value ?? "") ? (value as View) : "overview";
+/** Spellings a person may type for a view ("Run log" is `log`): they open that view, not the
+    Overview. */
+const VIEW_ALIASES: Record<string, View> = {
+  runlog: "log",
+  "run-log": "log",
+  logs: "log",
+  report: "reports",
+  finding: "findings",
+  assessment: "assessments",
+};
+
+export const parseView = (value: string | null | undefined): View => {
+  const name = (value ?? "").trim().toLowerCase();
+  if ((VIEWS as readonly string[]).includes(name)) return name as View;
+  return VIEW_ALIASES[name] ?? "overview";
+};
 
 /** Whether the page is interactive: viewer.tsx marks `html[data-hydrated]` once React has taken
     over. A click React replays from before that would change the address before the router

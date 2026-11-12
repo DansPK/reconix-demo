@@ -13,8 +13,10 @@ import { assessmentsCards, overallReportCards, reportCards, runRow } from "@/com
 import { AssessmentsView } from "@/components/dashboard/assessments-view";
 import { EmptyView } from "@/components/dashboard/empty-view";
 import { FindingsView } from "@/components/dashboard/findings-view";
+import { runLogData } from "@/components/dashboard/derive-run-log";
 import { OverviewView } from "@/components/dashboard/overview-view";
 import { ReportsView } from "@/components/dashboard/reports-view";
+import { RunLogView } from "@/components/dashboard/run-log-view";
 import { TopBar } from "@/components/dashboard/top-bar";
 import { Viewer } from "@/components/dashboard/viewer";
 import { KnowledgeView } from "@/components/knowledge/knowledge-view";
@@ -45,12 +47,21 @@ export default async function Home({ searchParams }: Props) {
     retentionDays: retentionDays(),
     model,
   };
+  // An address naming a run this folder doesn't hold falls back to the all-runs view, with a note.
+  const missing = wanted && !chosen && views.length > 0;
   const empty = <EmptyView dir={dir} problems={library.problems} compact />;
   const runs = views.map(runRow); // once: the Assessments view and the all-runs Report share it
   const report = chosen && dash ? reportCards(chosen, dash.findings, dash.cards.findings) : overall ? overallReportCards(views, overall.cards.findings, runs) : null;
 
   return (
     <Viewer
+      notice={
+        missing ? (
+          <p role="status" className="dash-missing-run">
+            That assessment isn&apos;t in this folder — showing all runs.
+          </p>
+        ) : null
+      }
       topBar={
         <TopBar
           dash={dash}
@@ -80,6 +91,7 @@ export default async function Home({ searchParams }: Props) {
           empty
         )
       }
+      log={<RunLogView data={chosen ? runLogData(chosen) : null} />}
       reports={report ? <ReportsView key={chosen?.uid ?? "all"} data={report} /> : empty}
       knowledge={<KnowledgeView />}
       assistant={assistant}

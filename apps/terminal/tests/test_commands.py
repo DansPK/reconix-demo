@@ -26,7 +26,7 @@ def test_prefix_matches_come_before_substring_matches():
 def test_name_matches_rank_above_alias_matches():
     # names starting with "s" first, then "new" (alias "start"), then names containing "s"
     ranked = names(match(COMMANDS, "s"))
-    assert ranked[:3] == ["status", "summary", "new"]
+    assert ranked[:4] == ["status", "stop", "summary", "new"]
     assert "findings" in ranked
 
 

@@ -15,11 +15,13 @@ from textual.binding import Binding
 from textual.containers import Vertical
 from textual.widgets import Static
 
-from .base import ReconixScreen
+from .base import Decision, ReconixScreen
 from .choice import ChoiceScreen, details_body
 from .. import store, theme
 from ..models import GATE_APPROVAL_PREFIX, ApprovalRequest, Choice
-from ..widgets import ChoiceMenu, Question, menu_hint
+from ..store.approvals import approval_text
+from ..widgets import Question, menu_hint
+from ..wording import clock
 
 
 def waiting_request() -> Optional[ApprovalRequest]:
@@ -28,6 +30,17 @@ def waiting_request() -> Optional[ApprovalRequest]:
     if not gate.startswith(GATE_APPROVAL_PREFIX) or store.gate_state(gate) != "pending":
         return None
     return store.get_approval(gate[len(GATE_APPROVAL_PREFIX):])
+
+
+def _context_line() -> Text:
+    """What happened last before this gate: the latest AI step (✓), or a skipped action (✕)
+    when the operator rejected one since. A warning is never drawn with a green tick."""
+    for entry in reversed(store.list_activity()):
+        if entry.source == "POLICY" and entry.message.startswith("Skipped:"):
+            return Text.assemble(("✕ ", theme.CRITICAL), (entry.message, theme.DIM))
+        if entry.source == "AI" and entry.tone != "warn":
+            return Text.assemble(("✓ ", theme.GREEN), (entry.message, theme.DIM))
+    return Text.assemble(("✓ ", theme.GREEN), ("testing in progress", theme.DIM))
 
 
 def _row(label: str, *parts) -> Static:
@@ -68,9 +81,7 @@ class ApprovalScreen(ReconixScreen):
     def _compose_waiting(self, req: ApprovalRequest) -> ComposeResult:
         approvals = [a.request_id for a in store.get_assessment().approvals]
         position = approvals.index(req.request_id) + 1 if req.request_id in approvals else 1
-        context = next((e.message for e in reversed(store.list_activity())
-                        if e.source == "AI"), "testing in progress")
-        yield Static(Text.assemble(("✓ ", theme.GREEN), (context, theme.DIM)))
+        yield Static(_context_line())
         yield Static(Text.assemble(("◆ reconix ", theme.CYAN), (
             f"gated action {position} of {len(approvals)} requires your approval",
             theme.DIM)), classes="ai-label")
@@ -88,21 +99,23 @@ class ApprovalScreen(ReconixScreen):
             yield Static(Text.assemble(("$ ", f"bold {theme.GREEN}"), (req.command, theme.TEXT),
                                        ("   ", ""), (req.command_hash[:23] + "…", theme.DIM)),
                          classes="panel-note")
-        yield Question(
-            "Approval", f"Run {req.action} on {store.get_assessment().target}?",
-            [
-                Choice("approve", "Approve & run",
-                       "HIGH risk: you double-check the exact request first." if self._high
-                       else "Runs this one request now."),
-                Choice("reject", "Reject",
-                       "Not executed. The assessment stops; nothing else runs.", "danger"),
-                Choice("details", "View details", "Scope limits, exact request and audit trail."),
-                self._edit_choice(req),
-            ],
-            default=2, hint=menu_hint("decide later"), menu_id="approval-menu",
-        )
+        decision = self._waiting_decision(req)
+        yield Question(decision.chip, decision.question, decision.choices,
+                       default=decision.default, hint=menu_hint("decide later"),
+                       menu_id="approval-menu")
         yield Static(Text(f"logged to audit · operator: {store.current_operator()}",
                           style=theme.DIM))
+
+    def _waiting_decision(self, req: ApprovalRequest) -> Decision:
+        return Decision("Approval", f"Run {req.action} on {store.get_assessment().target}?", [
+            Choice("approve", "Approve & run",
+                   "HIGH risk: you double-check the exact request first." if self._high
+                   else "Runs this one request now."),
+            Choice("reject", "Reject",
+                   "Not executed. The assessment stops; nothing else runs.", "danger"),
+            Choice("details", "View details", "Scope limits, exact request and audit trail."),
+            self._edit_choice(req),
+        ], default=2)
 
     @staticmethod
     def _edit_choice(req: ApprovalRequest) -> Choice:
@@ -143,29 +156,34 @@ class ApprovalScreen(ReconixScreen):
             approved = decision.decision == "APPROVED"
             line.append("✓ approved" if approved else "✕ rejected",
                         style=theme.GREEN if approved else theme.CRITICAL)
-            line.append(f" by {decision.operator} at {decision.created_at:%H:%M:%S}",
+            line.append(f" by {decision.operator} at {clock(decision.created_at)}",
                         style=theme.DIM)
             if decision.reason:
                 line.append(f" · “{decision.reason}”", style=theme.MUTED)
         return line
 
     def on_mount(self) -> None:
-        self.focus_menu("approval-menu")
+        self.focus_menu("approval-menu", top=True)
 
     # --- choices -----------------------------------------------------------------------------
-    def on_choice_menu_chosen(self, event: ChoiceMenu.Chosen) -> None:
-        event.stop()
+    def decision(self) -> Optional[Decision]:
+        return self._waiting_decision(self._request) if self._request else None
+
+    def decide(self, choice: str) -> None:
         handlers = {"approve": self.action_approve, "reject": self.action_reject,
                     "details": self.action_details, "edit": self.action_edit,
-                    "chat": self.chat_about,
+                    "chat": self.chat_in_step,
                     "execution": lambda: self.app.goto("execution"),
                     "plan": lambda: self.app.goto("plan")}
-        handlers[event.choice_id]()
+        handlers[choice]()
 
     def chat_topic(self) -> str:
         if self._request is None:
             return "the approvals"
         return f"{self._request.action} on {store.get_assessment().target}"
+
+    def step_content(self) -> str:
+        return approval_text(self._request.request_id) if self._request else ""
 
     # --- approve: one step, or a double check for HIGH risk ----------------------------------
     def action_approve(self) -> None:
@@ -211,11 +229,23 @@ class ApprovalScreen(ReconixScreen):
         req = self._request
         return [
             Text.assemble(("$ ", f"bold {theme.GREEN}"), (req.command, theme.TEXT)),
-            Text(req.command_hash, style=theme.DIM),
+            self._hash_line(req.command_hash),
             Text(""),
             Text.assemble(("Purpose  ", theme.DIM), (req.purpose, theme.TEXT)),
             Text.assemble(("Impact   ", theme.DIM), (req.impact, theme.MUTED)),
         ]
+
+    def _hash_line(self, digest: str) -> Text:
+        """The command hash on one line: whole when the dialog is wide enough, else its
+        start and end with a pointer to View details, where it is shown in full (80×24
+        would wrap it and leave its last character alone on a line)."""
+        # .dialog: 96 wide, at most 95% of the screen; minus the border, padding, scrollbar
+        room = min(96, int(self.app.size.width * 0.95)) - 7
+        if len(digest) <= room:
+            return Text(digest, style=theme.DIM)
+        algo, _, hexpart = digest.partition(":")
+        short = f"{algo}:{hexpart[:12]}…{hexpart[-8:]}" if hexpart else digest[:room - 1] + "…"
+        return Text.assemble((short, theme.DIM), ("  (full hash in View details)", theme.DIM))
 
     def action_edit(self) -> None:
         if self._request is not None:
@@ -233,7 +263,7 @@ class ApprovalScreen(ReconixScreen):
 
     def action_later(self) -> None:
         if self._request is not None:
-            self.notify("Nothing runs until you decide. Come back with 4 or /approval.",
+            self.notify("Nothing runs until you decide. Come back with Alt+4 or /approval.",
                         title="Paused")
             self.app.goto("execution")
         else:
@@ -274,7 +304,7 @@ class ApprovalScreen(ReconixScreen):
                 (v.method, f"{v.path} · {v.reason}", theme.CRITICAL) for v in blocked
             ] or [("", "nothing blocked so far", theme.DIM)]),
             ("Audit trail", [
-                (e.created_at.strftime("%H:%M:%S"), f"{e.kind} · {e.operator}", theme.MUTED)
+                (clock(e.created_at), f"{e.kind} · {e.operator}", theme.MUTED)
                 for e in events[-6:]
             ] or [("", "no events for this request yet", theme.DIM)]),
         ])
