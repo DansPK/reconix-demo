@@ -68,17 +68,18 @@ CSS_TOKENS: Dict[str, str] = {
 # uses only those variables. The browser terminal uses the TUI's own colors.
 WEB_TOKENS: Dict[str, Dict[str, str]] = {
     "dark": {
-        "page": "#0B1315", "page-glow": "#1D3A3E", "background": "#030607",
-        "foreground": "#E6EEEE", "card": "#101516", "card-2": "#0B0F10",
-        "card-foreground": "#E6EEEE", "surface": "#171D1E", "muted": "#141A1B",
-        "muted-foreground": "#7D8A8B", "border": "#1B2224",
-        "primary": "#46E0D4", "primary-strong": "#7AF0EC", "primary-dim": "#2C7F7C",
-        "primary-foreground": "#032A27", "accent": "#E7C183", "success": "#5EE6A8",
-        "danger": "#F87171", "ring": "#46E0D4", "globe-dot": "#3CC8D2", "globe-glow": CYAN,
-        # meanings (web/src/lib/status.ts): amber `warning` = waiting / needs review, slate
-        # `info` = informational; the severity scale is the TUI's own (SEVERITY below)
-        "warning": "#E7C183", "info": INFO,
-        "sev-critical": CRITICAL_WEB, "sev-high": HIGH, "sev-medium": MEDIUM, "sev-low": LOW,
+        "page": "#071417", "page-glow": "#0F6B74", "background": "#03090B",
+        "foreground": "#F5FAFA", "card": "#0D181B", "card-2": "#091214",
+        "card-foreground": "#F5FAFA", "surface": "#142327", "muted": "#101C20",
+        "muted-foreground": "#A7BCC0", "border": "#2B4048",
+        "primary": "#00F5D4", "primary-strong": "#86FFF3", "primary-dim": "#00C9B0",
+        "primary-foreground": "#032A27", "accent": "#FFB020", "success": "#00FF9D",
+        "danger": "#FF3B5C", "ring": "#00F5D4", "globe-dot": "#00E5FF", "globe-glow": CYAN,
+        # meanings (web/src/lib/status.ts): amber `warning` = waiting / needs review, blue
+        # `info` = informational. Full-chroma electric hues for maximum pop on the near-black
+        # frame; the TUI keeps its own SEVERITY scale below (globe-glow stays the TUI's cyan).
+        "warning": "#FFB020", "info": "#4DABFF",
+        "sev-critical": "#FF2E63", "sev-high": "#FF7A00", "sev-medium": "#FFC400", "sev-low": "#00B3FF",
     },
 }
 

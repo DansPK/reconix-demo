@@ -54,9 +54,32 @@ function narrate(cards: Card[], scopeLabel: string): string {
   return body || `Here is what the saved data shows for ${scopeLabel}. See the cards below for the details.`;
 }
 
-/** Split into sentence-ish chunks so the page renders it as it "arrives". */
+// Pace the text frames so the answer types out instead of landing all at once. Tests and e2e
+// set RECONIX_ASSISTANT_STREAM_MS=0 to make it instant; the demo narrative is short plain prose.
+const STREAM_MS = (() => {
+  const n = Number(process.env.RECONIX_ASSISTANT_STREAM_MS ?? 24);
+  return Number.isFinite(n) ? Math.max(0, n) : 24;
+})();
+
+/** A delay a Stop can cut short (resolves on abort so the loop's signal check ends it). */
+const sleep = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve) => {
+    if (signal.aborted || ms <= 0) return resolve();
+    const onAbort = () => {
+      clearTimeout(id);
+      resolve();
+    };
+    const id = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+
+/** Word-sized pieces so the page types the answer out as it "arrives". Whitespace-delimited
+    pieces keep single-word **bold** / `code` tokens whole; the demo narrative is plain prose. */
 function chunks(text: string): string[] {
-  return text.match(/[^.!?]+[.!?]*\s*/g) ?? [text];
+  return text.match(/\S+\s*/g) ?? [text];
 }
 
 export function replyStream({ conversation, asked, cards, knowledge = [], signal, release }: ReplyInput): ReadableStream<Uint8Array> {
@@ -83,6 +106,7 @@ export function replyStream({ conversation, asked, cards, knowledge = [], signal
       if (signal.aborted) break;
       reply += piece;
       send({ t: "text", delta: piece });
+      await sleep(STREAM_MS, signal);
     }
     const state = signal.aborted ? "stopped" : "done";
     try {

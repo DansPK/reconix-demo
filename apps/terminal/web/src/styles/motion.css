@@ -38,7 +38,7 @@
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--foreground);
-  font-size: 11px;
+  font-size: 0.6875rem;
   opacity: 0;
   transform: translateX(-4px);
   pointer-events: none;

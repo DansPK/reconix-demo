@@ -103,6 +103,8 @@ export default defineConfig({
         RECONIX_KNOWLEDGE_CLI: path.join(__dirname, "e2e", "knowledge-cli-stub.mjs"),
         // the specs ask more than the default 12 questions a minute
         RECONIX_ASSISTANT_RATE_PER_MINUTE: "120",
+        // answers stream word by word in the demo; tests take them whole (no per-word delay)
+        RECONIX_ASSISTANT_STREAM_MS: "0",
         // the AI Assistant asks the stand-in, saved as its only model by e2e/global-setup.ts
         // (e2e/models.ts)
       },

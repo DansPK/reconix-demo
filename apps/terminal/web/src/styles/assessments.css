@@ -27,7 +27,7 @@
   align-items: center;
   height: 100%;
   padding: 10px 12px;
-  font-size: 12px;
+  font-size: 0.75rem;
   text-decoration: none;
 }
 .asm-cell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -37,7 +37,7 @@
 .asm-findings { grid-area: findings; }
 .asm-plan { grid-area: plan; align-items: flex-end; }
 /* the label of a cell on a card */
-.asm-k { font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted-foreground); }
+.asm-k { font-size: 0.625rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted-foreground); }
 .asm-run .asm-k, .asm-status .asm-k { display: none; }
 
 @media (min-width: 640px) {
@@ -54,7 +54,7 @@
   .asm-head {
     display: grid;
     padding: 0 12px 7px;
-    font-size: 11px;
+    font-size: 0.6875rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--muted-foreground);

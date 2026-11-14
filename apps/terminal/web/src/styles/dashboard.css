@@ -47,7 +47,7 @@
   .dash-overview .dash-card { padding: 12px; }
   .dash-overview .dash-card > header { margin-bottom: 8px; }
   .dash-overview .dash-stat { padding: 8px 12px; gap: 4px; min-height: 0; }
-  .dash-overview .dash-stat-value { font-size: 24px; }
+  .dash-overview .dash-stat-value { font-size: 1.5rem; }
   /* the hero's floor is about its content: the title, the gap and the Ask bar */
   .dash-overview .dash-hero { min-height: 180px; gap: 12px; }
   .dash-overview .dash-hero-title { padding-top: 12px; }
@@ -110,11 +110,11 @@
 .dash-summary { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (min-width: 1024px) { .dash-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .dash-stat { display: flex; flex-direction: column; gap: 5px; padding: 11px 14px; min-height: 100px; }
-.dash-stat-value { font-size: 28px; line-height: 1; color: var(--foreground); white-space: nowrap; }
-.dash-stat-note { font-size: 11px; line-height: 1.35; color: var(--muted-foreground); }
+.dash-stat-value { font-size: 1.75rem; line-height: 1; color: var(--foreground); white-space: nowrap; }
+.dash-stat-note { font-size: 0.6875rem; line-height: 1.35; color: var(--muted-foreground); }
 @media (max-width: 479.98px) {
   .dash-stat { padding: 10px 12px; }
-  .dash-stat-value { font-size: 24px; }
+  .dash-stat-value { font-size: 1.5rem; }
 }
 
 /* A thin progress / share bar. */
@@ -126,7 +126,7 @@
    It grows with its card but never shrinks below its content (the card grows instead). */
 .dash-chart-scroll { display: flex; flex-direction: column; min-width: 0; flex: 1 0 auto; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: thin; }
 
-.dash-axis { position: relative; height: 15px; font-family: var(--font-mono); font-size: 10px; color: var(--muted-foreground); }
+.dash-axis { position: relative; height: 15px; font-family: var(--font-mono); font-size: 0.625rem; color: var(--muted-foreground); }
 .dash-axis > span { position: absolute; top: 1px; white-space: nowrap; transform: translateX(-50%); }
 .dash-axis > span[data-edge="start"] { transform: none; }
 .dash-axis > span[data-edge="end"] { transform: translateX(-100%); }
@@ -164,7 +164,7 @@
   border: 1px solid color-mix(in oklab, var(--foreground) 12%, var(--border));
   background: var(--card);
   box-shadow: 0 14px 34px -14px color-mix(in oklab, var(--background) 90%, transparent);
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.45;
   pointer-events: none;
   transform: translate(-50%, calc(-100% - 8px));
@@ -201,7 +201,7 @@
   column-gap: 8px;
 }
 .dash-lane { display: contents; }
-.dash-lane-label { display: flex; min-width: 0; align-items: center; gap: 5px; font-size: 11px; color: var(--foreground); }
+.dash-lane-label { display: flex; min-width: 0; align-items: center; gap: 5px; font-size: 0.6875rem; color: var(--foreground); }
 .dash-lane-label > svg { color: var(--c); }
 .dash-lane-track {
   position: relative;
@@ -227,7 +227,7 @@
 .dash-mark[data-count] {
   width: var(--pill, 18px);
   height: 16px;
-  font: 600 9px/16px var(--font-mono);
+  font: 600 0.5625rem/16px var(--font-mono);
   text-align: center;
   color: var(--background);
   font-variant-numeric: tabular-nums;
@@ -246,7 +246,7 @@
   grid-template-rows: minmax(110px, 1fr) auto;
   column-gap: 8px;
 }
-.dash-yaxis { position: relative; margin-top: 8px; font-family: var(--font-mono); font-size: 10px; color: var(--muted-foreground); }
+.dash-yaxis { position: relative; margin-top: 8px; font-family: var(--font-mono); font-size: 0.625rem; color: var(--muted-foreground); }
 .dash-yaxis > span { position: absolute; right: 0; transform: translateY(50%); }
 .dash-days-plot { position: relative; margin-top: 8px; border-bottom: 1px solid var(--border); }
 .dash-gridline { position: absolute; left: 0; right: 0; height: 1px; background: color-mix(in oklab, var(--foreground) 6%, transparent); }
@@ -276,7 +276,7 @@
   column-gap: 10px;
   row-gap: 4px;
   align-items: center;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .dash-phase { display: contents; }
 .dash-track { min-width: 280px; display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-rows: 24px auto; column-gap: 8px; }
@@ -293,7 +293,7 @@
   background: color-mix(in oklab, var(--primary) 78%, var(--card));
   box-shadow: inset -1px 0 0 var(--card);
   color: var(--primary-foreground);
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 500;
   cursor: default;
 }
@@ -468,7 +468,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 8px 12px;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -484,7 +484,7 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 7px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted-foreground);
@@ -492,10 +492,10 @@
 
 /* Tables in a panel (findings, runs): they scroll sideways inside the card when narrow. */
 .dash-table-scroll { min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
-.dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+.dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.75rem; }
 .dash-table thead th {
   padding: 0 14px 7px 0;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 400;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -529,7 +529,7 @@
 /* ---- Run log: a run read like a Claude conversation (run-log-view.tsx) -----------------
    Messages carry a glyph, never a name, in front (› you, ◆ reconix, ■ a policy banner); the
    work between two messages is a thinking block (thinking-block.tsx) folded to its title. */
-.dash-runlog { display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.5; }
+.dash-runlog { display: flex; flex-direction: column; gap: 6px; font-size: 0.8125rem; line-height: 1.5; }
 .dash-runlog-msg { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 6px; color: var(--foreground); }
 .dash-runlog-glyph { color: var(--muted-foreground); font-weight: 600; }
 .dash-runlog-msg[data-speaker="reconix"] .dash-runlog-glyph { color: var(--primary); }
@@ -565,12 +565,12 @@
 }
 @keyframes dash-think-spin { to { transform: rotate(360deg); } }
 .dash-think-latest {
-  padding-left: 22px; color: var(--muted-foreground); font-size: 12px;
+  padding-left: 22px; color: var(--muted-foreground); font-size: 0.75rem;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .dash-think-steps {
   display: flex; flex-direction: column; gap: 2px; margin: 4px 0 4px 6px; padding-left: 14px;
-  border-left: 1px solid var(--border); font-size: 12px;
+  border-left: 1px solid var(--border); font-size: 0.75rem;
 }
 .dash-think-step { display: grid; grid-template-columns: auto 6ch minmax(0, 1fr); gap: 12px; color: var(--foreground); }
 .dash-think-who { color: var(--primary); font-weight: 600; }
