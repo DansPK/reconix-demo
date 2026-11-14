@@ -1080,10 +1080,10 @@ export class Controller implements vscode.Disposable {
   }
 
   /** Write the fixed text if the file is still what the fix was made for. Returns an error, or null. */
-  private async writeFileFix(rel: string, fix: { uri: vscode.Uri; original: string; fixed: string; kept: FixEdit[] }) {
+  private async writeFileFix(rel: string, fix: { uri: vscode.Uri; original: string; fixed: string; kept: FixEdit[] }, reveal = true) {
     const now = await vscode.workspace.openTextDocument(fix.uri);
     if (now.getText() !== fix.original) return `\`${rel}\` changed in the meantime. Ask again to get a fresh fix.`;
-    await this.revealVulnerableLines(now, fix.kept); // show the vulnerable code first, then fix it
+    if (reveal) await this.revealVulnerableLines(now, fix.kept); // show the vulnerable code first, then fix it
     const edit = new vscode.WorkspaceEdit();
     edit.replace(fix.uri, new vscode.Range(now.positionAt(0), now.positionAt(fix.original.length)), fix.fixed);
     if (!(await vscode.workspace.applyEdit(edit)) || !(await now.save())) return `Could not write \`${rel}\`.`;
@@ -1113,12 +1113,17 @@ export class Controller implements vscode.Disposable {
     const problems: string[] = [];
     for (const file of files) {
       const fix = await this.prepareFileFix(folder, file);
-      const problem = "problem" in fix ? fix.problem : await this.writeFileFix(file.path, fix);
+      // Fix all applies straight through: no per-file reveal pause or editor hop (that is the
+      // one-by-one review's job), so a whole folder is fixed in one quick pass.
+      const problem = "problem" in fix ? fix.problem : await this.writeFileFix(file.path, fix, false);
       if (problem) problems.push(`- ${problem}`);
       else applied++;
     }
-    this.say(`Applied changes to ${applied} of ${files.length} files. Rescan to check them.`
+    this.say(`Applied changes to ${applied} of ${files.length} files.`
+      + (applied ? " Rescanning to check them…" : " Rescan to check them.")
       + (problems.length ? `\n\nNot applied:\n${problems.join("\n")}` : ""));
+    // Fix all: rescan the folder we just changed so cleared findings drop right away (as scanOnSave does).
+    if (applied) void this.scanWorkspace({}, folder).catch((e) => this.showError(e));
   }
 
   /** One file at a time: open its diff, wait for Apply or Skip, then go on to the next. */
