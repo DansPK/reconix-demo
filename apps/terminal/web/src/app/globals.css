@@ -62,6 +62,9 @@
 
 html {
   color-scheme: dark;
+  /* The type scale's one knob: every font-size in styles/ is rem-based, so this raises all
+     text together (20px ≈ +25% over the 16px base) while px spacing and the frame stay put. */
+  font-size: 20px;
 }
 
 /* Smooth anchors (the docs' "On this page" below the fixed frame); reduced-motion users get none. */

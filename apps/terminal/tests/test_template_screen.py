@@ -57,18 +57,14 @@ async def test_esc_in_the_target_goes_back_to_the_templates(app):
         assert app.screen.focused.id == "template-menu"
 
 
-async def test_an_ambiguous_target_asks_with_the_ai_pick_recommended(app):
+async def test_an_ambiguous_target_auto_selects_the_ai_pick(app):
     async with app.run_test(size=SIZE) as pilot:
         app.screen.query_one(PromptBox).input.value = ASK_REQUEST
         await pilot.press("enter")
         await settle(pilot)
         assert isinstance(app.screen, TemplateScreen)
-        assert app.screen.state() == "choose"
-        menu = app.screen.focused
-        assert "(Recommended)" in str(menu.get_option_at_index(menu.highlighted).prompt)
-        await pilot.press("enter")
-        await settle(pilot)
-        assert app.screen.state() == "review"
+        assert app.screen.state() == "review"          # the pick is skipped; straight to scope
+        assert store.selected_template().id == "web_url"
 
 
 async def test_approve_goes_on_to_the_plan(app):

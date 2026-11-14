@@ -19,7 +19,7 @@
   padding: 16px;
   border: 1px dashed var(--border);
   border-radius: 10px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -40,11 +40,11 @@
 
 /* ---- Pager (pagination.tsx; its buttons are the outline xs Button) ---- */
 .ui-pager { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.ui-pager-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); text-align: center; }
+.ui-pager-label { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted-foreground); text-align: center; }
 
 /* ---- Checkbox (checkbox.tsx) ---- */
 /* position: relative keeps the 1px input inside the label, so focusing it never scrolls away */
-.ui-check { position: relative; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--foreground); cursor: pointer; }
+.ui-check { position: relative; display: inline-flex; align-items: center; gap: 8px; font-size: 0.8125rem; color: var(--foreground); cursor: pointer; }
 .ui-check.is-disabled { color: var(--muted-foreground); cursor: not-allowed; }
 .ui-check-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .ui-check-box {
@@ -80,7 +80,7 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 10px;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 .ui-split-back:hover { color: var(--primary); }
@@ -115,6 +115,6 @@
 .ui-dialog::backdrop { background: color-mix(in oklab, var(--background) 72%, transparent); }
 .ui-dialog-body { display: flex; flex-direction: column; gap: 14px; padding: 16px 18px 18px; }
 .ui-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.ui-dialog-title { font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
-.ui-dialog-text { font-size: 12.5px; line-height: 1.5; color: var(--muted-foreground); }
+.ui-dialog-title { font-size: 0.9375rem; font-weight: 500; overflow-wrap: anywhere; }
+.ui-dialog-text { font-size: 0.78125rem; line-height: 1.5; color: var(--muted-foreground); }
 .ui-dialog-foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding-top: 2px; }
