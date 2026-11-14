@@ -13,7 +13,7 @@ from textual.widgets import Input
 
 from .. import store
 from ..flow import RunController, is_form_gate, screen_for
-from ..models import GATE_SCOPE, Choice
+from ..models import GATE_SCOPE, GATE_TEMPLATE, Choice
 from ..screens.base import ReconixScreen
 from ..screens.choice import ChoiceScreen
 from ..screens.forms import LoginForm
@@ -45,6 +45,11 @@ class RunHostMixin:
             return
         self._deferred_gate = ""
         store.flush_saves()      # paused at a gate: let the background write land (no UI stall here)
+        if gate == GATE_TEMPLATE:
+            # Demo flow: skip the target-type pick — take the suggested template (Web URL for
+            # a hostname) and play straight on to the scope manifest.
+            self.choose_template(store.get_assessment().template_id)
+            return
         if is_form_gate(gate):
             self._login_open = True
             self.open_dialog(LoginForm(), self._login_closed)

@@ -80,10 +80,7 @@ async def test_a_gate_that_arrives_under_another_dialog_opens_after_it(app, monk
                          "the template gate to arrive")
         assert isinstance(app.screen, ChoiceScreen)    # still on top: nothing pulled away
         await pilot.press("escape")
-        await settle(pilot)
-        assert isinstance(app.screen, TemplateScreen)
-        assert app.screen.state() == "choose"
-        await pilot.press("enter")                     # the suggestion (Web URL)
+        # The template gate auto-selects the suggestion; closing the dialog lets it play on.
         await wait_until(pilot, lambda: store.waiting_gate() == "scope", 6,
                          "the scope gate after the template")
         await settle(pilot)
