@@ -175,3 +175,9 @@ async def test_model_argument_activates_that_model(app):
         active = store.active_model()
         assert active is not None
         assert (active.provider_id, active.model) == ("openai", "gpt-4o")
+
+
+async def test_default_model_is_preselected_at_launch(app):
+    active = store.active_model()
+    assert active is not None
+    assert (active.provider_id, active.model) == ("reconix", "reconix-security-flash")
