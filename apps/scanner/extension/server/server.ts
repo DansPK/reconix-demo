@@ -8,6 +8,7 @@ import { createHash, randomUUID } from "crypto";
 import * as http from "http";
 import * as https from "https";
 import { AddressInfo } from "net";
+import * as tar from "tar";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
@@ -104,6 +105,9 @@ interface Session {
   // The hash each finding-bearing file had when first scanned; a later scan whose file differs
   // counts that finding as fixed and drops it, so applying a fix and rescanning clears it.
   baselineHash: Map<string, string>;
+  // The latest uploaded text of files that have a canned fix: a file already holding its fix has
+  // no finding, even when it was fixed before this session first saw it (e.g. after a restart).
+  content: Map<string, string>;
 }
 
 interface Upload { id: string; session: string; size: number; sha256: string; expires: number; used: boolean;
@@ -224,7 +228,7 @@ export class FakeHarness {
           id, owner: "me", name: a.name ?? (a.target_type === "github" ? a.repo_url.split("github.com/")[1] : "Workspace scan"),
           target_type: a.target_type ?? "workspace", repo_url: a.repo_url ?? null,
           created_at: new Date().toISOString(), manifest: new Map(), pending: null, messages: [],
-          baselineHash: new Map(),
+          baselineHash: new Map(), content: new Map(),
         });
         return { session_id: id };
       }
@@ -275,7 +279,9 @@ export class FakeHarness {
             for (const p of [...s.manifest.keys()]) if (!s.pending.some((e) => e.path === p)) s.manifest.delete(p);
             s.pending = null;
           }
-          if (a.upload_id && !this.uploads.get(a.upload_id)?.data) throw new Error("upload not found");
+          const upload = a.upload_id ? this.uploads.get(a.upload_id) : undefined;
+          if (a.upload_id && !upload?.data) throw new Error("upload not found");
+          if (upload?.data) await readFixable(upload.data, s.content);
         }
         return { scan_id: this.runScan(s) };
       }
@@ -370,11 +376,7 @@ export class FakeHarness {
         }
         return {
           files: chosen.map((f) => {
-            // f.path may be the real (possibly nested) workspace path, so match FIXES by suffix.
-            const key = f!.path in FIXES ? f!.path
-              : Object.keys(FIXES).find((k) => f!.path === k || f!.path.endsWith(`/${k}`));
-            const edit = (key ? FIXES[key] : undefined)
-              ?? { start_line: f!.start_line, end_line: f!.end_line, replacement: "// fixed" };
+            const edit = fixFor(f!.path) ?? { start_line: f!.start_line, end_line: f!.end_line, replacement: "// fixed" };
             return { path: f!.path, file_sha256: f!.file_sha256, edits: [edit] };
           }),
           summary: "- Rewrote the unsafe code to its secure form.",
@@ -519,8 +521,14 @@ export class FakeHarness {
         const match = keys.find((k) => k === f.path || k.endsWith(`/${f.path}`));
         if (!match) return [];
         const hash = s.manifest.get(match)!.sha256;
-        const baseline = s.baselineHash.get(match) ?? (s.baselineHash.set(match, hash), hash);
-        if (hash !== baseline) return []; // the file changed since it was first scanned: fix applied
+        const text = s.content.get(match);
+        const fix = fixFor(match);
+        if (text !== undefined && fix) {
+          if (text.includes(fix.replacement.split("\n")[0].trim())) return []; // the file holds its fix
+        } else {
+          const baseline = s.baselineHash.get(match) ?? (s.baselineHash.set(match, hash), hash);
+          if (hash !== baseline) return []; // the file changed since it was first scanned: fix applied
+        }
         f.path = match;
         f.file_sha256 = hash;
         return [f];
@@ -707,6 +715,27 @@ const FIXES: Record<string, { start_line: number; end_line: number; replacement:
   "server/session.js": { start_line: 9, end_line: 9,
     replacement: '  res.cookie("sid", sid, { maxAge: 86400000, httpOnly: true, secure: true, sameSite: "lax" });' },
 };
+
+/** The canned fix for a workspace path; the path may be nested (`shop/server/index.js`), so match by suffix. */
+function fixFor(p: string) {
+  const key = Object.keys(FIXES).find((k) => p === k || p.endsWith(`/${k}`));
+  return key ? FIXES[key] : undefined;
+}
+
+/** Keep the text of every uploaded file that has a canned fix (the archive is a tar.gz). */
+async function readFixable(archive: Buffer, into: Map<string, string>) {
+  const parser = new tar.Parser({ onReadEntry: (e) => {
+    if (!fixFor(e.path)) return e.resume();
+    const chunks: Buffer[] = [];
+    e.on("data", (c: Buffer) => chunks.push(c));
+    e.on("end", () => into.set(e.path, Buffer.concat(chunks).toString("utf8")));
+  } });
+  await new Promise<void>((resolve, reject) => {
+    parser.on("end", resolve);
+    parser.on("error", reject);
+    parser.end(archive);
+  });
+}
 
 if (require.main === module) {
   const h = new FakeHarness({ port: Number(process.env.PORT ?? 7357), stepMs: 1000, findings: DEMO_FINDINGS });
