@@ -21,8 +21,8 @@ export function DocsToc() {
       aria-label="On this page"
       className="docs-toc hidden xl:sticky xl:top-4 xl:block xl:max-h-[calc(100dvh-9rem)] xl:self-start xl:overflow-y-auto"
     >
-      <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">On this page</p>
-      <ul className="space-y-1 border-l border-border">
+      <p className="mb-3 font-mono text-micro uppercase tracking-[0.18em] text-muted-foreground">On this page</p>
+      <ul className="space-y-1 border-l border-border text-sm">
         {parts.map((p) => {
           const open = p.id === activePart;
           const sections = open ? headings.filter((h) => h.level === 3 && h.part === p.id) : [];
@@ -32,7 +32,7 @@ export function DocsToc() {
                 href={`#${p.id}`}
                 aria-current={open ? "location" : undefined}
                 className={cn(
-                  "-ml-px block border-l py-1 pl-3 text-[13px] leading-snug transition-colors",
+                  "-ml-px block border-l py-1 pl-3 text-small leading-snug transition-colors",
                   open ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -45,7 +45,7 @@ export function DocsToc() {
                       <a
                         href={`#${s.id}`}
                         className={cn(
-                          "block py-1 pl-6 text-[12px] leading-snug transition-colors", // 24 px tall: a full touch target
+                          "block py-1 pl-6 text-caption leading-snug transition-colors", // 24 px tall: a full touch target
                           active === s.id ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
                         )}
                       >

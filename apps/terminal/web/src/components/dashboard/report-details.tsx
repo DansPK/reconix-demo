@@ -13,8 +13,8 @@ export function ReportDetails({ details, plan }: { details: DetailRow[]; plan: P
       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
         {details.map((d) => (
           <div key={d.label} className="flex min-w-0 flex-col gap-1">
-            <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">{d.label}</dt>
-            <dd className="flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-[13px] text-foreground [overflow-wrap:anywhere]">
+            <dt className="text-micro uppercase tracking-wide text-muted-foreground">{d.label}</dt>
+            <dd className="flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-small text-foreground [overflow-wrap:anywhere]">
               {d.badge && <EventBadge badge={d.badge} />}
               {d.value && <span className="min-w-0">{d.value}</span>}
             </dd>
@@ -34,7 +34,7 @@ export function ReportDetails({ details, plan }: { details: DetailRow[]; plan: P
                 <span className="dash-meter" aria-hidden>
                   <span data-bar-x style={{ width: `${p.pct}%`, background: toneColor(p.state.tone) }} />
                 </span>
-                <span className="text-right font-mono text-[11px] tabnums text-muted-foreground">{p.pct}%</span>
+                <span className="text-right font-mono text-micro tabnums text-muted-foreground">{p.pct}%</span>
               </li>
             ))}
           </ol>

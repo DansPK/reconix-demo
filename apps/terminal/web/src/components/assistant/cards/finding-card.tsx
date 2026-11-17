@@ -17,8 +17,8 @@ export function FindingCard({ card }: { card: CardOf<"finding"> }) {
           <span className="ai-cvss">{f.cvss === null ? "no CVSS" : `CVSS ${f.cvss.toFixed(1)}`}</span>
           <StatusBadge meaning={FINDING_REVIEW[f.review]} />
         </div>
-        <p className="mt-2 text-[14px] font-medium leading-snug text-foreground [overflow-wrap:anywhere]">{f.title}</p>
-        <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[12px]">
+        <p className="mt-2 text-small font-medium leading-snug text-foreground [overflow-wrap:anywhere]">{f.title}</p>
+        <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-caption">
           <dt className="text-muted-foreground">Target</dt>
           <dd className="ai-mono min-w-0 text-foreground [overflow-wrap:anywhere]">{f.target}</dd>
           <dt className="text-muted-foreground">Tool</dt>

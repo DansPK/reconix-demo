@@ -6,7 +6,7 @@ import { FolderOpen } from "lucide-react";
 import type { Problem } from "@/lib/data/store";
 import { DOCS } from "@/lib/docs-nav";
 
-const CODE = "rounded bg-muted px-1.5 py-0.5 font-mono text-[12px] text-foreground";
+const CODE = "rounded bg-muted px-1.5 py-0.5 font-mono text-caption text-foreground";
 
 export function EmptyView({ dir, problems, compact = false }: { dir: string; problems: Problem[]; compact?: boolean }) {
   if (compact) {
@@ -35,7 +35,7 @@ export function EmptyView({ dir, problems, compact = false }: { dir: string; pro
         {problems.length > 0 && (
           <div>
             <p className="mb-1 text-sm text-foreground">Skipped files</p>
-            <ul className="space-y-1 font-mono text-[11px] text-muted-foreground">
+            <ul className="space-y-1 font-mono text-micro text-muted-foreground">
               {problems.map((p) => (
                 <li key={p.file}>
                   {p.file} · {p.reason}

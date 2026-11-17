@@ -413,6 +413,13 @@ describe("deriveOverall", () => {
     expect(all.cards.findings.top.every((t) => t.run !== null)).toBe(true);
   });
 
+  it("lists a finding saved by several runs once in the top findings", () => {
+    const byKey = new Map(all.findings.map((f) => [f.key, f]));
+    const same = all.cards.findings.top.map((t) => { const f = byKey.get(t.key)!; return `${f.id}|${f.title}|${f.target}`; });
+    expect(new Set(same).size).toBe(same.length);
+    expect(same.length).toBeGreaterThan(1);
+  });
+
   it("counts the runs started per day, every day on the axis, stacked by status", () => {
     expect(days.mode).toBe("days");
     expect(days.days.reduce((n, d) => n + d.total, 0)).toBe(samples.length);

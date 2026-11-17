@@ -12,8 +12,8 @@ export function DocsTopBar() {
         <BookOpen className="size-4" strokeWidth={1.6} aria-hidden />
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-[13px] font-medium text-foreground">Documentation</span>
-        <span className="hidden truncate font-mono text-[11px] text-muted-foreground sm:block">The Reconix terminal, every command and key</span>
+        <span className="block truncate text-small font-medium text-foreground">Documentation</span>
+        <span className="hidden truncate font-mono text-micro text-muted-foreground sm:block">The Reconix terminal, every command and key</span>
       </span>
     </header>
   );

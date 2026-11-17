@@ -112,6 +112,13 @@ describe("pickCards", () => {
     expect(card.items[0]).toMatchObject({ id: top.finding.id, severity: top.finding.severity, run: { uid: top.view.uid } });
     expect(card.items.length).toBeLessThanOrEqual(5);
   });
+  it("lists a finding saved by several runs once, with how many runs found it", () => {
+    const card = of(pickCards(samples, null, "Analyze the current findings"), "findings");
+    const keys = card.items.map((f) => `${f.id}|${f.title}|${f.target}`);
+    expect(new Set(keys).size).toBe(keys.length);
+    const repeated = rankFindings(views).filter((r) => r.finding.id === card.items[0].id && r.finding.title === card.items[0].title && r.finding.target === card.items[0].target).length;
+    expect(card.items[0].foundIn).toBe(repeated > 1 ? repeated : undefined);
+  });
   it("explains the same top finding the welcome suggestion names", () => {
     for (const uid of [null, completed.uid]) {
       const scoped = scopedViews(views, uid);

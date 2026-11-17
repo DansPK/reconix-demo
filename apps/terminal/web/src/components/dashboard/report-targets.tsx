@@ -39,11 +39,11 @@ export function ReportTargets({ targets }: { targets: ReportTargetRow[] }) {
             >
               <span className="min-w-0">
                 <span className="block truncate font-mono text-xs text-foreground">{t.target}</span>
-                <span className="block truncate text-[11px] text-muted-foreground">
+                <span className="block truncate text-micro text-muted-foreground">
                   {count(t.runs, "run")} · {count(t.findings, "finding")}
                 </span>
               </span>
-              {t.worst ? <SeverityBadge level={t.worst} /> : <span className="text-[11px] text-muted-foreground">no findings</span>}
+              {t.worst ? <SeverityBadge level={t.worst} /> : <span className="text-micro text-muted-foreground">no findings</span>}
             </RunLinkTo>
           </li>
         ))}

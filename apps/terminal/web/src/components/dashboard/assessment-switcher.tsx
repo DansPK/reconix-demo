@@ -74,7 +74,7 @@ export function AssessmentSwitcher({
                 href={runOverviewHref(current.uid)}
                 onClick={close}
                 aria-label={`Open the overview of ${current.name}`}
-                className="rounded-sm text-[13px] font-medium text-primary underline-offset-2 [overflow-wrap:anywhere] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="rounded-sm text-small font-medium text-primary underline-offset-2 [overflow-wrap:anywhere] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {current.name}
               </Link>
@@ -92,7 +92,7 @@ export function AssessmentSwitcher({
                   <Layers className="size-3.5 shrink-0 text-primary" aria-hidden />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-foreground">All assessments</span>
-                    <span className="block truncate font-mono text-[10px] text-muted-foreground">The Overview totals every saved run</span>
+                    <span className="block truncate font-mono text-micro text-muted-foreground">The Overview totals every saved run</span>
                   </span>
                   {!current && <Check className="size-3.5 shrink-0 text-primary" aria-hidden />}
                 </Link>
@@ -116,7 +116,7 @@ export function AssessmentSwitcher({
                 <TriangleAlert className="size-3.5" aria-hidden />
                 {skipped.length} {skipped.length === 1 ? "file was" : "files were"} skipped
               </summary>
-              <ul className="mt-1.5 space-y-1 font-mono text-[10px] text-muted-foreground">
+              <ul className="mt-1.5 space-y-1 font-mono text-micro text-muted-foreground">
                 {skipped.map((s) => (
                   <li key={s.file} className="[overflow-wrap:anywhere]">
                     {s.file} · {s.reason}

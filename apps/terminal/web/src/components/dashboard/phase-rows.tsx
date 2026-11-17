@@ -41,7 +41,7 @@ export function PhaseRows({ data }: { data: Phases }) {
                 <span className="dash-meter" role="meter" aria-label={`${p.label} progress`} aria-valuenow={p.pct} aria-valuemin={0} aria-valuemax={100}>
                   <span data-bar-x style={{ width: `${p.pct}%`, background: toneColor(meaning.tone) }} />
                 </span>
-                <span className="text-right font-mono text-[11px] tabnums text-muted-foreground">{p.pct}%</span>
+                <span className="text-right font-mono text-micro tabnums text-muted-foreground">{p.pct}%</span>
               </li>
             );
           })}
@@ -114,7 +114,7 @@ export function PhaseRows({ data }: { data: Phases }) {
         <p className="flex flex-wrap items-center gap-2 text-xs">
           <StatusBadge meaning={gate.meaning} />
           <span className="min-w-0 text-foreground [overflow-wrap:anywhere]">{gate.text}</span>
-          <span className="font-mono text-[11px] text-muted-foreground">{gate.time}</span>
+          <span className="font-mono text-micro text-muted-foreground">{gate.time}</span>
         </p>
       )}
       <Legend items={data.legend} label="Execution Timeline legend" className="mt-auto" />

@@ -90,11 +90,23 @@ function findingItem(f: FindingView, v: AssessmentView): FindingItem {
 
 export function findingsCard(views: AssessmentView[]): CardOf<"findings"> {
   const ranked = rankFindings(views);
+  // One row per finding: the same finding saved by several runs is listed once, under its first
+  // (best-ranked, newest) run, with how many runs found it. Totals still count every saved copy.
+  const unique = new Map<string, { at: Located; runs: number }>();
+  for (const at of ranked) {
+    const key = [at.finding.id, at.finding.title, at.finding.target].join("\u0000");
+    const seen = unique.get(key);
+    if (seen) seen.runs++;
+    else unique.set(key, { at, runs: 1 });
+  }
   return {
     kind: "findings",
     total: ranked.length,
     counts: severityCounts(views),
-    items: ranked.slice(0, FINDINGS_SHOWN).map(({ finding, view }) => findingItem(finding, view)),
+    items: [...unique.values()].slice(0, FINDINGS_SHOWN).map(({ at, runs }) => ({
+      ...findingItem(at.finding, at.view),
+      ...(runs > 1 ? { foundIn: runs } : {}),
+    })),
     runs: new Set(ranked.map((r) => r.view.uid)).size,
   };
 }

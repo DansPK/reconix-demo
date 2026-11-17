@@ -49,6 +49,7 @@ const FindingItemSchema = z
     target: line,
     review: Review,
     run: RunRefSchema,
+    foundIn: count.optional(), // runs that saved this same finding (findings card, when > 1)
   })
   .strict();
 export type FindingItem = z.infer<typeof FindingItemSchema>;

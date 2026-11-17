@@ -80,6 +80,9 @@ export function findingRow(f: FindingView, run: FindingRow["run"] = null): Findi
   return { ...f, icon: findingIcon(f), key: run ? `${run.uid}~${f.id}` : f.id, run };
 }
 
+/** The host of a finding's URL (tells the same issue on portal/staging/www apart), else null. */
+const hostOf = (target: string) => (URL.canParse(target) ? new URL(target).hostname : null);
+
 /** Findings by Severity, over the four SEVERITIES (Critical first, each even at 0): counts and
     shares by severity, review state and the top CVSS scores. False positives are left out of
     every count, so its total is the summary strip's (findingsSummary). */
@@ -90,11 +93,18 @@ export function findingsSlice(rows: FindingRow[]): FindingsSlice {
     const count = counted.filter((f) => f.severity === level).length;
     return { level, count, share: total ? Math.round((count / total) * 100) : 0, frac: total ? count / total : 0 };
   });
+  // One row per finding: a finding saved by several runs (same id, title and target) is listed
+  // once, from its first (newest) run, so the list isn't one issue repeated.
+  const seen = new Set<string>();
   const top = counted
     .filter((f): f is FindingRow & { score: number } => f.score !== null && f.status !== "fixed")
     .sort((a, b) => b.score - a.score)
+    .filter((f) => {
+      const same = [f.id, f.title, f.target].join("\u0000");
+      return !seen.has(same) && Boolean(seen.add(same));
+    })
     .slice(0, TOP_FINDINGS)
-    .map((f) => ({ key: f.key, id: f.id, title: f.title, severity: f.severity, score: f.score, run: f.run?.label ?? null }));
+    .map((f) => ({ key: f.key, id: f.id, title: f.title, severity: f.severity, score: f.score, run: f.run?.label ?? null, host: hostOf(f.target) }));
   const confirmed = counted.filter((f) => f.confirmed).length;
   const needsReview = counted.filter((f) => f.needsReview).length;
   return {

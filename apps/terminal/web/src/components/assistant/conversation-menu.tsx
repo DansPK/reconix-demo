@@ -241,7 +241,7 @@ export function ConversationMenu() {
           <div className="ai-menu-foot">
             {confirmAll ? (
               <div className="flex w-full flex-col gap-2" role="group" aria-label="Delete all conversations?">
-                <p className="text-[12.5px] text-foreground">Delete all {history.items.length} conversations? This can&apos;t be undone.</p>
+                <p className="text-caption text-foreground">Delete all {history.items.length} conversations? This can&apos;t be undone.</p>
                 {allError && <p className="ai-error-text">{allError}</p>}
                 {/* Cancel on the right, under "Delete all": a double-click there keeps them */}
                 <div className="flex justify-end gap-1.5">

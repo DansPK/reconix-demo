@@ -63,7 +63,7 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
             <IconButton label="Previous finding" className={NAV_BTN} aria-disabled={!prev || undefined} onClick={() => prev && onSelect(prev.key)}>
               <ChevronLeft aria-hidden />
             </IconButton>
-            <span className="min-w-[4.5em] text-center font-mono text-[11px] tabnums text-muted-foreground">
+            <span className="min-w-[4.5em] text-center font-mono text-micro tabnums text-muted-foreground">
               {position.index + 1} of {position.total}
             </span>
             <IconButton label="Next finding" className={NAV_BTN} aria-disabled={!next || undefined} onClick={() => next && onSelect(next.key)}>
@@ -99,7 +99,7 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
 
         {(f.description || f.impact) && (
           <section>
-            <h3 className="mb-1 text-[13px] font-medium text-foreground">Description</h3>
+            <h3 className="mb-1 text-small font-medium text-foreground">Description</h3>
             {f.description && <p className={cn("text-sm leading-relaxed text-muted-foreground", WRAP)}>{f.description}</p>}
             {f.impact && (
               <p className={cn("mt-2 text-sm leading-relaxed text-muted-foreground", WRAP)}>
@@ -113,11 +113,11 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
         {f.evidence.length > 0 && (
           <section>
             <div className="mb-1.5 flex items-center justify-between gap-2">
-              <h3 className="text-[13px] font-medium text-foreground">
+              <h3 className="text-small font-medium text-foreground">
                 {unmasked && f.evidenceUnmasked.length > 0 ? "Evidence — attacker's view (unmasked)" : "Evidence"}
               </h3>
               {f.evidenceUnmasked.length > 0 && (
-                <button type="button" onClick={() => setUnmasked((v) => !v)} aria-pressed={unmasked} className="ui-link text-[11px] font-medium">
+                <button type="button" onClick={() => setUnmasked((v) => !v)} aria-pressed={unmasked} className="ui-link text-micro font-medium">
                   {unmasked ? "Hide" : "Reveal attacker's view"}
                 </button>
               )}
@@ -125,7 +125,7 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
             <ScrollRegion
               label="Evidence"
               className={cn(
-                "dash-tile overflow-x-auto rounded-lg p-3 font-mono text-[11px] leading-relaxed",
+                "dash-tile overflow-x-auto rounded-lg p-3 font-mono text-micro leading-relaxed",
                 unmasked && f.evidenceUnmasked.length > 0 && "ring-1 ring-[var(--sev-critical)]",
               )}
             >
@@ -140,7 +140,7 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
 
         {f.remediation.length > 0 && (
           <section>
-            <h3 className="mb-1.5 text-[13px] font-medium text-foreground">Remediation</h3>
+            <h3 className="mb-1.5 text-small font-medium text-foreground">Remediation</h3>
             <ul className={cn("list-disc space-y-1 pl-5 text-sm text-muted-foreground", WRAP)}>
               {f.remediation.map((r) => (
                 <li key={r}>{r}</li>
@@ -155,7 +155,7 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
           </span>
           <StatusBadge meaning={FINDING_REVIEW[validationOf(f)]} label={reviewLabel(f)} />
           {f.references.length > 0 && (
-            <span className={cn("min-w-0 basis-full font-mono text-[11px] text-muted-foreground sm:ml-auto sm:basis-auto sm:text-right", WRAP)}>
+            <span className={cn("min-w-0 basis-full font-mono text-micro text-muted-foreground sm:ml-auto sm:basis-auto sm:text-right", WRAP)}>
               {f.references.join(" · ")}
             </span>
           )}

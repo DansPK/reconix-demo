@@ -34,7 +34,7 @@ export function RunChips({ dash }: { dash: RunChipsData }) {
                 {dash.scope.include.map((t) => (
                   <li key={t} className="flex items-center gap-1.5">
                     <Check className="size-3.5 shrink-0 text-success" aria-hidden />
-                    <span className="truncate font-mono text-[11px] text-foreground">{t}</span>
+                    <span className="truncate font-mono text-micro text-foreground">{t}</span>
                   </li>
                 ))}
               </ul>
@@ -46,7 +46,7 @@ export function RunChips({ dash }: { dash: RunChipsData }) {
                   {dash.scope.exclude.map((t) => (
                     <li key={t} className="flex items-center gap-1.5">
                       <X className="size-3.5 shrink-0 text-danger" aria-hidden />
-                      <span className="truncate font-mono text-[11px] text-foreground">{t}</span>
+                      <span className="truncate font-mono text-micro text-foreground">{t}</span>
                     </li>
                   ))}
                 </ul>
