@@ -15,8 +15,8 @@ export function ProgressCard({ card }: { card: CardOf<"progress"> }) {
         <div className="ai-card-section">
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge meaning={RUN_STATUS[r.status]} />
-            <span className="ai-num text-[13px] text-foreground">{r.progress}%</span>
-            <span className="text-[12px] text-muted-foreground">
+            <span className="ai-num text-small text-foreground">{r.progress}%</span>
+            <span className="text-caption text-muted-foreground">
               · {done} of {r.phases.length} {r.phases.length === 1 ? "step" : "steps"} done
             </span>
           </div>
@@ -28,9 +28,9 @@ export function ProgressCard({ card }: { card: CardOf<"progress"> }) {
           <ol aria-label="Plan phases">
             {r.phases.map((p, i) => (
               <li key={`${p.label}-${i}`} className="ai-card-row is-center">
-                <span className="ai-num w-5 shrink-0 text-[12px] text-muted-foreground">{i + 1}</span>
+                <span className="ai-num w-5 shrink-0 text-caption text-muted-foreground">{i + 1}</span>
                 <span className="ai-card-line min-w-0 flex-1">{p.label}</span>
-                <span className="ai-num hidden w-10 text-right text-[12px] text-muted-foreground sm:inline">{p.pct}%</span>
+                <span className="ai-num hidden w-10 text-right text-caption text-muted-foreground sm:inline">{p.pct}%</span>
                 <StatusBadge meaning={STEP_STATUS[p.status]} />
               </li>
             ))}
@@ -59,7 +59,7 @@ export function ProgressCard({ card }: { card: CardOf<"progress"> }) {
                   <div className="max-w-[220px] flex-1">
                     <Bar pct={r.progress} tone={r.progress === 100 ? "success" : undefined} label={`${r.run.label} progress`} />
                   </div>
-                  <span className="ai-num text-[12px] text-muted-foreground">
+                  <span className="ai-num text-caption text-muted-foreground">
                     {r.progress}% · {done}/{r.phases.length} steps
                   </span>
                 </div>

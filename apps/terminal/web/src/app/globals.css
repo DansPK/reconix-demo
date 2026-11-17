@@ -60,6 +60,29 @@
   --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+/* The small-text scale, sized to read from across a room when projected (rem, so it follows the
+   root knob below). Utilities (text-micro / -caption / -small, and the raised text-xs / -sm) and
+   the area stylesheets (var(--text-*)) share it; no font in the dashboard goes below text-micro. */
+@theme {
+  --text-micro: 0.75rem;              /* 15px: badges, chips, table heads, timestamps */
+  --text-micro--line-height: 1.4;
+  --text-caption: 0.8rem;             /* 16px: captions, labels, table cells */
+  --text-caption--line-height: 1.45;
+  --text-small: 0.875rem;             /* 17.5px: secondary body copy */
+  --text-small--line-height: 1.5;
+  --text-xs: 0.8rem;                  /* Tailwind default 0.75rem */
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.9rem;                  /* Tailwind default 0.875rem */
+  --text-sm--line-height: 1.5;
+  /* The larger steps, held down so headings stay in proportion over the 20px root
+     (Tailwind's defaults would be 20 / 22.5 / 25 / 30 / 37.5px). */
+  --text-base: 0.9rem;                /* 18px */
+  --text-lg: 1rem;                    /* 20px */
+  --text-xl: 1.1rem;                  /* 22px */
+  --text-2xl: 1.25rem;                /* 25px */
+  --text-3xl: 1.5rem;                 /* 30px */
+}
+
 html {
   color-scheme: dark;
   /* The type scale's one knob: every font-size in styles/ is rem-based, so this raises all

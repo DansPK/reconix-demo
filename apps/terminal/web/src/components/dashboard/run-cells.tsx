@@ -56,12 +56,12 @@ export function RunCells({
             <span className="block truncate">
               {r.id} · {r.template}
             </span>
-            <span className="block truncate font-mono text-[10px] text-muted-foreground">{r.when}</span>
+            <span className="block truncate font-mono text-micro text-muted-foreground">{r.when}</span>
           </>,
         )}
       </Cell>
       <Cell column="target" label="Target">
-        <span className="block font-mono text-[11px] text-muted-foreground [overflow-wrap:anywhere]">{r.target}</span>
+        <span className="block font-mono text-micro text-muted-foreground [overflow-wrap:anywhere]">{r.target}</span>
       </Cell>
       <Cell column="status" label="Status" title={r.waiting || undefined}>
         <StatusBadge meaning={RUN_STATUS[r.status]} />
@@ -74,7 +74,7 @@ export function RunCells({
         </span>
       </Cell>
       <Cell column="plan" label="Plan">
-        <span className="whitespace-nowrap font-mono text-[11px] tabnums text-muted-foreground">
+        <span className="whitespace-nowrap font-mono text-micro tabnums text-muted-foreground">
           {r.steps.done}/{r.steps.total}
         </span>
       </Cell>

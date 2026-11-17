@@ -25,13 +25,13 @@ function RunItem({ run, href }: { run: RunEntry; href: string }) {
     <li className="border-b border-border last:border-b-0">
       <Link href={href} className="flex flex-col gap-1 rounded-md px-1 py-2 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <span className="flex flex-wrap items-center gap-2">
-          <time className="font-mono text-[11px] text-foreground">{run.time}</time>
+          <time className="font-mono text-micro text-foreground">{run.time}</time>
           <span className="text-xs text-foreground">
             {run.id} · {run.template}
           </span>
           <StatusBadge meaning={RUN_STATUS[run.status]} />
         </span>
-        <span className="font-mono text-[11px] text-muted-foreground [overflow-wrap:anywhere]">
+        <span className="font-mono text-micro text-muted-foreground [overflow-wrap:anywhere]">
           {run.target} · {run.progress}% · {run.findings === 1 ? "1 finding" : `${run.findings} findings`}
           {run.waiting && ` · ${run.waiting}`}
         </span>

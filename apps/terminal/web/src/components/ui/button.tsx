@@ -16,8 +16,8 @@ const buttonVariants = cva(
         quiet: "text-muted-foreground not-aria-disabled:hover:bg-foreground/6 not-aria-disabled:hover:text-foreground",
       },
       size: {
-        xs: "h-7 rounded-lg px-2.5 text-[12px]",
-        md: "h-8 rounded-[10px] px-3 text-[12.5px]",
+        xs: "h-7 rounded-lg px-2.5 text-caption",
+        md: "h-8 rounded-[10px] px-3 text-caption",
         sm: "h-9 rounded-md px-4 text-sm font-medium",
         lg: "h-12 rounded-md px-7 text-base font-medium",
       },

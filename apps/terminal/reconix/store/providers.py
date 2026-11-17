@@ -76,9 +76,9 @@ def reset_providers() -> None:
                                  "REACHABLE", "Responded in 0.5 s", _now())
     _CONFIGS["anthropic"] = _Config("sk-ant-…77c2", "", _FACTS["anthropic"].default_models,
                                     "REACHABLE", "Responded in 0.6 s", _now())
-    # No model is active at first launch — the operator picks one (chrome shows "llm: off"
-    # until then). The Reconix provider is seeded and reachable, ready to activate.
+    # The default Reconix model is preselected at launch; `/model` switches it.
     _ACTIVE[0] = None
+    activate("reconix", _FACTS["reconix"].default_models[0])
 
 
 # --- reads ----------------------------------------------------------------------------------

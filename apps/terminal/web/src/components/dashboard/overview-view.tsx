@@ -22,7 +22,7 @@ export function OverviewView({ cards }: { cards: OverviewCards }) {
           <h1 className="dash-reveal text-[26px] font-medium leading-[1.15] tracking-[-0.01em] text-foreground">
             Assessment Operations Center
           </h1>
-          <p className="dash-reveal mt-1 text-[13px] text-muted-foreground">{SITE_TAGLINE}</p>
+          <p className="dash-reveal mt-1 text-small text-muted-foreground">{SITE_TAGLINE}</p>
         </div>
         <AskBar data={cards.ask} />
       </section>

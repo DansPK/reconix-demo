@@ -41,7 +41,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   severity: TriangleAlert,
 };
 
-const BADGE = "inline-flex h-[22px] shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1.5 text-[11px] font-medium leading-none";
+const BADGE = "inline-flex h-[22px] shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1.5 text-micro font-medium leading-none";
 
 function Badge({ color, icon, label, hint, className }: { color: string; icon: IconName; label: string; hint: string; className?: string }) {
   const Icon = ICONS[icon];

@@ -20,7 +20,7 @@ export function ViewHeader({ title, tag, about, docsHref, children }: { title: s
           {docsHref && <DashCardHelp title={title} docsHref={docsHref} />}
           {tag && <span className="min-w-0 font-mono text-xs text-muted-foreground [overflow-wrap:anywhere]">{tag}</span>}
         </div>
-        <p className="mt-0.5 text-[13px] text-muted-foreground">{about}</p>
+        <p className="mt-0.5 text-small text-muted-foreground">{about}</p>
       </div>
       {children && <div className="flex flex-wrap items-center gap-x-3 gap-y-2">{children}</div>}
     </header>

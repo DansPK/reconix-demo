@@ -72,7 +72,7 @@ export function DocsSearch() {
                 className={`flex w-full flex-col gap-0.5 rounded-md px-2.5 py-1.5 text-left ${i === active ? "bg-surface" : ""}`}
               >
                 <span className="text-xs text-foreground">{r.title}</span>
-                <span className="truncate text-[11px] text-muted-foreground">{r.description}</span>
+                <span className="truncate text-micro text-muted-foreground">{r.description}</span>
               </button>
             </li>
           ))}

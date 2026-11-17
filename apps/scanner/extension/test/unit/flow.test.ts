@@ -152,3 +152,24 @@ test("fix_findings returns edits for the uploaded file with progress, and the ch
   assert.deepEqual(reply.action?.finding_ids, ["f0"]);
   await c.close();
 });
+
+test("a file that already holds its canned fix has no finding, even in a fresh session", async () => {
+  const h = new FakeHarness({ stepMs: 10, findings: [{ path: "server/config.js", start_line: 1, end_line: 1 }] });
+  await h.start();
+  const c = new HarnessClient(h.url, h.token);
+  const scanOnce = async (text: string) => {
+    const root = await makeTree({ "server/config.js": text });
+    const { session_id } = await c.createSession("workspace");
+    const p = await prepareWorkspace(c, session_id, root, settings);
+    const { scan_id } = await c.startScan(session_id, { upload_id: p.uploadId, deleted_paths: p.deleted });
+    await watchToEnd(c, scan_id, () => {});
+    return (await c.getFindings(session_id)).total;
+  };
+  try {
+    assert.equal(await scanOnce('const STRIPE_KEY = "sk_live_x";\n'), 1);
+    assert.equal(await scanOnce("const STRIPE_KEY = process.env.STRIPE_KEY;\r\n"), 0);
+  } finally {
+    await c.close();
+    await h.stop();
+  }
+});

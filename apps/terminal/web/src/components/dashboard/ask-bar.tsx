@@ -64,7 +64,7 @@ export function AskBar({ data }: { data: OverviewCards["ask"] }) {
         </button>
       </form>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 font-mono text-[10px] text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 font-mono text-micro text-muted-foreground">
         <span className="dash-chip h-[26px]">
           <ShieldCheck className={data.scope.ok ? "size-3 text-success" : "size-3 text-warning"} aria-hidden />
           {data.scope.text}

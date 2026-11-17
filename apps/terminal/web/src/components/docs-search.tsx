@@ -146,7 +146,7 @@ export function DocsSearch({ index }: { index: DocsSearchEntry[] }) {
             className={cn("flex cursor-pointer flex-col gap-0.5 rounded-md px-2.5 py-1.5 text-left", i === current && "bg-primary/6")}
           >
             <span className="text-sm text-foreground">{h.entry.title}</span>
-            <span className="truncate text-[11px] text-muted-foreground">{h.heading ?? h.entry.description}</span>
+            <span className="truncate text-micro text-muted-foreground">{h.heading ?? h.entry.description}</span>
           </li>
         ))}
       </ul>

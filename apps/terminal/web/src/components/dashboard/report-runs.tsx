@@ -128,7 +128,7 @@ export function ReportRuns({ runs, selection }: { runs: ReportRunRow[]; selectio
                             busy={file.kind === "generating" && file.of === runTitle(r) ? file.format : null}
                             onDownload={(uid, format) => download(exportRequest(uid, format, runTitle(r)))}
                             label={(title) => `Download the ${title} of ${r.id} (${r.when})`}
-                            className="h-[24px] px-2 text-[11px]"
+                            className="h-[24px] px-2 text-micro"
                           />
                         </span>
                       </td>

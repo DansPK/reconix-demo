@@ -184,7 +184,7 @@ export type ExecutionCard =
 
 /** One severity's count and its share of the card's total. */
 export type SeverityCount = { level: Severity; count: number; share: number; frac: number };
-export type TopFinding = { key: string; id: string; title: string; severity: Severity; score: number; run: string | null };
+export type TopFinding = { key: string; id: string; title: string; severity: Severity; score: number; run: string | null; host: string | null };
 
 /** Findings by Severity: CRITICAL, HIGH, MEDIUM and LOW (the whole scale), so its total is the
     summary strip's and the Findings view's. */

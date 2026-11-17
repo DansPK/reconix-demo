@@ -28,7 +28,7 @@ export function LiveRefresh({ renderedAt, dir, everyMs = DEFAULT_REFRESH_MS }: {
       <span
         data-live-refresh="off"
         title={`Live refresh is off (RECONIX_LIVE_REFRESH_MS). Reload to read ${dir} again.`}
-        className="dash-reveal hidden shrink-0 items-center gap-2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground md:flex"
+        className="dash-reveal hidden shrink-0 items-center gap-2 whitespace-nowrap font-mono text-micro uppercase tracking-[0.14em] text-muted-foreground md:flex"
       >
         <span aria-hidden className="inline-block size-1.5 rounded-full bg-muted-foreground" />
         <span>Updated {renderedAt}</span>
@@ -43,7 +43,7 @@ export function LiveRefresh({ renderedAt, dir, everyMs = DEFAULT_REFRESH_MS }: {
       onClick={() => setLive((v) => !v)}
       data-live-refresh={live ? "on" : "paused"}
       title={live ? `Reading ${dir} every ${seconds} seconds. Click to pause.` : `Paused. Click to read ${dir} every ${seconds} seconds.`}
-      className="dash-reveal hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-md font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:flex"
+      className="dash-reveal hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-md font-mono text-micro uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:flex"
     >
       <span
         aria-hidden

@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 export type { ChipOption };
 
 const CHIP =
-  "dash-chip h-[26px] gap-1.5 border px-2.5 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40";
+  "dash-chip h-[26px] gap-1.5 border px-2.5 text-micro transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40";
 
 /** A group of toggle chips. `multi`: any number may be on (empty = all); else exactly one. */
 export function FilterChips({
@@ -36,7 +36,7 @@ export function FilterChips({
   };
   return (
     <div role="group" aria-label={label} className="flex flex-wrap items-center gap-1.5">
-      <span className="mr-0.5 text-[11px] text-muted-foreground">{label}</span>
+      <span className="mr-0.5 text-micro text-muted-foreground">{label}</span>
       {options.map((o) => {
         const on = selected.includes(o.value);
         const color = o.color ?? toneColor("primary"); // a chip without a meaning of its own (a template)
@@ -95,7 +95,7 @@ export function FilterSummary({
   onClear: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2 text-[11px] text-muted-foreground" aria-live="polite">
+    <div className="flex items-center gap-2 text-micro text-muted-foreground" aria-live="polite">
       <span>
         Showing <span className="tabnums text-foreground">{shown}</span> of <span className="tabnums">{plural(total, noun)}</span>
         {extra && <span className="tabnums"> + {extra}</span>}

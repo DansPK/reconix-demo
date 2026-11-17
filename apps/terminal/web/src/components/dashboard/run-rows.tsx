@@ -31,18 +31,18 @@ export function RunRows({ data }: { data: Runs }) {
                   <span className="block truncate text-xs text-foreground" title={`${r.id} · ${r.template} · ${r.target}`}>
                     {r.id} · {r.template}
                   </span>
-                  <span className="block truncate font-mono text-[10px] text-muted-foreground">{r.when}</span>
+                  <span className="block truncate font-mono text-micro text-muted-foreground">{r.when}</span>
                 </span>
                 <StatusBadge meaning={meaning} className="justify-self-start" />
                 <span className="flex min-w-0 items-center gap-2">
                   <span className="dash-meter flex-1" aria-hidden>
                     <span data-bar-x style={{ width: `${r.progress}%`, background: toneColor("primary") }} />
                   </span>
-                  <span className="shrink-0 font-mono text-[10px] tabnums text-muted-foreground">
+                  <span className="shrink-0 font-mono text-micro tabnums text-muted-foreground">
                     {r.steps.done}/{r.steps.total}
                   </span>
                 </span>
-                <span className="text-right font-mono text-[10px] tabnums text-muted-foreground" title="Findings (false positives left out)">
+                <span className="text-right font-mono text-micro tabnums text-muted-foreground" title="Findings (false positives left out)">
                   {plural(r.findings, "finding")}
                 </span>
               </Link>
