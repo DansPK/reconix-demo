@@ -7,6 +7,7 @@
    given to the model, then Copy; "Stopped" after Stop, an error card with
    Retry when it failed, and a friendlier card (with Retry too) when the model returned nothing. */
 import { CircleStop } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { CardOf } from "@/lib/assistant/protocol";
 import { ReconixMark } from "@/components/ui/reconix-mark";
 import { useBreathPhase } from "./breath";
@@ -33,6 +34,31 @@ function ReplyMark({ live }: { live: boolean }) {
   return <ReconixMark size={26} className="ai-avatar" data-live={live ? "" : undefined} style={phase} />;
 }
 
+// what the "thinking" line says while the first words are on their way, one after another
+const THINKING = ["Reading the assessment", "Checking the findings", "Writing the answer"];
+const THINKING_STEP_MS = 900;
+
+/** Teal dots in a wave and a shimmering status line (the line fades between steps, never scales). */
+function Thinking() {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setStep((s) => Math.min(s + 1, THINKING.length - 1)), THINKING_STEP_MS);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <span className="ai-typing" role="status" aria-label="The assistant is answering">
+      <span className="ai-typing-dots" aria-hidden>
+        <span />
+        <span />
+        <span />
+      </span>
+      <span key={step} className="ai-typing-label" aria-hidden>
+        {THINKING[step]}…
+      </span>
+    </span>
+  );
+}
+
 export function Message({ m, onRetry }: { m: ChatMessage; onRetry?: () => void }) {
   if (m.role === "user") {
     return (
@@ -51,13 +77,7 @@ export function Message({ m, onRetry }: { m: ChatMessage; onRetry?: () => void }
         {m.cards?.map((card, i) => <CardView key={i} card={card} />)}
         {m.content ? <MessageText text={m.content} /> : null}
         {m.content.trim() ? <KnowledgeUsed names={m.knowledge} /> : null}
-        {waiting && (
-          <span className="ai-typing" role="status" aria-label="The assistant is answering">
-            <span />
-            <span />
-            <span />
-          </span>
-        )}
+        {waiting && <Thinking />}
         {m.state === "error" && <NoticeCard card={isEmptyReply(m) ? empty((m.cards?.length ?? 0) > 0) : failed(m.detail)} onRetry={onRetry} />}
         {m.state === "stopped" && (
           <span className="ai-stopped">
