@@ -131,10 +131,11 @@ switch ($Command) {
     }
     "web"     {
         Need-NodeModules (Join-Path $Tui "web"); Push-Location (Join-Path $Tui "web")
-        # Serve the same runs the TUI's /web shows (~/.reconix/assessments by default, or
-        # $env:RECONIX_DATA_DIR if set), so both launch paths open the identical dashboard. It is
-        # empty until you have run an assessment in the TUI; those autosave here.
-        if (-not $env:RECONIX_DATA_DIR) { $env:RECONIX_DATA_DIR = Join-Path $HOME ".reconix\assessments" }
+        # Prefer saved TUI runs when available. Fresh demos use the bundled sample data.
+        $savedDir = Join-Path $HOME ".reconix/assessments"
+        if (-not $env:RECONIX_DATA_DIR -and (Get-ChildItem -LiteralPath $savedDir -Filter '*.json' -File -ErrorAction SilentlyContinue | Select-Object -First 1)) {
+            $env:RECONIX_DATA_DIR = $savedDir
+        }
         npm run dev; break
     }
     "site"    { Need-NodeModules $Site; Push-Location $Site; npm run dev; break }
