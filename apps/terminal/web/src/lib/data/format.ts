@@ -50,6 +50,7 @@ export function longDuration(seconds: number): string {
 
 /** A scope time limit: "30 min", "2 h", "1 h 30 min". */
 export function minutesLimit(minutes: number): string {
+  if (minutes === 0) return "No time limit";
   if (minutes < 60) return `${minutes} min`;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;

@@ -117,6 +117,39 @@ test("cancel stops a running scan", async () => {
   await c.close();
 });
 
+test("source scans report the current six-tool pipeline without changing finding attribution", async () => {
+  const h = new FakeHarness({ stepMs: 100, findings: [{ path: "app.js", tools: ["semgrep"] }] });
+  await h.start();
+  const c = new HarnessClient(h.url, h.token);
+  try {
+    const root = await makeTree({ "app.js": "const query = input;" });
+    const { session_id } = await c.createSession("workspace");
+    const prepared = await prepareWorkspace(c, session_id, root, settings);
+    const { scan_id } = await c.startScan(session_id, { upload_id: prepared.uploadId });
+    const stages: string[] = [];
+    const percentages: number[] = [];
+    const result = await watchToEnd(c, scan_id, (percent, message) => {
+      const stage = message.split(" · ")[0].split(":")[0];
+      if (stages.at(-1) !== stage) stages.push(stage);
+      percentages.push(percent);
+    });
+    assert.deepEqual(stages, [
+      "Semgrep", "Gitleaks", "Trivy", "Grype", "OSV-Scanner", "Syft",
+      "Correlate findings and review evidence",
+    ]);
+    assert.ok(percentages.every((percent, i) => i === 0 || percent >= percentages[i - 1]));
+    assert.equal(result.status, "done");
+    assert.equal(result.stage, "finished");
+    assert.equal(result.percent, 100);
+    assert.deepEqual(result.counts, { high: 1 });
+    const { findings } = await c.getFindings(session_id);
+    assert.deepEqual(findings.map((f) => f.tools), [["semgrep"]]);
+  } finally {
+    await c.close();
+    await h.stop();
+  }
+});
+
 async function archiveNames() {
   const data = fake.lastUploadArchive()!;
   const file = path.join(await fs.mkdtemp(path.join(os.tmpdir(), "arc-")), "a.tar.gz");

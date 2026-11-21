@@ -2,6 +2,7 @@
    (derive-report.ts). One run: the summary strip, the assessment's details and plan, Findings by
    Severity and the findings table (the downloads come from its uid). Every run: the strip,
    Findings by Severity, the targets and a table of runs, each with its downloads. Types only. */
+import type { ReportVersion } from "@/lib/report/lifecycle";
 import type { Meaning } from "@/lib/status";
 import type { LibraryItem, Severity } from "@/lib/data/view-types";
 
@@ -35,6 +36,7 @@ export interface ReportFindingRow {
 
 /** A saved run in the runs table (a LibraryItem, so the run search reads it). */
 export interface ReportRunRow extends LibraryItem {
+  report?: ReportVersion | null;
   findings: number; // false positives left out
   worst: Severity | null;
   steps: { done: number; total: number };
@@ -59,6 +61,7 @@ export type ReportCards =
   | {
       mode: "run";
       uid: string;
+      reports: ReportVersion[];
       tag: string; // beside the title: "RCX-001 · 1.1.1.1"
       about: string;
       stats: Stat[];

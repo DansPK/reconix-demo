@@ -119,7 +119,7 @@ class FindingsListScreen(ReconixScreen):
                 triage_text(d), validation_text(d), Text(d.path, style=theme.MUTED),
                 Text(d.tool, style=theme.TEAL), reference_text(d), key=f.fid,
             )
-        confirmed = sum(1 for f in findings if not f.needs_review)
+        confirmed = sum(1 for f in findings if f.confirmed)
         self.query_one("#findings-label", Static).update(Text.assemble(
             ("◆ reconix ", theme.CYAN),
             (f"{_status_label()} · {counted(len(findings), 'finding')} · {confirmed} confirmed",

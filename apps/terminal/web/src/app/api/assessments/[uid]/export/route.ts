@@ -9,6 +9,7 @@ import { loadAssessment } from "@/lib/data/store";
 import { DocxTooLarge } from "@/lib/report/docx/ooxml";
 import { DOCX_TOO_LARGE, downloadHref, exportFileName, exportSpec, isExportFormat, NO_PRINTER } from "@/lib/report/formats";
 import { renderReportHtml } from "@/lib/report/html";
+import { formatLock, latestReport } from "@/lib/report/lifecycle";
 import { maskAssessment } from "@/lib/report/mask";
 import { renderPdf } from "@/lib/report/pdf";
 import { renderFile } from "@/lib/report/render";
@@ -23,6 +24,8 @@ export async function GET(request: Request, ctx: { params: Promise<{ uid: string
   const { uid } = await ctx.params;
   const saved = await loadAssessment(uid);
   if (!saved) return refuse("No such assessment.", 404);
+  const lock = formatLock(latestReport(saved.reports), format);
+  if (lock) return refuse(lock, 409);
   const assessment = maskAssessment(saved);
 
   const headers = {

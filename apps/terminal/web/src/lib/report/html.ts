@@ -12,7 +12,7 @@ import { type Assessment, type Finding, SEVERITIES as SEV_ORDER } from "@/lib/da
 import { FONT_FACES } from "./fonts";
 
 const SEV_CLASS: Record<string, string> = { CRITICAL: "crit", HIGH: "high", MEDIUM: "med", LOW: "low" };
-const VALIDATION_CLASS: Record<string, string> = { CONFIRMED: "confirmed", UNCONFIRMED: "unconfirmed", INCONCLUSIVE: "inconclusive" };
+const VALIDATION_CLASS: Record<string, string> = { CONFIRMED: "confirmed", VERIFIED: "confirmed", UNVERIFIED: "unconfirmed", UNCONFIRMED: "unconfirmed", INCONCLUSIVE: "inconclusive" };
 const STATUS_CLASS: Record<string, string> = { open: "open", fixed: "fixed", accepted: "accepted", "false-positive": "falsepos" };
 const STATUS_LABEL: Record<string, string> = { open: "Open", fixed: "Fixed", accepted: "Accepted", "false-positive": "False positive" };
 
@@ -63,6 +63,28 @@ export const status = (f: Pick<Finding, "status">) => {
   return `<span class="st ${own(STATUS_CLASS, s, "open")}">${esc(own(STATUS_LABEL, s, s))}</span>`;
 };
 const cvss = (f: Finding) => (f.cvss_score ? f.cvss_score.toFixed(1) : "—");
+
+/** Scanner matches and legacy validation labels are not independent verification proof. */
+export function findingVerification(f: Finding): string {
+  const verification = f.effective_verification;
+  if (verification && !verification.legacy) {
+    const state = verification.status;
+    if (state === "VERIFIED" && verification.proof_lines.length > 0) return "VERIFIED";
+    if (["NOT_REPRODUCED", "INCONCLUSIVE", "DEFERRED", "UNVERIFIED"].includes(state)) return state.replaceAll("_", " ");
+  }
+  return f.validation === "CONFIRMED" ? "Legacy, not verified" : "UNVERIFIED";
+}
+
+/** Shared report facts for HTML/PDF and Word, from the saved classification fields. */
+export function findingReviewFacts(f: Finding): [string, string][] {
+  return [
+    ["Classification", title((f.finding_category || "INSUFFICIENT_EVIDENCE").replaceAll("_", " "))],
+    ["Verification", title(findingVerification(f))],
+    ["Confidence", title(f.confidence_level || "UNKNOWN")],
+    ["Evidence quality", title(f.evidence_quality || "UNKNOWN")],
+    ["Exploitability", title(f.exploitability || "UNKNOWN")],
+  ];
+}
 
 /* --- the fixed stylesheet (identical to the TUI's report) ----------------------------------- */
 export const CSS = `
@@ -265,7 +287,7 @@ function scopeBlock(a: Assessment): string {
     `<dt>Allowed actions</dt><dd><div class="chips">${chips(s?.allowed_actions ?? [])}</div></dd>` +
     `<dt>Allowed methods</dt><dd><div class="chips">${chips(s?.allowed_methods ?? [])}</div></dd>` +
     `<dt>Excluded paths</dt><dd><div class="chips">${chips(s?.excluded_paths ?? [], " block") || '<span class="note">none</span>'}</div></dd>` +
-    `<dt>Time limit</dt><dd>${esc(s?.time_limit_minutes ?? 0)} minutes</dd>` +
+    `<dt>Time limit</dt><dd>${s?.time_limit_minutes ? `${esc(s.time_limit_minutes)} minutes` : "No time limit"}</dd>` +
     `<dt>Tools</dt><dd><div class="chips">${chips(s?.tools ?? [], " plain")}</div></dd></dl>`
   );
 }
@@ -277,14 +299,21 @@ function findingCard(f: Finding): string {
   const vector = f.cvss_vector ? `<div><dt>CVSS vector</dt><dd>${esc(f.cvss_vector)}</dd></div>` : "";
   const evidence = f.evidence.map(escPre).join("\n") || "—";
   const note = f.triage_note ? `<div class="fb"><span class="eyebrow">Analyst note</span><p>${esc(f.triage_note)}</p></div>` : "";
+  const review = findingReviewFacts(f).map(([label, value]) => `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("");
+  const verification = f.effective_verification;
+  const proof = verification && !verification.legacy
+    ? `<div class="fb"><span class="eyebrow">Verification proof (masked)</span><p>${esc(verification.reason || "No verification reason recorded.")}</p>` +
+      `<pre class="evidence">${verification.proof_lines.map(escPre).join("\n") || "No proof lines recorded."}</pre></div>`
+    : `<div class="fb"><span class="eyebrow">Verification</span><p>No independent verification proof was recorded. A scanner claim alone is not verified proof.</p></div>`;
   return (
     `<div class="find s-${cls}"><div class="find-head"><span class="find-id">${esc(f.id)}</span><h3>${esc(f.title)}</h3>` +
-    `${pill(f.severity)}${validation(f.validation)}${status(f)}${badge}</div><div class="find-body"><dl class="find-meta">` +
+    `${pill(f.severity)}${validation(findingVerification(f))}${status(f)}${badge}</div><div class="find-body"><dl class="find-meta">${review}` +
     `<div><dt>Affected asset</dt><dd>${esc(f.affected_url || "—")}</dd></div><div><dt>Location</dt><dd>${esc(f.path || "—")}</dd></div>` +
     `<div><dt>Category</dt><dd>${esc(f.category || "—")}</dd></div><div><dt>Detected by</dt><dd>${esc(f.tool || "—")}</dd></div>` +
     `<div><dt>Mapping</dt><dd>${mapping}</dd></div>${vector}</dl>` +
     `<div class="fb"><span class="eyebrow">Description</span><p>${esc(f.description)}</p></div>` +
     `<div class="fb"><span class="eyebrow">Evidence &amp; validation (masked)</span><pre class="evidence">${evidence}</pre></div>` +
+    proof +
     `<div class="fb"><span class="eyebrow">Impact</span><p>${esc(f.impact)}</p></div>` +
     `<div class="remediate"><span class="eyebrow">Remediation</span><p>${esc(f.remediation)}</p></div>${note}</div></div>`
   );

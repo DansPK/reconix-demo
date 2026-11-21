@@ -21,7 +21,7 @@
     "OWASP WSTG"
   ],
   "report_version": "1.0",
-  "created_at": "2026-09-29T11:41:04+00:00",
+  "created_at": "2026-09-29T11:35:46+00:00",
   "status": "Completed",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,8 +30,8 @@
   "session_closed": true,
   "run": {
     "phase": "completed",
-    "started_at": "2026-09-29T11:42:21+00:00",
-    "finished_at": "2026-09-29T11:53:53+00:00",
+    "started_at": "2026-09-29T11:36:50+00:00",
+    "finished_at": "2026-09-29T11:41:20+00:00",
     "completed": true,
     "requests": 541,
     "progress": {
@@ -40,39 +40,62 @@
       "scanning": 100,
       "validation": 100,
       "analysis": 100,
-      "report": 0
+      "report": 100
     },
-    "report_path": ""
+    "report_path": "./reports/RCX-002.json"
   },
   "login": {
-    "kind": "cookie",
-    "provided": true
+    "kind": "",
+    "provided": false
   },
   "plan": [
     {
       "key": "discovery",
       "label": "Map API surface",
-      "status": "done"
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "httpx",
+        "Katana",
+        "ffuf"
+      ]
     },
     {
       "key": "scanning",
       "label": "Scan endpoints",
-      "status": "done"
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "Nuclei",
+        "schemathesis"
+      ]
     },
     {
       "key": "validation",
       "label": "Validate authz & inputs",
-      "status": "done"
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "Nuclei",
+        "schemathesis",
+        "dalfox",
+        "testssl.sh",
+        "httpx"
+      ]
     },
     {
       "key": "analysis",
       "label": "Correlate & dedupe findings",
-      "status": "done"
+      "status": "done",
+      "detail": "",
+      "tools": []
     },
     {
       "key": "report",
       "label": "Generate report",
-      "status": "active"
+      "status": "done",
+      "detail": "",
+      "tools": []
     }
   ],
   "scope": {
@@ -94,11 +117,15 @@
       "/admin"
     ],
     "allowed_ports": [],
-    "time_limit_minutes": 30,
+    "time_limit_minutes": 0,
     "tools": [
+      "httpx",
+      "Katana",
+      "ffuf",
       "Nuclei",
-      "Postman",
-      "ZAP API scan"
+      "schemathesis",
+      "dalfox",
+      "testssl.sh"
     ]
   },
   "verdicts": [
@@ -107,35 +134,35 @@
       "path": "/internal/metrics",
       "allowed": false,
       "reason": "Path outside approved scope",
-      "at": "2026-09-29T11:45:34+00:00"
+      "at": "2026-09-29T11:38:15+00:00"
     },
     {
       "method": "GET",
       "path": "/v1/orders/8842",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:48:44+00:00"
+      "at": "2026-09-29T11:39:09+00:00"
     },
     {
       "method": "GET",
       "path": "/v1/orders/8842",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:48:55+00:00"
+      "at": "2026-09-29T11:39:14+00:00"
     },
     {
       "method": "GET",
       "path": "/v1/orders/8843",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:50:10+00:00"
+      "at": "2026-09-29T11:39:41+00:00"
     },
     {
       "method": "GET",
       "path": "/v1/orders/8843",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:50:29+00:00"
+      "at": "2026-09-29T11:39:55+00:00"
     }
   ],
   "approvals": [
@@ -171,7 +198,7 @@
       "operator": "analyst",
       "reason": "",
       "command_hash": "sha256:b036ca092336bd38dbffd0b9fab5092a39fe50c8141bf97a5dee1b6282880362",
-      "at": "2026-09-29T11:48:58+00:00"
+      "at": "2026-09-29T11:39:17+00:00"
     },
     {
       "request_id": "approval-002",
@@ -179,7 +206,7 @@
       "operator": "analyst",
       "reason": "",
       "command_hash": "sha256:2ebcdde9eb91c395d0411a6de1e435014e90c7a06bbc76bdeafca0a3afa506ea",
-      "at": "2026-09-29T11:50:36+00:00"
+      "at": "2026-09-29T11:40:02+00:00"
     }
   ],
   "findings": [
@@ -206,7 +233,18 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "HIGH",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "001",
@@ -218,7 +256,7 @@
       "affected_url": "https://api.lumina.com/v1/orders/8842",
       "impact": "Any authenticated client could read other tenants' records.",
       "remediation": "Check resource ownership on the server for every object id.",
-      "tool": "ZAP API scan",
+      "tool": "Nuclei",
       "references": [
         "OWASP API1:2023",
         "CWE-639"
@@ -241,7 +279,34 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "MEDIUM",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "CONFIRMED_VULNERABILITY",
+      "confidence_level": "HIGH",
+      "evidence_quality": "HIGH",
+      "verification_status": "CONFIRMED",
+      "effective_verification": {
+        "status": "VERIFIED",
+        "verifier": "authorization_comparison",
+        "subject": {
+          "label": "/v1/orders/{id}"
+        },
+        "proof_lines": [
+          "GET /v1/orders/8842 as token A → HTTP 200",
+          "owner: tenant_••7 · email: b•••@lumina.com"
+        ],
+        "legacy": false
+      },
+      "exploitability": "DEMONSTRATED",
+      "classification_uncertainty": "",
+      "validation_method": "authorization_comparison",
+      "validation_reason": "The recorded comparison demonstrates the reported behavior.",
+      "validation_proof": [
+        "GET /v1/orders/8842 as token A → HTTP 200",
+        "owner: tenant_••7 · email: b•••@lumina.com"
+      ],
+      "source_claims": [
+        "Nuclei: Broken object-level authorization"
+      ]
     },
     {
       "id": "002",
@@ -275,7 +340,25 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "MEDIUM",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "POTENTIAL_VULNERABILITY",
+      "confidence_level": "MEDIUM",
+      "evidence_quality": "MEDIUM",
+      "verification_status": "UNCONFIRMED",
+      "effective_verification": {
+        "status": "UNVERIFIED",
+        "reason": "The scanner observation requires an independent validation step.",
+        "proof_lines": [],
+        "legacy": false
+      },
+      "exploitability": "PLAUSIBLE",
+      "classification_uncertainty": "The scanner observation requires an independent validation step.",
+      "validation_method": "",
+      "validation_reason": "The scanner observation requires an independent validation step.",
+      "validation_proof": [],
+      "source_claims": [
+        "Nuclei: Missing authorization on export endpoint"
+      ]
     },
     {
       "id": "IMP-002",
@@ -300,7 +383,18 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "MEDIUM",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "IMP-003",
@@ -325,7 +419,18 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "MEDIUM",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "IMP-008",
@@ -350,7 +455,18 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "MEDIUM",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "003",
@@ -362,7 +478,7 @@
       "affected_url": "https://api.lumina.com/v1/auth/login",
       "impact": "Enables credential-stuffing against the API.",
       "remediation": "Add per-IP and per-account rate limiting with backoff.",
-      "tool": "Postman",
+      "tool": "httpx",
       "references": [
         "OWASP API4:2023",
         "CWE-307"
@@ -384,7 +500,25 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "LOW",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "POTENTIAL_VULNERABILITY",
+      "confidence_level": "MEDIUM",
+      "evidence_quality": "MEDIUM",
+      "verification_status": "UNCONFIRMED",
+      "effective_verification": {
+        "status": "UNVERIFIED",
+        "reason": "The scanner observation requires an independent validation step.",
+        "proof_lines": [],
+        "legacy": false
+      },
+      "exploitability": "PLAUSIBLE",
+      "classification_uncertainty": "The scanner observation requires an independent validation step.",
+      "validation_method": "",
+      "validation_reason": "The scanner observation requires an independent validation step.",
+      "validation_proof": [],
+      "source_claims": [
+        "httpx: No rate limiting on login"
+      ]
     },
     {
       "id": "IMP-004",
@@ -409,7 +543,18 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "LOW",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "IMP-005",
@@ -434,7 +579,18 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "LOW",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "IMP-006",
@@ -459,7 +615,18 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "LOW",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "IMP-007",
@@ -484,7 +651,18 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "LOW",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "IMP-009",
@@ -509,13 +687,39 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "LOW",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
+    }
+  ],
+  "reports": [
+    {
+      "report_id": "20260929-112000-8c51_RCX-002-v1",
+      "version": 1,
+      "report_status": "READY",
+      "review_status": "APPROVED",
+      "signed_off": true,
+      "formats": [
+        "PDF",
+        "DOCX",
+        "JSON"
+      ],
+      "generated_at": "2026-09-29T11:41:39+00:00"
     }
   ],
   "timeline": [
     {
-      "seq": 50,
-      "at": "2026-09-29T11:40:55+00:00",
+      "seq": 54,
+      "at": "2026-09-29T11:35:39+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -524,8 +728,8 @@
       "rows": []
     },
     {
-      "seq": 51,
-      "at": "2026-09-29T11:40:59+00:00",
+      "seq": 55,
+      "at": "2026-09-29T11:35:42+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -534,8 +738,8 @@
       "rows": []
     },
     {
-      "seq": 52,
-      "at": "2026-09-29T11:41:25+00:00",
+      "seq": 56,
+      "at": "2026-09-29T11:36:05+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
@@ -544,8 +748,8 @@
       "rows": []
     },
     {
-      "seq": 53,
-      "at": "2026-09-29T11:41:46+00:00",
+      "seq": 57,
+      "at": "2026-09-29T11:36:18+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -554,8 +758,8 @@
       "rows": []
     },
     {
-      "seq": 54,
-      "at": "2026-09-29T11:41:49+00:00",
+      "seq": 58,
+      "at": "2026-09-29T11:36:25+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -564,8 +768,8 @@
       "rows": []
     },
     {
-      "seq": 55,
-      "at": "2026-09-29T11:41:56+00:00",
+      "seq": 59,
+      "at": "2026-09-29T11:36:31+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -574,8 +778,8 @@
       "rows": []
     },
     {
-      "seq": 56,
-      "at": "2026-09-29T11:42:01+00:00",
+      "seq": 60,
+      "at": "2026-09-29T11:36:35+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -584,8 +788,8 @@
       "rows": []
     },
     {
-      "seq": 57,
-      "at": "2026-09-29T11:42:09+00:00",
+      "seq": 61,
+      "at": "2026-09-29T11:36:40+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -594,8 +798,8 @@
       "rows": []
     },
     {
-      "seq": 58,
-      "at": "2026-09-29T11:42:14+00:00",
+      "seq": 62,
+      "at": "2026-09-29T11:36:45+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -604,8 +808,8 @@
       "rows": []
     },
     {
-      "seq": 59,
-      "at": "2026-09-29T11:42:25+00:00",
+      "seq": 63,
+      "at": "2026-09-29T11:36:54+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -614,8 +818,8 @@
       "rows": []
     },
     {
-      "seq": 60,
-      "at": "2026-09-29T11:42:32+00:00",
+      "seq": 64,
+      "at": "2026-09-29T11:37:01+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -624,8 +828,8 @@
       "rows": []
     },
     {
-      "seq": 61,
-      "at": "2026-09-29T11:42:54+00:00",
+      "seq": 65,
+      "at": "2026-09-29T11:37:12+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -634,8 +838,8 @@
       "rows": []
     },
     {
-      "seq": 62,
-      "at": "2026-09-29T11:43:02+00:00",
+      "seq": 66,
+      "at": "2026-09-29T11:37:20+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -644,8 +848,8 @@
       "rows": []
     },
     {
-      "seq": 63,
-      "at": "2026-09-29T11:43:12+00:00",
+      "seq": 67,
+      "at": "2026-09-29T11:37:23+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -654,8 +858,8 @@
       "rows": []
     },
     {
-      "seq": 64,
-      "at": "2026-09-29T11:43:30+00:00",
+      "seq": 68,
+      "at": "2026-09-29T11:37:35+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -664,18 +868,18 @@
       "rows": []
     },
     {
-      "seq": 65,
-      "at": "2026-09-29T11:43:45+00:00",
+      "seq": 69,
+      "at": "2026-09-29T11:37:43+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: Nuclei, Postman and ZAP API scan. Preparing requests with test data. Public surface first.",
+      "text": "Selected tools: httpx, Katana, ffuf, Nuclei, schemathesis, dalfox and testssl.sh. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 66,
-      "at": "2026-09-29T11:43:55+00:00",
+      "seq": 70,
+      "at": "2026-09-29T11:37:48+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -684,18 +888,18 @@
       "rows": []
     },
     {
-      "seq": 67,
-      "at": "2026-09-29T11:44:05+00:00",
+      "seq": 71,
+      "at": "2026-09-29T11:37:51+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
-      "text": "Executing permitted scan · ZAP API scan",
+      "text": "Executing permitted scan · Katana",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 68,
-      "at": "2026-09-29T11:44:16+00:00",
+      "seq": 72,
+      "at": "2026-09-29T11:37:55+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -704,8 +908,8 @@
       "rows": []
     },
     {
-      "seq": 69,
-      "at": "2026-09-29T11:44:53+00:00",
+      "seq": 73,
+      "at": "2026-09-29T11:38:03+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -727,8 +931,8 @@
       ]
     },
     {
-      "seq": 70,
-      "at": "2026-09-29T11:45:01+00:00",
+      "seq": 74,
+      "at": "2026-09-29T11:38:07+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -737,8 +941,8 @@
       "rows": []
     },
     {
-      "seq": 71,
-      "at": "2026-09-29T11:45:22+00:00",
+      "seq": 75,
+      "at": "2026-09-29T11:38:12+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -747,8 +951,8 @@
       "rows": []
     },
     {
-      "seq": 72,
-      "at": "2026-09-29T11:45:43+00:00",
+      "seq": 76,
+      "at": "2026-09-29T11:38:29+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -757,8 +961,8 @@
       "rows": []
     },
     {
-      "seq": 73,
-      "at": "2026-09-29T11:45:46+00:00",
+      "seq": 77,
+      "at": "2026-09-29T11:38:32+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -767,8 +971,8 @@
       "rows": []
     },
     {
-      "seq": 74,
-      "at": "2026-09-29T11:45:54+00:00",
+      "seq": 78,
+      "at": "2026-09-29T11:38:39+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -777,12 +981,12 @@
       "rows": []
     },
     {
-      "seq": 75,
-      "at": "2026-09-29T11:46:10+00:00",
+      "seq": 79,
+      "at": "2026-09-29T11:38:44+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
-      "text": "Scan · Nuclei, Postman and ZAP API scan",
+      "text": "Scan · httpx, Katana, ffuf, Nuclei, schemathesis, dalfox and testssl.sh",
       "tone": "default",
       "rows": [
         [
@@ -796,58 +1000,8 @@
       ]
     },
     {
-      "seq": 76,
-      "at": "2026-09-29T11:46:19+00:00",
-      "type": "activity",
-      "who": "AI",
-      "kind": "line",
-      "text": "Login needed for /v1/orders/*: a session cookie (for Postman and ZAP API scan)",
-      "tone": "warn",
-      "rows": []
-    },
-    {
-      "seq": 77,
-      "at": "2026-09-29T11:46:32+00:00",
-      "type": "chat",
-      "who": "policy",
-      "kind": "banner",
-      "text": "Further testing requires a target login.",
-      "tone": "warn",
-      "rows": []
-    },
-    {
-      "seq": 78,
-      "at": "2026-09-29T11:46:45+00:00",
-      "type": "activity",
-      "who": "USER",
-      "kind": "line",
-      "text": "Target login stored (cookie)",
-      "tone": "ok",
-      "rows": []
-    },
-    {
-      "seq": 79,
-      "at": "2026-09-29T11:47:08+00:00",
-      "type": "chat",
-      "who": "reconix",
-      "kind": "text",
-      "text": "Test session configured. Continuing within approved scope.",
-      "tone": "muted",
-      "rows": []
-    },
-    {
       "seq": 80,
-      "at": "2026-09-29T11:47:23+00:00",
-      "type": "activity",
-      "who": "POLICY",
-      "kind": "line",
-      "text": "Continuing within approved scope",
-      "tone": "ok",
-      "rows": []
-    },
-    {
-      "seq": 81,
-      "at": "2026-09-29T11:47:54+00:00",
+      "at": "2026-09-29T11:38:52+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -856,8 +1010,8 @@
       "rows": []
     },
     {
-      "seq": 82,
-      "at": "2026-09-29T11:48:05+00:00",
+      "seq": 81,
+      "at": "2026-09-29T11:38:58+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -866,8 +1020,8 @@
       "rows": []
     },
     {
-      "seq": 83,
-      "at": "2026-09-29T11:48:27+00:00",
+      "seq": 82,
+      "at": "2026-09-29T11:39:02+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -876,8 +1030,8 @@
       "rows": []
     },
     {
-      "seq": 84,
-      "at": "2026-09-29T11:49:04+00:00",
+      "seq": 83,
+      "at": "2026-09-29T11:39:19+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -886,8 +1040,8 @@
       "rows": []
     },
     {
-      "seq": 85,
-      "at": "2026-09-29T11:49:24+00:00",
+      "seq": 84,
+      "at": "2026-09-29T11:39:30+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -896,8 +1050,8 @@
       "rows": []
     },
     {
-      "seq": 86,
-      "at": "2026-09-29T11:49:31+00:00",
+      "seq": 85,
+      "at": "2026-09-29T11:39:34+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -906,8 +1060,8 @@
       "rows": []
     },
     {
-      "seq": 87,
-      "at": "2026-09-29T11:49:52+00:00",
+      "seq": 86,
+      "at": "2026-09-29T11:39:37+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -916,8 +1070,8 @@
       "rows": []
     },
     {
-      "seq": 88,
-      "at": "2026-09-29T11:50:41+00:00",
+      "seq": 87,
+      "at": "2026-09-29T11:40:09+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -926,8 +1080,8 @@
       "rows": []
     },
     {
-      "seq": 89,
-      "at": "2026-09-29T11:51:05+00:00",
+      "seq": 88,
+      "at": "2026-09-29T11:40:20+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -936,8 +1090,8 @@
       "rows": []
     },
     {
-      "seq": 90,
-      "at": "2026-09-29T11:51:16+00:00",
+      "seq": 89,
+      "at": "2026-09-29T11:40:26+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -946,8 +1100,8 @@
       "rows": []
     },
     {
-      "seq": 91,
-      "at": "2026-09-29T11:51:41+00:00",
+      "seq": 90,
+      "at": "2026-09-29T11:40:34+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -956,8 +1110,8 @@
       "rows": []
     },
     {
-      "seq": 92,
-      "at": "2026-09-29T11:51:52+00:00",
+      "seq": 91,
+      "at": "2026-09-29T11:40:38+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -966,8 +1120,8 @@
       "rows": []
     },
     {
-      "seq": 93,
-      "at": "2026-09-29T11:52:07+00:00",
+      "seq": 92,
+      "at": "2026-09-29T11:40:42+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "check",
@@ -976,8 +1130,8 @@
       "rows": []
     },
     {
-      "seq": 94,
-      "at": "2026-09-29T11:52:20+00:00",
+      "seq": 93,
+      "at": "2026-09-29T11:40:47+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -986,8 +1140,8 @@
       "rows": []
     },
     {
-      "seq": 95,
-      "at": "2026-09-29T11:52:40+00:00",
+      "seq": 94,
+      "at": "2026-09-29T11:40:55+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -996,8 +1150,8 @@
       "rows": []
     },
     {
-      "seq": 96,
-      "at": "2026-09-29T11:52:53+00:00",
+      "seq": 95,
+      "at": "2026-09-29T11:41:01+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -1006,8 +1160,8 @@
       "rows": []
     },
     {
-      "seq": 97,
-      "at": "2026-09-29T11:53:15+00:00",
+      "seq": 96,
+      "at": "2026-09-29T11:41:05+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -1016,8 +1170,8 @@
       "rows": []
     },
     {
-      "seq": 98,
-      "at": "2026-09-29T11:53:29+00:00",
+      "seq": 97,
+      "at": "2026-09-29T11:41:10+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -1026,8 +1180,8 @@
       "rows": []
     },
     {
-      "seq": 99,
-      "at": "2026-09-29T11:53:38+00:00",
+      "seq": 98,
+      "at": "2026-09-29T11:41:14+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -1036,21 +1190,61 @@
       "rows": []
     },
     {
-      "seq": 100,
-      "at": "2026-09-29T11:53:45+00:00",
+      "seq": 99,
+      "at": "2026-09-29T11:41:17+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
       "text": "Open the report (8 or /report) to export it.",
       "tone": "muted",
       "rows": []
+    },
+    {
+      "seq": 100,
+      "at": "2026-09-29T11:41:43+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Report format: JSON",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 101,
+      "at": "2026-09-29T11:41:47+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Report saved · ./reports/RCX-002.json",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 102,
+      "at": "2026-09-29T11:41:52+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Report saved: ./reports/RCX-002.json.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 103,
+      "at": "2026-09-29T11:42:00+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Report v1 review approved; downloads unlocked",
+      "tone": "ok",
+      "rows": []
     }
   ],
   "requests": [
     {
       "text": "Test the REST API at https://api.lumina.com/v2 for security issues.",
-      "at": "2026-09-29T11:41:19+00:00"
+      "at": "2026-09-29T11:35:57+00:00"
     }
   ],
-  "saved_at": "2026-09-29T11:54:08+00:00"
+  "saved_at": "2026-09-29T11:42:22+00:00"
 }

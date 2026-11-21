@@ -43,6 +43,24 @@ export const FindingSchema = z.object({
   severity_override: text.default(""),
   effective_severity: text.default(""),
   triage_note: text.default(""),
+  finding_category: text.default("INSUFFICIENT_EVIDENCE"),
+  confidence_level: text.default("UNKNOWN"),
+  evidence_quality: text.default("UNKNOWN"),
+  verification_status: text.default("UNKNOWN"),
+  effective_verification: z.object({
+    status: text,
+    verifier: text.optional(),
+    subject: z.object({ label: text }).optional(),
+    reason: text.optional(),
+    proof_lines: z.array(text),
+    legacy: z.boolean(),
+  }).nullable().default(null),
+  exploitability: text.default("UNKNOWN"),
+  classification_uncertainty: text.default(""),
+  validation_method: text.default(""),
+  validation_reason: text.default(""),
+  validation_proof: z.array(text).default([]),
+  source_claims: z.array(text).default([]),
 });
 
 const ScopeSchema = z.object({
@@ -113,7 +131,8 @@ const SavedAssessmentSchema = z.object({
     report_path: text,
   }),
   login: z.object({ kind: text, provided: z.boolean() }),
-  plan: z.array(z.object({ key: text, label: text, status: z.enum(["pending", "active", "done"]) })),
+  plan: z.array(z.object({ key: text, label: text, status: z.enum(["pending", "active", "done"]),
+    detail: text.default(""), tools: z.array(text).default([]) })),
   scope: ScopeSchema.nullable(),
   verdicts: z.array(z.object({ method: text, path: text, allowed: z.boolean(), reason: text, at: isoTime.nullable() })),
   approvals: z.array(
@@ -141,6 +160,15 @@ const SavedAssessmentSchema = z.object({
     }),
   ),
   findings: z.array(FindingSchema),
+  reports: z.array(z.object({
+    report_id: text,
+    version: z.number().int().positive(),
+    report_status: z.enum(["GENERATING", "READY", "FAILED"]),
+    review_status: text.nullable(),
+    signed_off: z.boolean(),
+    formats: z.array(z.enum(["PDF", "DOCX", "JSON"])),
+    generated_at: isoTime.nullable(),
+  })).default([]),
   timeline: z.array(TimelineEntrySchema),
   requests: z.array(z.object({ text, at: isoTime.nullable() })),
 });

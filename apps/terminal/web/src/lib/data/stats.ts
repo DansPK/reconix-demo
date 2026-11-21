@@ -28,7 +28,7 @@ export interface ApprovalRow {
   decision: Decision | null;
 }
 
-export const isConfirmed = (f: Finding) => f.validation === "CONFIRMED";
+export const isConfirmed = (f: Finding) => !isFalsePositive(f) && f.finding_category === "CONFIRMED_VULNERABILITY";
 
 // --- analyst triage ----------------------------------------------------------------------
 
@@ -42,8 +42,8 @@ export function effectiveSeverity(f: Finding): Severity {
 /** Triage statuses that take a finding out of the open risk; anything else counts as open. */
 const CLOSED_TRIAGE: ReadonlySet<string> = new Set(["fixed", "accepted", "false-positive"]);
 
-export const isFalsePositive = (f: Finding) => f.status === "false-positive";
-export const isOpen = (f: Finding) => !CLOSED_TRIAGE.has(f.status);
+export const isFalsePositive = (f: Finding) => f.status === "false-positive" || f.finding_category === "FALSE_POSITIVE";
+export const isOpen = (f: Finding) => !isFalsePositive(f) && !CLOSED_TRIAGE.has(f.status);
 /** Still open and not confirmed: what the analyst has left to look at. */
 export const needsReview = (f: Finding) => isOpen(f) && !isConfirmed(f);
 

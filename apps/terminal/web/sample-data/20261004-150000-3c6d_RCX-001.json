@@ -17,11 +17,11 @@
   "client": "Lumina",
   "mode": "Grey-box, Authorized",
   "methodology": [
-    "OWASP WSTG",
-    "OWASP Top 10 (2021)"
+    "Guided by OWASP WSTG",
+    "OWASP Top 10 (2025)"
   ],
   "report_version": "1.0",
-  "created_at": "2026-10-04T15:00:22+00:00",
+  "created_at": "2026-10-04T15:00:19+00:00",
   "status": "Running",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,7 +30,7 @@
   "session_closed": false,
   "run": {
     "phase": "testing",
-    "started_at": "2026-10-04T15:01:26+00:00",
+    "started_at": "2026-10-04T15:01:24+00:00",
     "finished_at": null,
     "completed": false,
     "requests": 312,
@@ -50,24 +50,52 @@
   },
   "plan": [
     {
-      "key": "recon",
-      "label": "Reconnaissance",
-      "status": "done"
-    },
-    {
       "key": "discovery",
-      "label": "Content discovery",
-      "status": "active"
+      "label": "Map the site",
+      "status": "active",
+      "detail": "",
+      "tools": [
+        "whatweb",
+        "Katana",
+        "ffuf"
+      ]
     },
     {
       "key": "scanning",
-      "label": "Vulnerability scanning",
-      "status": "pending"
+      "label": "Scan for weaknesses",
+      "status": "pending",
+      "detail": "",
+      "tools": [
+        "Nuclei",
+        "testssl.sh",
+        "nikto"
+      ]
     },
     {
       "key": "validation",
-      "label": "Finding validation",
-      "status": "pending"
+      "label": "Validate findings",
+      "status": "pending",
+      "detail": "",
+      "tools": [
+        "Nuclei",
+        "dalfox",
+        "testssl.sh",
+        "httpx"
+      ]
+    },
+    {
+      "key": "analysis",
+      "label": "Correlate & dedupe findings",
+      "status": "pending",
+      "detail": "",
+      "tools": []
+    },
+    {
+      "key": "report",
+      "label": "Generate report",
+      "status": "pending",
+      "detail": "",
+      "tools": []
     }
   ],
   "scope": {
@@ -88,10 +116,16 @@
       "/admin"
     ],
     "allowed_ports": [],
-    "time_limit_minutes": 30,
+    "time_limit_minutes": 0,
     "tools": [
+      "whatweb",
+      "httpx",
+      "Katana",
       "Nuclei",
-      "OWASP ZAP"
+      "testssl.sh",
+      "ffuf",
+      "nikto",
+      "dalfox"
     ]
   },
   "verdicts": [],
@@ -111,10 +145,11 @@
   ],
   "decisions": [],
   "findings": [],
+  "reports": [],
   "timeline": [
     {
       "seq": 1,
-      "at": "2026-10-04T15:00:10+00:00",
+      "at": "2026-10-04T15:00:08+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -124,7 +159,7 @@
     },
     {
       "seq": 2,
-      "at": "2026-10-04T15:00:17+00:00",
+      "at": "2026-10-04T15:00:14+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -134,7 +169,7 @@
     },
     {
       "seq": 3,
-      "at": "2026-10-04T15:00:39+00:00",
+      "at": "2026-10-04T15:00:34+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
@@ -144,7 +179,7 @@
     },
     {
       "seq": 4,
-      "at": "2026-10-04T15:00:52+00:00",
+      "at": "2026-10-04T15:00:54+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -154,7 +189,7 @@
     },
     {
       "seq": 5,
-      "at": "2026-10-04T15:00:58+00:00",
+      "at": "2026-10-04T15:01:00+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -164,7 +199,7 @@
     },
     {
       "seq": 6,
-      "at": "2026-10-04T15:01:05+00:00",
+      "at": "2026-10-04T15:01:03+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -174,7 +209,7 @@
     },
     {
       "seq": 7,
-      "at": "2026-10-04T15:01:09+00:00",
+      "at": "2026-10-04T15:01:10+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -184,7 +219,7 @@
     },
     {
       "seq": 8,
-      "at": "2026-10-04T15:01:16+00:00",
+      "at": "2026-10-04T15:01:14+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -194,7 +229,7 @@
     },
     {
       "seq": 9,
-      "at": "2026-10-04T15:01:21+00:00",
+      "at": "2026-10-04T15:01:20+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -204,7 +239,7 @@
     },
     {
       "seq": 10,
-      "at": "2026-10-04T15:01:30+00:00",
+      "at": "2026-10-04T15:01:31+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -214,7 +249,7 @@
     },
     {
       "seq": 11,
-      "at": "2026-10-04T15:01:35+00:00",
+      "at": "2026-10-04T15:01:34+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -224,7 +259,7 @@
     },
     {
       "seq": 12,
-      "at": "2026-10-04T15:02:00+00:00",
+      "at": "2026-10-04T15:01:42+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -234,7 +269,7 @@
     },
     {
       "seq": 13,
-      "at": "2026-10-04T15:02:09+00:00",
+      "at": "2026-10-04T15:01:46+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -244,7 +279,7 @@
     },
     {
       "seq": 14,
-      "at": "2026-10-04T15:02:20+00:00",
+      "at": "2026-10-04T15:01:53+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -254,7 +289,7 @@
     },
     {
       "seq": 15,
-      "at": "2026-10-04T15:02:44+00:00",
+      "at": "2026-10-04T15:02:03+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -264,17 +299,17 @@
     },
     {
       "seq": 16,
-      "at": "2026-10-04T15:02:56+00:00",
+      "at": "2026-10-04T15:02:08+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: Nuclei and OWASP ZAP. Preparing requests with test data. Public surface first.",
+      "text": "Selected tools: whatweb, httpx, Katana, Nuclei, testssl.sh, ffuf, nikto and dalfox. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 17,
-      "at": "2026-10-04T15:03:02+00:00",
+      "at": "2026-10-04T15:02:16+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -284,17 +319,17 @@
     },
     {
       "seq": 18,
-      "at": "2026-10-04T15:03:16+00:00",
+      "at": "2026-10-04T15:02:21+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
-      "text": "Executing permitted scan · OWASP ZAP",
+      "text": "Executing permitted scan · Katana",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 19,
-      "at": "2026-10-04T15:03:29+00:00",
+      "at": "2026-10-04T15:02:25+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -304,7 +339,7 @@
     },
     {
       "seq": 20,
-      "at": "2026-10-04T15:04:00+00:00",
+      "at": "2026-10-04T15:02:32+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -314,7 +349,7 @@
     },
     {
       "seq": 21,
-      "at": "2026-10-04T15:04:12+00:00",
+      "at": "2026-10-04T15:02:38+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -326,8 +361,8 @@
   "requests": [
     {
       "text": "Assess https://checkout.lumina.com for web security issues.",
-      "at": "2026-10-04T15:00:27+00:00"
+      "at": "2026-10-04T15:00:23+00:00"
     }
   ],
-  "saved_at": "2026-10-04T15:04:16+00:00"
+  "saved_at": "2026-10-04T15:02:46+00:00"
 }

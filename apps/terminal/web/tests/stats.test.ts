@@ -15,6 +15,7 @@ import {
   filterAssessments,
   idleInterrupted,
   isConfirmed,
+  isFalsePositive,
   isLive,
   isOpen,
   labelTimeline,
@@ -48,7 +49,7 @@ describe("overview", () => {
     expect(stats.assessments).toBe(list.length);
     expect(stats.findings).toBe(findings.length);
     expect(stats.confirmed + stats.review).toBe(findings.length);
-    expect(stats.confirmed).toBe(findings.filter((f) => f.validation === "CONFIRMED").length);
+    expect(stats.confirmed).toBe(findings.filter((f) => f.finding_category === "CONFIRMED_VULNERABILITY").length);
     expect(stats.checks).toBe(list.reduce((n, a) => n + a.verdicts.length, 0));
     expect(stats.blocked).toBe(list.flatMap((a) => a.verdicts).filter((v) => !v.allowed).length);
     expect(stats.requests).toBe(list.reduce((n, a) => n + a.run.requests, 0));
@@ -149,7 +150,7 @@ describe("attentionItems", () => {
       run(base, "c1", "Completed"),
     ];
     const { items, runs } = attentionItems(many);
-    const review = many.flatMap((a) => a.findings).filter((f) => f.validation !== "CONFIRMED").length;
+    const review = many.flatMap((a) => a.findings).filter((f) => f.finding_category !== "CONFIRMED_VULNERABILITY").length;
     expect(runs).toBe(5);
     const order = items.map((i) => (i.kind === "review" ? "review" : i.assessment.uid));
     expect(order).toEqual(review ? ["w1", "review", "s1", "i1", "w2", "w3"] : ["w1", "s1", "i1", "w2", "w3"]);
@@ -157,13 +158,13 @@ describe("attentionItems", () => {
 
   it("counts the findings still for review", () => {
     const item = attentionItems(list).items.find((i) => i.kind === "review");
-    const review = findings.filter((f) => f.validation !== "CONFIRMED");
+    const review = findings.filter((f) => f.finding_category !== "CONFIRMED_VULNERABILITY");
     if (!review.length) expect(item).toBeUndefined();
     else expect(item).toMatchObject({ kind: "review", count: review.length });
   });
 
   it("is empty when nothing needs attention", () => {
-    const calm = list.map((a) => ({ ...a, status: "Completed" as const, findings: a.findings.filter((f) => f.validation === "CONFIRMED") }));
+    const calm = list.map((a) => ({ ...a, status: "Completed" as const, findings: a.findings.filter((f) => f.finding_category === "CONFIRMED_VULNERABILITY") }));
     expect(attentionItems(calm)).toEqual({ items: [], runs: 0 });
   });
 });
@@ -258,9 +259,9 @@ describe("analyst triage", () => {
   });
 
   it("leaves triaged findings out of review", () => {
-    expect(needsReview({ ...fp, validation: "UNCONFIRMED", status: "fixed" })).toBe(false);
-    expect(needsReview({ ...fp, validation: "UNCONFIRMED", status: "open" })).toBe(true);
-    expect(needsReview({ ...fp, validation: "CONFIRMED", status: "open" })).toBe(false);
+    expect(needsReview({ ...fp, validation: "UNCONFIRMED", finding_category: "POTENTIAL_VULNERABILITY", status: "fixed" })).toBe(false);
+    expect(needsReview({ ...fp, validation: "UNCONFIRMED", finding_category: "POTENTIAL_VULNERABILITY", status: "open" })).toBe(true);
+    expect(needsReview({ ...fp, validation: "CONFIRMED", finding_category: "CONFIRMED_VULNERABILITY", status: "open" })).toBe(false);
   });
 
   it("overview: false positives left out, review and CVSS from open findings", () => {
@@ -332,6 +333,15 @@ describe("average testing time", () => {
 });
 
 describe("a false positive", () => {
+  it("excludes a classified false positive even before its triage status changes", () => {
+    const run = list.find((a) => a.findings.length > 1)!;
+    const finding = { ...run.findings[0], finding_category: "FALSE_POSITIVE", status: "open" };
+    expect(isFalsePositive(finding)).toBe(true);
+    expect(isOpen(finding)).toBe(false);
+    expect(needsReview(finding)).toBe(false);
+    expect(isConfirmed(finding)).toBe(false);
+    expect(overview([{ ...run, findings: [finding] }]).findings).toBe(0);
+  });
   it("is kept with its note, and left out of every count", () => {
     // a sample run with one of its findings marked as a false positive, as the TUI's triage saves it
     const run = list.find((a) => a.findings.length > 1)!;

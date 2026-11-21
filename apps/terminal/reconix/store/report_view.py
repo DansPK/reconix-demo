@@ -184,10 +184,15 @@ def scope_rows(data: Dict[str, Any]) -> List[Tuple[str, str]]:
     if scope.get("allowed_ports"):
         rows.append(("Allowed ports", ", ".join(str(p) for p in scope["allowed_ports"])))
     rows += [
-        ("Time limit", f"{scope.get('time_limit_minutes', 0)} minutes"),
+        ("Time limit", time_limit(scope.get("time_limit_minutes", 0))),
         ("Tools", ", ".join(scope.get("tools", [])) or "—"),
     ]
     return rows
+
+
+def time_limit(minutes: int) -> str:
+    """Zero means an unlimited assessment window, matching Core scope semantics."""
+    return f"{minutes} minutes" if minutes else "No time limit"
 
 
 def blocked_rows(data: Dict[str, Any]) -> List[List[str]]:

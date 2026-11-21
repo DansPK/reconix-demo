@@ -48,7 +48,7 @@ from .providers import (
 )
 from .report import (
     assessment_summary, generate_report, list_report_formats, list_report_sections,
-    report_data,
+    report_data, sign_off_report,
 )
 from .replies import (
     ScopeChoices, answer_scope_change, asks_about_decision, decision_reply, step_reply,
@@ -115,7 +115,7 @@ __all__ = [
     "FINDING_FILTERS", "FINDING_SORTS", "find_findings", "filter_counts", "filter_label",
     "sort_label", "severity_counts", "key_findings",
     "list_report_formats", "list_report_sections", "report_data", "generate_report",
-    "assessment_summary",
+    "assessment_summary", "sign_off_report",
     "retest", "severity_trend", "compare_findings", "previous_assessment",
     # transcript, audit, history
     "list_chat", "last_exchange", "list_activity",

@@ -10,6 +10,7 @@ import { Download } from "lucide-react";
 import { FileStatus } from "@/components/dashboard/report-file";
 import { type FileRequest, useFileDownload } from "@/components/dashboard/use-file-download";
 import { downloadHref, EXPORT_FORMATS, type ExportFormat, exportFileName } from "@/lib/report/formats";
+import { formatLock, reportLock, type ReportVersion } from "@/lib/report/lifecycle";
 import { cn } from "@/lib/utils";
 
 /** What fetching run `uid`'s report as `format` asks for; `of` names the run in the messages. */
@@ -31,8 +32,10 @@ export function ExportButtons({
   onDownload,
   label,
   className,
+  report,
 }: {
   uid: string;
+  report?: ReportVersion | null;
   busy: ExportFormat | null;
   onDownload: (uid: string, format: ExportFormat) => void;
   label?: (title: string) => string; // each button's accessible name, from the format's title
@@ -45,10 +48,11 @@ export function ExportButtons({
           key={f.id}
           type="button"
           data-export={f.id}
-          title={f.blurb}
+          title={formatLock(report, f.id) ?? f.blurb}
           aria-label={label?.(f.title)}
           aria-busy={busy === f.id || undefined}
-          onClick={() => onDownload(uid, f.id)}
+          aria-disabled={Boolean(busy || formatLock(report, f.id)) || undefined}
+          onClick={() => { if (!busy && !formatLock(report, f.id)) onDownload(uid, f.id); }}
           className={cn(CHIP, className)}
         >
           {f.label}
@@ -58,7 +62,7 @@ export function ExportButtons({
   );
 }
 
-export function ReportDownloads({ uid }: { uid: string }) {
+export function ReportDownloads({ uid, report }: { uid: string; report?: ReportVersion | null }) {
   const { file, download, retry } = useFileDownload();
   const busy = file.kind === "generating" ? file.format : null;
   return (
@@ -67,8 +71,9 @@ export function ReportDownloads({ uid }: { uid: string }) {
         <span className="mr-0.5 inline-flex items-center gap-1 text-muted-foreground">
           <Download className="size-3.5" aria-hidden /> Download
         </span>
-        <ExportButtons uid={uid} busy={busy} onDownload={(u, f) => download(exportRequest(u, f))} className="h-[28px] px-3" />
+        <ExportButtons uid={uid} report={report} busy={busy} onDownload={(u, f) => download(exportRequest(u, f))} className="h-[28px] px-3" />
       </nav>
+      {reportLock(report) && <span role="status" className="text-xs text-muted-foreground">{reportLock(report)}</span>}
       <FileStatus state={file} onRetry={retry} />
     </div>
   );

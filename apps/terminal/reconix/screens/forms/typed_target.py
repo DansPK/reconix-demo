@@ -1,4 +1,4 @@
-"""TYPE THE TARGET — an optional last step of approving a HIGH-risk action.
+"""TYPE THE TARGET — the required last step of approving a HIGH-risk action.
 
 The store approves it only when the person types the action's exact target; the app never
 fills it in. One field, empty at first. It runs after the two-step HIGH gate (the single-use

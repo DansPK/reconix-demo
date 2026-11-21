@@ -9,7 +9,7 @@ from textual.widgets import Static
 from .. import theme
 from ..models import Finding
 from ..store import SEVERITY_ORDER
-from ..store.redact import redact, redact_lines
+from ..store.redact import redact, redact_all, redact_lines
 
 
 def mask(text: str) -> str:
@@ -41,6 +41,12 @@ def for_display(finding: Finding) -> Finding:
         references=redact_lines(list(finding.references)),
         evidence=redact_lines(list(finding.evidence)),
         triage_note=mask(finding.triage_note),
+        classification_uncertainty=mask(finding.classification_uncertainty),
+        validation_method=mask(finding.validation_method),
+        validation_reason=mask(finding.validation_reason),
+        validation_proof=redact_lines(list(finding.validation_proof)),
+        source_claims=redact_lines(list(finding.source_claims)),
+        effective_verification=redact_all(finding.effective_verification),
     )
 
 
@@ -52,12 +58,18 @@ def severity_text(finding: Finding) -> Text:
 
 
 def validation_text(finding: Finding) -> Text:
-    color, glyph = theme.STATUS.get(finding.validation, (theme.MUTED, "○"))
-    return Text(f"{glyph} {finding.validation}", style=f"bold {color}")
+    status = (finding.effective_verification or {}).get("status", "UNVERIFIED")
+    verified = status == "VERIFIED" and bool(finding.validation_proof)
+    label = status if status != "VERIFIED" or verified else "UNVERIFIED"
+    if label == "UNVERIFIED" and finding.validation == "CONFIRMED":
+        label = "UNVERIFIED (legacy, not verified)"
+    return Text(f"{'✓' if verified else '○'} {label}",
+                style=f"bold {theme.TEAL if verified else theme.MUTED}")
 
 
 def triage_text(finding: Finding) -> Text:
-    color, label = theme.TRIAGE.get(finding.status, (theme.MUTED, finding.status))
+    status = "false-positive" if finding.false_positive else finding.status
+    color, label = theme.TRIAGE.get(status, (theme.MUTED, status))
     return Text(label, style=color)
 
 

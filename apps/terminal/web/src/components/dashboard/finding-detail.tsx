@@ -89,6 +89,11 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
             ["Tool", f.tool],
             ["Weakness", f.cwe],
             ["Category", f.category || "—"],
+            ["Classification", (f.findingCategory || "INSUFFICIENT_EVIDENCE").replaceAll("_", " ")],
+            ["Confidence", f.confidenceLevel || "UNKNOWN"],
+            ["Evidence quality", f.evidenceQuality || "UNKNOWN"],
+            ["Verification", f.verificationStatus || "UNVERIFIED"],
+            ["Exploitability", f.exploitability || "UNKNOWN"],
           ].map(([k, v]) => (
             <div key={k} className="flex flex-col">
               <dt className="text-muted-foreground">{k}</dt>
@@ -145,6 +150,26 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
               {f.remediation.map((r) => (
                 <li key={r}>{r}</li>
               ))}
+            </ul>
+          </section>
+        )}
+
+        <section>
+          <h3 className="mb-1.5 text-small font-medium text-foreground">Verification proof</h3>
+          <p className={cn("text-sm text-muted-foreground", WRAP)}>
+            {f.validationReason || "No independent verification was recorded. A scanner claim alone is not verified proof."}
+          </p>
+          {f.validationMethod && <p className="text-xs text-muted-foreground">Method: {f.validationMethod}</p>}
+          {(f.validationProof?.length ?? 0) > 0 && (
+            <pre className="mt-2 overflow-x-auto text-xs text-muted-foreground">{f.validationProof!.join("\n")}</pre>
+          )}
+          {f.classificationUncertainty && <p className={cn("mt-2 text-sm text-muted-foreground", WRAP)}>{f.classificationUncertainty}</p>}
+        </section>
+        {(f.sourceClaims?.length ?? 0) > 0 && (
+          <section>
+            <h3 className="mb-1.5 text-small font-medium text-foreground">Scanner claims</h3>
+            <ul className={cn("list-disc pl-5 text-sm text-muted-foreground", WRAP)}>
+              {f.sourceClaims!.map((claim, index) => <li key={index}>{claim}</li>)}
             </ul>
           </section>
         )}

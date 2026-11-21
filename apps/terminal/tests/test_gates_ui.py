@@ -13,7 +13,7 @@ from .support import (
     SIZE, TEST_PASSWORD, auth_values, choose_by_keys, event_kinds, pass_gate, run_ui_to, settle,
 )
 
-API_REQUEST = "test the API at https://api.example.com/v1"   # the template that still signs in
+API_REQUEST = "test the API at https://api.example.com/v1 with Postman"   # the template that still signs in
 
 
 def screen_text(app) -> str:

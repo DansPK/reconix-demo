@@ -7,6 +7,8 @@
    route, so its Preview/Generate would 404. Server component. */
 import { FindingsCard } from "@/components/dashboard/findings-card";
 import { ReportDetails } from "@/components/dashboard/report-details";
+import { ReportVersions } from "@/components/dashboard/report-versions";
+import { latestReport } from "@/lib/report/lifecycle";
 import { ReportDownloads } from "@/components/dashboard/report-downloads";
 import { ReportFindings } from "@/components/dashboard/report-findings";
 import { ReportRuns } from "@/components/dashboard/report-runs";
@@ -20,12 +22,13 @@ export function ReportsView({ data }: { data: ReportCards }) {
   return (
     <div className="dash-view dash-sheet" data-mode={data.mode}>
       <ViewHeader title="Report" tag={data.tag} about={data.about}>
-        {data.mode === "run" && <ReportDownloads uid={data.uid} />}
+        {data.mode === "run" && <ReportDownloads uid={data.uid} report={latestReport(data.reports)} />}
         <DocsLink href={DOCS.exporting}>Report format</DocsLink>
       </ViewHeader>
       <StatStrip stats={data.stats} label="Report summary" />
       {data.mode === "run" ? (
         <div className="dash-panels">
+          <ReportVersions reports={data.reports} />
           <ReportDetails details={data.details} plan={data.plan} />
           <FindingsCard id="report-severity" data={data.findings} />
           <ReportFindings rows={data.rows} />

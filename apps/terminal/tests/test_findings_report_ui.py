@@ -123,6 +123,18 @@ async def test_the_report_offers_pdf_json_and_docx_only(app):
         assert ids == ["pdf", "json", "docx"]
 
 
+async def test_report_signoff_is_a_separate_operator_action(app):
+    run_to(None)
+    store.generate_report("json")
+    async with app.run_test(size=SIZE) as pilot:
+        await show(app, pilot, "report")
+        assert not store.get_assessment().report_signed_off
+        await pilot.press("a")
+        await settle(pilot)
+        assert store.get_assessment().report_signed_off
+        assert "downloads unlocked" in " ".join(str(w.render()) for w in app.screen.query(Static))
+
+
 async def test_export_json_then_open_it(app, opened):
     async with app.run_test(size=SIZE) as pilot:
         await run_ui_to(app, pilot, None)

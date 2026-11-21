@@ -45,13 +45,17 @@ def test_in_scope_targets_are_allowed(approved_scope, target):
 
 
 def test_requests_stop_once_the_time_limit_has_passed(approved_scope):
+    lists.current().scope.time_limit_minutes = 30
     lists.current().run.started_at -= timedelta(minutes=31)
     verdict = store.check_request("GET", "/products")
     assert (verdict.allowed, verdict.reason) == (False, "Time limit reached")
 
 
 def test_the_run_stops_when_the_time_limit_has_passed():
-    run_to("plan")                                           # scope approved, at the plan gate
+    run_to("scope")
+    store.edit_scope(time_limit_minutes=30)
+    decide("scope")
+    assert play_until_gate() == "plan"
     decide("plan")                                           # run the plan; the scan begins
     lists.current().run.started_at -= timedelta(hours=1)
     assert play_until_gate() is None                         # the time limit stops the run

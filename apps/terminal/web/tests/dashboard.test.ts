@@ -161,8 +161,8 @@ describe("event badges", () => {
     expect(eventBadge("finding", "Candidate F-001 · hardcoded secret", { ...at, who: "AI" })).toEqual({ type: "severity", level: "HIGH" });
   });
   it("gives approved and rejected only to the operator's own lines", () => {
-    // a line from the sample runs: the policy continuing inside the approved scope is no approval
-    const line = samples.flatMap((a) => a.timeline).find((e) => e.text === "Continuing within approved scope")!;
+    // Policy narration containing "approved" must never become an operator approval.
+    const line = { who: "POLICY", tone: "ok", text: "Continuing within approved scope" };
     expect(line.who).toBe("POLICY");
     expect(badge(line.who, line.tone, line.text)).toEqual({ type: "status", meaning: EVENT_KIND.scope });
     expect(badge("AI", "default", "Scope approved by the policy engine")).not.toEqual({ type: "status", meaning: APPROVAL_STATE.APPROVED });
@@ -266,24 +266,27 @@ describe("deriveDashboard", () => {
   it("merges the same tool's back-to-back steps into one segment", () => {
     const run = {
       ...completed,
+      scope: { ...completed.scope!, tools: ["Nuclei", "Katana"] },
       timeline: [
         line(completed, 0, "TOOL", "Executing permitted scan · Nuclei"),
         line(completed, 10, "TOOL", "Nuclei: checks on the permitted surface"),
-        line(completed, 20, "TOOL", "Executing permitted scan · OWASP ZAP"),
+        line(completed, 20, "TOOL", "Executing permitted scan · Katana"),
       ],
     };
-    expect(executionOf(run).tools.map((s) => s.label)).toEqual(["Nuclei", "OWASP ZAP"]);
-    expect(deriveDashboard(assessmentView(run)).cards.summary.tools.tools).toEqual(["Nuclei", "OWASP ZAP"]);
+    expect(executionOf(run).tools.map((s) => s.label)).toEqual(["Nuclei", "Katana"]);
+    expect(deriveDashboard(assessmentView(run)).cards.summary.tools.tools).toEqual(["Nuclei", "Katana"]);
   });
 
   it("flags time over the scope's limit", () => {
-    const late = { ...completed, run: { ...completed.run, finished_at: new Date(Date.parse(completed.run.started_at!) + 3 * 3_600_000).toISOString() } };
+    const limited = { ...completed, scope: { ...completed.scope!, time_limit_minutes: 30 } };
+    const late = { ...limited, run: { ...limited.run, finished_at: new Date(Date.parse(completed.run.started_at!) + 3 * 3_600_000).toISOString() } };
     const d = deriveDashboard(assessmentView(late));
     expect(d.minutes.over).toBe(true);
     expect(d.cards.summary.duration.over).toBe(1);
     expect(d.cards.summary.duration.meter).toEqual({ frac: 1, over: true });
     expect(deriveDashboard(assessmentView(completed)).cards.summary.duration.over).toBe(0);
-    expect(deriveDashboard(assessmentView(completed)).cards.summary.duration.meter?.over).toBe(false);
+    expect(deriveDashboard(assessmentView(limited)).cards.summary.duration.meter?.over).toBe(false);
+    expect(deriveDashboard(assessmentView(completed)).cards.summary.duration.meter).toBeNull();
   });
 
   it("draws no time axis for a run with no log yet, and says so", () => {

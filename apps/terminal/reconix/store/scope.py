@@ -118,9 +118,9 @@ def edit_scope(*, allowed_methods=None, excluded_paths=None, time_limit_minutes=
             minutes = int(time_limit_minutes)
         except (TypeError, ValueError):
             raise StoreValidationError("The time limit is a number of minutes.") from None
-        if not 1 <= minutes <= MAX_TIME_LIMIT:
+        if not 0 <= minutes <= MAX_TIME_LIMIT:
             raise StoreValidationError(
-                f"Keep the time limit between 1 and {MAX_TIME_LIMIT} minutes.")
+                f"Keep the time limit between 0 and {MAX_TIME_LIMIT} minutes (0 = no limit).")
         scope.time_limit_minutes = minutes
 
     if tools is not None:
@@ -140,7 +140,7 @@ def time_limit_reached() -> bool:
     """True once testing has run longer than the scope's time limit."""
     scope = get_scope()
     started = lists.current().run.started_at
-    if scope is None or started is None:
+    if scope is None or started is None or scope.time_limit_minutes == 0:
         return False
     return utc_now() - started > timedelta(minutes=scope.time_limit_minutes)
 

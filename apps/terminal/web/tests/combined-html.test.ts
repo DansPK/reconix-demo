@@ -9,7 +9,7 @@ import type { Assessment } from "@/lib/data/schema";
 import { renderCombinedHtml } from "@/lib/report/combined/html";
 import { DEFAULT_COMBINE_OPTIONS } from "@/lib/report/combined/options";
 import { combineAssessments } from "@/lib/report/combined/select";
-import { esc, escPre, renderReportHtml } from "@/lib/report/html";
+import { esc, escPre, renderReportHtml, validation } from "@/lib/report/html";
 import { maskAssessment } from "@/lib/report/mask";
 
 import { sampleAssessments } from "./fixtures";
@@ -182,7 +182,8 @@ describe("the single report", () => {
     const a = all.find((x) => x.findings.length > 0)!;
     const out = renderReportHtml({ ...a, findings: [{ ...a.findings[0], status: "constructor", severity: "HIGH", validation: "toString" }] });
     expect(out).toContain('<span class="st open">constructor</span>');
-    expect(out).toContain('<span class="val inconclusive">tostring</span>');
+    expect(out).toContain('<span class="val unconfirmed">Unverified</span>');
+    expect(validation("toString")).toBe('<span class="val inconclusive">tostring</span>');
     expect(out).not.toContain("function Object");
   });
 });

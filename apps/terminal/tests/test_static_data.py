@@ -103,10 +103,8 @@ def test_every_value_is_in_its_allowed_set(completed):
                                            else ["MEDIUM", "HIGH"])
     assert len({a.request_id for a in approvals}) == len(approvals)
     statuses = {task.key: task.status for task in store.plan_tasks()}
-    # web_url's plan ends at validation (recon/discovery/scanning/validation); the other
-    # templates still plan the analysis + report tail, with report active until it is exported.
-    if template_id != "web_url":
-        assert statuses.pop("report") == "active"
+    # Every backend template includes analysis and report; export completes the report phase.
+    assert statuses.pop("report") == "active"
     assert set(statuses.values()) == {"done"}
 
 

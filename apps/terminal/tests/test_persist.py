@@ -87,7 +87,7 @@ def test_no_secret_reaches_the_saved_file():
                 token = store.request_confirmation(request.request_id, request.command_hash)
                 tokens.append(token)
                 store.approve(request.request_id, command_hash=request.command_hash,
-                              confirmation_token=token)
+                              confirmation_token=token, typed_target=request.target)
             else:
                 store.approve(request.request_id, command_hash=request.command_hash)
         else:

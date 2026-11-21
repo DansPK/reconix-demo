@@ -1,7 +1,7 @@
 /* The shapes the dashboard reads: one saved assessment, mapped by adapt.ts into the terms the
    viewer uses (log lines with a kind, findings with display fields, the scope as lists).
    Types only, so client components may import them freely. */
-import type { Severity, Status } from "./schema";
+import type { Assessment, Severity, Status } from "./schema";
 import type { StreamItem } from "./thinking";
 
 export type { Severity, Status };
@@ -43,6 +43,16 @@ export interface FindingView {
   evidenceUnmasked: EvidenceLine[];   // raw values, shown when the detail view is unmasked (demo)
   remediation: string[];
   references: string[];
+  findingCategory?: string;
+  confidenceLevel?: string;
+  evidenceQuality?: string;
+  verificationStatus?: string;
+  exploitability?: string;
+  classificationUncertainty?: string;
+  validationMethod?: string;
+  validationReason?: string;
+  validationProof?: string[];
+  sourceClaims?: string[];
 }
 
 export type ApprovalState = "APPROVED" | "REJECTED" | "PENDING" | "NOT REACHED";
@@ -95,6 +105,7 @@ export interface AssessmentView {
   log: LogLine[];
   stream: StreamItem[]; // the whole timeline: messages, the steps between them folded (thinking.ts)
   findings: FindingView[];
+  reports?: Assessment["reports"];
   scope: ScopeView | null;
   apiSpec: { label: string; endpoints: number } | null; // the attached OpenAPI file, if any
   approvals: ApprovalView[];

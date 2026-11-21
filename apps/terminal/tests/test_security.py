@@ -25,7 +25,7 @@ def test_a_secret_never_prints_itself():
 
 
 def test_the_stored_account_never_shows_the_password():
-    run_to(None, "test the API at https://api.example.com/v1")   # the API run stores a cookie
+    run_to(None, "test the API at https://api.example.com/v1 with Postman")   # the API run stores a cookie
     account = lists.current().vault[-1]
     assert TEST_PASSWORD not in repr(account)
     assert TEST_PASSWORD not in repr(dataclasses.asdict(account))
@@ -48,8 +48,8 @@ def test_only_the_newest_confirmation_token_works():
     first = store.request_confirmation(HIGH, request.command_hash)
     second = store.request_confirmation(HIGH, request.command_hash)
     with pytest.raises(store.StoreValidationError):
-        store.approve(HIGH, command_hash=request.command_hash, confirmation_token=first)
-    store.approve(HIGH, command_hash=request.command_hash, confirmation_token=second)
+        store.approve(HIGH, command_hash=request.command_hash, confirmation_token=first, typed_target=request.target)
+    store.approve(HIGH, command_hash=request.command_hash, confirmation_token=second, typed_target=request.target)
 
 
 def test_a_high_token_is_not_given_for_a_medium_action():

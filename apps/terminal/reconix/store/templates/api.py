@@ -4,6 +4,13 @@ from ...models import Finding, ScopeManifest, Template
 from ...models.parser import ParsedTarget
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 
+TOOLS = ["httpx", "Katana", "ffuf", "Nuclei", "schemathesis", "dalfox", "testssl.sh"]
+PHASE_TOOLS = {
+    'discovery': ('httpx', 'Katana', 'ffuf'),
+    'scanning': ('Nuclei', 'schemathesis'),
+    'validation': ('Nuclei', 'schemathesis', 'dalfox', 'testssl.sh', 'httpx'),
+}
+
 SPEC = Template("api", "API", "REST and GraphQL endpoints",
                 target_hint="the API's base URL", example="https://api.lumina.com/v1")
 
@@ -14,8 +21,8 @@ def build_scope(parsed: ParsedTarget) -> ScopeManifest:
         allowed_actions=["Endpoint discovery", "auth checks", "limited validation"],
         allowed_methods=["GET", "POST"],
         excluded_paths=["/internal", "/admin"],
-        time_limit_minutes=30,
-        tools=["Nuclei", "Postman", "ZAP API scan"],
+        time_limit_minutes=0,  # no limit unless the operator sets one
+        tools=list(TOOLS),
     )
 
 
@@ -27,7 +34,7 @@ def _findings(url: str) -> list:
             affected_url=f"{url}/v1/orders/8842",
             impact="Any authenticated client could read other tenants' records.",
             remediation="Check resource ownership on the server for every object id.",
-            tool="ZAP API scan", references=["OWASP API1:2023", "CWE-639"],
+            tool="Nuclei", references=["OWASP API1:2023", "CWE-639"],
             cvss_score=6.5, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
             category="API",
             evidence=["GET /v1/orders/8842 as token A → HTTP 200",
@@ -51,7 +58,7 @@ def _findings(url: str) -> list:
             affected_url=f"{url}/v1/auth/login",
             impact="Enables credential-stuffing against the API.",
             remediation="Add per-IP and per-account rate limiting with backoff.",
-            tool="Postman", references=["OWASP API4:2023", "CWE-307"],
+            tool="httpx", references=["OWASP API4:2023", "CWE-307"],
             cvss_score=3.7, cvss_vector="CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
             category="API",
             evidence=["50 POST /v1/auth/login in 5s · all answered 401, none throttled"],
@@ -71,7 +78,7 @@ def build_run(assessment) -> RunBundle:
     findings = _findings(url)
     profile = RunProfile(
         target_kind="API service", tools=scope.tools,
-        discovery_tool="ZAP API scan",
+        discovery_tool="Katana",
         discovery_card=("Discovery · API",
                         (("Endpoints", str(spec.total) if spec else "24"),
                          ("Auth scheme", "Bearer"), ("GraphQL", "no"))),
@@ -114,5 +121,5 @@ def build_run(assessment) -> RunBundle:
     )
     return RunBundle(scope=scope, script=build_rest(profile),
                      approvals=[profile.medium, profile.high], findings=findings,
-                     login_2fa=profile.login_2fa, plan=make_plan(profile.plan),
+                     login_2fa=profile.login_2fa, plan=make_plan(profile.plan, PHASE_TOOLS),
                      methodology=list(profile.methodology))

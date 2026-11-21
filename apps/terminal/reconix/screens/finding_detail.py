@@ -98,12 +98,21 @@ class FindingDetailScreen(ReconixScreen):
                 for line in lines:
                     yield _para(line, theme.STRING)
                 yield Static("")
+                yield _heading("Verification", theme.TEXT)
+                status = (d.effective_verification or {}).get("status", "UNVERIFIED")
+                yield _para(f"{status} · {d.validation_method or 'not independently tested'}")
+                yield _para(d.validation_reason)
+                for line in d.validation_proof:
+                    yield _para(line, theme.STRING)
+                yield Static("")
                 if d.needs_review:
                     note = (f"○ {d.validation.title()} — needs analyst review. Press t to set "
                             "its status.", theme.MEDIUM)
+                elif d.confirmed:
+                    note = ("✓ Classified vulnerability · recorded proof shown above.", theme.TEAL)
                 else:
-                    note = ("✓ Confirmed during the run by the limited validation you "
-                            "approved.", theme.TEAL)
+                    state = "false-positive" if d.false_positive else d.status
+                    note = (f"Triage: {state}. No verified vulnerability is claimed.", theme.DIM)
                 yield Static(Text(*note), classes="panel-note")
             with Vertical(classes="panel") as analysis:
                 analysis.border_title = "✦ AI ANALYSIS"
@@ -118,7 +127,15 @@ class FindingDetailScreen(ReconixScreen):
                 yield _para(d.remediation)
                 yield Static("")
                 yield _heading("Classification", theme.LOW)
+                yield _para(d.display_category.replace("_", " ").title())
+                yield _para(f"Confidence: {d.confidence_level} · Evidence: {d.evidence_quality}")
+                yield _para(f"Exploitability: {d.exploitability}")
+                if d.classification_uncertainty:
+                    yield _para(d.classification_uncertainty)
                 yield _para(f"{d.category or '—'} · {d.cvss_vector or 'not scored'}")
+                yield _heading("Scanner claims", theme.DIM)
+                for claim in d.source_claims:
+                    yield _para(claim)
                 for ref in d.references:
                     yield Static(Text.assemble(("• ", theme.DIM), (ref, theme.KEY)))
                 if d.triage_note:

@@ -13,6 +13,7 @@ from ...models import GATE_SCOPE, GATE_TEMPLATE, RunStep, Template
 from .. import lists
 from ..activity import log_event
 from ..errors import StoreValidationError
+from ..finding_facts import classify_fixtures
 from ..scenario import log
 from ..tools import approved_tool
 from . import api, network, source, web_url
@@ -82,6 +83,7 @@ def apply_template(template_id: str, *, auto: bool = False) -> Template:
     assessment.scope = bundle.scope
     assessment.approvals = bundle.approvals
     assessment.findings = bundle.findings
+    classify_fixtures(template_id, assessment.findings)
     assessment.login_2fa = bundle.login_2fa
     assessment.plan = bundle.plan or []
     assessment.methodology = bundle.methodology or []
@@ -112,6 +114,10 @@ def align_to_scope(assessment) -> None:
         rebuild(assessment)
     for finding in assessment.findings:
         finding.tool = approved_tool(finding.tool, assessment.scope.tools)
+    approved = {tool.casefold() for tool in assessment.scope.tools}
+    for task in assessment.plan:
+        task.tools = tuple(tool for tool in task.tools if tool.casefold() in approved)
+    classify_fixtures(assessment.selected_template, assessment.findings)
 
 
 def _with_intent(assessment, script: List[RunStep]) -> List[RunStep]:

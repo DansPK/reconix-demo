@@ -5,6 +5,13 @@ from ...models.parser import ParsedTarget
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 from ..scenario import card, log, say
 
+TOOLS = ["whatweb", "httpx", "Katana", "Nuclei", "testssl.sh", "ffuf", "nikto", "dalfox"]
+PHASE_TOOLS = {
+    'discovery': ('whatweb', 'Katana', 'ffuf'),
+    'scanning': ('Nuclei', 'testssl.sh', 'nikto'),
+    'validation': ('Nuclei', 'dalfox', 'testssl.sh', 'httpx'),
+}
+
 SPEC = Template("web_url", "Web URL", "Web application at a URL",
                 target_hint="the site's URL", example="https://shop.lumina.com")
 
@@ -15,8 +22,8 @@ def build_scope(parsed: ParsedTarget) -> ScopeManifest:
         allowed_actions=["Discovery", "vulnerability scanning", "limited validation"],
         allowed_methods=["GET", "POST"],
         excluded_paths=["/admin"],
-        time_limit_minutes=30,
-        tools=["Nuclei", "OWASP ZAP"],
+        time_limit_minutes=0,  # no limit unless the operator sets one
+        tools=list(TOOLS),
     )
 
 
@@ -103,7 +110,7 @@ def _findings(url: str) -> list:
             remediation="Require authentication on the order endpoints and enforce a per-user "
                         "ownership check on every lookup; return 404 for orders the caller "
                         "does not own.",
-            tool="OWASP ZAP",
+            tool="Nuclei",
             references=["OWASP A01:2021", "OWASP API1:2023", "CWE-639"],
             cvss_score=7.5, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
             category="Web App",
@@ -129,7 +136,7 @@ def _findings(url: str) -> list:
             affected_url=f"{url}/login",
             impact="Weakens protection against cross-site request forgery.",
             remediation="Set SameSite=Lax (or Strict) on the session cookie.",
-            tool="OWASP ZAP", references=["OWASP A05:2021", "CWE-1275"],
+            tool="Nuclei", references=["OWASP A05:2021", "CWE-1275"],
             cvss_score=3.1, cvss_vector="CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:N/A:N",
             category="Web App",
             evidence=["Set-Cookie: session=••••••••; Secure; HttpOnly"],
@@ -182,7 +189,7 @@ def build_run(assessment) -> RunBundle:
     findings = _findings(url)
     profile = RunProfile(
         target_kind="web application", tools=scope.tools,
-        discovery_tool="OWASP ZAP",
+        discovery_tool="Katana",
         discovery_card=("Discovery · $tool",
                         (("Public pages", "18"), ("Forms", "4"), ("API endpoints", "6"))),
         discovery_requests=(312, 241),
@@ -220,13 +227,12 @@ def build_run(assessment) -> RunBundle:
         findings=findings,
         analysis_steps=("Correlating findings", "Mapping to OWASP & CWE",
                         "Masking sensitive evidence"),
-        # The reviewable plan shows only the assessment phases; the run still correlates findings
-        # and produces the report, but those are not steps the operator plans/approves.
-        plan=(("recon", "Reconnaissance"),
-              ("discovery", "Content discovery"),
-              ("scanning", "Vulnerability scanning"),
-              ("validation", "Finding validation")),
-        methodology=("OWASP WSTG", "OWASP Top 10 (2021)"),
+        plan=(("discovery", "Map the site"),
+              ("scanning", "Scan for weaknesses"),
+              ("validation", "Validate findings"),
+              ("analysis", "Correlate & dedupe findings"),
+              ("report", "Generate report")),
+        methodology=("Guided by OWASP WSTG", "OWASP Top 10 (2025)"),
         exploit_fid="004",
         exploit_beat=(
             say("SQL injection confirmed on /api/v1/products. The q parameter reaches the "
@@ -241,5 +247,5 @@ def build_run(assessment) -> RunBundle:
     )
     return RunBundle(scope=scope, script=build_rest(profile),
                      approvals=[profile.medium], findings=findings,
-                     login_2fa=profile.login_2fa, plan=make_plan(profile.plan),
+                     login_2fa=profile.login_2fa, plan=make_plan(profile.plan, PHASE_TOOLS),
                      methodology=list(profile.methodology))

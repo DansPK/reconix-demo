@@ -10,7 +10,7 @@ from textual.widgets import Button, DataTable, Static
 
 from .base import ReconixScreen
 from .. import store, theme
-from ..widgets.findings import cvss_text, severity_bars, severity_text, triage_text
+from ..widgets.findings import cvss_text, severity_bars, severity_text, triage_text, validation_text
 
 # (format id, key, label): a button and a key per report format (PDF, JSON, DOCX), the same
 # three that /export offers. The bindings and the buttons are both built from this.
@@ -34,7 +34,7 @@ def key_finding_rows() -> List[Tuple[Text, ...]]:
         rows.append((
             Text(f.fid, style=theme.KEY), Text(_cut(row.get("title") or "—")),
             severity_text(f), Text(cvss_text(f), style=theme.MUTED),
-            Text(f.validation.title(), style=theme.MEDIUM if f.needs_review else theme.TEAL),
+            validation_text(f),
             triage_text(f), Text(row.get("tool") or "—", style=theme.MUTED),
         ))
     return rows
@@ -73,6 +73,7 @@ class ReportScreen(ReconixScreen):
     mode_name = "REPORT"
 
     BINDINGS = [
+        Binding("a", "sign_off", "sign off report"),
         *(Binding(key, f"export('{fid}')", f"export {label}") for fid, key, label in EXPORTS),
         Binding("c", "chat", "chat"),
         Binding("escape", "back", "back", show=False),
@@ -80,7 +81,9 @@ class ReportScreen(ReconixScreen):
 
     def view_state(self) -> object:
         run = store.get_run()
-        return (run.completed, bool(run.stopped), run.report_path,
+        assessment = store.get_assessment()
+        return (run.completed, bool(run.stopped), run.report_path, assessment.report_signed_off,
+                assessment.report_generation,
                 tuple((f.fid, f.status) for f in store.list_findings()))
 
     def compose_body(self) -> ComposeResult:
@@ -90,6 +93,10 @@ class ReportScreen(ReconixScreen):
             f"security assessment report · {assessment.label}", theme.DIM)), classes="ai-label")
         if not ready:
             yield Static(Text(self._not_ready(), style=theme.MEDIUM), classes="panel-note")
+        elif assessment.run.report_path:
+            review = "APPROVED · downloads unlocked" if assessment.report_signed_off else "PENDING · press a to sign off"
+            yield Static(Text(f"Report v{assessment.report_generation} · READY · Review {review}",
+                              style=theme.MUTED))
         with Vertical(classes="panel") as panel:
             panel.border_title = "▬ SECURITY ASSESSMENT REPORT"
             panel.border_subtitle = Text(" · ".join(assessment.methodology)
@@ -137,6 +144,14 @@ class ReportScreen(ReconixScreen):
                          disabled=not can_export(fid))   # the same rule as the keys
 
     # --- actions ----------------------------------------------------------------------------
+    def action_sign_off(self) -> None:
+        try:
+            store.sign_off_report()
+        except store.StoreValidationError as error:
+            self.notify(str(error), severity="warning", markup=False)
+            return
+        self.app.refresh_view()
+
     def action_export(self, fmt: str) -> None:
         self.app.export_report(fmt)
 

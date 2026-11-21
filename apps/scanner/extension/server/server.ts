@@ -22,6 +22,18 @@ const SEV_ORDER: Severity[] = ["critical", "high", "medium", "low", "info"];
 const bySeverity = (a: Finding, b: Finding) => SEV_ORDER.indexOf(a.severity) - SEV_ORDER.indexOf(b.severity);
 const whereOf = (f: Finding) => `\`${f.path}:${f.start_line}\``;
 
+// Script the Core API's default source pipeline; these labels never launch a scanner.
+// Sonar is optional in Core and needs a configured server, so it is not a default stage.
+const SCAN_STAGES = [
+  { stage: "semgrep", label: "Semgrep · static analysis" },
+  { stage: "gitleaks", label: "Gitleaks · secret detection" },
+  { stage: "trivy", label: "Trivy · dependency and configuration checks" },
+  { stage: "grype", label: "Grype · dependency vulnerability matching" },
+  { stage: "osv-scanner", label: "OSV-Scanner · dependency advisory matching" },
+  { stage: "syft", label: "Syft · software bill of materials" },
+  { stage: "analysis", label: "Correlate findings and review evidence" },
+] as const;
+
 function describeFinding(f: Finding): string {
   const tag = f.cwe ? `${f.severity}, ${f.cwe}` : f.severity;
   return `**${f.title}** (${tag}) — ${whereOf(f)}\n\n${f.explanation}\n\n_Fix:_ ${f.fix_recommendation}`;
@@ -292,7 +304,8 @@ export class FakeHarness {
         while (scan.status === "running" || scan.status === "queued") {
           if (progressToken !== undefined) {
             await extra.sendNotification({ method: "notifications/progress",
-              params: { progressToken, progress: scan.percent, total: 100, message: `Scanning: ${scan.percent}%` } });
+              params: { progressToken, progress: scan.percent, total: 100,
+                message: `${SCAN_STAGES.find((s) => s.stage === scan.stage)?.label ?? scan.stage}: ${scan.percent}%` } });
           }
           if (first && this.dropNextWatch) {
             this.dropNextWatch = false;
@@ -478,13 +491,16 @@ export class FakeHarness {
     const scan: ScanSummary = { scan_id: id, session_id: s.id, status: "running", stage: "semgrep", percent: 0,
       counts: {}, error: null, started_at: new Date().toISOString(), finished_at: null };
     this.scans.set(id, scan);
+    let stageIndex = 0;
     const t = setInterval(() => {
       if (scan.status !== "running") {
         clearInterval(t);
         return;
       }
-      // Advance in 7 steps (≈7 s at the demo's 1 s tick) so the progress bar reads as real work.
+      // Six tool stages, then evidence review; preserve the existing seven-tick pacing.
+      stageIndex += 1;
       scan.percent = Math.min(scan.percent + 15, 100);
+      if (stageIndex < SCAN_STAGES.length) scan.stage = SCAN_STAGES[stageIndex].stage;
       if (scan.percent === 100) {
         scan.status = "done";
         scan.stage = "finished";

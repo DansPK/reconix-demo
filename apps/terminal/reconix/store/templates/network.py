@@ -9,10 +9,19 @@ from ..errors import StoreValidationError
 from ..targets import as_network
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 
+TOOLS = ["nmap", "Nuclei", "testssl.sh", "enum4linux", "onesixtyone"]
+PHASE_TOOLS = {
+    'discovery': ('nmap',),
+    'scanning': ('nmap', 'Nuclei', 'testssl.sh', 'enum4linux', 'onesixtyone'),
+    'validation': ('nmap', 'Nuclei'),
+}
+
 SPEC = Template("network", "Network", "Hosts, ports, and exposed services",
                 target_hint="an IPv4 address or range, or a hostname", example="10.0.0.0/24")
 
-ALLOWED_PORTS = [22, 80, 443, 8080, 8443]
+ALLOWED_PORTS = [21, 22, 23, 25, 53, 80, 110, 111, 135, 137, 139, 143, 161, 389,
+                 443, 445, 993, 995, 1433, 1521, 2049, 3000, 3306, 3389, 5432,
+                 5900, 6379, 8000, 8080, 8443, 9200, 27017]
 
 # Hosts outside any range the run is given (RFC 5737), for the probe the policy blocks.
 OUTSIDE_HOSTS = ("198.51.100.9", "203.0.113.9")
@@ -36,8 +45,8 @@ def build_scope(parsed: ParsedTarget) -> ScopeManifest:
         allowed_actions=["Host discovery", "port scan", "service detection"],
         allowed_methods=["TCP connect"],
         excluded_paths=[],       # network scope uses allowed_ports + the target range
-        time_limit_minutes=30,
-        tools=["nmap", "testssl.sh"],
+        time_limit_minutes=0,  # no limit unless the operator sets one
+        tools=list(TOOLS),
         allowed_ports=list(ALLOWED_PORTS),
     )
 
@@ -182,4 +191,5 @@ def build_run(assessment) -> RunBundle:
     )
     return RunBundle(scope=scope, script=build_rest(profile),
                      approvals=[profile.medium, profile.high], findings=findings,
-                     plan=make_plan(profile.plan), methodology=list(profile.methodology))
+                     plan=make_plan(profile.plan, PHASE_TOOLS),
+                     methodology=list(profile.methodology))

@@ -191,7 +191,7 @@ def _consume_token(request_id: str, token: Optional[str]) -> None:
 # --- decisions -----------------------------------------------------------------------------
 def approve(
     request_id: str, *, command_hash: str, confirmation_token: Optional[str] = None,
-    typed_target: Optional[str] = None,
+    typed_target: str = "",
 ) -> ApprovalDecision:
     """Record an approval, or raise StoreValidationError if any check fails.
 
@@ -199,8 +199,8 @@ def approve(
     also needs the double check: an unused token from `request_confirmation()`, which
     the operator gets only by asking to approve and then confirming once more. The
     policy check runs before the decision is recorded, and the token is spent only when
-    everything else is valid, so a blocked request doesn't burn it. `typed_target`, when
-    given (the TypedTargetForm), must equal the action's target exactly; a mismatch keeps
+    everything else is valid, so a blocked request doesn't burn it. `typed_target` is required
+    for HIGH risk and must equal the action's target exactly; a mismatch keeps
     the token so the operator can type it again.
     """
     request = _pending(request_id)
@@ -209,9 +209,12 @@ def approve(
     verdict = check_request(request.method, request.path)
     if not verdict.allowed:
         raise StoreValidationError(f"Blocked by policy: {verdict.reason}.")
-    if typed_target is not None and not secrets.compare_digest(
-            typed_target.strip().encode("utf-8"), request.target.encode("utf-8")):
-        raise StoreValidationError("That isn't the target. Type it exactly as shown.")
+    if request.risk == "HIGH":
+        if not typed_target.strip():
+            raise StoreValidationError("Type the target to approve a HIGH-risk step.")
+        if not secrets.compare_digest(typed_target.strip().encode("utf-8"),
+                                      request.target.encode("utf-8")):
+            raise StoreValidationError("That isn't the target. Type it exactly as shown.")
     if request.risk == "HIGH":
         _consume_token(request_id, confirmation_token)
     decision = ApprovalDecision(

@@ -150,13 +150,14 @@ def decide(gate: str, *, high: str, spec: str = "") -> bool:
         else:
             token = store.request_confirmation(request.request_id, request.command_hash)
             store.approve(request.request_id, command_hash=request.command_hash,
-                          confirmation_token=token)
+                          confirmation_token=token, typed_target=request.target)
     return True
 
 
-def play(text: str, *, high: str = "approve", fmt: str = "", rows: str = "",
+def play(text: str, *, high: str = "approve", fmt: str = "json", rows: str = "",
          stop_at: str = "", running_steps: int = 0, no_findings: bool = False,
-         after: Optional[Callable[[], None]] = None, spec: str = "") -> None:
+         after: Optional[Callable[[], None]] = None, spec: str = "",
+         signed_off: bool = True) -> None:
     """Play one run from `text`.
 
     `stop_at`: "scope" stops the run at the template/scope gate (nothing approved);
@@ -187,12 +188,14 @@ def play(text: str, *, high: str = "approve", fmt: str = "", rows: str = "",
         run = store.get_assessment().run
         store.get_assessment().findings.clear()
         run.revealed.clear()
-    if fmt and store.is_completed():
-        store.generate_report(fmt)
     if rows:
         add_scanner_rows(rows.replace("{host}", store.get_assessment().target))
     if after:
         after()
+    if fmt and store.is_completed():
+        store.generate_report(fmt)
+        if signed_off:
+            store.sign_off_report()  # authored operator decision, separate from generation
 
 
 def session(moment: datetime, runs, closed: bool = True) -> list:
@@ -270,7 +273,7 @@ def main() -> None:
     ])
     snapshots += session(datetime(2026, 10, 2, 13, 40, tzinfo=utc), [
         dict(text="Review the source repository git@git.lumina.com:shop/checkout.git "
-                  "for security issues.", fmt="json"),
+                  "for security issues.", fmt="json", signed_off=False),
     ])
     snapshots += session(datetime(2026, 10, 4, 15, 0, tzinfo=utc), [
         dict(text="Assess https://checkout.lumina.com for web security issues.", running_steps=12),

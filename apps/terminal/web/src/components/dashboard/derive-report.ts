@@ -10,6 +10,7 @@
  * whose evidence holds nothing masked (QA-LOCAL-WEB-REPORT, QAL-005). The log's masking lines
  * still have their own "Mask" lane in the Overview's Activity Timeline.
  */
+import { latestReport } from "@/lib/report/lifecycle";
 import { redact } from "@/lib/assistant/redact";
 import { duration, hourMinute, minutesLimit, shortDay } from "@/lib/data/format";
 import { SEVERITIES } from "@/lib/data/schema";
@@ -102,6 +103,7 @@ export function reportCards(v: AssessmentView, findings: FindingRow[], slice: Fi
   return {
     mode: "run",
     uid: v.uid,
+    reports: v.reports ?? [],
     tag: `${v.id} · ${redact(v.target)}`,
     about: `The summary of ${v.id} from its saved copy. Download the full report in the format you need.`,
     stats: [
@@ -184,6 +186,7 @@ export function runRow(v: AssessmentView): ReportRunRow {
   const found = counted(v);
   return {
     ...libraryRow(v),
+    report: latestReport(v.reports),
     findings: found.length,
     worst: worstOf(found.map((f) => f.severity)),
     steps: { done: v.phases.filter((p) => p.status === "done").length, total: v.phases.length },

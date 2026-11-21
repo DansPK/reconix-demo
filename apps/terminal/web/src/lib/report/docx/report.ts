@@ -6,7 +6,7 @@ import "server-only";
 
 import { type Assessment, type Finding, SEVERITIES } from "@/lib/data/schema";
 
-import { sevRank, shortDate, title } from "../html";
+import { findingReviewFacts, sevRank, shortDate, title } from "../html";
 import { type Block, docxFile } from "./ooxml";
 
 const cvss = (f: Finding) => (f.cvss_score ? f.cvss_score.toFixed(1) : "—");
@@ -27,9 +27,17 @@ function severityLine(findings: Pick<Finding, "severity">[]): string {
 }
 
 function findingBlocks(f: Finding): Block[] {
+  const verification = f.effective_verification;
+  const proof: Block[] = verification && !verification.legacy
+    ? [
+      { kind: "heading", level: 3, text: "Verification proof (masked)" },
+      { kind: "para", runs: [verification.reason || "No verification reason recorded."] },
+      { kind: "pre", lines: verification.proof_lines.length ? verification.proof_lines : ["No proof lines recorded."] },
+    ]
+    : [{ kind: "para", runs: ["No independent verification proof was recorded. A scanner claim alone is not verified proof."] }];
   const rows: [string, string][] = [
     ["Severity", `${title(f.severity)} · CVSS ${cvss(f)}`],
-    ["Validation", title(f.validation)],
+    ...findingReviewFacts(f),
     ["Status", statusOf(f.status)],
     ["Affected asset", f.affected_url || "—"],
     ["Location", f.path || "—"],
@@ -45,6 +53,7 @@ function findingBlocks(f: Finding): Block[] {
     { kind: "para", runs: [f.description || "—"] },
     { kind: "heading", level: 3, text: "Evidence & validation (masked)" },
     { kind: "pre", lines: f.evidence },
+    ...proof,
     { kind: "heading", level: 3, text: "Impact" },
     { kind: "para", runs: [f.impact || "—"] },
     { kind: "heading", level: 3, text: "Remediation" },
@@ -116,7 +125,7 @@ function reportBlocks(a: Assessment, now: Date = new Date()): Block[] {
         ["Allowed actions", (s?.allowed_actions ?? []).join(", ") || "—"],
         ["Allowed methods", (s?.allowed_methods ?? []).join(", ") || "—"],
         ["Excluded paths", (s?.excluded_paths ?? []).join(", ") || "none"],
-        ["Time limit", `${s?.time_limit_minutes ?? 0} minutes`],
+        ["Time limit", s?.time_limit_minutes ? `${s.time_limit_minutes} minutes` : "No time limit"],
         ["Tools", (s?.tools ?? []).join(", ") || "—"],
       ],
     },

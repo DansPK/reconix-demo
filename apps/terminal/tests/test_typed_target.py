@@ -51,3 +51,13 @@ async def test_the_form_approves_only_the_exact_target(app, high):
         app.screen.query_one("#submit").press()
         await settle(pilot)
     assert results == ["approved"] and store.is_approved(HIGH)
+
+
+def test_high_requires_a_typed_target_even_with_a_valid_token(high):
+    token = store.request_confirmation(HIGH, high.command_hash)
+    with pytest.raises(store.StoreValidationError, match="Type the target"):
+        store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token)
+    assert not store.is_approved(HIGH)
+    store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token,
+                  typed_target=high.target)
+    assert store.is_approved(HIGH)

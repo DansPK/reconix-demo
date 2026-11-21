@@ -21,7 +21,7 @@
     "CWE Top 25"
   ],
   "report_version": "1.0",
-  "created_at": "2026-10-05T14:21:23+00:00",
+  "created_at": "2026-10-05T14:15:29+00:00",
   "status": "Awaiting input",
   "waiting_gate": "approval:approval-002",
   "waiting_request_id": "approval-002",
@@ -30,7 +30,7 @@
   "session_closed": false,
   "run": {
     "phase": "validating",
-    "started_at": "2026-10-05T14:22:34+00:00",
+    "started_at": "2026-10-05T14:16:30+00:00",
     "finished_at": null,
     "completed": false,
     "requests": 1,
@@ -51,28 +51,47 @@
   "plan": [
     {
       "key": "discovery",
-      "label": "Index repository",
-      "status": "done"
+      "label": "Inventory the code",
+      "status": "done",
+      "detail": "",
+      "tools": []
     },
     {
       "key": "scanning",
-      "label": "Static analysis scan",
-      "status": "done"
+      "label": "Static, secret & dependency scans",
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "Semgrep",
+        "gitleaks",
+        "trivy",
+        "grype",
+        "osv-scanner",
+        "syft"
+      ]
     },
     {
       "key": "validation",
-      "label": "Validate hotspots",
-      "status": "active"
+      "label": "Review findings",
+      "status": "active",
+      "detail": "",
+      "tools": [
+        "Semgrep"
+      ]
     },
     {
       "key": "analysis",
       "label": "Correlate & dedupe findings",
-      "status": "pending"
+      "status": "pending",
+      "detail": "",
+      "tools": []
     },
     {
       "key": "report",
       "label": "Generate report",
-      "status": "pending"
+      "status": "pending",
+      "detail": "",
+      "tools": []
     }
   ],
   "scope": {
@@ -95,11 +114,14 @@
       "secrets"
     ],
     "allowed_ports": [],
-    "time_limit_minutes": 30,
+    "time_limit_minutes": 0,
     "tools": [
       "Semgrep",
       "gitleaks",
-      "pip-audit"
+      "trivy",
+      "grype",
+      "osv-scanner",
+      "syft"
     ]
   },
   "verdicts": [
@@ -108,28 +130,28 @@
       "path": ".git/config",
       "allowed": false,
       "reason": "Path excluded from the review",
-      "at": "2026-10-05T14:25:32+00:00"
+      "at": "2026-10-05T14:17:54+00:00"
     },
     {
       "method": "READ",
       "path": "app/config/settings.py",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-05T14:27:16+00:00"
+      "at": "2026-10-05T14:18:37+00:00"
     },
     {
       "method": "READ",
       "path": "app/config/settings.py",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-05T14:27:30+00:00"
+      "at": "2026-10-05T14:18:42+00:00"
     },
     {
       "method": "READ",
       "path": "app/config/settings.py",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-05T14:28:47+00:00"
+      "at": "2026-10-05T14:19:20+00:00"
     }
   ],
   "approvals": [
@@ -149,13 +171,13 @@
       "request_id": "approval-002",
       "risk": "HIGH",
       "action": "secret_validation",
-      "target": "check the credential in app/config/settings.py against a test endpoint",
+      "target": "review the masked credential evidence in app/config/settings.py",
       "method": "read",
       "path": "app/config/settings.py",
-      "purpose": "Check whether the flagged credential still authenticates",
-      "impact": "One authentication attempt against a test database",
-      "command": "use the credential flagged in app/config/settings.py against the test database once",
-      "command_hash": "sha256:dddfd0b8468dcf94774bd1025697ced391796ee116fb015de5e7a860b95435f9"
+      "purpose": "Review the source evidence without trying the credential",
+      "impact": "Offline source review only; credential validity is not tested",
+      "command": "review the masked credential evidence in app/config/settings.py offline",
+      "command_hash": "sha256:e6d5ee8c4f9f015a71e76f80960b4d65fe2d9058cd8c73bb33e00372c1d4a97f"
     }
   ],
   "decisions": [
@@ -165,7 +187,7 @@
       "operator": "analyst",
       "reason": "",
       "command_hash": "sha256:cab21c3bf9b00a7d496b3cb84c2744f48606b6e3941f4b9c167f6bb626434828",
-      "at": "2026-10-05T14:27:34+00:00"
+      "at": "2026-10-05T14:18:46+00:00"
     }
   ],
   "findings": [
@@ -201,13 +223,32 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "HIGH",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "POTENTIAL_VULNERABILITY",
+      "confidence_level": "MEDIUM",
+      "evidence_quality": "MEDIUM",
+      "verification_status": "UNCONFIRMED",
+      "effective_verification": {
+        "status": "UNVERIFIED",
+        "reason": "Source patterns require review; runtime reachability was not tested.",
+        "proof_lines": [],
+        "legacy": false
+      },
+      "exploitability": "PLAUSIBLE",
+      "classification_uncertainty": "Source patterns require review; runtime reachability was not tested.",
+      "validation_method": "",
+      "validation_reason": "Source patterns require review; runtime reachability was not tested.",
+      "validation_proof": [],
+      "source_claims": [
+        "gitleaks: Hardcoded database password"
+      ]
     }
   ],
+  "reports": [],
   "timeline": [
     {
-      "seq": 52,
-      "at": "2026-10-05T14:21:12+00:00",
+      "seq": 53,
+      "at": "2026-10-05T14:15:20+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -216,8 +257,8 @@
       "rows": []
     },
     {
-      "seq": 53,
-      "at": "2026-10-05T14:21:17+00:00",
+      "seq": 54,
+      "at": "2026-10-05T14:15:24+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -226,8 +267,8 @@
       "rows": []
     },
     {
-      "seq": 54,
-      "at": "2026-10-05T14:21:45+00:00",
+      "seq": 55,
+      "at": "2026-10-05T14:15:44+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
@@ -236,8 +277,8 @@
       "rows": []
     },
     {
-      "seq": 55,
-      "at": "2026-10-05T14:22:01+00:00",
+      "seq": 56,
+      "at": "2026-10-05T14:15:58+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -246,8 +287,8 @@
       "rows": []
     },
     {
-      "seq": 56,
-      "at": "2026-10-05T14:22:08+00:00",
+      "seq": 57,
+      "at": "2026-10-05T14:16:02+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -256,8 +297,8 @@
       "rows": []
     },
     {
-      "seq": 57,
-      "at": "2026-10-05T14:22:12+00:00",
+      "seq": 58,
+      "at": "2026-10-05T14:16:07+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -266,8 +307,8 @@
       "rows": []
     },
     {
-      "seq": 58,
-      "at": "2026-10-05T14:22:15+00:00",
+      "seq": 59,
+      "at": "2026-10-05T14:16:15+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -276,8 +317,8 @@
       "rows": []
     },
     {
-      "seq": 59,
-      "at": "2026-10-05T14:22:22+00:00",
+      "seq": 60,
+      "at": "2026-10-05T14:16:18+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -286,8 +327,8 @@
       "rows": []
     },
     {
-      "seq": 60,
-      "at": "2026-10-05T14:22:26+00:00",
+      "seq": 61,
+      "at": "2026-10-05T14:16:25+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -296,8 +337,8 @@
       "rows": []
     },
     {
-      "seq": 61,
-      "at": "2026-10-05T14:22:39+00:00",
+      "seq": 62,
+      "at": "2026-10-05T14:16:35+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -306,8 +347,8 @@
       "rows": []
     },
     {
-      "seq": 62,
-      "at": "2026-10-05T14:22:43+00:00",
+      "seq": 63,
+      "at": "2026-10-05T14:16:42+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -316,8 +357,8 @@
       "rows": []
     },
     {
-      "seq": 63,
-      "at": "2026-10-05T14:23:05+00:00",
+      "seq": 64,
+      "at": "2026-10-05T14:16:52+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -326,8 +367,8 @@
       "rows": []
     },
     {
-      "seq": 64,
-      "at": "2026-10-05T14:23:13+00:00",
+      "seq": 65,
+      "at": "2026-10-05T14:16:58+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -336,8 +377,8 @@
       "rows": []
     },
     {
-      "seq": 65,
-      "at": "2026-10-05T14:23:24+00:00",
+      "seq": 66,
+      "at": "2026-10-05T14:17:06+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -346,8 +387,8 @@
       "rows": []
     },
     {
-      "seq": 66,
-      "at": "2026-10-05T14:23:38+00:00",
+      "seq": 67,
+      "at": "2026-10-05T14:17:17+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -356,18 +397,18 @@
       "rows": []
     },
     {
-      "seq": 67,
-      "at": "2026-10-05T14:23:59+00:00",
+      "seq": 68,
+      "at": "2026-10-05T14:17:24+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: Semgrep, gitleaks and pip-audit. Preparing requests with test data. Public surface first.",
+      "text": "Selected tools: Semgrep, gitleaks, trivy, grype, osv-scanner and syft. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 68,
-      "at": "2026-10-05T14:24:15+00:00",
+      "seq": 69,
+      "at": "2026-10-05T14:17:30+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -376,8 +417,8 @@
       "rows": []
     },
     {
-      "seq": 69,
-      "at": "2026-10-05T14:24:23+00:00",
+      "seq": 70,
+      "at": "2026-10-05T14:17:35+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -386,8 +427,8 @@
       "rows": []
     },
     {
-      "seq": 70,
-      "at": "2026-10-05T14:24:37+00:00",
+      "seq": 71,
+      "at": "2026-10-05T14:17:39+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -396,8 +437,8 @@
       "rows": []
     },
     {
-      "seq": 71,
-      "at": "2026-10-05T14:24:59+00:00",
+      "seq": 72,
+      "at": "2026-10-05T14:17:42+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -419,8 +460,8 @@
       ]
     },
     {
-      "seq": 72,
-      "at": "2026-10-05T14:25:05+00:00",
+      "seq": 73,
+      "at": "2026-10-05T14:17:45+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -429,8 +470,8 @@
       "rows": []
     },
     {
-      "seq": 73,
-      "at": "2026-10-05T14:25:21+00:00",
+      "seq": 74,
+      "at": "2026-10-05T14:17:48+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -439,8 +480,8 @@
       "rows": []
     },
     {
-      "seq": 74,
-      "at": "2026-10-05T14:25:41+00:00",
+      "seq": 75,
+      "at": "2026-10-05T14:18:02+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -449,8 +490,8 @@
       "rows": []
     },
     {
-      "seq": 75,
-      "at": "2026-10-05T14:25:48+00:00",
+      "seq": 76,
+      "at": "2026-10-05T14:18:05+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -459,8 +500,8 @@
       "rows": []
     },
     {
-      "seq": 76,
-      "at": "2026-10-05T14:26:00+00:00",
+      "seq": 77,
+      "at": "2026-10-05T14:18:12+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -469,12 +510,12 @@
       "rows": []
     },
     {
-      "seq": 77,
-      "at": "2026-10-05T14:26:12+00:00",
+      "seq": 78,
+      "at": "2026-10-05T14:18:19+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
-      "text": "Scan · Semgrep, gitleaks and pip-audit",
+      "text": "Scan · Semgrep, gitleaks, trivy, grype, osv-scanner and syft",
       "tone": "default",
       "rows": [
         [
@@ -488,18 +529,18 @@
       ]
     },
     {
-      "seq": 78,
-      "at": "2026-10-05T14:26:35+00:00",
+      "seq": 79,
+      "at": "2026-10-05T14:18:25+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "A hardcoded credential was flagged in app/config/settings.py. Proposing a controlled read to confirm it is a live secret.",
+      "text": "A hardcoded credential was flagged in app/config/settings.py. Proposing a controlled read to review the masked evidence; credential validity remains unknown.",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 79,
-      "at": "2026-10-05T14:26:42+00:00",
+      "seq": 80,
+      "at": "2026-10-05T14:18:29+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -508,8 +549,8 @@
       "rows": []
     },
     {
-      "seq": 80,
-      "at": "2026-10-05T14:27:02+00:00",
+      "seq": 81,
+      "at": "2026-10-05T14:18:33+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -518,8 +559,8 @@
       "rows": []
     },
     {
-      "seq": 81,
-      "at": "2026-10-05T14:27:38+00:00",
+      "seq": 82,
+      "at": "2026-10-05T14:18:51+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -528,8 +569,8 @@
       "rows": []
     },
     {
-      "seq": 82,
-      "at": "2026-10-05T14:28:02+00:00",
+      "seq": 83,
+      "at": "2026-10-05T14:19:02+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -538,8 +579,8 @@
       "rows": []
     },
     {
-      "seq": 83,
-      "at": "2026-10-05T14:28:11+00:00",
+      "seq": 84,
+      "at": "2026-10-05T14:19:10+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -548,8 +589,8 @@
       "rows": []
     },
     {
-      "seq": 84,
-      "at": "2026-10-05T14:28:33+00:00",
+      "seq": 85,
+      "at": "2026-10-05T14:19:16+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -561,8 +602,8 @@
   "requests": [
     {
       "text": "Review the source repository git@git.lumina.com:shop/storefront.git for security issues.",
-      "at": "2026-10-05T14:21:33+00:00"
+      "at": "2026-10-05T14:15:37+00:00"
     }
   ],
-  "saved_at": "2026-10-05T14:29:00+00:00"
+  "saved_at": "2026-10-05T14:19:32+00:00"
 }

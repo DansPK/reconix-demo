@@ -1,7 +1,7 @@
 """Normalized findings."""
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -25,10 +25,33 @@ class Finding:
     status: str = "open"           # open | fixed | accepted | false-positive (analyst triage)
     severity_override: str = ""    # analyst-set severity; "" means use the detected one
     triage_note: str = ""          # justification for the status or severity override
+    finding_category: str = "INSUFFICIENT_EVIDENCE"
+    confidence_level: str = "UNKNOWN"
+    evidence_quality: str = "UNKNOWN"
+    verification_status: str = "UNKNOWN"
+    effective_verification: Optional[Dict[str, Any]] = None
+    exploitability: str = "UNKNOWN"
+    classification_uncertainty: str = ""
+    validation_method: str = ""
+    validation_reason: str = ""
+    validation_proof: List[str] = field(default_factory=list)
+    source_claims: List[str] = field(default_factory=list)
+
+    @property
+    def confirmed(self) -> bool:
+        return self.display_category == "CONFIRMED_VULNERABILITY"
+
+    @property
+    def false_positive(self) -> bool:
+        return self.status == "false-positive" or self.finding_category == "FALSE_POSITIVE"
+
+    @property
+    def display_category(self) -> str:
+        return "FALSE_POSITIVE" if self.false_positive else self.finding_category
 
     @property
     def needs_review(self) -> bool:
-        return self.validation != "CONFIRMED"
+        return self.status == "open" and not self.confirmed and not self.false_positive
 
     @property
     def effective_severity(self) -> str:

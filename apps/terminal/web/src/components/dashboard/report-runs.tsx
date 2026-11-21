@@ -21,6 +21,7 @@ import { RunLinkTo } from "@/components/dashboard/run-link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyNote } from "@/components/ui/empty-note";
 import { Pagination } from "@/components/ui/pagination";
+import { reportLock, reportReviewLabel } from "@/lib/report/lifecycle";
 import { DOCS } from "@/lib/docs-nav";
 import { paginate, slicePage } from "@/lib/paging";
 import { useFileDownload } from "@/components/dashboard/use-file-download";
@@ -125,12 +126,17 @@ export function ReportRuns({ runs, selection }: { runs: ReportRunRow[]; selectio
                         <span className="flex gap-1.5">
                           <ExportButtons
                             uid={r.uid}
+                            report={r.report}
                             busy={file.kind === "generating" && file.of === runTitle(r) ? file.format : null}
                             onDownload={(uid, format) => download(exportRequest(uid, format, runTitle(r)))}
                             label={(title) => `Download the ${title} of ${r.id} (${r.when})`}
                             className="h-[24px] px-2 text-micro"
                           />
                         </span>
+                        <span className="mt-1 block text-micro text-muted-foreground">
+                          {r.report ? `v${r.report.version} ? ${r.report.report_status} ? ${reportReviewLabel(r.report)}` : "No report version"}
+                        </span>
+                        {reportLock(r.report) && <span className="sr-only">{reportLock(r.report)}</span>}
                       </td>
                     }
                   />

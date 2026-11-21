@@ -17,11 +17,11 @@
   "client": "Lumina",
   "mode": "Grey-box, Authorized",
   "methodology": [
-    "OWASP WSTG",
-    "OWASP Top 10 (2021)"
+    "Guided by OWASP WSTG",
+    "OWASP Top 10 (2025)"
   ],
   "report_version": "1.0",
-  "created_at": "2026-09-29T11:20:21+00:00",
+  "created_at": "2026-09-29T11:20:16+00:00",
   "status": "Completed",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,8 +30,8 @@
   "session_closed": true,
   "run": {
     "phase": "completed",
-    "started_at": "2026-09-29T11:21:30+00:00",
-    "finished_at": "2026-09-29T11:31:30+00:00",
+    "started_at": "2026-09-29T11:21:04+00:00",
+    "finished_at": "2026-09-29T11:25:28+00:00",
     "completed": true,
     "requests": 1202,
     "progress": {
@@ -40,9 +40,9 @@
       "scanning": 100,
       "validation": 100,
       "analysis": 100,
-      "report": 0
+      "report": 100
     },
-    "report_path": ""
+    "report_path": "./reports/RCX-001.json"
   },
   "login": {
     "kind": "",
@@ -50,24 +50,52 @@
   },
   "plan": [
     {
-      "key": "recon",
-      "label": "Reconnaissance",
-      "status": "done"
-    },
-    {
       "key": "discovery",
-      "label": "Content discovery",
-      "status": "done"
+      "label": "Map the site",
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "whatweb",
+        "Katana",
+        "ffuf"
+      ]
     },
     {
       "key": "scanning",
-      "label": "Vulnerability scanning",
-      "status": "done"
+      "label": "Scan for weaknesses",
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "Nuclei",
+        "testssl.sh",
+        "nikto"
+      ]
     },
     {
       "key": "validation",
-      "label": "Finding validation",
-      "status": "done"
+      "label": "Validate findings",
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "Nuclei",
+        "dalfox",
+        "testssl.sh",
+        "httpx"
+      ]
+    },
+    {
+      "key": "analysis",
+      "label": "Correlate & dedupe findings",
+      "status": "done",
+      "detail": "",
+      "tools": []
+    },
+    {
+      "key": "report",
+      "label": "Generate report",
+      "status": "done",
+      "detail": "",
+      "tools": []
     }
   ],
   "scope": {
@@ -88,10 +116,16 @@
       "/admin"
     ],
     "allowed_ports": [],
-    "time_limit_minutes": 30,
+    "time_limit_minutes": 0,
     "tools": [
+      "whatweb",
+      "httpx",
+      "Katana",
       "Nuclei",
-      "OWASP ZAP"
+      "testssl.sh",
+      "ffuf",
+      "nikto",
+      "dalfox"
     ]
   },
   "verdicts": [
@@ -100,21 +134,21 @@
       "path": "/admin",
       "allowed": false,
       "reason": "Path outside approved scope",
-      "at": "2026-09-29T11:25:04+00:00"
+      "at": "2026-09-29T11:22:48+00:00"
     },
     {
       "method": "GET",
       "path": "/api/v1/products?q=cotton+socks",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:27:07+00:00"
+      "at": "2026-09-29T11:23:46+00:00"
     },
     {
       "method": "GET",
       "path": "/api/v1/products?q=cotton+socks",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-09-29T11:27:17+00:00"
+      "at": "2026-09-29T11:23:49+00:00"
     }
   ],
   "approvals": [
@@ -138,7 +172,7 @@
       "operator": "analyst",
       "reason": "",
       "command_hash": "sha256:08cfd65a8909692aee3480145fbfb77c22577de2141d14fa36050bdc07137960",
-      "at": "2026-09-29T11:27:21+00:00"
+      "at": "2026-09-29T11:23:52+00:00"
     }
   ],
   "findings": [
@@ -214,7 +248,34 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "CRITICAL",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "CONFIRMED_VULNERABILITY",
+      "confidence_level": "HIGH",
+      "evidence_quality": "HIGH",
+      "verification_status": "CONFIRMED",
+      "effective_verification": {
+        "status": "VERIFIED",
+        "verifier": "http_response_comparison",
+        "subject": {
+          "label": "/api/v1/products"
+        },
+        "proof_lines": [
+          "GET /api/v1/products?q=cotton' OR '1'='1-- -   ->  HTTP 200 · all 48,215 rows (no auth)",
+          "GET /api/v1/products?q=cotton' UNION SELECT * FROM customers-- -   ->  HTTP 200 · 48,215 rows"
+        ],
+        "legacy": false
+      },
+      "exploitability": "DEMONSTRATED",
+      "classification_uncertainty": "",
+      "validation_method": "http_response_comparison",
+      "validation_reason": "The recorded comparison demonstrates the reported behavior.",
+      "validation_proof": [
+        "GET /api/v1/products?q=cotton' OR '1'='1-- -   ->  HTTP 200 · all 48,215 rows (no auth)",
+        "GET /api/v1/products?q=cotton' UNION SELECT * FROM customers-- -   ->  HTTP 200 · 48,215 rows"
+      ],
+      "source_claims": [
+        "Nuclei: SQL injection in catalog search"
+      ]
     },
     {
       "id": "IMP-001",
@@ -239,7 +300,18 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "CRITICAL",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "001",
@@ -251,7 +323,7 @@
       "affected_url": "https://portal.lumina.com/api/orders/10483",
       "impact": "Anyone on the internet can read every customer's orders just by changing the ID: the items, totals, and the delivery name, phone and address.",
       "remediation": "Require authentication on the order endpoints and enforce a per-user ownership check on every lookup; return 404 for orders the caller does not own.",
-      "tool": "OWASP ZAP",
+      "tool": "Nuclei",
       "references": [
         "OWASP A01:2021",
         "OWASP API1:2023",
@@ -277,7 +349,34 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "HIGH",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "CONFIRMED_VULNERABILITY",
+      "confidence_level": "HIGH",
+      "evidence_quality": "HIGH",
+      "verification_status": "CONFIRMED",
+      "effective_verification": {
+        "status": "VERIFIED",
+        "verifier": "manual_review",
+        "subject": {
+          "label": "/api/orders/{id}"
+        },
+        "proof_lines": [
+          "GET /api/orders/10483  (no Authorization header) -> HTTP 200",
+          "returned order owner: d•••@gmail.com · +855 •• ••• •••"
+        ],
+        "legacy": false
+      },
+      "exploitability": "DEMONSTRATED",
+      "classification_uncertainty": "",
+      "validation_method": "manual_review",
+      "validation_reason": "The recorded comparison demonstrates the reported behavior.",
+      "validation_proof": [
+        "GET /api/orders/10483  (no Authorization header) -> HTTP 200",
+        "returned order owner: d•••@gmail.com · +855 •• ••• •••"
+      ],
+      "source_claims": [
+        "Nuclei: Unauthenticated access to order records"
+      ]
     },
     {
       "id": "005",
@@ -315,7 +414,25 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "HIGH",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "POTENTIAL_VULNERABILITY",
+      "confidence_level": "MEDIUM",
+      "evidence_quality": "MEDIUM",
+      "verification_status": "UNCONFIRMED",
+      "effective_verification": {
+        "status": "UNVERIFIED",
+        "reason": "The scanner observation requires an independent validation step.",
+        "proof_lines": [],
+        "legacy": false
+      },
+      "exploitability": "PLAUSIBLE",
+      "classification_uncertainty": "The scanner observation requires an independent validation step.",
+      "validation_method": "",
+      "validation_reason": "The scanner observation requires an independent validation step.",
+      "validation_proof": [],
+      "source_claims": [
+        "Nuclei: Outdated JavaScript dependency with a known CVE"
+      ]
     },
     {
       "id": "IMP-002",
@@ -340,7 +457,18 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "HIGH",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "002",
@@ -374,7 +502,25 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "MEDIUM",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "POTENTIAL_VULNERABILITY",
+      "confidence_level": "MEDIUM",
+      "evidence_quality": "MEDIUM",
+      "verification_status": "UNCONFIRMED",
+      "effective_verification": {
+        "status": "UNVERIFIED",
+        "reason": "The scanner observation requires an independent validation step.",
+        "proof_lines": [],
+        "legacy": false
+      },
+      "exploitability": "PLAUSIBLE",
+      "classification_uncertainty": "The scanner observation requires an independent validation step.",
+      "validation_method": "",
+      "validation_reason": "The scanner observation requires an independent validation step.",
+      "validation_proof": [],
+      "source_claims": [
+        "Nuclei: Reflected input in search page"
+      ]
     },
     {
       "id": "IMP-005",
@@ -399,7 +545,18 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "MEDIUM",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "003",
@@ -411,7 +568,7 @@
       "affected_url": "https://portal.lumina.com/login",
       "impact": "Weakens protection against cross-site request forgery.",
       "remediation": "Set SameSite=Lax (or Strict) on the session cookie.",
-      "tool": "OWASP ZAP",
+      "tool": "Nuclei",
       "references": [
         "OWASP A05:2021",
         "CWE-1275"
@@ -433,7 +590,25 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "LOW",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "SECURITY_HARDENING_RECOMMENDATION",
+      "confidence_level": "MEDIUM",
+      "evidence_quality": "MEDIUM",
+      "verification_status": "INCONCLUSIVE",
+      "effective_verification": {
+        "status": "INCONCLUSIVE",
+        "reason": "Cookie attributes were recorded; exploitability was not established.",
+        "proof_lines": [],
+        "legacy": false
+      },
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "Cookie attributes were recorded; exploitability was not established.",
+      "validation_proof": [],
+      "source_claims": [
+        "Nuclei: Session cookie missing SameSite"
+      ]
     },
     {
       "id": "IMP-003",
@@ -458,7 +633,18 @@
       "status": "false-positive",
       "severity_override": "",
       "effective_severity": "LOW",
-      "triage_note": "Banner is a test fixture; the scanner matched a stale cache."
+      "triage_note": "Banner is a test fixture; the scanner matched a stale cache.",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
     },
     {
       "id": "IMP-004",
@@ -485,13 +671,39 @@
       "status": "open",
       "severity_override": "",
       "effective_severity": "LOW",
-      "triage_note": ""
+      "triage_note": "",
+      "finding_category": "INSUFFICIENT_EVIDENCE",
+      "confidence_level": "UNKNOWN",
+      "evidence_quality": "UNKNOWN",
+      "verification_status": "UNKNOWN",
+      "effective_verification": null,
+      "exploitability": "UNKNOWN",
+      "classification_uncertainty": "",
+      "validation_method": "",
+      "validation_reason": "",
+      "validation_proof": [],
+      "source_claims": []
+    }
+  ],
+  "reports": [
+    {
+      "report_id": "20260929-112000-8c51_RCX-001-v1",
+      "version": 1,
+      "report_status": "READY",
+      "review_status": "APPROVED",
+      "signed_off": true,
+      "formats": [
+        "PDF",
+        "DOCX",
+        "JSON"
+      ],
+      "generated_at": "2026-09-29T11:25:56+00:00"
     }
   ],
   "timeline": [
     {
       "seq": 1,
-      "at": "2026-09-29T11:20:12+00:00",
+      "at": "2026-09-29T11:20:06+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -501,7 +713,7 @@
     },
     {
       "seq": 2,
-      "at": "2026-09-29T11:20:16+00:00",
+      "at": "2026-09-29T11:20:11+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -511,7 +723,7 @@
     },
     {
       "seq": 3,
-      "at": "2026-09-29T11:20:37+00:00",
+      "at": "2026-09-29T11:20:30+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
@@ -521,7 +733,7 @@
     },
     {
       "seq": 4,
-      "at": "2026-09-29T11:20:57+00:00",
+      "at": "2026-09-29T11:20:40+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -531,7 +743,7 @@
     },
     {
       "seq": 5,
-      "at": "2026-09-29T11:21:04+00:00",
+      "at": "2026-09-29T11:20:44+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -541,7 +753,7 @@
     },
     {
       "seq": 6,
-      "at": "2026-09-29T11:21:10+00:00",
+      "at": "2026-09-29T11:20:47+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -551,7 +763,7 @@
     },
     {
       "seq": 7,
-      "at": "2026-09-29T11:21:14+00:00",
+      "at": "2026-09-29T11:20:50+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -561,7 +773,7 @@
     },
     {
       "seq": 8,
-      "at": "2026-09-29T11:21:19+00:00",
+      "at": "2026-09-29T11:20:54+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -571,7 +783,7 @@
     },
     {
       "seq": 9,
-      "at": "2026-09-29T11:21:23+00:00",
+      "at": "2026-09-29T11:20:58+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -581,7 +793,7 @@
     },
     {
       "seq": 10,
-      "at": "2026-09-29T11:21:33+00:00",
+      "at": "2026-09-29T11:21:09+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -591,7 +803,7 @@
     },
     {
       "seq": 11,
-      "at": "2026-09-29T11:21:36+00:00",
+      "at": "2026-09-29T11:21:16+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -601,7 +813,7 @@
     },
     {
       "seq": 12,
-      "at": "2026-09-29T11:21:52+00:00",
+      "at": "2026-09-29T11:21:28+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -611,7 +823,7 @@
     },
     {
       "seq": 13,
-      "at": "2026-09-29T11:22:02+00:00",
+      "at": "2026-09-29T11:21:35+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -621,7 +833,7 @@
     },
     {
       "seq": 14,
-      "at": "2026-09-29T11:22:18+00:00",
+      "at": "2026-09-29T11:21:40+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -631,7 +843,7 @@
     },
     {
       "seq": 15,
-      "at": "2026-09-29T11:22:35+00:00",
+      "at": "2026-09-29T11:21:52+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -641,17 +853,17 @@
     },
     {
       "seq": 16,
-      "at": "2026-09-29T11:22:52+00:00",
+      "at": "2026-09-29T11:21:56+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: Nuclei and OWASP ZAP. Preparing requests with test data. Public surface first.",
+      "text": "Selected tools: whatweb, httpx, Katana, Nuclei, testssl.sh, ffuf, nikto and dalfox. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 17,
-      "at": "2026-09-29T11:23:01+00:00",
+      "at": "2026-09-29T11:22:02+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -661,17 +873,17 @@
     },
     {
       "seq": 18,
-      "at": "2026-09-29T11:23:13+00:00",
+      "at": "2026-09-29T11:22:08+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
-      "text": "Executing permitted scan · OWASP ZAP",
+      "text": "Executing permitted scan · Katana",
       "tone": "default",
       "rows": []
     },
     {
       "seq": 19,
-      "at": "2026-09-29T11:23:26+00:00",
+      "at": "2026-09-29T11:22:11+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -681,7 +893,7 @@
     },
     {
       "seq": 20,
-      "at": "2026-09-29T11:23:53+00:00",
+      "at": "2026-09-29T11:22:18+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -691,7 +903,7 @@
     },
     {
       "seq": 21,
-      "at": "2026-09-29T11:24:04+00:00",
+      "at": "2026-09-29T11:22:25+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -701,11 +913,11 @@
     },
     {
       "seq": 22,
-      "at": "2026-09-29T11:24:18+00:00",
+      "at": "2026-09-29T11:22:31+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
-      "text": "Discovery · OWASP ZAP",
+      "text": "Discovery · Katana",
       "tone": "default",
       "rows": [
         [
@@ -724,7 +936,7 @@
     },
     {
       "seq": 23,
-      "at": "2026-09-29T11:24:31+00:00",
+      "at": "2026-09-29T11:22:38+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -734,7 +946,7 @@
     },
     {
       "seq": 24,
-      "at": "2026-09-29T11:24:54+00:00",
+      "at": "2026-09-29T11:22:45+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -744,7 +956,7 @@
     },
     {
       "seq": 25,
-      "at": "2026-09-29T11:25:18+00:00",
+      "at": "2026-09-29T11:22:59+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -754,7 +966,7 @@
     },
     {
       "seq": 26,
-      "at": "2026-09-29T11:25:22+00:00",
+      "at": "2026-09-29T11:23:06+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -764,7 +976,7 @@
     },
     {
       "seq": 27,
-      "at": "2026-09-29T11:25:34+00:00",
+      "at": "2026-09-29T11:23:13+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -774,11 +986,11 @@
     },
     {
       "seq": 28,
-      "at": "2026-09-29T11:25:55+00:00",
+      "at": "2026-09-29T11:23:20+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
-      "text": "Scan · Nuclei and OWASP ZAP",
+      "text": "Scan · whatweb, httpx, Katana, Nuclei, testssl.sh, ffuf, nikto and dalfox",
       "tone": "default",
       "rows": [
         [
@@ -793,7 +1005,7 @@
     },
     {
       "seq": 29,
-      "at": "2026-09-29T11:26:23+00:00",
+      "at": "2026-09-29T11:23:26+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -803,7 +1015,7 @@
     },
     {
       "seq": 30,
-      "at": "2026-09-29T11:26:35+00:00",
+      "at": "2026-09-29T11:23:33+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -813,7 +1025,7 @@
     },
     {
       "seq": 31,
-      "at": "2026-09-29T11:26:50+00:00",
+      "at": "2026-09-29T11:23:39+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -823,7 +1035,7 @@
     },
     {
       "seq": 32,
-      "at": "2026-09-29T11:27:24+00:00",
+      "at": "2026-09-29T11:23:55+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -833,7 +1045,7 @@
     },
     {
       "seq": 33,
-      "at": "2026-09-29T11:27:44+00:00",
+      "at": "2026-09-29T11:24:03+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -843,7 +1055,7 @@
     },
     {
       "seq": 34,
-      "at": "2026-09-29T11:27:50+00:00",
+      "at": "2026-09-29T11:24:10+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -853,7 +1065,7 @@
     },
     {
       "seq": 35,
-      "at": "2026-09-29T11:28:08+00:00",
+      "at": "2026-09-29T11:24:15+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -863,7 +1075,7 @@
     },
     {
       "seq": 36,
-      "at": "2026-09-29T11:28:19+00:00",
+      "at": "2026-09-29T11:24:21+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -873,7 +1085,7 @@
     },
     {
       "seq": 37,
-      "at": "2026-09-29T11:28:27+00:00",
+      "at": "2026-09-29T11:24:27+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -883,7 +1095,7 @@
     },
     {
       "seq": 38,
-      "at": "2026-09-29T11:28:35+00:00",
+      "at": "2026-09-29T11:24:34+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -893,7 +1105,7 @@
     },
     {
       "seq": 39,
-      "at": "2026-09-29T11:28:46+00:00",
+      "at": "2026-09-29T11:24:39+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -916,7 +1128,7 @@
     },
     {
       "seq": 40,
-      "at": "2026-09-29T11:29:08+00:00",
+      "at": "2026-09-29T11:24:41+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -926,7 +1138,7 @@
     },
     {
       "seq": 41,
-      "at": "2026-09-29T11:29:20+00:00",
+      "at": "2026-09-29T11:24:48+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -936,7 +1148,7 @@
     },
     {
       "seq": 42,
-      "at": "2026-09-29T11:29:34+00:00",
+      "at": "2026-09-29T11:24:55+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "check",
@@ -946,7 +1158,7 @@
     },
     {
       "seq": 43,
-      "at": "2026-09-29T11:29:54+00:00",
+      "at": "2026-09-29T11:25:00+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -956,7 +1168,7 @@
     },
     {
       "seq": 44,
-      "at": "2026-09-29T11:30:09+00:00",
+      "at": "2026-09-29T11:25:05+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -966,7 +1178,7 @@
     },
     {
       "seq": 45,
-      "at": "2026-09-29T11:30:46+00:00",
+      "at": "2026-09-29T11:25:12+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -976,7 +1188,7 @@
     },
     {
       "seq": 46,
-      "at": "2026-09-29T11:30:57+00:00",
+      "at": "2026-09-29T11:25:14+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -986,7 +1198,7 @@
     },
     {
       "seq": 47,
-      "at": "2026-09-29T11:31:09+00:00",
+      "at": "2026-09-29T11:25:21+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -996,7 +1208,7 @@
     },
     {
       "seq": 48,
-      "at": "2026-09-29T11:31:19+00:00",
+      "at": "2026-09-29T11:25:25+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -1006,11 +1218,51 @@
     },
     {
       "seq": 49,
-      "at": "2026-09-29T11:31:38+00:00",
+      "at": "2026-09-29T11:25:38+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
       "text": "Triage IMP-003: False positive",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 50,
+      "at": "2026-09-29T11:26:02+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Report format: JSON",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 51,
+      "at": "2026-09-29T11:26:06+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Report saved · ./reports/RCX-001.json",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 52,
+      "at": "2026-09-29T11:26:11+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Report saved: ./reports/RCX-001.json.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 53,
+      "at": "2026-09-29T11:26:24+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Report v1 review approved; downloads unlocked",
       "tone": "ok",
       "rows": []
     }
@@ -1018,8 +1270,8 @@
   "requests": [
     {
       "text": "Assess https://••••@portal.lumina.com for web security issues.",
-      "at": "2026-09-29T11:20:26+00:00"
+      "at": "2026-09-29T11:20:21+00:00"
     }
   ],
-  "saved_at": "2026-09-29T11:54:02+00:00"
+  "saved_at": "2026-09-29T11:42:15+00:00"
 }

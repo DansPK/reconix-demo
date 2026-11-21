@@ -140,6 +140,13 @@ def _findings(assessment: Assessment) -> List[Dict[str, Any]]:
         "cwe": f.cwe, "owasp": f.owasp, "cve": f.cve,
         "status": f.status, "severity_override": f.severity_override,
         "effective_severity": f.effective_severity, "triage_note": f.triage_note,
+        "finding_category": f.finding_category, "confidence_level": f.confidence_level,
+        "evidence_quality": f.evidence_quality, "verification_status": f.verification_status,
+        "effective_verification": f.effective_verification,
+        "exploitability": f.exploitability,
+        "classification_uncertainty": f.classification_uncertainty,
+        "validation_method": f.validation_method, "validation_reason": f.validation_reason,
+        "validation_proof": list(f.validation_proof), "source_claims": list(f.source_claims),
     } for f in rows]
 
 
@@ -203,7 +210,8 @@ def snapshot(assessment: Assessment, *, session_closed: bool = False) -> Dict[st
             "report_path": run.report_path,
         },
         "login": _login(assessment),
-        "plan": [{"key": t.key, "label": t.label, "status": task_status(t.key, run)}
+        "plan": [{"key": t.key, "label": t.label, "status": task_status(t.key, run),
+                  "detail": t.detail, "tools": list(t.tools)}
                  for t in assessment.plan],
         "scope": _scope(assessment),
         "verdicts": [{
@@ -220,6 +228,13 @@ def snapshot(assessment: Assessment, *, session_closed: bool = False) -> Dict[st
             "reason": d.reason, "command_hash": d.command_hash, "at": _iso(d.created_at),
         } for d in assessment.decisions],
         "findings": _findings(assessment),
+        "reports": [{
+            "report_id": f"{uid_for(assessment)}-v{assessment.report_generation}",
+            "version": assessment.report_generation, "report_status": "READY",
+            "review_status": "APPROVED" if assessment.report_signed_off else "PENDING",
+            "signed_off": assessment.report_signed_off, "formats": ["PDF", "DOCX", "JSON"],
+            "generated_at": _iso(assessment.report_generated_at),
+        }] if run.report_path else [],
         "timeline": _timeline(assessment),
         "requests": [{"text": r.text, "at": _iso(r.created_at)} for r in assessment.requests],
     })

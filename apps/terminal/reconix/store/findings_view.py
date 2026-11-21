@@ -34,7 +34,7 @@ def _matches(filter_id: str, finding: Finding) -> bool:
     if filter_id in ("medium", "low"):
         return severity == filter_id.upper()
     if filter_id == "confirmed":
-        return not finding.needs_review
+        return finding.confirmed
     if filter_id == "needs_review":
         return finding.needs_review
     if filter_id == "open":

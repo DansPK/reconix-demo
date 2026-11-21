@@ -67,8 +67,10 @@ def plan_overview() -> List[PlanRow]:
     needs_login = bool(login_kind())
     rows: List[PlanRow] = []
     for n, task in enumerate(tasks, start=1):
-        rows.append(PlanRow(str(n), task.label, PHASE_DETAIL.get(task.key, ""), "LOW", "auto",
-                            task.status))
+        detail = task.detail or PHASE_DETAIL.get(task.key, "")
+        if task.tools:
+            detail = f"{detail} · {', '.join(task.tools)}"
+        rows.append(PlanRow(str(n), task.label, detail, "LOW", "auto", task.status))
         if task.key == "scanning" and needs_login:
             rows.append(_login_row(f"{n}a"))
         if task.key == "validation":

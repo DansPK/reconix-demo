@@ -91,6 +91,16 @@ export function findingView(f: Finding): FindingView {
       .filter(Boolean)
       .map((r) => r[0].toUpperCase() + r.slice(1)),
     references: [...new Set([...f.references, ...f.owasp, ...f.cve])],
+    findingCategory: f.finding_category,
+    confidenceLevel: f.confidence_level,
+    evidenceQuality: f.evidence_quality,
+    verificationStatus: f.effective_verification?.status ?? "UNVERIFIED",
+    exploitability: f.exploitability,
+    classificationUncertainty: f.classification_uncertainty,
+    validationMethod: f.validation_method,
+    validationReason: f.validation_reason,
+    validationProof: f.validation_proof,
+    sourceClaims: f.source_claims,
   };
 }
 
@@ -184,6 +194,7 @@ export function assessmentView(a: Assessment): AssessmentView {
     log: lines,
     stream: groupTimeline(a.timeline, liveStateOf(a.status), parseTime(a.saved_at)),
     findings: a.findings.map(findingView),
+    reports: a.reports,
     scope: scopeView(a),
     apiSpec: a.api_spec
       ? { label: [a.api_spec.title, a.api_spec.version].filter(Boolean).join(" "), endpoints: a.api_spec.endpoints }

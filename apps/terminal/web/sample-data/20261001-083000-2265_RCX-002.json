@@ -17,11 +17,11 @@
   "client": "Lumina",
   "mode": "Grey-box, Authorized",
   "methodology": [
-    "OWASP WSTG",
-    "OWASP Top 10 (2021)"
+    "Guided by OWASP WSTG",
+    "OWASP Top 10 (2025)"
   ],
   "report_version": "1.0",
-  "created_at": "2026-10-01T08:48:59+00:00",
+  "created_at": "2026-10-01T08:43:39+00:00",
   "status": "Completed",
   "waiting_gate": "",
   "waiting_request_id": "",
@@ -30,8 +30,8 @@
   "session_closed": true,
   "run": {
     "phase": "completed",
-    "started_at": "2026-10-01T08:50:09+00:00",
-    "finished_at": "2026-10-01T09:00:23+00:00",
+    "started_at": "2026-10-01T08:44:52+00:00",
+    "finished_at": "2026-10-01T08:48:55+00:00",
     "completed": true,
     "requests": 1202,
     "progress": {
@@ -40,9 +40,9 @@
       "scanning": 100,
       "validation": 100,
       "analysis": 100,
-      "report": 0
+      "report": 100
     },
-    "report_path": ""
+    "report_path": "./reports/RCX-002.json"
   },
   "login": {
     "kind": "",
@@ -50,24 +50,52 @@
   },
   "plan": [
     {
-      "key": "recon",
-      "label": "Reconnaissance",
-      "status": "done"
-    },
-    {
       "key": "discovery",
-      "label": "Content discovery",
-      "status": "done"
+      "label": "Map the site",
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "whatweb",
+        "Katana",
+        "ffuf"
+      ]
     },
     {
       "key": "scanning",
-      "label": "Vulnerability scanning",
-      "status": "done"
+      "label": "Scan for weaknesses",
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "Nuclei",
+        "testssl.sh",
+        "nikto"
+      ]
     },
     {
       "key": "validation",
-      "label": "Finding validation",
-      "status": "done"
+      "label": "Validate findings",
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "Nuclei",
+        "dalfox",
+        "testssl.sh",
+        "httpx"
+      ]
+    },
+    {
+      "key": "analysis",
+      "label": "Correlate & dedupe findings",
+      "status": "done",
+      "detail": "",
+      "tools": []
+    },
+    {
+      "key": "report",
+      "label": "Generate report",
+      "status": "done",
+      "detail": "",
+      "tools": []
     }
   ],
   "scope": {
@@ -88,10 +116,16 @@
       "/admin"
     ],
     "allowed_ports": [],
-    "time_limit_minutes": 30,
+    "time_limit_minutes": 0,
     "tools": [
+      "whatweb",
+      "httpx",
+      "Katana",
       "Nuclei",
-      "OWASP ZAP"
+      "testssl.sh",
+      "ffuf",
+      "nikto",
+      "dalfox"
     ]
   },
   "verdicts": [
@@ -100,21 +134,21 @@
       "path": "/admin",
       "allowed": false,
       "reason": "Path outside approved scope",
-      "at": "2026-10-01T08:53:42+00:00"
+      "at": "2026-10-01T08:46:19+00:00"
     },
     {
       "method": "GET",
       "path": "/api/v1/products?q=cotton+socks",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-01T08:55:39+00:00"
+      "at": "2026-10-01T08:47:05+00:00"
     },
     {
       "method": "GET",
       "path": "/api/v1/products?q=cotton+socks",
       "allowed": true,
       "reason": "Within approved scope",
-      "at": "2026-10-01T08:55:49+00:00"
+      "at": "2026-10-01T08:47:11+00:00"
     }
   ],
   "approvals": [
@@ -138,14 +172,29 @@
       "operator": "analyst",
       "reason": "",
       "command_hash": "sha256:064a59cf9d23d45ff744f41457e901491dca76d093603c84a82e1c8c70b30b84",
-      "at": "2026-10-01T08:55:56+00:00"
+      "at": "2026-10-01T08:47:16+00:00"
     }
   ],
   "findings": [],
+  "reports": [
+    {
+      "report_id": "20261001-083000-2265_RCX-002-v1",
+      "version": 1,
+      "report_status": "READY",
+      "review_status": "APPROVED",
+      "signed_off": true,
+      "formats": [
+        "PDF",
+        "DOCX",
+        "JSON"
+      ],
+      "generated_at": "2026-10-01T08:49:12+00:00"
+    }
+  ],
   "timeline": [
     {
-      "seq": 49,
-      "at": "2026-10-01T08:48:48+00:00",
+      "seq": 53,
+      "at": "2026-10-01T08:43:32+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -154,8 +203,8 @@
       "rows": []
     },
     {
-      "seq": 50,
-      "at": "2026-10-01T08:48:52+00:00",
+      "seq": 54,
+      "at": "2026-10-01T08:43:36+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -164,8 +213,8 @@
       "rows": []
     },
     {
-      "seq": 51,
-      "at": "2026-10-01T08:49:21+00:00",
+      "seq": 55,
+      "at": "2026-10-01T08:44:02+00:00",
       "type": "chat",
       "who": "you",
       "kind": "text",
@@ -174,8 +223,8 @@
       "rows": []
     },
     {
-      "seq": 52,
-      "at": "2026-10-01T08:49:36+00:00",
+      "seq": 56,
+      "at": "2026-10-01T08:44:21+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -184,8 +233,8 @@
       "rows": []
     },
     {
-      "seq": 53,
-      "at": "2026-10-01T08:49:41+00:00",
+      "seq": 57,
+      "at": "2026-10-01T08:44:26+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -194,8 +243,8 @@
       "rows": []
     },
     {
-      "seq": 54,
-      "at": "2026-10-01T08:49:46+00:00",
+      "seq": 58,
+      "at": "2026-10-01T08:44:31+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -204,8 +253,8 @@
       "rows": []
     },
     {
-      "seq": 55,
-      "at": "2026-10-01T08:49:53+00:00",
+      "seq": 59,
+      "at": "2026-10-01T08:44:34+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -214,8 +263,8 @@
       "rows": []
     },
     {
-      "seq": 56,
-      "at": "2026-10-01T08:49:57+00:00",
+      "seq": 60,
+      "at": "2026-10-01T08:44:41+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -224,8 +273,8 @@
       "rows": []
     },
     {
-      "seq": 57,
-      "at": "2026-10-01T08:50:04+00:00",
+      "seq": 61,
+      "at": "2026-10-01T08:44:45+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -234,8 +283,8 @@
       "rows": []
     },
     {
-      "seq": 58,
-      "at": "2026-10-01T08:50:13+00:00",
+      "seq": 62,
+      "at": "2026-10-01T08:44:58+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -244,8 +293,8 @@
       "rows": []
     },
     {
-      "seq": 59,
-      "at": "2026-10-01T08:50:20+00:00",
+      "seq": 63,
+      "at": "2026-10-01T08:45:03+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -254,8 +303,8 @@
       "rows": []
     },
     {
-      "seq": 60,
-      "at": "2026-10-01T08:50:36+00:00",
+      "seq": 64,
+      "at": "2026-10-01T08:45:10+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -264,8 +313,8 @@
       "rows": []
     },
     {
-      "seq": 61,
-      "at": "2026-10-01T08:50:46+00:00",
+      "seq": 65,
+      "at": "2026-10-01T08:45:16+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -274,8 +323,8 @@
       "rows": []
     },
     {
-      "seq": 62,
-      "at": "2026-10-01T08:50:57+00:00",
+      "seq": 66,
+      "at": "2026-10-01T08:45:22+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -284,8 +333,8 @@
       "rows": []
     },
     {
-      "seq": 63,
-      "at": "2026-10-01T08:51:17+00:00",
+      "seq": 67,
+      "at": "2026-10-01T08:45:28+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -294,18 +343,18 @@
       "rows": []
     },
     {
-      "seq": 64,
-      "at": "2026-10-01T08:51:34+00:00",
+      "seq": 68,
+      "at": "2026-10-01T08:45:33+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
-      "text": "Selected tools: Nuclei and OWASP ZAP. Preparing requests with test data. Public surface first.",
+      "text": "Selected tools: whatweb, httpx, Katana, Nuclei, testssl.sh, ffuf, nikto and dalfox. Preparing requests with test data. Public surface first.",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 65,
-      "at": "2026-10-01T08:51:46+00:00",
+      "seq": 69,
+      "at": "2026-10-01T08:45:39+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -314,18 +363,18 @@
       "rows": []
     },
     {
-      "seq": 66,
-      "at": "2026-10-01T08:51:53+00:00",
+      "seq": 70,
+      "at": "2026-10-01T08:45:44+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
-      "text": "Executing permitted scan · OWASP ZAP",
+      "text": "Executing permitted scan · Katana",
       "tone": "default",
       "rows": []
     },
     {
-      "seq": 67,
-      "at": "2026-10-01T08:52:05+00:00",
+      "seq": 71,
+      "at": "2026-10-01T08:45:47+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -334,8 +383,8 @@
       "rows": []
     },
     {
-      "seq": 68,
-      "at": "2026-10-01T08:52:30+00:00",
+      "seq": 72,
+      "at": "2026-10-01T08:45:53+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -344,8 +393,8 @@
       "rows": []
     },
     {
-      "seq": 69,
-      "at": "2026-10-01T08:52:43+00:00",
+      "seq": 73,
+      "at": "2026-10-01T08:45:56+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -354,12 +403,12 @@
       "rows": []
     },
     {
-      "seq": 70,
-      "at": "2026-10-01T08:53:04+00:00",
+      "seq": 74,
+      "at": "2026-10-01T08:46:00+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
-      "text": "Discovery · OWASP ZAP",
+      "text": "Discovery · Katana",
       "tone": "default",
       "rows": [
         [
@@ -377,8 +426,8 @@
       ]
     },
     {
-      "seq": 71,
-      "at": "2026-10-01T08:53:15+00:00",
+      "seq": 75,
+      "at": "2026-10-01T08:46:05+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -387,8 +436,8 @@
       "rows": []
     },
     {
-      "seq": 72,
-      "at": "2026-10-01T08:53:32+00:00",
+      "seq": 76,
+      "at": "2026-10-01T08:46:13+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -397,8 +446,8 @@
       "rows": []
     },
     {
-      "seq": 73,
-      "at": "2026-10-01T08:53:53+00:00",
+      "seq": 77,
+      "at": "2026-10-01T08:46:31+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -407,8 +456,8 @@
       "rows": []
     },
     {
-      "seq": 74,
-      "at": "2026-10-01T08:53:58+00:00",
+      "seq": 78,
+      "at": "2026-10-01T08:46:35+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -417,8 +466,8 @@
       "rows": []
     },
     {
-      "seq": 75,
-      "at": "2026-10-01T08:54:10+00:00",
+      "seq": 79,
+      "at": "2026-10-01T08:46:39+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -427,12 +476,12 @@
       "rows": []
     },
     {
-      "seq": 76,
-      "at": "2026-10-01T08:54:32+00:00",
+      "seq": 80,
+      "at": "2026-10-01T08:46:47+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
-      "text": "Scan · Nuclei and OWASP ZAP",
+      "text": "Scan · whatweb, httpx, Katana, Nuclei, testssl.sh, ffuf, nikto and dalfox",
       "tone": "default",
       "rows": [
         [
@@ -446,8 +495,8 @@
       ]
     },
     {
-      "seq": 77,
-      "at": "2026-10-01T08:54:59+00:00",
+      "seq": 81,
+      "at": "2026-10-01T08:46:53+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -456,8 +505,8 @@
       "rows": []
     },
     {
-      "seq": 78,
-      "at": "2026-10-01T08:55:10+00:00",
+      "seq": 82,
+      "at": "2026-10-01T08:46:57+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -466,8 +515,8 @@
       "rows": []
     },
     {
-      "seq": 79,
-      "at": "2026-10-01T08:55:24+00:00",
+      "seq": 83,
+      "at": "2026-10-01T08:47:00+00:00",
       "type": "activity",
       "who": "POLICY",
       "kind": "line",
@@ -476,8 +525,8 @@
       "rows": []
     },
     {
-      "seq": 80,
-      "at": "2026-10-01T08:56:00+00:00",
+      "seq": 84,
+      "at": "2026-10-01T08:47:20+00:00",
       "type": "activity",
       "who": "USER",
       "kind": "line",
@@ -486,8 +535,8 @@
       "rows": []
     },
     {
-      "seq": 81,
-      "at": "2026-10-01T08:56:17+00:00",
+      "seq": 85,
+      "at": "2026-10-01T08:47:34+00:00",
       "type": "chat",
       "who": "policy",
       "kind": "banner",
@@ -496,8 +545,8 @@
       "rows": []
     },
     {
-      "seq": 82,
-      "at": "2026-10-01T08:56:24+00:00",
+      "seq": 86,
+      "at": "2026-10-01T08:47:38+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -506,8 +555,8 @@
       "rows": []
     },
     {
-      "seq": 83,
-      "at": "2026-10-01T08:56:45+00:00",
+      "seq": 87,
+      "at": "2026-10-01T08:47:40+00:00",
       "type": "activity",
       "who": "TOOL",
       "kind": "line",
@@ -516,8 +565,8 @@
       "rows": []
     },
     {
-      "seq": 84,
-      "at": "2026-10-01T08:56:56+00:00",
+      "seq": 88,
+      "at": "2026-10-01T08:47:45+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -526,8 +575,8 @@
       "rows": []
     },
     {
-      "seq": 85,
-      "at": "2026-10-01T08:57:09+00:00",
+      "seq": 89,
+      "at": "2026-10-01T08:47:49+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -536,8 +585,8 @@
       "rows": []
     },
     {
-      "seq": 86,
-      "at": "2026-10-01T08:57:22+00:00",
+      "seq": 90,
+      "at": "2026-10-01T08:47:56+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -546,8 +595,8 @@
       "rows": []
     },
     {
-      "seq": 87,
-      "at": "2026-10-01T08:57:31+00:00",
+      "seq": 91,
+      "at": "2026-10-01T08:47:59+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "card",
@@ -569,8 +618,8 @@
       ]
     },
     {
-      "seq": 88,
-      "at": "2026-10-01T08:57:51+00:00",
+      "seq": 92,
+      "at": "2026-10-01T08:48:06+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -579,8 +628,8 @@
       "rows": []
     },
     {
-      "seq": 89,
-      "at": "2026-10-01T08:58:02+00:00",
+      "seq": 93,
+      "at": "2026-10-01T08:48:13+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -589,8 +638,8 @@
       "rows": []
     },
     {
-      "seq": 90,
-      "at": "2026-10-01T08:58:20+00:00",
+      "seq": 94,
+      "at": "2026-10-01T08:48:18+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "check",
@@ -599,8 +648,8 @@
       "rows": []
     },
     {
-      "seq": 91,
-      "at": "2026-10-01T08:58:34+00:00",
+      "seq": 95,
+      "at": "2026-10-01T08:48:22+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -609,8 +658,8 @@
       "rows": []
     },
     {
-      "seq": 92,
-      "at": "2026-10-01T08:58:53+00:00",
+      "seq": 96,
+      "at": "2026-10-01T08:48:29+00:00",
       "type": "chat",
       "who": "",
       "kind": "check",
@@ -619,8 +668,8 @@
       "rows": []
     },
     {
-      "seq": 93,
-      "at": "2026-10-01T08:59:32+00:00",
+      "seq": 97,
+      "at": "2026-10-01T08:48:34+00:00",
       "type": "activity",
       "who": "AI",
       "kind": "line",
@@ -629,8 +678,8 @@
       "rows": []
     },
     {
-      "seq": 94,
-      "at": "2026-10-01T08:59:53+00:00",
+      "seq": 98,
+      "at": "2026-10-01T08:48:41+00:00",
       "type": "activity",
       "who": "SYS",
       "kind": "line",
@@ -639,8 +688,8 @@
       "rows": []
     },
     {
-      "seq": 95,
-      "at": "2026-10-01T09:00:05+00:00",
+      "seq": 99,
+      "at": "2026-10-01T08:48:44+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
@@ -649,21 +698,61 @@
       "rows": []
     },
     {
-      "seq": 96,
-      "at": "2026-10-01T09:00:14+00:00",
+      "seq": 100,
+      "at": "2026-10-01T08:48:48+00:00",
       "type": "chat",
       "who": "reconix",
       "kind": "text",
       "text": "Open the report (8 or /report) to export it.",
       "tone": "muted",
       "rows": []
+    },
+    {
+      "seq": 101,
+      "at": "2026-10-01T08:49:15+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Report format: JSON",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 102,
+      "at": "2026-10-01T08:49:19+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Report saved · ./reports/RCX-002.json",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 103,
+      "at": "2026-10-01T08:49:24+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Report saved: ./reports/RCX-002.json.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 104,
+      "at": "2026-10-01T08:49:38+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Report v1 review approved; downloads unlocked",
+      "tone": "ok",
+      "rows": []
     }
   ],
   "requests": [
     {
       "text": "Assess https://careers.lumina.com for web security issues.",
-      "at": "2026-10-01T08:49:08+00:00"
+      "at": "2026-10-01T08:43:48+00:00"
     }
   ],
-  "saved_at": "2026-10-01T09:07:18+00:00"
+  "saved_at": "2026-10-01T08:56:28+00:00"
 }
