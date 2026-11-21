@@ -79,14 +79,14 @@ export async function renderDashboardPage(
   // `/reports` with nothing asked for opens the first assessment's report; a run that was asked
   // for but isn't there stays put, so the page says so (QAL-003) instead of showing another one
   if (onReports && !matched && !apiAssessment && !wanted) {
-    const firstReport = views.find((v) => v.coreId && isAssessmentId(v.coreId));
-    if (firstReport?.coreId) redirect(`/reports/${encodeURIComponent(firstReport.coreId)}`);
+    const firstReport = views[0];
+    if (firstReport) redirect(`/reports/${encodeURIComponent(firstReport.coreId || firstReport.uid)}`);
   }
   const chosen = onAssessments ? null : matched;
 
   const dash = chosen ? deriveDashboard(chosen) : null;
   const overall = !chosen && views.length ? deriveOverall(views) : null;
-  const selectedAssessment = onAssessments ? null : (apiAssessment ?? (chosen?.coreId && isAssessmentId(chosen.coreId) ? chosen.coreId : null));
+  const selectedAssessment = onAssessments ? null : (apiAssessment ?? (chosen && (chosen.coreId || chosen.uid)));
   const items = library.assessments.map(libraryItem);
   const dir = shownDir(library.dir);
 

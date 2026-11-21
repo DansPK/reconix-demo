@@ -13,11 +13,10 @@ import { expect, test } from "./fixtures";
 
 import { axe, AXE_MOTION_OR_REDUCED, show } from "./axe";
 import { newest, sample } from "./support";
-import { apiId } from "./core-api-ids.mjs";
 
 const RUN = newest().uid;
 /** A run whose stand-in report is signed off, so its files are offered (e2e/core-api-stub.mjs). */
-const REPORTED = apiId(sample().find((a) => a.status === "Completed")!.uid);
+const REPORTED = sample().find((a) => a.status === "Completed")!.uid;
 test.describe("axe", () => {
   test.use(AXE_MOTION_OR_REDUCED);
 
@@ -25,7 +24,7 @@ test.describe("axe", () => {
     ["overview", "/"],
     ["one run's overview", `/assessments/${RUN}`],
     ["findings", "/findings"],
-    ["one finding", `/findings/${apiId(RUN)}?finding=F-001`],
+    ["one finding", `/findings/${RUN}?finding=F-001`],
     ["reports", `/reports/${REPORTED}`],
     ["every run's report", "/reports"],
     ["assessments", "/assessments"],
@@ -93,7 +92,7 @@ test.describe("axe, more states", () => {
   });
 
   test("a run with no findings (the empty Findings view) has no violations", async ({ page }) => {
-    await show(page, `/findings/${apiId("20261001-083000-2265_RCX-DEMO-001")}`);
+    await show(page, `/findings/${"20261001-083000-2265_RCX-001"}`);
     await expect(page.locator("main > :not([hidden])").getByText("No findings in this assessment yet.")).toBeVisible();
     await axe(page, "findings empty");
   });

@@ -76,9 +76,8 @@ test("a group page shows its pages' text in place, as titled parts", async ({ pa
     expect(await content.getByRole("heading", { level: 2 }).allTextContents()).toEqual(["Introduction", "Requirements", "Installation", "Launching", "First steps"]);
     await expect(part(page, "introduction").getByRole("heading", { level: 3, name: "What Reconix does" })).toBeAttached();
     await expect(part(page, "introduction")).toContainText("keyboard-first terminal application");
-    // the installed command first, then the uv-installed command for source checkouts
-    await expect(part(page, "launching").locator("pre").first()).toHaveText("reconix");
-    await expect(part(page, "launching").locator("pre").nth(1)).toContainText("uv tool install --force .");
+    await expect(part(page, "launching").locator("pre").first()).toContainText("setup.ps1 web");
+    await expect(part(page, "launching").locator("pre").first()).toContainText("./setup.sh web");
     await expect(page.getByText("Start here")).toHaveCount(0);
   }
   // the Commands page: every command, each with its facts and sections
@@ -123,10 +122,10 @@ test("every code block has a Copy button that copies its text", async ({ page, c
   await page.goto("/docs/getting-started");
   await expect(page.locator("html[data-hydrated]")).toHaveCount(1); // hydrated: the buttons are live
   await expect(page.getByRole("button", { name: "Copy code" })).toHaveCount(await page.locator("pre").count());
-  await part(page, "launching").getByRole("button", { name: "Copy code" }).nth(1).click();
+  await part(page, "launching").getByRole("button", { name: "Copy code" }).first().click();
   await expect(page.getByRole("button", { name: "Copied" })).toBeVisible(); // the label follows the state
   const copied = await page.evaluate(() => navigator.clipboard.readText());
-  expect(copied).toContain("uv tool install --force .");
+  expect(copied).toContain("./setup.sh web");
 });
 
 test("the search looks through the group shown and jumps within the page", async ({ page }) => {

@@ -247,7 +247,7 @@ export const DOCS = {
   panelActivity: "/docs/reports#panels-activity-timeline",
   panelExecution: "/docs/reports#panels-execution-timeline",
   panelFindingsBySeverity: "/docs/reports#panels-findings-by-severity",
-  panelReports: "/docs/reports#panels-reports",
+  panelReports: "/docs/reports#panels-reports",
   // the views that are one panel, not a row of cards (QAL-009)
   panelAssessments: "/docs/reports#panels-assessments",
   panelFindingsList: "/docs/reports#panels-findings-list",

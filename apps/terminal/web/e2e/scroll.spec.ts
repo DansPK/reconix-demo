@@ -12,7 +12,6 @@ import { type CDPSession, type Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 
-import { apiId } from "./core-api-ids.mjs";
 import { frames, sideways, signIn, sizeLabel as label } from "./support";
 
 const SIZES = [
@@ -28,9 +27,9 @@ const SIZES = [
 const fixedFrame = (s: { width: number; height: number }) => s.width >= 1280 && s.height >= 760;
 /** The longest view: the Report of the run with twelve findings, whose findings table is longer
     than a screen (the Report lists the assessment's findings, not its versions). */
-const LONG_RUN = "20260929-112000-8c51_RCX-DEMO-002";
+const LONG_RUN = "20260929-112000-8c51_RCX-002";
 type View = { name: string; path: string };
-const LONG_REPORT: View = { name: "reports (one assessment)", path: `/reports/${apiId(LONG_RUN)}` };
+const LONG_REPORT: View = { name: "reports (one assessment)", path: `/reports/${LONG_RUN}` };
 /* `/reports` opens the first assessment's Report (dashboard-page.tsx), so it is listed by the
    address it is reached by. */
 const VIEWS: View[] = [

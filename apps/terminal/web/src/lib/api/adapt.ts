@@ -257,4 +257,3 @@ export function reportRow(r: ApiReport): ReportRow {
     summary: r.executive_summary ?? "",
   };
 }
-

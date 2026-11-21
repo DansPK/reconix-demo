@@ -448,94 +448,12 @@ export const assessmentGuide: GroupContent = {
     ),
   },
   "ai-agent": {
-    lede: "With a model active and the backend harness installed, /assess hands a real assessment to an AI agent, behind the same scope gate.",
+    lede: "Follow a simulated assessment in the terminal.",
     body: (
       <>
-        <DocSection title="What you need">
-          <Steps>
-            <li>
-              The backend harness: <Mono>pip install -e backend</Mono> (it adds litellm, mcp and pyyaml, and needs{" "}
-              <strong>Python 3.10 or later</strong>, unlike the terminal&apos;s 3.9). Without it:
-              &quot;The harness backend isn&apos;t installed (pip install -e backend).&quot;
-            </li>
-            <li>
-              A reachable Kali MCP server, configured in <Mono>.env</Mono>: <Mono>KALI_MCP_TRANSPORT</Mono> (http, sse or
-              stdio), <Mono>KALI_MCP_URL</Mono> and <Mono>KALI_MCP_AUTH_TOKEN</Mono>, or for stdio{" "}
-              <Mono>KALI_MCP_SSH_HOST</Mono> and <Mono>KALI_MCP_REMOTE_CMD</Mono>. <Mono>HARNESS_DB_PATH</Mono> is the
-              agent&apos;s own SQLite database of targets, scans and findings.
-            </li>
-            <li>
-              An active model (<DocRef>/model</DocRef>). Without one: &quot;Pick a model
-              first with /model.&quot;
-            </li>
-          </Steps>
-          <Code>{`/provider set reconix        # or any other provider
-/provider test reconix
-/model reconix/<model>
-/assess http://target.example.com`}</Code>
-        </DocSection>
         <DocSection title="How it runs">
-          <Steps>
-            <li>
-              <Mono>/assess &lt;target&gt;</Mono> (alias <Mono>/agent</Mono>), or simply a target typed at the prompt while a
-              model is active, builds the run and its scope like the scripted flow and opens the Template screen. Text
-              that is not a target is refused: &quot;That doesn&apos;t look like a scan target (URL, host or repo).&quot;
-              A running assessment&apos;s playback pauses and it stays listed under <Mono>/assessments</Mono> (reopening it
-              resumes it); a fresh one starts.
-            </li>
-            <li>
-              The scope manifest lists the agent&apos;s whole tool set (the harness&apos;s scanners: gobuster, httpprobe,
-              nikto, nmap, nuclei, sqlmap, whatweb, zap), since the agent plans dynamically. <strong>Approving the scope
-              is the authorization</strong>: Reconix registers the approved target as authorized (the model does not
-              decide that), the agent is told the engagement is approved and starts at once.
-            </li>
-            <li>
-              The Execution screen shows the agent&apos;s own plan as task rows (updated as it revises them), its tool
-              calls in the live output and its reasoning as steps folded into the thinking blocks. Findings it records are
-              mapped into the store as <Mono>AI-NNN</Mono> findings, their evidence redacted, so <Mono>/findings</Mono>,
-              the report, <Mono>/summary</Mono> and the dashboard see them.
-            </li>
-            <li>
-              When the agent needs a decision it pops a dialog (&quot;AGENT NEEDS YOUR DECISION&quot;, Yes/No or its own
-              options); when it needs a login it pops the secure-input form. A username and password are exchanged
-              host-side for a session, so the raw password never reaches the model, but the <strong>session it mints
-              (a header with a bearer token or cookie)</strong>, like a <strong>token or cookie you type</strong>, is handed
-              back to the agent as the tool&apos;s result, so it does reach the model and its provider.
-            </li>
-            <li>
-              A line typed during the run continues the same agent (its history is kept). While a turn runs, chat waits:
-              &quot;The assessment is running — you can chat once it finishes.&quot; When the turn ends the run is marked
-              complete.
-            </li>
-          </Steps>
-        </DocSection>
-        <DocSection title="Switching models mid-assessment">
-          <p>
-            <Mono>/model</Mono> at any time repoints the agent at the new provider and model; its conversation, the
-            findings and the approvals are preserved. The model is set before every turn from the active provider, and
-            the API key is decrypted only for that call.
-          </p>
-        </DocSection>
-        <DocSection title="What is and is not enforced">
-          <Callout variant="warning" title="Real tools, scope checked on every call">
-            The agent runs real tools against the target you named. Only assess what you are authorized to test. In
-            agent mode Reconix checks <strong>every tool call</strong> against the scope you approved before it runs:
-            the target host (and, on a network scope, the port list), the allowed methods and excluded paths on a web
-            or API scope, the tool set and the time limit. A refused call is not executed; the agent is told why, and
-            the refusal appears as a policy line in the activity log, in the blocked count and in the audit trail.
-            Authorizing a target outside the scope is refused too, and a source-code scope refuses every network tool.
-            Two limits to know. The tool set is listed in full on the manifest before you approve, so it restricts the
-            agent only if you edit the tools down. And the check is on the call, not on the traffic inside it: a
-            scanner&apos;s own crawling or probing of an allowed target is not checked request by request, and a scan of
-            a bare host on a network scope is judged by host only (so nmap may then try every port). The per-action
-            approval gates (MEDIUM, and the HIGH double check) are <strong>not applied to the agent</strong>: it is
-            told the engagement is approved and not to ask for confirmation. A login request never follows redirects,
-            so credentials are not re-sent to another address. What also applies: the scope approval before anything
-            starts, the dialogs it opens for decisions and logins, the redaction of what it logs and the evidence it
-            records, and the audit trail. <Mono>/assess</Mono>, <Mono>/new</Mono>, opening another assessment and
-            quitting cancel a running agent turn; the run you leave is marked stopped. Without a model or the harness,
-            the scripted demo runs instead.
-          </Callout>
+          <p>The demo plays a local assessment scenario. The activity panel shows the current step, approvals and recorded findings.</p>
+          <p>Open <Mono>/assessments</Mono> to revisit a run, or <Mono>/web</Mono> to inspect its dashboard and report.</p>
         </DocSection>
       </>
     ),

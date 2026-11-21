@@ -1,7 +1,4 @@
-/* End-to-end tests: start the built dashboard on the sample data (the Findings view through
-   e2e/core-api-stub.mjs, which serves the same runs) and drive it in Chromium.
-   Run `npm run build` first. Uses Playwright's Chromium (`npx playwright install chromium`)
-   or the browser at CHROMIUM_PATH. */
+/* Build the dashboard first. Playwright starts the normal offline launcher with bundled sample data and drives it in Chromium. */
 import { defineConfig, devices } from "@playwright/test";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -9,9 +6,6 @@ import path from "node:path";
 // E2E_PORT moves the test ports together, so several checkouts can test at once.
 export const PORT = Number(process.env.E2E_PORT || 3199);
 export const TOKEN = "e2e-token-0123456789abcdef";
-export const LLM_PORT = PORT - 4; // e2e/llm-stub.mjs, the AI Assistant's stand-in model
-export const CORE_API_PORT = PORT - 6; // e2e/core-api-stub.mjs, the Core API's stand-in (the Findings view)
-const CORE_API = `http://127.0.0.1:${CORE_API_PORT}`;
 export const LIVE_PORT = PORT - 2; // a second dashboard with live refresh on (e2e/live-refresh.spec.ts)
 /** The signed-in state every spec starts from (e2e/global-setup.ts writes it once per run). */
 export const STATE_FILE = path.join(tmpdir(), `reconix-e2e-state-${PORT}.json`);
@@ -53,7 +47,7 @@ export default defineConfig({
     },
     {
       name: "serial-assistant",
-      testMatch: /\/(assistant|assistant-knowledge|knowledge|a11y-assistant|scroll-assistant)\.spec\.ts$/,
+      testMatch: /\/(assistant|knowledge|a11y-assistant|scroll-assistant)\.spec\.ts$/,
       workers: 1,
       dependencies: ["parallel"],
       use: { ...DESKTOP, reducedMotion: "reduce" },
@@ -78,23 +72,10 @@ export default defineConfig({
         RECONIX_DATA_DIR: "sample-data",
         RECONIX_STALE_AFTER_HOURS: "0",
         RECONIX_LIVE_REFRESH_MS: "1000",
-        RECONIX_CORE_API: CORE_API,
         RECONIX_WEB_URL_FILE: path.join(tmpdir(), `reconix-e2e-live-${PORT}.url`),
       },
       reuseExistingServer: false,
       timeout: 60_000,
-    },
-    {
-      command: "node e2e/core-api-stub.mjs",
-      url: `${CORE_API}/`,
-      env: { CORE_API_STUB_PORT: String(CORE_API_PORT) },
-      reuseExistingServer: false,
-    },
-    {
-      command: "node e2e/llm-stub.mjs",
-      url: `http://127.0.0.1:${LLM_PORT}/`,
-      env: { LLM_STUB_PORT: String(LLM_PORT) },
-      reuseExistingServer: false,
     },
     {
       command: "node scripts/serve.mjs start --no-open",
@@ -105,8 +86,6 @@ export default defineConfig({
         RECONIX_DATA_DIR: "sample-data",
         // the sample files are old: keep their waiting run waiting instead of reading it as stale
         RECONIX_STALE_AFTER_HOURS: "0",
-        // the Findings view reads the Core API's stand-in, which serves the same sample runs
-        RECONIX_CORE_API: CORE_API,
         // no 10 s self-refresh under a test (a spec that wants it sets its own server)
         RECONIX_LIVE_REFRESH_MS: "0",
         // keep the test server's sign-in link out of ~/.reconix/web.url (a running dashboard's)
@@ -117,8 +96,6 @@ export default defineConfig({
         RECONIX_KNOWLEDGE_DIR: KNOWLEDGE_DIR,
         // the specs ask more than the default 12 questions a minute
         RECONIX_ASSISTANT_RATE_PER_MINUTE: "120",
-        // the AI Assistant asks the stand-in, saved as its only model by e2e/global-setup.ts
-        // (e2e/models.ts)
       },
       reuseExistingServer: false,
       timeout: 60_000,

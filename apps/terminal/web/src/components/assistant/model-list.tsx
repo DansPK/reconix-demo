@@ -359,7 +359,7 @@ export function ModelList({ models, fromForm, onChosen, onAdd }: Props) {
           ) : list.length === 0 ? (
             <div className="ai-picker-empty">
               <p>No model matches “{query.trim()}”.</p>
-              <button type="button" onClick={() => onAdd()} className="ai-btn ai-btn-small ai-btn-outline mt-2">
+              <button type="button" disabled title="Provider changes are unavailable in the offline demo" onClick={() => onAdd()} className="ai-btn ai-btn-small ai-btn-outline mt-2">
                 <Plus className="size-3.5" aria-hidden />
                 Add “{query.trim()}”
               </button>
@@ -378,7 +378,8 @@ export function ModelList({ models, fromForm, onChosen, onAdd }: Props) {
                 <li key={p.preset.id} className="ai-picker-row" style={{ "--i": i } as React.CSSProperties}>
                   <button
                     type="button"
-                    title={fresh ? `Set up ${p.preset.label}` : `Open ${p.preset.label}`}
+                    disabled={fresh}
+                    title={fresh ? "Provider changes are unavailable in the offline demo" : `Open ${p.preset.label}`}
                     onClick={() => (fresh ? onAdd(p.preset.id) : go(p.preset.id, '[data-focus="back"]'))}
                     className="ai-picker-model ai-picker-provider-row"
                     data-setup={p.count === 0 ? "none" : undefined}
@@ -415,7 +416,7 @@ export function ModelList({ models, fromForm, onChosen, onAdd }: Props) {
           <div className="ai-picker-setup">
             <p className="ai-picker-setup-title">{shortLabel(page)} isn&apos;t set up yet.</p>
             <p className="ai-picker-meta">{setupHint(page)}</p>
-            <button type="button" onClick={() => onAdd(page.id)} className="ai-btn ai-btn-small ai-picker-add mt-2">
+            <button type="button" disabled title="Provider changes are unavailable in the offline demo" onClick={() => onAdd(page.id)} className="ai-btn ai-btn-small ai-picker-add mt-2">
               <Plus className="size-3.5" aria-hidden />
               Set up {shortLabel(page)}
             </button>
@@ -447,7 +448,7 @@ export function ModelList({ models, fromForm, onChosen, onAdd }: Props) {
                     </div>
                     {page.kind !== "reconix" && (
                       <div className="ai-picker-endpoint-actions">
-                        <button type="button" onClick={() => onAdd(page.id, p.baseUrl)} className="ai-btn ai-btn-small ai-btn-outline ai-page-action">
+                        <button type="button" disabled title="Provider changes are unavailable in the offline demo" onClick={() => onAdd(page.id, p.baseUrl)} className="ai-btn ai-btn-small ai-btn-outline ai-page-action">
                           <Pencil className="size-3" aria-hidden />
                           Edit
                         </button>
@@ -511,7 +512,7 @@ export function ModelList({ models, fromForm, onChosen, onAdd }: Props) {
         <span className="ai-picker-keys" aria-hidden>
           <kbd className="ai-picker-kbd">↑↓</kbd> move <kbd className="ai-picker-kbd">↵</kbd> {tab === "providers" ? "open or set up" : "use"} <kbd className="ai-picker-kbd">esc</kbd> close
         </span>
-        <button type="button" data-focus="add" aria-label="+ Model" onClick={() => onAdd(page?.id)} className="ai-btn ai-btn-small ai-picker-add">
+        <button type="button" data-focus="add" aria-label="+ Model" disabled title="Provider changes are unavailable in the offline demo" onClick={() => onAdd(page?.id)} className="ai-btn ai-btn-small ai-picker-add">
           <Plus className="size-3.5" aria-hidden />
           {page && page.kind !== "reconix" ? `Add to ${shortLabel(page)}` : "Add model"}
         </button>

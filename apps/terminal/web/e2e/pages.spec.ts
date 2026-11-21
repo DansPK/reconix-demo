@@ -7,7 +7,6 @@ import { expect, test } from "./fixtures";
 
 import { PER_PAGE } from "../src/lib/paging";
 import { counted, hydrated, newest, sample, signIn, toolSteps } from "./support";
-import { apiId } from "./core-api-ids.mjs";
 
 const view = (name: string) => `nav[aria-label="Views"] button[aria-label^="${name}"]`;
 
@@ -51,7 +50,7 @@ test("the overview totals every saved file by default", async ({ page }) => {
   await expect(page.getByText(`Showing ${total} of ${total} findings`)).toBeVisible();
   // Reports with nothing picked opens the first Core API assessment's report (the newest run)
   await page.click(view("Reports"));
-  await expect(page).toHaveURL(new RegExp(`/reports/${apiId(newest().uid)}$`));
+  await expect(page).toHaveURL(new RegExp(`/reports/${newest().uid}$`));
   await expect(page.getByRole("heading", { name: "Report", level: 1 })).toBeVisible();
   await expect(page.getByRole("button", { name: "Choose an assessment" })).toContainText(newest().label);
 });
@@ -183,7 +182,7 @@ test("the switcher opens another assessment and keeps the view", async ({ page }
 test("the Findings view has no inline assessment picker and still filters by its assessment id", async ({ page }) => {
   await signIn(page);
   const other = sample().find((a) => counted(a).length > 1)!;
-  await page.goto(`/findings/${apiId(other.uid)}`);
+  await page.goto(`/findings/${other.uid}`);
   const pane = page.locator('[data-view-pane="findings"]');
   await expect(pane.getByRole("combobox", { name: "Assessment" })).toHaveCount(0);
   await expect(findingRows(page)).toHaveCount(counted(other).length);
@@ -290,7 +289,7 @@ test("the removed Audit log, Scope and Run log addresses open the Overview", asy
 
 test("old ?view=, ?uid= and ?assessment= links redirect to the view's own path, keeping its filters", async ({ page }) => {
   const uid = newest().uid;
-  const id = apiId(uid);
+  const id = uid;
   for (const [old, now] of [
     ["/?view=findings", "/findings"],
     [`/?uid=${uid}`, `/assessments/${uid}`],
@@ -327,7 +326,7 @@ test("an unknown assessment says so on every view and opens every run, and an un
 test("findings filter by severity, validation and search, and clear in one click", async ({ page }) => {
   await signIn(page);
   const a = sample().find((x) => x.findings.length >= 3)!;
-  await page.goto(`/findings/${apiId(a.uid)}`);
+  await page.goto(`/findings/${a.uid}`);
   const rows = findingRows(page);
   await expect(rows).toHaveCount(a.findings.length);
   const sev = a.findings[0].severity;

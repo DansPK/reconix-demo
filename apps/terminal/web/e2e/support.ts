@@ -69,6 +69,7 @@ export async function signIn(page: Page) {
 }
 
 interface SampleAssessment {
+  reports: {report_id: string; signed_off: boolean; report_status: string}[];
   uid: string;
   assessment_id?: string;
   label: string;
