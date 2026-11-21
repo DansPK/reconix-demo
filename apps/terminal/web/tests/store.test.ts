@@ -35,7 +35,7 @@ describe("dataDir", () => {
     expect(dataDir()).toBe(path.join(homedir(), ".reconix", "assessments"));
     process.env.RECONIX_DATA_DIR = "~/elsewhere";
     expect(dataDir()).toBe(path.join(homedir(), "elsewhere"));
-    expect(shownDir(path.join(homedir(), ".reconix", "assessments"))).toBe("~/.reconix/assessments");
+    expect(shownDir(path.join(homedir(), ".reconix", "assessments"))).toBe(path.join("~", ".reconix", "assessments"));
   });
 });
 
@@ -49,7 +49,7 @@ describe("readAssessmentFile", () => {
 
   it.each([
     ["notes.json", "unexpected file name"],
-    ["../20261005-140300-9f76_RCX-001.json", "unexpected file name"],
+    ["../20261005-140300-9f76_RCX-DEMO-001.json", "unexpected file name"],
   ])("refuses the name %s", async (name, reason) => {
     expect(await readAssessmentFile(dir, name)).toEqual({ file: name, reason });
   });
@@ -74,13 +74,13 @@ describe("readAssessmentFile", () => {
     expect(await readAssessmentFile(dir, "20261005-140300-eeee_RCX-GONE-001.json")).toBeNull();
   });
 
-  it("does not follow symlinks", async () => {
+  it.skipIf(process.platform === "win32")("does not follow symlinks", async () => {
     const name = sampleNames()[0];
     symlinkSync(path.join(SAMPLE_DIR, name), path.join(dir, name));
     expect(await readAssessmentFile(dir, name)).toEqual({ file: name, reason: "not a regular file" });
   });
 
-  it("does not block on a FIFO named like an assessment", async () => {
+  it.skipIf(process.platform === "win32")("does not block on a FIFO named like an assessment", async () => {
     const name = "20261005-140300-ffff_RCX-FIFO-001.json";
     execFileSync("mkfifo", [path.join(dir, name)]);
     expect(await readAssessmentFile(dir, name)).toEqual({ file: name, reason: "not a regular file" });
@@ -92,7 +92,7 @@ describe("loadLibrary", () => {
     for (const name of sampleNames()) copyFileSync(path.join(SAMPLE_DIR, name), path.join(dir, name));
     writeFileSync(path.join(dir, "20261005-140300-dddd_RCX-BAD-004.json"), "[]");
     writeFileSync(path.join(dir, "README.txt"), "ignored: not .json");
-    writeFileSync(path.join(dir, ".20261005-140300-9f76_RCX-001.json.123.tmp"), "half written");
+    writeFileSync(path.join(dir, ".20261005-140300-9f76_RCX-DEMO-001.json.123.tmp"), "half written");
     const library = await loadLibrary();
     expect(library.assessments).toHaveLength(sampleNames().length);
     const created = library.assessments.map((a) => a.created_at);

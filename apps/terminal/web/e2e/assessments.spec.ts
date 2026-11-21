@@ -1,4 +1,4 @@
-/* The Assessments view (`/?view=assessments`) on the sample data: every saved run ten a page,
+/* The Assessments view (`/assessments`) on the sample data: every saved run ten a page,
    the pager, the status and template chips, the search, a row opening that run's Overview, the
    filters kept in the address, no sideways overflow on a phone, and an axe check. */
 import { AxeBuilder } from "@axe-core/playwright";
@@ -14,15 +14,23 @@ const pages = Math.max(1, Math.ceil(all.length / PER_PAGE));
 test.beforeAll(() => expect(all.length, "the sample data needs more than one page of runs").toBeGreaterThan(PER_PAGE));
 const results = `${all.length} ${all.length === 1 ? "result" : "results"}`;
 
-/** The saved file's template name (support.ts types only what the other specs read). */
-const templateOf = (a: ReturnType<typeof sample>[number]) => (a as unknown as { template: { name: string } }).template.name;
+/** The template label the Assessments view derives from `core-api-stub.mjs` (`typeLabel(row.type)`). */
+const ACRONYMS = new Set(["api", "tls", "ssl", "dns", "http", "ssh", "url", "ip"]);
+const templateOf = (a: ReturnType<typeof sample>[number]) => {
+  const raw = (a as unknown as { target_kind?: string; template?: { id?: string } }).target_kind || (a as unknown as { template?: { id?: string } }).template?.id || "WEB";
+  return raw
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((w) => (ACRONYMS.has(w.toLowerCase()) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1).toLowerCase()))
+    .join(" ");
+};
 
 const rows = (page: Page) => page.getByRole("list", { name: "Saved assessments" }).getByRole("listitem");
 const pager = (page: Page) => page.getByRole("navigation", { name: "Assessment pages" });
 const chip = (page: Page, group: string, name: string | RegExp) => page.getByRole("group", { name: group }).getByRole("button", { name });
 
 async function open(page: Page, query = "") {
-  await page.goto(`/?view=assessments${query}`);
+  await page.goto(`/assessments${query ? `?${query.replace(/^&/, "")}` : ""}`);
   await expect(page.getByRole("heading", { name: "Assessments" })).toBeVisible();
   // hydrated before any click: a click before the router has hooked history.replaceState would
   // change the address without re-rendering the view
@@ -109,17 +117,17 @@ test("the template chips and the search narrow the runs together, and a stale pa
   await expect(rows(page)).toHaveCount(Math.min(all.length, PER_PAGE));
 });
 
-test("a row opens that run's Overview: its uid in the address, no view", async ({ page }) => {
+test("a row opens that run's Overview at /assessments/<uid>", async ({ page }) => {
   await open(page, "&status=Completed");
   const a = [...all].filter((x) => x.status === "Completed").sort((x, y) => y.created_at.localeCompare(x.created_at))[0];
   await rows(page).first().getByRole("link").click();
-  await expect(page).toHaveURL(new RegExp(`uid=${a.uid}`));
-  await expect(page).not.toHaveURL(/view=/);
+  // nosemgrep: detect-non-literal-regexp
+  await expect(page).toHaveURL(new RegExp(`/assessments/${a.uid}$`)); // its filters belong to the list left behind
   await expect(page.getByRole("heading", { name: "Assessment Operations Center" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Choose an assessment" })).toContainText(a.label);
-  // the switcher now starts with that run's name, a link back to this same Overview
+  // the switcher opens with this run marked as current
   await page.getByRole("button", { name: "Choose an assessment" }).click();
-  await expect(page.getByRole("link", { name: /^Open the overview of / })).toHaveAttribute("href", `/?uid=${a.uid}`);
+  await expect(page.locator('[role="dialog"] a[aria-current="true"]')).toHaveAttribute("href", `/assessments/${a.uid}`);
 });
 
 /** How far the page and the content area scroll sideways (both must be 0). */

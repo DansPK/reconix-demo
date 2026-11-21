@@ -7,7 +7,7 @@ import { COMMANDS, DOCS_NAV } from "@/lib/docs-nav";
 /**
  * What the docs search looks through: every page's title and description, its section
  * headings (so "double check" finds the Approval gates part's section) and, for a command, its
- * aliases (so "/agent" finds /assess). A group's page shows all of its pages, so the search on it
+ * aliases (so "/execution" finds /status). A group's page shows all of its pages, so the search on it
  * looks through that group only (groupSearchIndex) and jumps to an anchor on the same page: the
  * page's `#<slug>` or a section's `#<slug>-<section>` (the ids the group page renders). Built
  * once on the server by walking the content's React elements for DocSection titles; no page is

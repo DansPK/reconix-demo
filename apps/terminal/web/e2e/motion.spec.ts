@@ -11,6 +11,7 @@ import { expect, test } from "./fixtures";
 
 import { MOTION } from "../src/components/assistant/motion";
 import { clickMoving, counted, newest, sample as savedRuns, signIn } from "./support";
+import { apiId } from "./core-api-ids.mjs";
 
 /** When a MOTION tween ends, in ms from its timeline's start (a staggered one: its last piece). */
 const ends = (t: { at: number; duration: number; stagger?: number }, pieces = 1) => Math.round((t.at + t.duration + (t.stagger ?? 0) * (pieces - 1)) * 1000);
@@ -274,6 +275,7 @@ test("text never moves: once a conversation shows, the panel, the card and every
     const all = [...new Set([...chain, ...textful, ...layers])];
     const name = (el: Element) => `${el.tagName.toLowerCase()}.${el.className && typeof el.className === "string" ? el.className.split(" ")[0] : ""}`;
     const moving = (el: Element) => {
+      if (!el.isConnected) return null;
       const cs = getComputedStyle(el);
       const t = cs.transform;
       const still = t === "none" || new DOMMatrixReadOnly(t).isIdentity;
@@ -335,14 +337,13 @@ test("open and close keep the address (run and filters), the scroll position and
   const marked = () => page.evaluate(() => (window as unknown as { kept?: number }).kept);
   // one run with Findings filters: the address comes back exactly, without a reload
   const run = [...savedRuns()].sort((a, b) => counted(b).length - counted(a).length)[0];
-  await page.goto(`/?uid=${run.uid}&view=findings&sev=HIGH,MEDIUM&val=review&q=api`);
+  await page.goto(`/findings/${apiId(run.uid)}?sev=HIGH,MEDIUM&val=review&q=api`);
   await expect(page.getByRole("heading", { name: "Findings", level: 1 })).toBeVisible();
   await page.evaluate(() => ((window as unknown as { kept: number }).kept = 7));
   const url = page.url();
   await tab(page).click();
   await settled(page);
-  await expect(page).toHaveURL(/view=assistant/);
-  await expect(page).toHaveURL(new RegExp(`uid=${run.uid}`)); // the run stays chosen
+  await expect(page).toHaveURL(new RegExp(`/assistant/${apiId(run.uid)}\\?`)); // the assessment stays chosen
   await expect(page).toHaveURL(/sev=HIGH%2CMEDIUM|sev=HIGH,MEDIUM/);
   await minimize(page);
   await closed(page);
@@ -352,7 +353,7 @@ test("open and close keep the address (run and filters), the scroll position and
 
   // every run's findings, scrolled: the list pane (its own scroller on the fixed frame, since
   // redesign v3's Findings paging) is where it was
-  await page.goto("/?view=findings&sev=HIGH,MEDIUM,LOW");
+  await page.goto("/findings?sev=HIGH,MEDIUM,LOW");
   await expect(page.getByRole("heading", { name: "Findings", level: 1 })).toBeVisible();
   await page.evaluate(() => ((window as unknown as { kept: number }).kept = 8));
   const content = page.locator(".dash-content");
@@ -370,7 +371,7 @@ test("open and close keep the address (run and filters), the scroll position and
   expect(await marked()).toBe(8);
 
   // the Overview with a run chosen: the grow-and-shrink keeps the run and the scroll
-  await page.goto(`/?uid=${newest().uid}`);
+  await page.goto(`/assessments/${newest().uid}`);
   await expect(page.getByRole("heading", { name: "Assessment Operations Center" })).toBeVisible();
   await page.evaluate(() => ((window as unknown as { kept: number }).kept = 9));
   const overviewUrl = page.url();
@@ -500,7 +501,7 @@ test("no reload, one history entry per open, and rapid clicks leave nothing stuc
   await settled(page);
   await page.goBack();
   await closed(page);
-  await expect(page).not.toHaveURL(/view=assistant/);
+  await expect(page).not.toHaveURL(/\/assistant(\/[^/?]+)?(\?|$)/);
 
   // eight clicks, the last one on the Overview: it ends closed, with nothing left behind
   for (let i = 0; i < 8; i++) {
@@ -533,7 +534,7 @@ test("no reload, one history entry per open, and rapid clicks leave nothing stuc
 
 test("the direct address opens the assistant with no box to grow from", async ({ page }) => {
   await page.goto("/assistant");
-  await expect(page).toHaveURL(/\/\?view=assistant$/);
+  await expect(page).toHaveURL(/\/assistant$/);
   await expect(page.getByRole("heading", { name: "AI Assistant", level: 1 })).toBeVisible();
   await settled(page);
   await expect(composer(page)).toBeFocused();

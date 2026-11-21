@@ -4,9 +4,6 @@
    past DOCX_MAX_BYTES), and nothing the mask removed (more in docx-masking.test.ts). */
 import { describe, expect, it } from "vitest";
 
-import { combineAssessments } from "@/lib/report/combined/select";
-import { DEFAULT_COMBINE_OPTIONS } from "@/lib/report/combined/options";
-import { renderCombinedDocx } from "@/lib/report/docx/combined";
 import { type Block, DOCX_MAX_BYTES, docxFile, DocxTooLarge, xmlText } from "@/lib/report/docx/ooxml";
 import { renderReportDocx } from "@/lib/report/docx/report";
 import { crc32, zipStore } from "@/lib/report/docx/zip";
@@ -34,9 +31,8 @@ describe("the package", () => {
     expect(parts.get("[Content_Types].xml")).not.toMatch(/macroEnabled|vbaProject|oleObject/i);
   });
 
-  it("is well-formed XML in every part, for one run and for a combined report", () => {
-    const combined = renderCombinedDocx(combineAssessments(samples.slice(0, 4).map(maskAssessment), DEFAULT_COMBINE_OPTIONS), NOW);
-    for (const file of [...samples.map((a) => renderReportDocx(a, NOW)), combined]) {
+  it("is well-formed XML in every part, for every sample run", () => {
+    for (const file of samples.map((a) => renderReportDocx(a, NOW))) {
       const parts = unzip(file);
       expect(parts.size).toBe(PARTS.length);
       for (const [name, xml] of parts) expect(() => assertWellFormed(xml), name).not.toThrow();
@@ -138,29 +134,6 @@ describe("the size cap", () => {
     // 20,000-character lines (the schema's longest string), each & five bytes of XML
     huge.findings[0].evidence = Array.from({ length: Math.ceil(DOCX_MAX_BYTES / 100_000) + 1 }, () => "&".repeat(20_000));
     expect(() => renderReportDocx(huge, NOW)).toThrow(DocxTooLarge);
-    const report = combineAssessments([huge], DEFAULT_COMBINE_OPTIONS);
-    expect(() => renderCombinedDocx(report, NOW)).toThrow(DocxTooLarge);
-    // without the evidence the same run fits
-    expect(() => renderCombinedDocx(combineAssessments([huge], { ...DEFAULT_COMBINE_OPTIONS, evidence: false }), NOW)).not.toThrow();
   });
 
-});
-
-describe("the combined report", () => {
-  it("has the ten sections and every run", () => {
-    const picked = samples.slice(0, 3).map(maskAssessment);
-    const doc = unzip(renderCombinedDocx(combineAssessments(picked, DEFAULT_COMBINE_OPTIONS), NOW)).get("word/document.xml") ?? "";
-    for (const name of ["Executive summary", "Assessment overview", "Combined findings summary", "Individual assessment sections", "Evidence &amp; technical details", "Risk &amp; remediation priorities", "Limitations", "Appendix &amp; references"]) {
-      expect(doc).toContain(name);
-    }
-    for (const a of picked) expect(doc).toContain(a.uid);
-  });
-
-  it("leaves the evidence out when the option is off", () => {
-    const picked = [maskAssessment(withFindings)];
-    const report = combineAssessments(picked, { ...DEFAULT_COMBINE_OPTIONS, evidence: false });
-    const doc = unzip(renderCombinedDocx(report, NOW)).get("word/document.xml") ?? "";
-    expect(doc).toContain("Evidence lines were left out by the report&apos;s options.");
-    expect(doc).not.toContain('w:val="Evidence"');
-  });
 });

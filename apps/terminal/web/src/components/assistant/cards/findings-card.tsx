@@ -53,7 +53,6 @@ export function FindingsCard({ card }: { card: CardOf<"findings"> }) {
                   <p className="ai-card-sub">
                     <span className="ai-mono">{f.target}</span>
                     {several ? ` · ${runName(f.run)}` : ""}
-                    {f.foundIn ? ` · found in ${f.foundIn} runs` : ""}
                   </p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
                     <StatusBadge meaning={FINDING_REVIEW[f.review]} />

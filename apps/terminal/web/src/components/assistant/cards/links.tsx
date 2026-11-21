@@ -7,14 +7,16 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { showView, type View, type ViewParams } from "@/components/dashboard/view-url";
+import { showView, viewPath, type View, type ViewParams } from "@/components/dashboard/view-url";
 import { RUN_UID } from "@/lib/assistant/protocol";
 import { useAssistant } from "../assistant-provider";
 
 function runHref(uid: string, view: View, params: ViewParams = {}): string {
-  const query = new URLSearchParams({ uid, view });
+  const query = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) if (value) query.set(key, value);
-  return `/?${query.toString()}`;
+  const base = viewPath(view, uid);
+  const qs = query.toString();
+  return qs ? `${base}?${qs}` : base;
 }
 
 /** A link into another dashboard view about run `uid`, opened in place when the dashboard

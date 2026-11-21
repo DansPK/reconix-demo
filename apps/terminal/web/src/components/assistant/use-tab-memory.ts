@@ -13,6 +13,12 @@ import { useLatest } from "./use-latest";
 import type { OpenState } from "./use-open-conversation";
 
 const STORE_KEY = "reconix.assistant.v2"; // { openId, pageUid, draft }
+
+/** The conversation open in this page (this JS context): kept across in-app view changes, which
+    remount the assistant now that each view is its own route, so following a card link to
+    another run and coming back finds the same conversation (as when the views switched in place).
+    A reload or a new address starts from sessionStorage's rule below instead. */
+let openInPage: string | null = null;
 const OLD_KEY = "reconix.assistant.v1";
 
 interface Kept {
@@ -56,7 +62,13 @@ export function useTabMemory(info: AssistantInfo, open: OpenState, draft: string
       const { info: now, open: state } = latest.current;
       setDraft(latest.current.draft || kept.draft);
       restored.current = true;
-      if (!kept.openId || kept.pageUid !== now.scope.uid || state.opened || state.messages.length) return;
+      if (state.opened || state.messages.length) return;
+      const carried = openInPage;
+      if (carried) {
+        void state.openConversation(carried);
+        return;
+      }
+      if (!kept.openId || kept.pageUid !== now.scope.uid) return;
       void state.openConversation(kept.openId).then((ok) => {
         if (!ok && !latest.current.open.opened) save({ openId: null, pageUid: latest.current.info.scope.uid, draft: latest.current.draft }); // forget it
       });
@@ -65,6 +77,8 @@ export function useTabMemory(info: AssistantInfo, open: OpenState, draft: string
   }, [latest, setDraft]);
 
   useEffect(() => {
-    if (restored.current) save({ openId, pageUid: info.scope.uid, draft });
+    if (!restored.current) return;
+    openInPage = openId;
+    save({ openId, pageUid: info.scope.uid, draft });
   }, [openId, draft, info.scope.uid]);
 }

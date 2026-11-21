@@ -9,14 +9,16 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Info, Loader, ShieldAlert } from "lucide-react";
+import { contentMark } from "@/lib/scroll/stick-rules";
+import { scrollTriggerKey, viewSessionKey } from "@/lib/assistant/chat-state";
 import { useAssistant } from "./assistant-provider";
 import { AssistantHeader } from "./assistant-header";
 import { Composer } from "./composer";
 import { Message } from "./message";
 import { ScrollToBottom } from "./scroll-to-bottom";
+import { SwitchDialog } from "./switch-dialog";
 import { useStickToBottom } from "./use-stick-to-bottom";
 import { Welcome } from "./welcome";
-import { contentMark } from "@/lib/scroll/stick-rules";
 
 function Reason({ tone = "warning", id, children }: { tone?: "warning" | "info"; id?: string; children: React.ReactNode }) {
   const Icon = tone === "info" ? Info : ShieldAlert;
@@ -31,14 +33,15 @@ function Reason({ tone = "warning", id, children }: { tone?: "warning" | "info";
 export const AssistantView = forwardRef<HTMLTextAreaElement, { onMinimize: () => void }>(function AssistantView({ onMinimize }, composerRef) {
   const { info, canAsk, messages, busy, retry, conversation, opening, notice, newChat } = useAssistant();
   const { ref: scroller, atBottom, scrollToBottom, scrollToTop } = useStickToBottom<HTMLDivElement>();
+  const view = useRef<HTMLElement>(null);
+  const { model } = info;
   // what the reader has seen: kept up to date while they follow; scrolled up, anything newer
   // turns the ↓ button into "New messages"
   const mark = contentMark(messages);
-  const [seen, setSeen] = useState(mark);
-  if (atBottom && seen !== mark) setSeen(mark);
-  const fresh = !atBottom && seen !== mark;
-  const view = useRef<HTMLElement>(null);
-  const { model } = info;
+  const chatKey = viewSessionKey(messages, conversation.id);
+  const [seenFor, setSeenFor] = useState({ key: chatKey, mark });
+  if (seenFor.key !== chatKey || (atBottom && seenFor.mark !== mark)) setSeenFor({ key: chatKey, mark });
+  const fresh = !atBottom && seenFor.mark !== mark;
   // "New messages" goes away once used: carry on where the next question is typed
   const toLatest = () => {
     scrollToBottom();
@@ -47,10 +50,10 @@ export const AssistantView = forwardRef<HTMLTextAreaElement, { onMinimize: () =>
 
   // a question just asked (the operator's own message stays in view), or another conversation
   // opened: show its end
-  const lastUser = [...messages].reverse().find((m) => m.role === "user")?.id;
+  const scrollKey = scrollTriggerKey(messages);
   useEffect(() => {
-    if (lastUser) scrollToBottom();
-  }, [lastUser, conversation.id, scrollToBottom]);
+    if (scrollKey) scrollToBottom();
+  }, [scrollKey, scrollToBottom]);
   // the welcome reads from the top, and stays there when the stage opens later (on phones it
   // gets its height only then): stop following until a question is asked
   const welcome = messages.length === 0 && !opening;
@@ -106,12 +109,6 @@ export const AssistantView = forwardRef<HTMLTextAreaElement, { onMinimize: () =>
                 What the model sees
               </Link>
             </Reason>
-          ) : model.configured && !model.local ? (
-            <Reason>
-              {model.name}
-              {model.provider ? ` (${model.provider})` : ""} is not on this machine: your questions, the assessment data they need and relevant /add-on knowledge passages are sent to it. Switch with
-              the model chip below.
-            </Reason>
           ) : elsewhere ? (
             <Reason tone="info">
               This conversation is about {conversation.scope.label}; the dashboard shows {info.scope.label}.{" "}
@@ -124,6 +121,7 @@ export const AssistantView = forwardRef<HTMLTextAreaElement, { onMinimize: () =>
           <p className="ai-footnote">Answers use your saved assessment data. Scans and approvals stay in the terminal.</p>
         </div>
       </div>
+      <SwitchDialog />
     </section>
   );
 });

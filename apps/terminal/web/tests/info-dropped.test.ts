@@ -10,20 +10,15 @@ import { describe, expect, it, vi } from "vitest";
 
 import { deriveDashboard } from "@/components/dashboard/derive";
 import { deriveOverall } from "@/components/dashboard/derive-overall";
-import { overallReportCards, reportCards } from "@/components/dashboard/derive-report";
 import { parseFindingFilter, severityChips } from "@/components/dashboard/filters";
 import { findingsCard, pickCards } from "@/lib/assistant/cards";
 import { buildContext } from "@/lib/assistant/context";
 import { severityCounts as cardCounts } from "@/lib/assistant/insights";
 import { welcomePrompts } from "@/lib/assistant/prompts";
 import { assessmentView } from "@/lib/data/adapt";
-import { AssessmentSchema, isInfoFinding, SAVED_SEVERITIES, SEVERITIES } from "@/lib/data/schema";
+import { AssessmentSchema, FINDING_SEVERITIES, isInfoFinding, SAVED_SEVERITIES, SEVERITIES } from "@/lib/data/schema";
 import { allFindings, attentionItems, effectiveSeverity, overview, severityCounts } from "@/lib/data/stats";
 import { readAssessmentFile } from "@/lib/data/store";
-import { combineAssessments } from "@/lib/report/combined/select";
-import { renderCombinedHtml } from "@/lib/report/combined/html";
-import { DEFAULT_COMBINE_OPTIONS } from "@/lib/report/combined/options";
-import { renderCombinedDocx } from "@/lib/report/docx/combined";
 import { renderReportDocx } from "@/lib/report/docx/report";
 import { renderReportHtml } from "@/lib/report/html";
 import { renderFile } from "@/lib/report/render";
@@ -107,15 +102,15 @@ describe("the dropped findings appear nowhere", () => {
     expect(parseFindingFilter({ sev: "INFO,HIGH", val: "", q: "" }).sev).toEqual(["HIGH"]);
   });
 
-  it("in the counts: four levels, and the strip, the card and the Findings view agree", () => {
+  it("in the counts: the whole severity scale (never INFO), and the strip, the card and the Findings view agree", () => {
     const real = a.findings.filter((f) => f.status !== "false-positive");
-    expect(Object.keys(severityCounts(a.findings))).toEqual([...SEVERITIES]);
+    expect(Object.keys(severityCounts(a.findings))).toEqual([...FINDING_SEVERITIES]);
     expect(Object.values(severityCounts(a.findings)).reduce((n, c) => n + c, 0)).toBe(a.findings.length);
     expect(overview([a]).findings).toBe(real.length);
     const review = attentionItems([a]).items.find((i) => i.kind === "review");
-    if (review?.kind === "review") expect(Object.keys(review.bySeverity)).toEqual([...SEVERITIES]);
+    if (review?.kind === "review") expect(Object.keys(review.bySeverity)).toEqual([...FINDING_SEVERITIES]);
     for (const d of [deriveDashboard(v), deriveOverall(views)]) {
-      expect(d.cards.findings.severity.map((s) => s.level)).toEqual([...SEVERITIES]);
+      expect(d.cards.findings.severity.map((s) => s.level)).toEqual([...SEVERITIES]); // the Overview card's four rows
       expect(d.cards.findings.total).toBe(d.cards.summary.findings.total);
       expect(d.findingTotal).toBe(d.cards.findings.total);
       expect(d.cards.findings.top.some((t) => t.title.includes(INFO_MARK))).toBe(false); // CVSS 9.9 would top it
@@ -124,21 +119,11 @@ describe("the dropped findings appear nowhere", () => {
     expect(deriveDashboard(v).findingTotal).toBe(real.length);
   });
 
-  it("in the Report view, for the run and for every run", () => {
-    const d = deriveDashboard(v);
-    const one = reportCards(v, d.findings, d.cards.findings);
-    const all = overallReportCards(views, deriveOverall(views).cards.findings);
-    for (const r of [one, all]) {
-      clean(JSON.stringify(r));
-      expect(Number(r.stats.find((s) => s.label === "Findings")!.value)).toBe(r.findings.total);
-    }
-  });
-
   it("in the single report: HTML (the PDF's source), Word and JSON", () => {
     const html = renderReportHtml(a, NOW);
     clean(html);
     const tiles = [...html.matchAll(/<div class="k">([^<]+)<\/div>/g)].map((m) => m[1]);
-    expect(tiles).toEqual(["Critical", "High", "Medium", "Low", "Total"]);
+    expect(tiles).toEqual(["Critical", "High", "Medium", "Low", "None", "Unknown", "Total"]);
     expect(html).not.toMatch(/class="(tile|find s-)info|<i class="info"/);
     const xml = unzip(renderReportDocx(a, NOW)).get("word/document.xml") ?? "";
     clean(xml);
@@ -148,20 +133,11 @@ describe("the dropped findings appear nowhere", () => {
     expect(json).not.toContain('"INFO"');
   });
 
-  it("in the combined report: its model, preview and Word file", () => {
-    const r = combineAssessments(library.slice(0, 3), DEFAULT_COMBINE_OPTIONS);
-    clean(JSON.stringify(r));
-    expect(Object.keys(r.summary.uniqueBySeverity)).toEqual([...SEVERITIES]);
-    expect(Object.keys(r.summary.occurrencesBySeverity)).toEqual([...SEVERITIES]);
-    clean(renderCombinedHtml(r, NOW));
-    clean(unzip(renderCombinedDocx(r, NOW)).get("word/document.xml") ?? "");
-  });
-
   it("for the AI Assistant: cards, counts, suggestions and the model's context", () => {
     const card = findingsCard(views);
-    expect(Object.keys(card.counts)).toEqual([...SEVERITIES]);
+    expect(Object.keys(card.counts)).toEqual([...FINDING_SEVERITIES]);
     expect(Object.values(card.counts).reduce((n, c) => n + c, 0)).toBe(card.total);
-    expect(Object.keys(cardCounts(views))).toEqual([...SEVERITIES]);
+    expect(Object.keys(cardCounts(views))).toEqual([...FINDING_SEVERITIES]);
     for (const uid of [a.uid, null]) {
       clean(JSON.stringify(pickCards(library, uid, "Analyze the findings and explain the top finding")));
       clean(JSON.stringify(pickCards(library, uid, "Explain INFO-1")));

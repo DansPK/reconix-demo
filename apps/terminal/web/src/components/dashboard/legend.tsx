@@ -15,7 +15,7 @@ export function Swatch({ color, shape, pattern }: Pick<LegendItem, "color" | "sh
 export function Legend({ items, label, className }: { items: LegendItem[]; label: string; className?: string }) {
   if (!items.length) return null;
   return (
-    <ul aria-label={label} className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-micro text-muted-foreground", className)}>
+    <ul aria-label={label} className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground", className)}>
       {items.map((item) => {
         const name = item.count !== undefined ? `${item.label} ${item.count}` : item.label;
         return (

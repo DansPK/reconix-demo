@@ -1,6 +1,5 @@
 import { Callout, Code, DocRef, DocSection, DocTable, Kbd, Mono, Steps } from "@/components/docs-primitives";
 import type { GroupContent } from "@/content/docs/types";
-import { DOCX_MAX_MIB } from "@/lib/report/formats";
 
 export const reports: GroupContent = {
   reviewing: {
@@ -9,7 +8,7 @@ export const reports: GroupContent = {
       <>
         <DocSection title="The Report screen">
           <p>
-            <Mono>/report</Mono> or <Kbd>8</Kbd>. It shows, for the current assessment:
+            <Mono>/report</Mono> or <Kbd>Alt+8</Kbd>. It shows, for the current assessment:
           </p>
           <ul>
             <li>
@@ -55,6 +54,7 @@ export const reports: GroupContent = {
   },
   "understanding-findings": {
     lede: "What each field of a finding means, and how to filter, sort and triage.",
+    notice: "This reference is under review and may not match the latest implementation.",
     body: (
       <>
         <DocSection title="The fields">
@@ -96,6 +96,7 @@ export const reports: GroupContent = {
   },
   exporting: {
     lede: "Three formats (PDF, JSON and DOCX), written to ./reports/ once the assessment is complete.",
+    notice: "This reference is under review and may not match the latest implementation.",
     body: (
       <>
         <DocSection title="The formats">
@@ -146,7 +147,7 @@ export const reports: GroupContent = {
             rows={[
               { key: "The report is available once the assessment is complete.", value: "The run has not completed (it is still going, or it was stopped)." },
               { key: "(the \u201cExport the report as…\u201d menu opens)", value: "An argument that is not a format id is not refused: /export opens its menu instead." },
-              { key: "<Format> reports aren't available.", value: "PDF without WeasyPrint or Chrome, or DOCX without python-docx." },
+              { key: "<Format> reports aren't in this demo.", value: "PDF without WeasyPrint or Chrome, or DOCX without python-docx." },
               { key: "PDF export needs WeasyPrint or a Chrome/Chromium browser.", value: "Neither PDF engine was found at export time." },
               { key: "Couldn't render the PDF with the browser. / The browser did not produce a PDF.", value: "Chrome was found but printing failed; the DOCX and JSON exports still work." },
               { key: "The assessment id can't be used as a file name. / Reports can only be saved in the reports folder.", value: "The id contains characters that could leave ./reports/." },
@@ -166,38 +167,30 @@ export const reports: GroupContent = {
         <DocSection title="Opening it">
           <p>
             <Mono>/web</Mono> (or <Kbd>b</Kbd> on the Report screen) starts the dashboard in the background the first time
-            (<Mono>npm run dev</Mono> in <Mono>web/</Mono>, installing its packages first if needed) and opens your browser
-            on it; later calls just open it. It reads the saved copies in <Mono>~/.reconix/assessments</Mono>, so every
-            started assessment of every session is there, with secrets removed. Its views: Overview, Assessments,
+            (<Mono>npm run dev</Mono> in <Mono>apps/web/</Mono>, installing its packages first if needed) and opens your
+            browser on it; later calls just open it. It listens on <Mono>127.0.0.1</Mono> only, on port{" "}
+            <Mono>3100</Mono> unless <Mono>RECONIX_WEB_PORT</Mono> says otherwise. It reads the saved copies in{" "}
+            <Mono>~/.reconix/assessments</Mono>, so every
+            started assessment of every session is there, with secrets removed. Its Findings and Reports views read the local Core API instead (<Mono>RECONIX_CORE_API</Mono>, <Mono>http://127.0.0.1:8000</Mono> by default). Its views: Overview, Assessments,
             Findings, Reports, Terminal, AI Assistant. Nothing in the dashboard writes to or decides anything the
             terminal reads.
           </p>
         </DocSection>
-        <DocSection title="One run's report">
+        <DocSection title="One assessment's report">
           <p>
-            In the Reports view, with a run chosen, the summary strip shows its findings, plan steps, requests sent and
-            masked evidence, Findings by Severity lists the top three findings by CVSS, and the findings table lists
-            every finding (a false positive with its review state, named beside the count rather than in it:
-            &quot;7 findings + 1 false positive&quot;). The download buttons offer:
+            The Reports view reads the local Core API, for the assessment chosen in its <strong>Assessment</strong>{" "}
+            picker (the Findings view shares it: <Mono>?assessment=&lt;id&gt;</Mono>). Its summary strip shows the
+            findings (false positives left out), the plan steps done, the tool runs and the masked evidence; under it,
+            every <strong>report version</strong> the Core API holds for it, newest first, then the combined reports that
+            cover it, each with its build status and its review sign-off.
           </p>
-          <DocTable
-            caption="The dashboard's export formats for one run"
-            head={["Format", "What it is"]}
-            rows={[
-              { key: "PDF", value: "The styled report printed to PDF on this computer by a headless Chrome; page 1 is the one-page executive summary. Without one the route answers 501 with a link to the Word export and the hint \"PDF export needs a Chrome/Chromium browser on the dashboard machine (set RECONIX_CHROME). Download the Word (DOCX) report instead.\"" },
-              { key: "JSON", value: "The complete saved assessment, exactly as the terminal wrote it (evidence already masked)." },
-              { key: "DOCX", value: "The same report as an editable Word document, with every section of the PDF." },
-            ]}
-          />
           <p>
-            Every format is a download: the dashboard fetches the whole file, then saves it, and the line under the
-            buttons says what happened (&quot;Downloaded &lt;run&gt;.pdf.&quot;). A PDF that can&apos;t be printed shows the
-            hint above with a <strong>Download DOCX</strong> link; any other failure says why, with{" "}
-            <strong>Retry</strong>. With no run chosen, the Reports view sums up every saved run: Findings by
-            Severity (the top three by CVSS) beside the Targets card, which lists every target, the most findings first,
-            seven a page with Previous and Next (a target opens its newest run&apos;s report), and a table of the runs;
-            each row opens that run&apos;s report and offers the same three downloads, with one status line under the
-            table that names the run.
+            A version that is <strong>Ready</strong> and <strong>Signed off</strong> offers its files (PDF, DOCX, JSON):
+            the dashboard fetches each one from the Core API, then saves it, and the line under the list says what
+            happened. Any other version says why it has no files yet (still generating, failed, or its review not
+            approved), and a download the Core API refuses shows what it said. Making a report, combining assessments
+            and asking for the review stay in the TUI; the dashboard only reads. With no assessment chosen, the view
+            lists the Core API&apos;s assessments, and a row opens that one&apos;s report.
           </p>
         </DocSection>
         <DocSection title="False positives">
@@ -212,39 +205,14 @@ export const reports: GroupContent = {
           </p>
         </DocSection>
         <DocSection title="The combined report">
-          <p>As specified in the v3 redesign plan, the Reports view builds one report from several runs:</p>
-          <Steps>
-            <li>
-              <strong>Pick runs</strong>, one to five; the sixth is disabled with the reason. The selected count and a
-              Clear button are shown.
-            </li>
-            <li>
-              <strong>Set the options:</strong> include the (masked) evidence, include LOW findings, include the
-              appendix.
-            </li>
-            <li>
-              <strong>Preview:</strong> exactly what the PDF prints, shown in a sandboxed frame. A change to the
-              selection or the options after it marks it out of date (&quot;Preview again before generating the PDF or
-              the DOCX.&quot;) and the Generate buttons wait for a new preview; a preview that fails offers Retry.
-            </li>
-            <li>
-              <strong>Generate PDF or Generate DOCX</strong> (once the preview is shown): the dashboard fetches the
-              finished file and downloads it as one PDF or one Word document. Without a browser to print with, the PDF
-              offers the Word document instead; a Word document over {DOCX_MAX_MIB} MB of text is refused with the reason (leave the
-              evidence out, or save the PDF).
-            </li>
-          </Steps>
           <p>
-            The combined report has ten sections and counts <strong>unique findings</strong> (same title, weakness and
-            target) separately from their <strong>occurrences</strong> across runs. It is built on request from the saved
-            files by <Mono>GET /api/reports/combined?uids=…&amp;format=preview|pdf|docx</Mono>,
-            accepts one to five valid run ids (otherwise 400), only reads, and writes nothing. Missing data, a failed
-            preview and a failed export each show their own state. The terminal keeps its own per-run export; combining
-            runs is web-only.
+            A report that covers two to five assessments is made through the Core API from the TUI. It is filed under
+            the first assessment and listed under every one it covers, marked <strong>Combined</strong> with how many
+            assessments it covers, and it is signed off and downloaded like any other version.
           </p>
           <Callout>
-            The dashboard needs Node.js 20 or later; the PDF needs a Chrome/Chromium on the machine. See{" "}
-            <DocRef>Troubleshooting · The web dashboard</DocRef>.
+            The Findings and Reports views need the Core API running (<Mono>./deploy/dev.sh</Mono>); without it they
+            say so. See <DocRef>Troubleshooting · The web dashboard</DocRef>.
           </Callout>
         </DocSection>
       </>
@@ -297,72 +265,16 @@ export const reports: GroupContent = {
             themselves are explained in <DocRef>Reports &middot; Understanding findings</DocRef>.
           </p>
         </DocSection>
-        <DocSection title="Assessment">
+        <DocSection title="Reports">
           <p>
-            One run&apos;s facts at the head of its report: what was assessed, by whom and when, its state and its scope,
-            each as a labelled value and some as badges.
+            One assessment&apos;s report versions from the Core API, newest first, then the combined reports that cover
+            it: the version, its build status (Generating, Ready, Failed), its review sign-off (Not reviewed, Review
+            pending, Signed off, Review rejected, Review expired), when and by whom it was made, and its executive
+            summary. The note beside the title counts the versions.
           </p>
           <p>
-            Under them, <strong>Plan</strong> lists the run&apos;s steps in order, each with a status badge, a progress
-            bar and how far it got as a percentage. Before the scope is approved there is no plan yet, and the panel
-            says so.
-          </p>
-        </DocSection>
-        <DocSection title="Findings">
-          <p>
-            Every finding in the open run as a table: ID, severity, the finding, its review state, the tool that found
-            it, its weakness (CWE) and its rating. The worst severities come first.
-          </p>
-          <p>
-            The note beside the title names false positives beside the count rather than inside it. Clicking an{" "}
-            <strong>ID</strong> opens that finding in the Findings view with its evidence and remediation, and a false
-            positive is opened with false positives shown, so the link never lands on a hidden row.
-          </p>
-        </DocSection>
-        <DocSection title="Preview">
-          <p>
-            Exactly what the combined PDF will print, rendered in a fully sandboxed frame that scrolls inside itself. It
-            appears after <strong>Preview report</strong> and takes focus, so the keyboard and screen readers land on it.
-          </p>
-          <p>
-            Changing the selection or the options after a preview marks it out of date and the Generate buttons wait for
-            a new one; a preview that fails offers <strong>Retry</strong>.
-          </p>
-        </DocSection>
-        <DocSection title="Runs">
-          <p>
-            Every saved run, newest first: Run, Target, Status, Findings and Plan, with the run&apos;s own report to
-            download in each format beside it. The note beside the title is how many are saved, or how many a search is
-            showing.
-          </p>
-          <p>
-            From seven runs up a search narrows the rows by ID, template, target or status; ten rows show at a time.
-            Clicking a run&apos;s name opens that run&apos;s report. One status line under the table names the run a
-            download belongs to &mdash; the formats themselves are in <DocRef>Reports &middot; Exporting</DocRef>.
-          </p>
-        </DocSection>
-        <DocSection title="Combine runs">
-          <p>
-            Builds one report out of several saved runs. Tick up to five runs in the table below it; the note beside the
-            title counts what is picked, and the sixth tick is refused with the reason.
-          </p>
-          <p>
-            The options are include the masked evidence, include LOW findings (off: only Critical, High and Medium) and
-            include the appendix. <strong>Preview report</strong> shows it, then <strong>Generate</strong> saves it as
-            one PDF or one Word document, and <strong>Clear selection</strong> empties the picks. A finding seen in
-            several runs is counted once, with each run as an occurrence; the whole flow is in{" "}
-            <DocRef>Reports &middot; The web dashboard</DocRef>.
-          </p>
-        </DocSection>
-        <DocSection title="Targets">
-          <p>
-            Every target across the saved runs, the most findings first, with its number of runs, its number of findings
-            and the worst severity among them (or &quot;no findings&quot;). The note beside the title counts the
-            targets.
-          </p>
-          <p>
-            Seven targets show at a time, with Previous and Next under the list; the page is kept in the address, so a
-            reload lands on the same one. A row opens that target&apos;s newest run report.
+            A Ready, signed-off version offers a button per file it has; any other says why it has none yet. The
+            formats are in <DocRef>Reports &middot; Exporting</DocRef>.
           </p>
         </DocSection>
         <DocSection title="Assessments">
@@ -378,13 +290,14 @@ export const reports: GroupContent = {
         </DocSection>
         <DocSection title="Findings list">
           <p>
-            Every finding across the runs this view covers — one run, or all of them — worst severity first, with its
-            ID, severity, title, review state, tool and rating. Choosing a row opens that finding beside the list: its
+            Every finding the local Core API holds — for every assessment, or for the one chosen in the
+            Assessment picker above the list — worst severity first, with its ID, severity, title, review state, tool
+            and rating. When the Core API isn&apos;t running, the view says so. Choosing a row opens that finding beside the list: its
             description, its masked evidence, its remediation and its references.
           </p>
           <p>
             The search box and the severity, review and tool filters narrow the list, and the open finding and the
-            filters live in the address (<Mono>?view=findings&amp;sev=MEDIUM&amp;finding=F-001</Mono>). False positives
+            filters live in the address (<Mono>?view=findings&amp;assessment=&lt;id&gt;&amp;sev=MEDIUM&amp;finding=F-001</Mono>). False positives
             are counted but hidden until you ask for them. Nothing here changes a run: decisions stay in the terminal.
           </p>
         </DocSection>
@@ -407,7 +320,7 @@ export const reports: GroupContent = {
             names what the conversation is about — one run, or every run — with that scope&apos;s status.
           </p>
           <p>
-            <strong>Security knowledge</strong> opens the
+            The model is chosen in the composer&apos;s model chip, <strong>Security knowledge</strong> opens the
             documents it may quote, and <strong>History</strong> lists earlier conversations, which survive a reload.
             Questions are masked before they are sent, and the assistant can neither approve, reject nor change
             anything: those stay in the terminal.

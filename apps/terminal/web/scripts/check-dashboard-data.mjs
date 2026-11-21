@@ -92,11 +92,9 @@ line("review", `${c.findings.review.confirmed} confirmed · ${c.findings.review.
 c.findings.top.forEach((f) => line(f.id, `${f.score} · ${f.severity} · ${f.title}`));
 
 console.log("\n== Policy / run ==");
-line("checks", `${d.checks.allowed} allowed / ${d.checks.total} (${d.checks.blocked} blocked)`);
-line("maskedSecrets", d.maskedSecrets);
 line("requests", d.requests);
 line("minutes", `${d.minutes.used} / ${d.minutes.max ?? "no limit"}${d.minutes.over ? " (over)" : ""}`);
-line("planSteps", `${d.planSteps.done} / ${d.planSteps.total}`);
+line("planSteps", `${d.phases.filter((p) => p.status === "done").length} / ${d.phases.length}`);
 d.phases.forEach((p) => line(`  ${p.key}`, `${p.pct}% · ${p.status}`));
 line("gate", d.gate ? `[${d.gate.time}] ${d.gate.text}` : "none");
 

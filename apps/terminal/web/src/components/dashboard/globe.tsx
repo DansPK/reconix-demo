@@ -5,15 +5,16 @@ import { publishGlobe, sharedGlobe, type SharedGlobe } from "@/components/assist
 import type { GlobeControls } from "@/lib/globe";
 
 /**
- * The hero globe (§6.2): the page's one three.js globe. three is dynamically imported inside the
- * effect so it stays out of the first JS chunk. Drawing pauses when the canvas is >200px off
- * screen or the tab is hidden (and when the assistant fades it out, use-globe.ts).
+ * The hero globe (§6.2): the page's lightweight COBE WebGL globe (~5 kB gzipped, dynamically
+ * imported inside the effect so it stays out of the first JS chunk). Drawing pauses when the
+ * canvas is >200px off screen or the tab is hidden (and when the assistant fades it out,
+ * use-globe.ts).
  *
  * React renders only the wrap and a CSS glow. The canvas lives in a carrier element made here, so
  * the AI Assistant can carry it out of the hero into its own background and back (the shared
  * element of the open/close animation) while React never loses track of a node it owns. The
- * canvas is transparent until the globe draws, so the glow shows through while three/the data
- * load (no empty hole); on ready the glow fades out. If WebGL is unavailable the glow stays.
+ * canvas is transparent until the globe draws, so the glow shows through while COBE loads (no
+ * empty hole); on ready the glow fades out. If WebGL is unavailable the glow stays.
  */
 export function Globe() {
   const homeRef = useRef<HTMLDivElement>(null);
@@ -40,7 +41,7 @@ export function Globe() {
     const lowPower = (navigator.hardwareConcurrency ?? 8) <= 4 || (coarse && window.innerWidth < 768);
 
     const onReady = () => {
-      if (!cancelled && glowRef.current) glowRef.current.style.opacity = "0";
+      if (!cancelled && glowRef.current) glowRef.current.style.opacity = "0.55";
     };
 
     import("@/lib/globe")

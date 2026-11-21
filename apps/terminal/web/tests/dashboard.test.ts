@@ -31,13 +31,9 @@ import { sampleAssessments } from "./fixtures";
 
 const samples = sampleAssessments();
 const waiting = samples.find((a) => a.status === "Awaiting input")!;
-// a plain run: a completed Web URL run with its CRITICAL and false-positive findings removed, so
-// the baseline stays "plain" however rich the template's finding set is (edge cases tested below)
-const webRun = samples.find((a) => a.status === "Completed" && a.template.name === "Web URL" && a.findings.length > 0)!;
-const completed: Assessment = {
-  ...webRun,
-  findings: webRun.findings.filter((f) => f.severity !== "CRITICAL" && f.status !== "false-positive"),
-};
+// a plain run: no CRITICAL finding and no false positive (the edge-case runs are tested below)
+const example = samples.find((a) => a.status === "Completed" && a.findings.length > 0)!;
+const completed = { ...example, scope: { ...example.scope!, tools: ["Nuclei", "OWASP ZAP"], time_limit_minutes: 120 }, findings: example.findings.filter((f) => f.severity !== "CRITICAL" && f.status !== "false-positive") };
 // that run with one finding of each severity and a critical false positive (built here, so the
 // sample data need not hold such a run)
 const everySeverity: Assessment = (() => {
@@ -87,6 +83,16 @@ describe("findingView", () => {
   it("marks masked evidence and leaves unscored findings without a CVSS", () => {
     const f = findingView({ ...base, cvss_score: 0, evidence: ["GET /a", "token: •••• (masked)", "HTTP 200"] } as Finding);
     expect(f.evidence.map((e) => e.tone)).toEqual(["request", "masked", "response"]);
+    expect(f.score).toBeNull();
+    expect(f.rating).toBe("no CVSS");
+  });
+  it("does not use a scanner score when a classified finding has no validated score", () => {
+    const f = findingView({
+      ...base,
+      finding_category: "POTENTIAL_VULNERABILITY",
+      cvss_score: 8.0,
+      validated_cvss_score: null,
+    } as Finding);
     expect(f.score).toBeNull();
     expect(f.rating).toBe("no CVSS");
   });
@@ -161,8 +167,8 @@ describe("event badges", () => {
     expect(eventBadge("finding", "Candidate F-001 · hardcoded secret", { ...at, who: "AI" })).toEqual({ type: "severity", level: "HIGH" });
   });
   it("gives approved and rejected only to the operator's own lines", () => {
-    // Policy narration containing "approved" must never become an operator approval.
-    const line = { who: "POLICY", tone: "ok", text: "Continuing within approved scope" };
+    // a line from the sample runs: the policy continuing inside the approved scope is no approval
+    const line = { who: "POLICY", tone: "default", text: "Continuing within approved scope" } as const;
     expect(line.who).toBe("POLICY");
     expect(badge(line.who, line.tone, line.text)).toEqual({ type: "status", meaning: EVENT_KIND.scope });
     expect(badge("AI", "default", "Scope approved by the policy engine")).not.toEqual({ type: "status", meaning: APPROVAL_STATE.APPROVED });
@@ -266,27 +272,24 @@ describe("deriveDashboard", () => {
   it("merges the same tool's back-to-back steps into one segment", () => {
     const run = {
       ...completed,
-      scope: { ...completed.scope!, tools: ["Nuclei", "Katana"] },
       timeline: [
         line(completed, 0, "TOOL", "Executing permitted scan · Nuclei"),
         line(completed, 10, "TOOL", "Nuclei: checks on the permitted surface"),
-        line(completed, 20, "TOOL", "Executing permitted scan · Katana"),
+        line(completed, 20, "TOOL", "Executing permitted scan · OWASP ZAP"),
       ],
     };
-    expect(executionOf(run).tools.map((s) => s.label)).toEqual(["Nuclei", "Katana"]);
-    expect(deriveDashboard(assessmentView(run)).cards.summary.tools.tools).toEqual(["Nuclei", "Katana"]);
+    expect(executionOf(run).tools.map((s) => s.label)).toEqual(["Nuclei", "OWASP ZAP"]);
+    expect(deriveDashboard(assessmentView(run)).cards.summary.tools.tools).toEqual(["Nuclei", "OWASP ZAP"]);
   });
 
   it("flags time over the scope's limit", () => {
-    const limited = { ...completed, scope: { ...completed.scope!, time_limit_minutes: 30 } };
-    const late = { ...limited, run: { ...limited.run, finished_at: new Date(Date.parse(completed.run.started_at!) + 3 * 3_600_000).toISOString() } };
+    const late = { ...completed, run: { ...completed.run, finished_at: new Date(Date.parse(completed.run.started_at!) + 3 * 3_600_000).toISOString() } };
     const d = deriveDashboard(assessmentView(late));
     expect(d.minutes.over).toBe(true);
     expect(d.cards.summary.duration.over).toBe(1);
     expect(d.cards.summary.duration.meter).toEqual({ frac: 1, over: true });
     expect(deriveDashboard(assessmentView(completed)).cards.summary.duration.over).toBe(0);
-    expect(deriveDashboard(assessmentView(limited)).cards.summary.duration.meter?.over).toBe(false);
-    expect(deriveDashboard(assessmentView(completed)).cards.summary.duration.meter).toBeNull();
+    expect(deriveDashboard(assessmentView(completed)).cards.summary.duration.meter?.over).toBe(false);
   });
 
   it("draws no time axis for a run with no log yet, and says so", () => {
@@ -333,7 +336,7 @@ describe("deriveDashboard", () => {
     const rows = (a: Assessment) => deriveDashboard(assessmentView(a)).cards.findings;
     const levels = (f: ReturnType<typeof rows>) => f.severity.map((s) => s.level);
     /** The run with its first counted finding (not a false positive) moved to `level`. */
-    const withOne = (level: Finding["severity"]) => {
+    const withOne = (level: Severity) => {
       const at = completed.findings.findIndex((x) => x.status !== "false-positive");
       return { ...completed, findings: completed.findings.map((x, i) => (i === at ? { ...x, severity: level, effective_severity: level } : x)) };
     };
@@ -366,6 +369,15 @@ describe("deriveDashboard", () => {
       const fp = { ...completed, findings: [{ ...completed.findings[0], severity: "CRITICAL" as const, effective_severity: "CRITICAL" as const, status: "false-positive" }] };
       expect(rows(fp).severity[0]).toMatchObject({ level: "CRITICAL", count: 0 });
       expect(deriveDashboard(assessmentView(fp)).cards.summary.findings).toMatchObject({ total: 0, worst: null });
+      // unrated findings (UNKNOWN / NONE) still appear as worst in summary instead of "No findings yet"
+      const unrated = {
+        ...completed,
+        findings: [{ ...completed.findings[0], severity: "UNKNOWN" as const, severity_override: "" as const, effective_severity: "" as const, status: "open" }],
+      };
+      expect(deriveDashboard(assessmentView(unrated)).cards.summary.findings).toMatchObject({
+        total: 1,
+        worst: { level: "UNKNOWN", count: 1 },
+      });
     });
   });
 });
@@ -399,7 +411,21 @@ describe("deriveOverall", () => {
     const { duration } = all.cards.summary;
     expect(duration).not.toHaveProperty("caption");
     expect(duration.value).toBeTruthy();
-    expect(duration.over).toBe(views.filter((v) => v.scope && v.durationSec > v.scope.windowMinutes * 60).length);
+    expect(duration.over).toBe(views.filter((v) => v.scope && v.scope.windowMinutes > 0 && v.durationSec > v.scope.windowMinutes * 60).length);
+  });
+
+  it("never flags a 0-minute (unlimited) scope window as over the time limit", () => {
+    const unlimited = {
+      ...views[0],
+      durationSec: 12,
+      scope: views[0].scope ? { ...views[0].scope, windowMinutes: 0 } : null,
+    };
+    const single = deriveDashboard(unlimited);
+    expect(single.minutes.max).toBeNull();
+    expect(single.minutes.over).toBe(false);
+    expect(single.cards.summary.duration.meter).toBeNull();
+    expect(single.cards.summary.duration.over).toBe(0);
+    expect(deriveOverall([unlimited]).cards.summary.duration.over).toBe(0);
   });
 
   it("shows the share of runs completed", () => {
@@ -414,13 +440,6 @@ describe("deriveOverall", () => {
     expect(new Set(all.findings.map((f) => f.key)).size).toBe(all.findings.length);
     expect(all.findings.every((f) => f.run && f.key === `${f.run.uid}~${f.id}`)).toBe(true);
     expect(all.cards.findings.top.every((t) => t.run !== null)).toBe(true);
-  });
-
-  it("lists a finding saved by several runs once in the top findings", () => {
-    const byKey = new Map(all.findings.map((f) => [f.key, f]));
-    const same = all.cards.findings.top.map((t) => { const f = byKey.get(t.key)!; return `${f.id}|${f.title}|${f.target}`; });
-    expect(new Set(same).size).toBe(same.length);
-    expect(same.length).toBeGreaterThan(1);
   });
 
   it("counts the runs started per day, every day on the axis, stacked by status", () => {

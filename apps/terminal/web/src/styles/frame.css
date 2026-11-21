@@ -51,6 +51,8 @@
 /* Children placement (≥768): sidebar rail left, top bar + content on the right. */
 .dash-sidebar { grid-column: 1; grid-row: 1 / span 2; flex-direction: column; border-right: var(--dash-line) solid var(--border); }
 .dash-topbar { grid-column: 2; grid-row: 1; }
+/* A view without the run filters (Security knowledge): the content takes the bar's row too. */
+.dash-frame[data-no-bar] { grid-template-rows: 0 minmax(0, 1fr); }
 /* The content area holds whichever view is open. It never scrolls sideways: wide things
    (tables, code) scroll inside themselves. */
 .dash-content {
@@ -108,6 +110,7 @@
 /* Phone (<768): the sidebar becomes a horizontal strip under the top bar. */
 @media (max-width: 767.98px) {
   .dash-frame { grid-template-columns: minmax(0, 1fr); grid-template-rows: var(--dash-bar) auto minmax(0, 1fr); }
+  .dash-frame[data-no-bar] { grid-template-rows: 0 auto minmax(0, 1fr); }
   .dash-topbar { grid-column: 1; grid-row: 1; }
   .dash-sidebar {
     grid-column: 1;

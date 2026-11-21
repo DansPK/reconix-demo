@@ -32,12 +32,12 @@ export function DashCard({
   tabIndex?: number;
 }) {
   return (
-    <section ref={ref} tabIndex={tabIndex} aria-labelledby={id} className={cn("dash-card flex flex-col", glass && "dash-glass", className)}>
+    <section ref={ref} tabIndex={tabIndex} aria-labelledby={id} className={cn("dash-card ac-glow-card flex flex-col", glass && "dash-glass", className)}>
       <header className="mb-2.5 flex min-w-0 items-center gap-2">
-        <h2 id={id} className="shrink-0 text-small font-medium text-foreground">
+        <h2 id={id} className="shrink-0 text-[13px] font-medium text-foreground">
           {title}
         </h2>
-        {meta && <span className="ml-auto min-w-0 truncate font-mono text-micro text-muted-foreground">{meta}</span>}
+        {meta && <span className="ml-auto min-w-0 truncate font-mono text-[11px] text-muted-foreground">{meta}</span>}
         <DashCardHelp title={title} docsHref={docsHref} className={!meta ? "ml-auto" : undefined} />
       </header>
       <div className={cn("min-h-0 flex-1", bodyClassName)}>{children}</div>

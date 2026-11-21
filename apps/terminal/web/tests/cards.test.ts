@@ -10,7 +10,7 @@ import { welcomePrompts } from "@/lib/assistant/prompts";
 import { type Card, CardSchema } from "@/lib/assistant/protocol";
 import { MASK } from "@/lib/assistant/redact";
 import { assessmentView } from "@/lib/data/adapt";
-import { type Assessment, STATUSES } from "@/lib/data/schema";
+import { type Assessment, FINDING_SEVERITIES, STATUSES } from "@/lib/data/schema";
 
 import { sampleAssessments } from "./fixtures";
 
@@ -94,7 +94,7 @@ describe("readIntent", () => {
     expect(readIntent(question).intents).toEqual(intents);
   });
   it("finds finding ids, not the number inside a run label", () => {
-    expect(readIntent("Explain F-002 and imp-1 in RCX-001").findingIds).toEqual(["F-2", "IMP-1"]);
+    expect(readIntent("Explain F-002 and imp-1 in RCX-DEMO-001").findingIds).toEqual(["F-2", "IMP-1"]);
   });
 });
 
@@ -104,20 +104,13 @@ describe("pickCards", () => {
     expect(kinds(cards)).toEqual(["findings"]);
     const card = of(cards, "findings");
     expect(card.total).toBe(samples.reduce((n, a) => n + real(a).length, 0));
-    expect(Object.keys(card.counts)).toEqual(["CRITICAL", "HIGH", "MEDIUM", "LOW"]);
-    for (const s of ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const) {
+    expect(Object.keys(card.counts)).toEqual([...FINDING_SEVERITIES]); // the whole scale, so nothing unrated is lost
+    for (const s of FINDING_SEVERITIES) {
       expect(card.counts[s]).toBe(samples.reduce((n, a) => n + real(a).filter((f) => (f.effective_severity || f.severity) === s).length, 0));
     }
     const top = rankFindings(scopedViews(views, null))[0];
     expect(card.items[0]).toMatchObject({ id: top.finding.id, severity: top.finding.severity, run: { uid: top.view.uid } });
     expect(card.items.length).toBeLessThanOrEqual(5);
-  });
-  it("lists a finding saved by several runs once, with how many runs found it", () => {
-    const card = of(pickCards(samples, null, "Analyze the current findings"), "findings");
-    const keys = card.items.map((f) => `${f.id}|${f.title}|${f.target}`);
-    expect(new Set(keys).size).toBe(keys.length);
-    const repeated = rankFindings(views).filter((r) => r.finding.id === card.items[0].id && r.finding.title === card.items[0].title && r.finding.target === card.items[0].target).length;
-    expect(card.items[0].foundIn).toBe(repeated > 1 ? repeated : undefined);
   });
   it("explains the same top finding the welcome suggestion names", () => {
     for (const uid of [null, completed.uid]) {
@@ -134,25 +127,6 @@ describe("pickCards", () => {
     const card = of(pickCards(samples, completed.uid, "Explain F-002 please"), "finding");
     expect(card.item.id).toBe("F-002");
     expect(card.item.run.uid).toBe(completed.uid);
-  });
-  it("shows a finding named by its number alone", () => {
-    expect(readIntent("Explain finding #2 and finding 004").findingNumbers).toEqual([2, 4]);
-    const card = of(pickCards(samples, completed.uid, "Explain finding 002"), "finding");
-    expect(card.item.id).toBe("F-002");
-  });
-  it("opens the specific finding a question names, not the worst one every time", () => {
-    // A run with both the critical SQLi and a different, lower weakness (the reflected XSS).
-    const rich = samples.find(
-      (a) => real(a).some((f) => (f.cwe ?? "").includes("CWE-79")) && real(a).some((f) => (f.cwe ?? "").includes("CWE-89")),
-    )!;
-    const xss = of(pickCards(samples, rich.uid, "Tell me about the reflected XSS"), "finding");
-    expect(xss.item.title.toLowerCase()).toContain("reflected");
-    expect(xss.item.title.toLowerCase()).not.toContain("sql injection");
-    // asking it as a plain finding question returns that one finding, not the worst-first list
-    expect(kinds(pickCards(samples, rich.uid, "Tell me about the reflected XSS"))).toEqual(["finding"]);
-    const dep = of(pickCards(samples, rich.uid, "What about the outdated dependency?"), "finding");
-    expect(dep.item.title.toLowerCase()).toContain("dependency");
-    expect(dep.item.id).not.toBe(xss.item.id); // different questions → different findings
   });
   it("shows plan progress with the saved phase states", () => {
     const card = of(pickCards(samples, waiting.uid, "Review the assessment progress"), "progress");

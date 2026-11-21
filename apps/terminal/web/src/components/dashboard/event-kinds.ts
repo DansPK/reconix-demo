@@ -6,7 +6,7 @@
    rejected, waiting for approval, running); the kinds themselves are not statuses, so their
    meanings are defined here (lib/status.ts is shared and frozen). */
 import { APPROVAL_STATE, type Meaning, POLICY_DECISION, STEP_STATUS } from "@/lib/status";
-import type { LogKind, Severity } from "@/lib/data/view-types";
+import type { FindingSeverity, LogKind } from "@/lib/data/view-types";
 
 /** The lanes, top to bottom, in the order a run usually goes through them. */
 export const LANE_ORDER: readonly LogKind[] = ["scope", "policy", "tool", "finding", "gate", "user", "info", "mask"];
@@ -39,7 +39,7 @@ export const EVENT_KIND: Record<LogKind, Meaning> = {
 };
 
 /** What a line's details show as its status: a status meaning, or a finding's severity. */
-export type EventBadge = { type: "status"; meaning: Meaning } | { type: "severity"; level: Severity };
+export type EventBadge = { type: "status"; meaning: Meaning } | { type: "severity"; level: FindingSeverity };
 
 const FINDING_ID = /\bF-\d+\b/;
 const MAX_LABEL = 26;
@@ -84,7 +84,7 @@ export function eventLabel(kind: LogKind, text: string, tools: string[]): string
 export function eventBadge(
   kind: LogKind,
   text: string,
-  at: { who: string; pendingGate: boolean; liveTool: boolean; severityOf: (id: string) => Severity | undefined },
+  at: { who: string; pendingGate: boolean; liveTool: boolean; severityOf: (id: string) => FindingSeverity | undefined },
 ): EventBadge {
   const status = (meaning: Meaning): EventBadge => ({ type: "status", meaning });
   switch (kind) {

@@ -1,38 +1,25 @@
 "use client";
 
-/* The History menu: the saved conversations (kept by the dashboard's server on this computer),
-   newest first and grouped by day. Each can be opened, renamed or deleted; "Delete all" asks
+/* The History menu: the saved conversations (kept by the Core API),
+   newest first and grouped by day. Each can be opened or deleted (named by its first question); "Delete all" asks
    first. Escape or a click outside closes it and focus goes back to its button.
    Its own panel rather than the dashboard's Popover: Escape inside the rename field must end
    the rename and leave the panel open, and the panel sits inside the assistant's header. */
 import { useEffect, useId, useRef, useState } from "react";
-import { Check, ChevronDown, History, Loader, Pencil, Trash2, X } from "lucide-react";
+import { ChevronDown, History, Loader, Trash2, X } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import type { ConversationSummary } from "@/lib/assistant/history-schema";
-import { MAX_TITLE } from "@/lib/assistant/history-schema";
 import { ago, type Group, groupOf } from "@/lib/assistant/when";
 import { useAssistant } from "./assistant-provider";
 
 const GROUPS: Group[] = ["Today", "Yesterday", "Previous 7 days", "Older"];
 
 function Row({ c, now, active, onOpen }: { c: ConversationSummary; now: number; active: boolean; onOpen: () => void }) {
-  const { renameConversation, deleteConversation } = useAssistant();
-  const [mode, setMode] = useState<"idle" | "rename" | "delete">("idle");
-  const [title, setTitle] = useState(c.title);
+  const { deleteConversation } = useAssistant();
+  const [mode, setMode] = useState<"idle" | "delete">("idle");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const rename = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const next = title.trim();
-    if (!next) return setError("Give it a name.");
-    if (next === c.title) return setMode("idle");
-    setSaving(true);
-    const problem = await renameConversation(c.id, next);
-    setSaving(false);
-    if (problem) setError(problem);
-    else setMode("idle");
-  };
   const remove = async () => {
     setSaving(true);
     const problem = await deleteConversation(c.id);
@@ -40,43 +27,11 @@ function Row({ c, now, active, onOpen }: { c: ConversationSummary; now: number; 
     if (problem) setError(problem);
   };
 
-  if (mode === "rename") {
-    return (
-      <li className="ai-menu-edit">
-        <form onSubmit={rename} className="flex items-center gap-1.5">
-          <input
-            autoFocus
-            value={title}
-            maxLength={MAX_TITLE}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              setError(null);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                e.preventDefault(); // ends the rename only; the menu stays open
-                setMode("idle");
-              }
-            }}
-            aria-label="Conversation name"
-            className="ai-input"
-          />
-          <IconButton type="submit" label="Save the name" disabled={saving} className="size-7 shrink-0">
-            <Check aria-hidden />
-          </IconButton>
-          <IconButton label="Cancel renaming" onClick={() => setMode("idle")} className="size-7 shrink-0">
-            <X aria-hidden />
-          </IconButton>
-        </form>
-        {error && <p className="ai-error-text mt-1 px-1">{error}</p>}
-      </li>
-    );
-  }
   if (mode === "delete") {
     return (
       <li className="ai-menu-confirm" role="group" aria-label={`Delete ${c.title}?`}>
         <p className="text-foreground">
-          Delete <span className="font-medium">“{c.title}”</span>? This can&apos;t be undone.
+          Delete <span className="font-medium">“{c.title}”</span>? It is closed and leaves this list.
         </p>
         {error && <p className="ai-error-text mt-1">{error}</p>}
         {/* Cancel on the right, under the bin: a double-click on the bin keeps it */}
@@ -100,17 +55,6 @@ function Row({ c, now, active, onOpen }: { c: ConversationSummary; now: number; 
         </span>
       </button>
       <span className="ai-menu-actions">
-        <IconButton
-          label={`Rename “${c.title}”`}
-          onClick={() => {
-            setTitle(c.title);
-            setError(null);
-            setMode("rename");
-          }}
-          className="size-7 [&_svg]:size-3.5"
-        >
-          <Pencil aria-hidden />
-        </IconButton>
         <IconButton
           label={`Delete “${c.title}”`}
           onClick={() => {
@@ -241,7 +185,7 @@ export function ConversationMenu() {
           <div className="ai-menu-foot">
             {confirmAll ? (
               <div className="flex w-full flex-col gap-2" role="group" aria-label="Delete all conversations?">
-                <p className="text-caption text-foreground">Delete all {history.items.length} conversations? This can&apos;t be undone.</p>
+                <p className="text-[12.5px] text-foreground">Delete all {history.items.length} conversations? It is closed and leaves this list.</p>
                 {allError && <p className="ai-error-text">{allError}</p>}
                 {/* Cancel on the right, under "Delete all": a double-click there keeps them */}
                 <div className="flex justify-end gap-1.5">
@@ -263,7 +207,7 @@ export function ConversationMenu() {
               </div>
             ) : (
               <>
-                <span>{days ? `Kept on this computer for ${days} days without use` : "Kept on this computer until deleted"}</span>
+                <span>{days ? `Kept on this computer for ${days} days without use` : "Kept by the Core API until deleted"}</span>
                 <button type="button" onClick={() => setConfirmAll(true)} disabled={!history.items.length} className="ai-btn ai-btn-small ai-btn-danger">
                   Delete all
                 </button>

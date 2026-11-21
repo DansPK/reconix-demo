@@ -26,7 +26,7 @@ async function ask(page: Page, n: number) {
   }).toPass({ timeout: 15_000 });
   const log = page.getByRole("log", { name: "Conversation" });
   // the question, then the answer that repeats it
-  await expect.poll(async () => ((await log.innerText()).match(new RegExp(`Q${n}: line 0`, "g")) ?? []).length, { timeout: 15_000 }).toBe(2);
+  await expect.poll(async () => (await log.innerText()).split(`Q${n}: line 0`).length - 1, { timeout: 15_000 }).toBe(2);
   await expect(log).not.toHaveAttribute("aria-busy", "true");
 }
 
@@ -38,7 +38,7 @@ for (const size of [{ width: 1366, height: 768 }, { width: 390, height: 844 }]) 
     test.use({ viewport: size, reducedMotion: "reduce" });
 
     test("the conversation scrolls with the wheel, keeps a reader who scrolled up, and the composer stays in view", async ({ page }) => {
-      await page.goto("/?view=assistant");
+      await page.goto("/assistant");
       const composer = page.getByRole("textbox", { name: /^Ask about/ }).last();
       await expect(composer).toBeVisible();
       await ask(page, 1);
@@ -86,16 +86,17 @@ for (const size of [{ width: 1366, height: 768 }, { width: 390, height: 844 }]) 
 test.describe("the assistant's way back down", () => {
   test.use({ viewport: { width: 1366, height: 768 } });
 
-  test("New messages appears after scrolling up, follows nothing until clicked, then glides back and follows again", async ({ page }) => {
-    await page.goto("/?view=assistant");
+  test("a way down appears after scrolling up (New messages only once something arrived), follows nothing until clicked, then glides back and follows again", async ({ page }) => {
+    await page.goto("/assistant");
     await ask(page, 1);
     await ask(page, 2);
     const log = page.getByRole("log", { name: "Conversation" });
     const box = (await log.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.wheel(0, -600);
-    const back = page.getByRole("button", { name: "New messages" });
+    const back = page.getByRole("button", { name: "Scroll to the latest message", exact: true });
     await expect(back).toBeVisible();
+    await expect(page.getByRole("button", { name: /new messages/i })).toBeHidden(); // nothing new arrived
     await clickMoving(page, back); // the panel breathes, so it is never "stable"
     await expect.poll(async () => { const s = await logState(page); return s.range - s.top; }).toBeLessThanOrEqual(1);
     await expect(back).toBeHidden();

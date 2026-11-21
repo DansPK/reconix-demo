@@ -8,7 +8,7 @@
    stays within CONTEXT_LIMIT: the assessment data gives way to them. */
 import { assessmentView } from "../data/adapt";
 import { hourMinute, shortDay } from "../data/format";
-import { type Assessment, SEVERITIES as SEVERITY_ORDER } from "../data/schema";
+import { type Assessment, FINDING_SEVERITIES as SEVERITY_ORDER } from "../data/schema";
 import type { AssessmentView, FindingView } from "../data/view-types";
 import type { Passage } from "./knowledge/rank";
 import { MAX_CHUNK, MAX_NAME } from "./knowledge/schema";
@@ -44,16 +44,20 @@ function severityWords(fs: FindingView[]): string {
 }
 
 function findingLine(f: FindingView, detail: boolean, run?: string): string {
+  const classification = [
+    f.findingCategory, f.confidenceLevel, f.evidenceQuality, f.verificationStatus, f.exploitability,
+  ].map(c);
   const head = `- ${c(f.id)} [${c(f.severity)}, ${c(f.rating)}, ${c(f.cwe)}, ${c(f.validation)}, ${c(f.status)}] ${clean(f.title, 160)}`;
   const where = `  target ${clean(f.target, 160)} · tool ${c(f.tool)}${run ? ` · run ${run}` : ""}`;
-  if (!detail) return `${head}\n${where}`;
+  const classified = `  category ${classification[0]} · confidence ${classification[1]} · evidence ${classification[2]} · verification ${classification[3]} · exploitability ${classification[4]}`;
+  if (!detail) return `${head}\n${where}\n${classified}`;
   const more = [
     f.description && `  description: ${clean(f.description)}`,
     f.impact && `  impact: ${clean(f.impact)}`,
     f.remediation.length > 0 && `  remediation: ${clean(f.remediation.join("; "))}`,
     f.references.length > 0 && `  references: ${clean(f.references.join(", "), 200)}`,
   ].filter(Boolean);
-  return [head, where, ...more].join("\n");
+  return [head, where, classified, ...more].join("\n");
 }
 
 function oneRun(v: AssessmentView): string[] {

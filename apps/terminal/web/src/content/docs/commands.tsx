@@ -35,7 +35,7 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
     behaviour: (
       <>
         An overlay lists &quot;This screen&quot; (the focused widget&apos;s keys, then the screen&apos;s own) and
-        &quot;Everywhere&quot; (<Kbd>←</Kbd>/<Kbd>→</Kbd>, <Kbd>1</Kbd>…<Kbd>8</Kbd>, <Kbd>/</Kbd>, <Kbd>?</Kbd>,{" "}
+        &quot;Everywhere&quot; (<Kbd>←</Kbd>/<Kbd>→</Kbd>, <Kbd>Alt+1</Kbd>…<Kbd>Alt+8</Kbd>, <Kbd>/</Kbd>, <Kbd>?</Kbd>,{" "}
         <Kbd>Ctrl+O</Kbd>, <Kbd>Ctrl+Q</Kbd>). <Kbd>?</Kbd> or <Kbd>Esc</Kbd> closes it. The full list is on{" "}
         <DocRef>Keys</DocRef>.
       </>
@@ -51,7 +51,7 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
       </>
     ),
     syntax: "/new [target]",
-    example: "/new https://staging.lumina.com",
+    example: "/new https://staging.example.com",
     behaviour: (
       <>
         The current run stops playing, a fresh assessment is loaded (the earlier ones stay listed; the audit trail and
@@ -61,7 +61,7 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
       </>
     ),
     errors: [
-      { message: "Keep the request under 500 characters.", meaning: "The target line is too long." },
+      { message: "Keep the request to at most 500 characters.", meaning: "The target line is too long." },
       { message: "<the reason a target is malformed>", meaning: <>An address like <Mono>10.0.0.300</Mono> or a range wider than /16 is refused with the reason; nothing starts.</> },
     ],
   },
@@ -143,14 +143,14 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
     example: "/status",
     behaviour: (
       <>
-        Same as <Kbd>5</Kbd> or <Kbd>→</Kbd> from the Approval screen. The screen exists only once the plan has run;
+        Same as <Kbd>Alt+5</Kbd> or <Kbd>→</Kbd> from the Approval screen. The screen exists only once the plan has run;
         before that the command only shows a notice. On it, <Kbd>Enter</Kbd> opens what the run waits for, <Kbd>End</Kbd>{" "}
         follows the newest output and <Kbd>Ctrl+C</Kbd> asks before stopping. See{" "}
         <DocRef>Execution</DocRef>.
       </>
     ),
     errors: [
-      { message: "Execution starts after you run the plan (3 or /plan).", meaning: "The plan has not been run yet; the screen stays where it is." },
+      { message: "Execution starts after you run the plan (Alt+3 or /plan).", meaning: "The plan has not been run yet; the screen stays where it is." },
     ],
   },
   stop: {
@@ -209,7 +209,7 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
     example: "/report",
     behaviour: (
       <>
-        Same as <Kbd>8</Kbd>. The buttons <Kbd>p</Kbd> PDF, <Kbd>j</Kbd> JSON and <Kbd>w</Kbd> DOCX are enabled once
+        Same as <Kbd>Alt+8</Kbd>. The buttons <Kbd>p</Kbd> PDF, <Kbd>j</Kbd> JSON and <Kbd>w</Kbd> DOCX are enabled once
         the run completed; <Mono>/web</Mono> opens the web dashboard. See{" "}
         <DocRef>Reviewing results</DocRef>.
       </>
@@ -233,7 +233,7 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
     errors: [
       { message: "The report is available once the assessment is complete.", meaning: "The run is still going or was stopped." },
       { message: "(the \u201cExport the report as…\u201d menu opens)", meaning: "An argument that is not one of the three format ids is not an error: the menu opens instead." },
-      { message: "<Format> reports aren't available.", meaning: "PDF without WeasyPrint or Chrome, or DOCX without python-docx." },
+      { message: "<Format> reports aren't in this demo.", meaning: "PDF without WeasyPrint or Chrome, or DOCX without python-docx." },
       { message: "PDF export needs WeasyPrint or a Chrome/Chromium browser. / Couldn't render the PDF with the browser. / The browser did not produce a PDF.", meaning: "The PDF engine is missing or failed; export DOCX or JSON instead." },
       { message: "Couldn't open it. The report is saved at <path>.", meaning: "The file is written but no browser or app could be launched here." },
     ],
@@ -328,42 +328,48 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
     ],
   },
   provider: {
-    purpose: "Manages the LLM providers Reconix can use: set one up, test it, pick a model or remove it.",
-    when: "When you want to connect a provider — Reconix, OpenAI, Anthropic, DeepSeek, Ollama or a custom OpenAI-compatible endpoint — or change one you already set up.",
-    syntax: "/provider [set | test | unset <provider>]",
-    example: "/provider anthropic",
+    purpose: "Manages LLM providers: set one up, test it, use one of its models, or remove it.",
+    when: "Before using a model for the first time, after changing a key, or to switch to another provider.",
+    syntax: "/provider [<id> | set <id> | update <id> | test <id> | unset <id>]",
+    example: "/provider set ollama",
     behaviour: (
       <>
-        With no argument, opens the provider menu: each provider with its status, key hint and models (the active one is
-        tagged <Mono>ACTIVE</Mono>). Picking one opens its submenu — <strong>Set up / Update</strong> (API key, base URL
-        and model(s)), <strong>Test connection</strong>, <strong>Use a model</strong> and <strong>Unset</strong>. A
-        provider id jumps straight to that submenu; <Mono>/provider set anthropic</Mono>, <Mono>test</Mono> or{" "}
-        <Mono>unset</Mono> run the action directly. Keys are shown only as a hint (e.g. <Mono>…77c2</Mono>), never in
-        full. A newly set key must be tested before a model can be made active.
+        Without an argument, a menu lists the six providers (reconix, openai, anthropic, deepseek, ollama,
+        openai_compatible) with status, key hint and models. <Mono>/provider &lt;id&gt;</Mono> opens that provider&apos;s
+        submenu: Set up / Update, Test connection, Use a model, Unset. <Mono>set</Mono> and <Mono>update</Mono> open the
+        form; <Mono>test</Mono> runs the reachability test in the background and saves the result; <Mono>unset</Mono> asks
+        before deleting the saved key and settings. See <DocRef>Providers</DocRef>.
       </>
     ),
     errors: [
-      { message: "Unknown provider '<id>'.", meaning: "The name is not one of the supported providers." },
-      { message: "<Provider> needs an API key.", meaning: "This provider requires a key before it can be saved." },
-      { message: "<Provider> is not configured yet.", meaning: "Set it up before testing it." },
+      { message: "Unknown provider.", meaning: "The id is not in the catalog." },
+      { message: "<Provider> needs an API key. / … needs a base URL. / At least one model name is required.", meaning: "A required field is empty." },
+      { message: "The base URL must start with http:// or https://. / Put the API key in the key field, not in the base URL.", meaning: "The base URL is not a plain http(s) URL." },
+      { message: "<Provider> holds a single model. / Reconix's base URL comes from .env and can't be changed.", meaning: "That provider's rules; see the catalog." },
+      { message: "<Provider> is not configured (yet).", meaning: "Test, use or unset before set." },
+      { message: "<Provider>: UNREACHABLE — <detail>", meaning: <>The test failed; see <DocRef>Common errors</DocRef>.</> },
     ],
   },
   model: {
-    purpose: "Picks the active model — the provider and model the next chat line uses.",
-    when: "After a provider is set up and tested, to choose which of its models answers.",
-    syntax: "/model [provider/model]",
-    example: "/model openai/gpt-4o",
+    purpose: "Picks the active LLM model, the one that answers chat lines and drives the AI agent.",
+    when: "After a provider tested Reachable, and whenever you want to switch models, even mid-run.",
+    syntax: "/model [<provider>/<model>]",
+    example: "/model openai/gpt-4o-mini",
     behaviour: (
       <>
-        With no argument, opens a menu of every tested provider&apos;s models (the active one is tagged{" "}
-        <Mono>ACTIVE</Mono>); choosing one makes it active. Given <Mono>provider/model</Mono> directly, it activates that
-        model. The active model shows in the status bar (<Mono>llm: … ●</Mono>) with a dot for its reachability.
+        Without an argument, a menu lists every model of every configured provider (disabled until its provider is
+        Reachable). With <Mono>provider/model</Mono>, that model becomes active at once: the top bar shows{" "}
+        <Mono>llm: &lt;provider label&gt; · &lt;model&gt; ●</Mono>, the chat notes the switch, and a running agent is repointed
+        with its history kept. The run, findings and approvals are untouched. See{" "}
+        <DocRef>Models</DocRef>.
       </>
     ),
     errors: [
-      { message: "Test <provider> first.", meaning: "A model can be made active only after the provider tests reachable." },
-      { message: "<Provider> has no model '<model>'.", meaning: "That model is not one the provider offers." },
-      { message: "Use provider/model, e.g. openai/gpt-4o-mini.", meaning: "The argument must be a provider and model joined by a slash." },
+      { message: "Use provider/model, e.g. openai/gpt-4o-mini.", meaning: "The argument has no slash." },
+      { message: "No models yet. Use /provider to set one up and test it.", meaning: "No configured provider has models to list." },
+      { message: "Test the connection first — the provider is not reachable.", meaning: "Only a Reachable provider's model can be active." },
+      { message: "<model> is not configured for <Provider>.", meaning: "The model is not in that provider's list." },
+      { message: "Unknown provider. / <Provider> is not configured.", meaning: "The part before the slash is wrong." },
     ],
   },
   web: {
@@ -373,7 +379,7 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
     example: "/web",
     behaviour: (
       <>
-        If a dashboard is already running, the browser opens it. Otherwise the first call installs
+        If a dashboard is listening at the saved sign-in link, the browser opens it. Otherwise the first call installs
         the dashboard&apos;s packages if needed, starts <Mono>npm run dev</Mono> in <Mono>web/</Mono> quietly (log:{" "}
         <Mono>~/.reconix/web.log</Mono>) and the dashboard opens the browser when ready; it stops when you quit. The
         Report screen has no button for it: type <Mono>/web</Mono> there too. See <DocRef>The web dashboard</DocRef>.
@@ -384,8 +390,38 @@ export const COMMAND_DOCS: Record<string, CommandDoc> = {
       { message: "The web dashboard needs Node.js (node and npm).", meaning: "Install Node.js 20 or later." },
       { message: "Another web dashboard already uses its port on 127.0.0.1 (an older one left running?). Stop it, then run /web again.", meaning: "The launcher exited with code 2: its port is taken." },
       { message: "Couldn't install the web dashboard's packages. / The web dashboard stopped while starting. / The web dashboard is taking a while to start.", meaning: <>Read the log; see <DocRef>Troubleshooting</DocRef>.</> },
-      { message: "Open it in your browser: <link>", meaning: "The dashboard runs but no browser could be launched here." },
+      { message: "Couldn't open a browser. The sign-in link is in <file>", meaning: "The dashboard runs but no browser could be launched here: open the link in that file yourself." },
     ],
+  },
+  doctor: {
+    purpose: "Checks the Reconix installation and local services for setup or runtime issues.",
+    when: "When setting up Reconix, after changing .env, or if the Core API, Qdrant, database or Kali MCP doesn't answer.",
+    syntax: "/doctor",
+    example: "/doctor",
+    behaviour: (
+      <>
+        Opens a read-only diagnostic dialog showing <Mono>✓</Mono>, <Mono>⚠</Mono> or <Mono>✗</Mono> for Python,{" "}
+        <Mono>uv</Mono>, <Mono>.env</Mono>, Core API health, Node.js, <Mono>npm</Mono> and secure directory modes (0700),
+        along with remediation hints when a check warns or fails. Running <Mono>reconix doctor</Mono> in a terminal runs
+        the local-service checks (PostgreSQL, Qdrant, Docker and Kali MCP) as well.
+      </>
+    ),
+    errors: [],
+  },
+  tests: {
+    purpose: "Opens the evaluator checklist: every flow and test case, to mark Pass, Fail or Skip.",
+    when: "While testing Reconix against the evaluator guide (apps/tui/docs/evaluator).",
+    syntax: "/tests",
+    example: "/tests",
+    behaviour: (
+      <>
+        An overlay over the current screen; the assessment underneath is not changed. ↑/↓ picks a case, <Mono>p</Mono>,{" "}
+        <Mono>f</Mono> and <Mono>s</Mono> mark it (the same key again clears it), <Mono>n</Mono> adds a note (a secret typed in
+        it is masked), <Mono>e</Mono> exports <Mono>results-&lt;date&gt;.md</Mono> and <Mono>.json</Mono> to{" "}
+        <Mono>~/.reconix/test-results</Mono>, Esc closes it. Marks are saved at once.
+      </>
+    ),
+    errors: [],
   },
   quit: {
     purpose: "Quits Reconix.",

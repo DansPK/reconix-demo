@@ -1,9 +1,8 @@
-"use client";
-
 /* The top bar's chips while the Overview totals every saved run: how many runs each target,
-   template and status has. */
+   template and status has. Server component: renders the chip contents on the server and passes
+   them into the Popover client leaf. */
 import Link from "next/link";
-import { CHIP, ChipTrigger } from "@/components/dashboard/assessment-switcher";
+import { CHIP, ChipTrigger } from "@/components/dashboard/top-bar-chip";
 import { TEMPLATES } from "@/components/dashboard/derive";
 import type { CountRow, Overall } from "@/components/dashboard/derive-overall";
 import { Popover } from "@/components/dashboard/popover";
@@ -42,7 +41,7 @@ function CountsChip({
             {statuses && r.name in RUN_STATUS ? (
               <StatusBadge meaning={RUN_STATUS[r.name as Status]} />
             ) : (
-              <span className={r.count ? "truncate font-mono text-micro text-foreground" : "truncate font-mono text-micro text-muted-foreground"}>{r.name}</span>
+              <span className={r.count ? "truncate font-mono text-[11px] text-foreground" : "truncate font-mono text-[11px] text-muted-foreground"}>{r.name}</span>
             )}
             <span className="tabnums shrink-0 text-muted-foreground">{r.count}</span>
           </li>

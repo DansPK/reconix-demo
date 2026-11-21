@@ -18,7 +18,7 @@ export function Welcome() {
     <div className="ai-welcome">
       <div className="ai-welcome-hero">
         <div data-globe-slot className="ai-globe-slot" aria-hidden />
-        <h2 className="ai-welcome-title">How can I help with {one ? "this assessment" : "your assessments"}?</h2>
+        <h2 className="ai-welcome-title ac-hero-text">How can I help with {one ? "this assessment" : "your assessments"}?</h2>
         <p className="ai-welcome-sub">
           Answers come from your saved assessment data, with verified cards for findings, progress and approvals. Decisions and approvals stay in the Reconix TUI.
         </p>

@@ -70,6 +70,7 @@ export async function signIn(page: Page) {
 
 interface SampleAssessment {
   uid: string;
+  assessment_id?: string;
   label: string;
   target: string;
   status: string;

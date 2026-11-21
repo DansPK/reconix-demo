@@ -28,9 +28,9 @@ export const assessmentGuide: GroupContent = {
             head={["Template (id)", "Target and default scope"]}
             rows={[
               { key: "Network · network", value: <>Hosts, ports and exposed services. An IPv4 address or range, or a hostname, e.g. <Mono>10.0.0.0/24</Mono>. The scope lists allowed ports (22, 80, 443, 8080, 8443 by default).</> },
-              { key: "API · api", value: <>REST and GraphQL endpoints. The API&apos;s base URL, e.g. <Mono>https://api.lumina.com/v1</Mono>.</> },
-              { key: "Source Code · source", value: <>Static review of a repository. A git repo URL or a local path, e.g. <Mono>https://git.lumina.com/lumina/app.git</Mono>. The scope excludes paths instead of URLs.</> },
-              { key: "Web URL · web_url", value: <>A web application at a URL, e.g. <Mono>https://shop.lumina.com</Mono>. Discovery, vulnerability scanning and limited validation; GET and POST; <Mono>/admin</Mono> excluded; 30 minutes; Nuclei and OWASP ZAP.</> },
+              { key: "API · api", value: <>REST and GraphQL endpoints. The API&apos;s base URL, e.g. <Mono>https://api.example.com/v1</Mono>.</> },
+              { key: "Source Code · source", value: <>Static review of a repository. A git repo URL or a local path, e.g. <Mono>https://git.example.com/acme/app.git</Mono>. The scope excludes paths instead of URLs.</> },
+              { key: "Web URL · web_url", value: <>A web application at a URL, e.g. <Mono>https://shop.example.com</Mono>. Discovery, vulnerability scanning and limited validation; GET and POST; <Mono>/admin</Mono> excluded; 30 minutes; Nuclei and OWASP ZAP.</> },
             ]}
           />
           <p>
@@ -49,7 +49,7 @@ export const assessmentGuide: GroupContent = {
               to start over.&quot;, is never reached from the prompt.)
             </li>
             <li>
-              Be empty or too long: &quot;Type a request first.&quot;, &quot;Keep the request under 500 characters.&quot;
+              Be empty or too long: &quot;Type a request first.&quot;, &quot;Keep the request to at most 500 characters.&quot;
             </li>
             <li>
               Name a malformed target: <Mono>10.0.0.300</Mono> or a range wider than /16 is refused with the reason.
@@ -67,6 +67,7 @@ export const assessmentGuide: GroupContent = {
   },
   scope: {
     lede: "The scope manifest says what will be tested, what may be done and what is never touched. Approving it locks it.",
+    notice: "Configuration details are under review and may change as development continues.",
     body: (
       <>
         <DocSection title="What the manifest holds">
@@ -122,7 +123,7 @@ export const assessmentGuide: GroupContent = {
             </li>
             <li>
               <strong>Reject</strong> discards the draft: nothing is tested, the assessment stops (&quot;Scope rejected.
-              Nothing was tested.&quot;) and a fresh one starts.
+              Nothing was tested.&quot;) and stays open, asking &quot;Start again?&quot;.
             </li>
           </ul>
           <Callout variant="warning" title="When the scope can change">
@@ -184,9 +185,9 @@ export const assessmentGuide: GroupContent = {
             caption="The gated steps of each template"
             head={["Template", "Steps"]}
             rows={[
-              { key: "Web URL, API", value: <><Badge variant="accent">MEDIUM</Badge> Baseline request (read-only) · <Badge variant="accent">HIGH</Badge> limited_validation</> },
-              { key: "Network", value: <><Badge variant="accent">MEDIUM</Badge> Banner and TLS check (read-only) · <Badge variant="accent">HIGH</Badge> single_login_probe</> },
-              { key: "Source Code", value: <><Badge variant="accent">MEDIUM</Badge> Read the flagged line (read-only) · <Badge variant="accent">HIGH</Badge> secret_validation</> },
+              { key: "Web URL, API", value: <><Badge variant="accent">MEDIUM</Badge> Baseline request (read-only) · <Badge variant="accent">HIGH</Badge> Cross-account read check</> },
+              { key: "Network", value: <><Badge variant="accent">MEDIUM</Badge> Banner and TLS check (read-only) · <Badge variant="accent">HIGH</Badge> Default login probe</> },
+              { key: "Source Code", value: <><Badge variant="accent">MEDIUM</Badge> Read the flagged line (read-only) · <Badge variant="accent">HIGH</Badge> Check the flagged credential once</> },
             ]}
           />
         </DocSection>
@@ -217,6 +218,7 @@ export const assessmentGuide: GroupContent = {
   },
   "policy-checks": {
     lede: "Every request the run proposes is checked against the approved scope before it runs. The rest is blocked.",
+    notice: "Configuration details are under review and may change as development continues.",
     body: (
       <>
         <DocSection title="How a request is checked">
@@ -302,7 +304,8 @@ export const assessmentGuide: GroupContent = {
           <p>
             <Badge variant="accent">MEDIUM</Badge> One decision. Approve &amp; run records the approval bound to the request&apos;s
             hash and the run continues (&quot;MEDIUM action approved by analyst.&quot;). Reject records the rejection and{" "}
-            <strong>stops the assessment</strong>: nothing else runs, the findings so far are kept.
+            <strong>skips that action</strong>: &quot;Not executed — the plan goes on with its next step.&quot; A later
+            gated action still asks for its own approval.
           </p>
         </DocSection>
         <DocSection title="HIGH risk: the double check">
@@ -371,7 +374,7 @@ export const assessmentGuide: GroupContent = {
           </ul>
           <p>
             The screen opens only after the plan has run; <Mono>/status</Mono> (alias <Mono>/execution</Mono>) and{" "}
-            <Kbd>5</Kbd> get there.
+            <Kbd>Alt+5</Kbd> get there.
           </p>
         </DocSection>
         <DocSection title="When the run pauses">
@@ -397,7 +400,7 @@ export const assessmentGuide: GroupContent = {
         <DocSection title="Stopping">
           <p>
             <Kbd>Ctrl+C</Kbd> on Execution asks &quot;Keep running&quot; or &quot;Stop now&quot; (nothing else runs; the
-            findings so far are kept). Rejecting the scope or a gated action also stops the run, and so does the scope&apos;s
+            findings so far are kept). Rejecting the scope also stops the run (a rejected gated action is only skipped), and so does the scope&apos;s
             time limit (&quot;Time limit reached. Testing stopped.&quot;). A stopped assessment
             cannot be resumed: <Mono>/new</Mono> starts another, and the stopped one keeps its partial findings under{" "}
             <Mono>/assessments</Mono>. With no run going, stopping says &quot;No assessment is running.&quot;
@@ -469,7 +472,7 @@ export const assessmentGuide: GroupContent = {
           <Code>{`/provider set reconix        # or any other provider
 /provider test reconix
 /model reconix/<model>
-/assess https://www.lumina.com`}</Code>
+/assess http://target.example.com`}</Code>
         </DocSection>
         <DocSection title="How it runs">
           <Steps>
@@ -488,7 +491,7 @@ export const assessmentGuide: GroupContent = {
             </li>
             <li>
               The Execution screen shows the agent&apos;s own plan as task rows (updated as it revises them), its tool
-              calls in the live output and its reasoning as muted &quot;thinking…&quot; lines. Findings it records are
+              calls in the live output and its reasoning as steps folded into the thinking blocks. Findings it records are
               mapped into the store as <Mono>AI-NNN</Mono> findings, their evidence redacted, so <Mono>/findings</Mono>,
               the report, <Mono>/summary</Mono> and the dashboard see them.
             </li>
@@ -531,7 +534,7 @@ export const assessmentGuide: GroupContent = {
             starts, the dialogs it opens for decisions and logins, the redaction of what it logs and the evidence it
             records, and the audit trail. <Mono>/assess</Mono>, <Mono>/new</Mono>, opening another assessment and
             quitting cancel a running agent turn; the run you leave is marked stopped. Without a model or the harness,
-            the scripted sample runs instead.
+            the scripted demo runs instead.
           </Callout>
         </DocSection>
       </>

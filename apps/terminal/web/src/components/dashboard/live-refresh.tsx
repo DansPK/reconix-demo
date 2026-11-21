@@ -6,7 +6,7 @@
    The refresh re-renders the server views and keeps client state, so an open conversation and
    the chosen view survive it. */
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
 import { DEFAULT_REFRESH_MS } from "@/lib/live-refresh";
 
@@ -18,7 +18,7 @@ export function LiveRefresh({ renderedAt, dir, everyMs = DEFAULT_REFRESH_MS }: {
   useEffect(() => {
     if (!live || everyMs <= 0) return;
     const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") router.refresh();
+      if (document.visibilityState === "visible") startTransition(() => router.refresh());
     }, everyMs);
     return () => window.clearInterval(timer);
   }, [live, everyMs, router]);
@@ -27,11 +27,12 @@ export function LiveRefresh({ renderedAt, dir, everyMs = DEFAULT_REFRESH_MS }: {
     return (
       <span
         data-live-refresh="off"
+        data-rendered-at={renderedAt}
         title={`Live refresh is off (RECONIX_LIVE_REFRESH_MS). Reload to read ${dir} again.`}
-        className="dash-reveal hidden shrink-0 items-center gap-2 whitespace-nowrap font-mono text-micro uppercase tracking-[0.14em] text-muted-foreground md:flex"
+        className="dash-reveal hidden shrink-0 items-center gap-2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground md:flex"
       >
         <span aria-hidden className="inline-block size-1.5 rounded-full bg-muted-foreground" />
-        <span>Updated {renderedAt}</span>
+        <span>Static</span>
       </span>
     );
   }
@@ -42,16 +43,15 @@ export function LiveRefresh({ renderedAt, dir, everyMs = DEFAULT_REFRESH_MS }: {
       aria-pressed={live}
       onClick={() => setLive((v) => !v)}
       data-live-refresh={live ? "on" : "paused"}
+      data-rendered-at={renderedAt}
       title={live ? `Reading ${dir} every ${seconds} seconds. Click to pause.` : `Paused. Click to read ${dir} every ${seconds} seconds.`}
-      className="dash-reveal hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-md font-mono text-micro uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:flex"
+      className="dash-reveal hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-md font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:flex"
     >
       <span
         aria-hidden
         className={live ? "dash-livedot inline-block size-1.5 rounded-full" : "inline-block size-1.5 rounded-full bg-muted-foreground"}
       />
-      <span>
-        {live ? "Live" : "Paused"} · {renderedAt}
-      </span>
+      <span className={live ? "dash-livetext" : undefined}>{live ? "Live" : "Paused"}</span>
     </button>
   );
 }

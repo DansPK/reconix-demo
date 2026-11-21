@@ -12,7 +12,7 @@ export function RunRow({ item, current = false }: { item: LibraryItem; current?:
         <span className="block truncate text-foreground">
           {item.id} · {item.template}
         </span>
-        <span className="block truncate font-mono text-micro text-muted-foreground">
+        <span className="block truncate font-mono text-[10px] text-muted-foreground">
           {item.when} · {item.target}
         </span>
       </span>

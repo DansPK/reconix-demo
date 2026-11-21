@@ -10,7 +10,7 @@ import { assessmentView } from "../data/adapt";
 import { clock, parseTime } from "../data/format";
 import type { Assessment } from "../data/schema";
 import type { AssessmentView, FindingView } from "../data/view-types";
-import { cut, type Located, matchFindings, rankFindings, reviewOf, runRef, safe, scopedViews, severityCounts, waitingOn } from "./insights";
+import { cut, type Located, rankFindings, reviewOf, runRef, safe, scopedViews, severityCounts, waitingOn } from "./insights";
 import { findingKey, readIntent } from "./intent";
 import { type Card, type CardOf, CardSchema, type FindingItem, MAX_CARDS } from "./protocol";
 
@@ -32,7 +32,7 @@ export const NOTICES = {
     title: "Plan a new assessment in the TUI",
     body: "The assistant can't plan, create or start an assessment, and no plan has been made. Planning happens in the Reconix TUI, with your approval at each gate.",
     steps: [
-      "Run python -m reconix in the reconix-tui folder.",
+      "Run reconix in a terminal.",
       "Enter the target and pick a template.",
       "Review and approve the Scope Manifest.",
       "Review the plan and run it; risky steps wait for your approval.",
@@ -90,23 +90,11 @@ function findingItem(f: FindingView, v: AssessmentView): FindingItem {
 
 export function findingsCard(views: AssessmentView[]): CardOf<"findings"> {
   const ranked = rankFindings(views);
-  // One row per finding: the same finding saved by several runs is listed once, under its first
-  // (best-ranked, newest) run, with how many runs found it. Totals still count every saved copy.
-  const unique = new Map<string, { at: Located; runs: number }>();
-  for (const at of ranked) {
-    const key = [at.finding.id, at.finding.title, at.finding.target].join("\u0000");
-    const seen = unique.get(key);
-    if (seen) seen.runs++;
-    else unique.set(key, { at, runs: 1 });
-  }
   return {
     kind: "findings",
     total: ranked.length,
     counts: severityCounts(views),
-    items: [...unique.values()].slice(0, FINDINGS_SHOWN).map(({ at, runs }) => ({
-      ...findingItem(at.finding, at.view),
-      ...(runs > 1 ? { foundIn: runs } : {}),
-    })),
+    items: ranked.slice(0, FINDINGS_SHOWN).map(({ finding, view }) => findingItem(finding, view)),
     runs: new Set(ranked.map((r) => r.view.uid)).size,
   };
 }
@@ -230,7 +218,18 @@ export function reportCard(views: AssessmentView[]): CardOf<"report"> {
 
 // --- picking -------------------------------------------------------------------------------
 
-const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function matchesId(text: string, id: string): boolean {
+  const lowerText = text.toLowerCase();
+  const lowerId = id.toLowerCase();
+  let idx = 0;
+  while ((idx = lowerText.indexOf(lowerId, idx)) !== -1) {
+    const prev = idx > 0 ? lowerText[idx - 1] : " ";
+    const next = idx + lowerId.length < lowerText.length ? lowerText[idx + lowerId.length] : " ";
+    if (!/[\w-]/.test(prev) && !/[\w-]/.test(next)) return true;
+    idx += lowerId.length;
+  }
+  return false;
+}
 
 /** The cards for `question` about one saved run (`uid`) or every run (null), in the order they
     are shown, at most MAX_CARDS. Every card passes CardSchema (anything else is dropped). */
@@ -242,9 +241,9 @@ export function pickCards(library: Assessment[], uid: string | null, question: s
     pairs.map((p) => p.v),
     uid,
   );
-  // about every run, a question that names runs ("RCX-002") is about those
+  // about every run, a question that names runs ("RCX-DEMO-002") is about those
   if (!uid) {
-    const named = views.filter((v) => v.id && new RegExp(`(?<![\\w-])${escape(v.id)}(?![\\w-])`, "i").test(question));
+    const named = views.filter((v) => v.id && matchesId(question, v.id));
     if (named.length) views = named;
   }
   const has = (i: (typeof intents)[number]) => intents.includes(i);
@@ -274,11 +273,7 @@ export function pickCards(library: Assessment[], uid: string | null, question: s
     }
   }
   for (const located of named) cards.push(findingCard(located));
-  // No id named, but the question names a particular weakness ("the XSS", "the IDOR", "the
-  // outdated dependency"): open that finding, not the worst one again.
-  const matched = named.length ? [] : matchFindings(views, question);
-  for (const located of matched) cards.push(findingCard(located));
-  if (!named.length && !matched.length && has("top")) {
+  if (!named.length && has("top")) {
     const top = rankFindings(views)[0];
     if (top) cards.push(findingCard(top));
   }

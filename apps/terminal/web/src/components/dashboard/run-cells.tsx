@@ -1,7 +1,5 @@
-/* One saved run as a row of cells, shared by the Assessments view (assessments-rows.tsx: the
-   whole row is a link to the run's Overview) and the Report view's runs table (report-runs.tsx:
-   a table row with a checkbox before and the downloads after). The five cells are the same in
-   both: ID · template with when, the target, the status badge with what the run waits on, the
+/* One saved run as a row of cells, for the Assessments view (assessments-rows.tsx: the whole
+   row is a link to the run's Overview). The five cells: ID · template with when, the target, the status badge with what the run waits on, the
    findings with the worst severity, and plan steps done of total. The caller supplies the cell
    element (`Cell`: a <span> on the link, a <th>/<td> in the table), what wraps the run's name
    (`name`: a link to its report, or nothing) and the slots before and after the five. */
@@ -24,7 +22,7 @@ export type RunColumn = (typeof RUN_COLUMNS)[number]["key"];
 /** The one search over saved runs: its accessible name and placeholder. */
 export const RUN_SEARCH = { label: "Search saved assessments", placeholder: "ID, template, target, status…" } as const;
 
-/** A run named for an accessible name: "RCX-001 (Web URL, 9 Oct 15:33)". */
+/** A run named for an accessible name: "RCX-DEMO-001 (Web URL, 9 Oct 15:33)". */
 export const runTitle = (r: ReportRunRow) => `${r.id} (${r.template}, ${r.when})`;
 
 export interface RunCellProps {
@@ -56,12 +54,12 @@ export function RunCells({
             <span className="block truncate">
               {r.id} · {r.template}
             </span>
-            <span className="block truncate font-mono text-micro text-muted-foreground">{r.when}</span>
+            <span className="block truncate font-mono text-[10px] text-muted-foreground">{r.when}</span>
           </>,
         )}
       </Cell>
       <Cell column="target" label="Target">
-        <span className="block font-mono text-micro text-muted-foreground [overflow-wrap:anywhere]">{r.target}</span>
+        <span className="block font-mono text-[11px] text-muted-foreground [overflow-wrap:anywhere]">{r.target}</span>
       </Cell>
       <Cell column="status" label="Status" title={r.waiting || undefined}>
         <StatusBadge meaning={RUN_STATUS[r.status]} />
@@ -74,7 +72,7 @@ export function RunCells({
         </span>
       </Cell>
       <Cell column="plan" label="Plan">
-        <span className="whitespace-nowrap font-mono text-micro tabnums text-muted-foreground">
+        <span className="whitespace-nowrap font-mono text-[11px] tabnums text-muted-foreground">
           {r.steps.done}/{r.steps.total}
         </span>
       </Cell>

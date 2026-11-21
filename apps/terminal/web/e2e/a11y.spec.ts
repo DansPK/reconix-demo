@@ -11,22 +11,25 @@ import { type Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 
-import { axe, show } from "./axe";
-import { newest } from "./support";
+import { axe, AXE_MOTION_OR_REDUCED, show } from "./axe";
+import { newest, sample } from "./support";
+import { apiId } from "./core-api-ids.mjs";
 
 const RUN = newest().uid;
+/** A run whose stand-in report is signed off, so its files are offered (e2e/core-api-stub.mjs). */
+const REPORTED = apiId(sample().find((a) => a.status === "Completed")!.uid);
 test.describe("axe", () => {
-  test.use({ reducedMotion: "reduce" }); // everything on screen at once, nothing mid-animation
+  test.use(AXE_MOTION_OR_REDUCED);
 
   const PAGES: [string, string][] = [
     ["overview", "/"],
-    ["one run's overview", `/?uid=${RUN}`],
-    ["findings", "/?view=findings"],
-    ["one finding", `/?uid=${RUN}&view=findings&finding=F-001`],
-    ["reports", `/?uid=${RUN}&view=reports`],
-    ["every run's report", "/?view=reports"],
-    ["assessments", "/?view=assessments"],
-    ["assistant", "/?view=assistant"],
+    ["one run's overview", `/assessments/${RUN}`],
+    ["findings", "/findings"],
+    ["one finding", `/findings/${apiId(RUN)}?finding=F-001`],
+    ["reports", `/reports/${REPORTED}`],
+    ["every run's report", "/reports"],
+    ["assessments", "/assessments"],
+    ["assistant", "/assistant"],
   ];
   for (const [name, url] of PAGES) {
     test(`the ${name} has no violations`, async ({ page }) => {
@@ -35,24 +38,22 @@ test.describe("axe", () => {
     });
   }
 
-  // the panel opened, with a run open: its name is the first link
+  // the panel opened, with a run open
   test("the assessment switcher has no violations", async ({ page }) => {
-    await show(page, `/?uid=${RUN}`);
+    await show(page, `/assessments/${RUN}`);
     await page.getByRole("button", { name: "Choose an assessment" }).click();
-    await expect(page.getByRole("link", { name: /^Open the overview of / })).toBeVisible();
+    await expect(page.locator('[role="dialog"] a[aria-current="true"]')).toBeVisible();
     await axe(page, "the assessment switcher");
   });
 
 });
 
-/* More states, each one axe pass: the docs, the search open, the Report view with runs ticked, a
-   preview and an error, a Findings list with no match and a finding's detail on a phone, the
+/* More states, each one axe pass: the docs, the search open, the Report view with a refused
+   download, a Findings list with no match and a finding's detail on a phone, the
    sign-in page, a 404, and the phone widths. */
-const boxLabel = (page: Page) => page.locator("label").filter({ has: page.getByRole("checkbox", { name: /^Combine / }) });
-const frameHeading = (page: Page) => page.frameLocator('iframe[title="Combined report preview"]').getByRole("heading", { name: "Combined security assessment report" });
 
 test.describe("axe, more states", () => {
-  test.use({ reducedMotion: "reduce" });
+  test.use(AXE_MOTION_OR_REDUCED);
 
   test("the docs index has no violations", async ({ page }) => {
     await page.goto("/docs");
@@ -74,40 +75,25 @@ test.describe("axe, more states", () => {
     await axe(page, "docs search open");
   });
 
-  test("the Reports view with runs ticked has no violations", async ({ page }) => {
-    await show(page, "/?view=reports");
-    await boxLabel(page).nth(0).click();
-    await boxLabel(page).nth(1).click();
-    await expect(page.getByText("2 of 5 selected")).toBeVisible();
-    await axe(page, "reports with runs selected");
-  });
-
-  test("the Reports view with a preview has no violations", async ({ page }) => {
-    test.slow(); // the preview builds a combined report, and axe walks its frame too
-    await show(page, "/?view=reports");
-    await boxLabel(page).nth(0).click();
-    await page.getByRole("button", { name: "Preview report" }).click();
-    await expect(frameHeading(page)).toBeVisible({ timeout: 20_000 });
-    await axe(page, "reports preview");
-  });
-
-  test("the Reports view with a failed preview (an alert) has no violations", async ({ page }) => {
-    await show(page, "/?view=reports");
-    await page.route("**/api/reports/combined?*", (route) => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ detail: "Stubbed failure." }) }));
-    await boxLabel(page).nth(0).click();
-    await page.getByRole("button", { name: "Preview report" }).click();
-    await expect(page.getByRole("alert").filter({ hasText: "The preview could not be loaded" })).toBeVisible();
+  test("the Reports view with a refused download (an alert) has no violations", async ({ page }) => {
+    await show(page, `/reports/${REPORTED}`);
+    await page.route("**/api/core-reports/*/download?format=PDF", (route) =>
+      route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ code: "REPORT_FILE_CHANGED", message: "Stubbed refusal." }) }),
+    );
+    // the PDF chip asks for the signed-off version's file
+    await page.getByRole("navigation", { name: "Download the report" }).getByRole("button", { name: "PDF", exact: true }).click();
+    await expect(page.getByRole("alert").filter({ hasText: "Stubbed refusal." })).toBeVisible();
     await axe(page, "reports error alert");
   });
 
   test("a Findings list with no match has no violations", async ({ page }) => {
-    await show(page, "/?view=findings&q=no-such-finding-zzz");
+    await show(page, "/findings?q=no-such-finding-zzz");
     await expect(page.getByText("No finding matches these filters.")).toBeVisible();
     await axe(page, "findings no match");
   });
 
   test("a run with no findings (the empty Findings view) has no violations", async ({ page }) => {
-    await show(page, "/?uid=20261001-083000-2265_RCX-001&view=findings");
+    await show(page, `/findings/${apiId("20261001-083000-2265_RCX-DEMO-001")}`);
     await expect(page.locator("main > :not([hidden])").getByText("No findings in this assessment yet.")).toBeVisible();
     await axe(page, "findings empty");
   });
@@ -134,9 +120,9 @@ test.describe("axe, more states", () => {
 
     for (const [name, url] of [
       ["overview", "/"],
-      ["findings list", "/?view=findings"],
-      ["assessments", "/?view=assessments"],
-      ["reports", "/?view=reports"],
+      ["findings list", "/findings"],
+      ["assessments", "/assessments"],
+      ["reports", "/reports"],
     ] as const) {
       test(`the ${name} has no violations`, async ({ page }) => {
         await show(page, url);
@@ -145,7 +131,7 @@ test.describe("axe, more states", () => {
     }
 
     test("a finding's detail has no violations", async ({ page }) => {
-      await show(page, "/?view=findings");
+      await show(page, "/findings");
       await page.getByRole("list", { name: "Findings", exact: true }).getByRole("listitem").nth(2).locator("button").tap();
       await expect(page.getByRole("article", { name: /^Finding / })).toBeVisible();
       await axe(page, "phone finding detail");
@@ -218,10 +204,10 @@ test.describe("the keyboard", () => {
 
   for (const [name, url] of [
     ["overview", "/"],
-    ["findings", "/?view=findings"],
-    ["reports", `/?uid=${RUN}&view=reports`],
-    ["every run's report", "/?view=reports"],
-    ["assessments", "/?view=assessments"],
+    ["findings", "/findings"],
+    ["reports", `/reports/${REPORTED}`],
+    ["every run's report", "/reports"],
+    ["assessments", "/assessments"],
   ]) {
     test(`Tab walks the ${name} sidebar → top bar → view, each stop visibly marked`, async ({ page }) => {
       await show(page, url);
@@ -255,7 +241,7 @@ test.describe("focus and the assistant", () => {
 
     await page.getByRole("button", { name: "Back to the dashboard" }).focus();
     await page.keyboard.press("Enter");
-    await expect(page).not.toHaveURL(/view=assistant/);
+    await expect(page).not.toHaveURL(/\/assistant(\/[^/?]+)?(\?|$)/);
     await expect(ai).toBeFocused({ timeout: 5000 });
   });
 
@@ -264,7 +250,7 @@ test.describe("focus and the assistant", () => {
   test.describe("with reduced motion", () => {
     test.use({ reducedMotion: "reduce" });
     test("Tab never lands under the assistant", async ({ page }) => {
-      await show(page, "/?view=assistant");
+      await show(page, "/assistant");
       const stops = await tabStops(page, 25);
       expect(stops.filter((s) => s.region === "top bar" || s.region === "content").map((s) => s.name)).toEqual([]);
     });

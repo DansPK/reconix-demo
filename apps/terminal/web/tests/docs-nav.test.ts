@@ -48,13 +48,14 @@ describe("the docs structure", () => {
     expect(DOCS_NAV.map((g) => g.id)).toEqual([
       "getting-started",
       "terminal-guide",
+      "ai-models",
       "commands",
       "assessment-guide",
       "reports",
       "troubleshooting",
       "guardrails",
     ]);
-    expect(PAGES.length).toBeGreaterThan(40);
+    expect(PAGES.length).toBeGreaterThan(50);
   });
 
   it("has content for every page, and a page for every content entry", () => {
@@ -159,10 +160,9 @@ describe("the old addresses", () => {
     expect(docsRedirectOf("/docs/commands/model/extra")).toBeUndefined();
   });
 
-  it("sends the dashboard's old Configuration link to a live page", () => {
-    expect(docsRedirectOf("/docs/getting-started/configuration")).toBe("/docs/getting-started#installation");
-    // the removed AI-models group is no longer a known docs group
-    expect(docsRedirectOf("/docs/ai-models/configuration")).toBeUndefined();
+  it("send the dashboard's old Configuration link to the AI models configuration", () => {
+    expect(docsRedirectOf("/docs/getting-started/configuration")).toBe("/docs/ai-models#configuration");
+    expect(docsRedirectOf("/docs/ai-models/configuration")).toBe("/docs/ai-models#configuration");
   });
 });
 
@@ -188,8 +188,9 @@ describe("the docs search", () => {
 
   it("finds a command by its name and by an alias, on the Commands page", () => {
     const commands = groupSearchIndex("commands");
-    expect(searchDocs(commands, "/web")[0].anchor).toBe("web");
-    expect(searchDocs(commands, "web")[0].anchor).toBe("web");
+    expect(searchDocs(commands, "/model")[0].anchor).toBe("model");
+    expect(searchDocs(commands, "model")[0].anchor).toBe("model");
+    expect(searchDocs(commands, "/assess").map((h) => h.anchor)).not.toContain("assess");
     expect(searchDocs(commands, "/dashboard").map((h) => h.anchor)).toContain("web");
   });
 
@@ -204,6 +205,33 @@ describe("the docs search", () => {
 describe("the DOCS link map", () => {
   it("names only live addresses", () => {
     for (const [key, href] of Object.entries(DOCS)) expect(isDocsAddress(href), `DOCS.${key}: ${href}`).toBe(true);
+  });
+
+  /* isDocsAddress only checks a section anchor's shape, so check here that the section is real:
+     every DOCS address must be a page of its group or a DocSection that page renders. A typo or
+     a renamed section fails this, which the shape check alone would let through. */
+  it("every entry resolves to a page or to a section that page renders", () => {
+    for (const [key, href] of Object.entries(DOCS)) {
+      const [route, anchor] = href.split("#", 2);
+      if (anchor === undefined) continue;
+      const group = docsGroupOf(route)!.id;
+      const pages = docsSearchIndex().filter((e) => e.group === group);
+      const hit = pages.some((e) => e.anchor === anchor || e.headings.some((h) => h.id === anchor));
+      expect(hit, `DOCS.${key}: ${href} names no page or section`).toBe(true);
+    }
+  });
+
+  it("gives every dashboard panel its own section, and a shape-only anchor is not enough", () => {
+    const panels = Object.entries(DOCS).filter(([key]) => key.startsWith("panel"));
+    expect(panels.length).toBe(7); // 4 cards (the Report view has one: its versions), plus the 3 views that are one panel (QAL-009)
+    const headings = docsSearchIndex().find((e) => e.group === "reports" && e.anchor === "panels")!.headings;
+    for (const [key, href] of panels) {
+      const anchor = href.split("#", 2)[1];
+      expect(headings.some((h) => h.id === anchor), `DOCS.${key}: ${href}`).toBe(true);
+    }
+    // the shape check alone would pass this; the content check above is what catches it
+    expect(isDocsAddress("/docs/reports#panels-no-such-panel")).toBe(true);
+    expect(headings.some((h) => h.id === "panels-no-such-panel")).toBe(false);
   });
 
   it("has no Configuration entry (the rail's Settings item is gone)", () => {

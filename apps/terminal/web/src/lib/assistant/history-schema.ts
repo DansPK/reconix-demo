@@ -6,7 +6,7 @@
 import { z } from "zod";
 
 import { redact } from "./redact";
-import { CardSchema, CONVERSATION_ID, KnowledgeNamesSchema, MAX_CARDS, ScopeRefSchema } from "./protocol";
+import { CardSchema, CONVERSATION_ID, KnowledgeNamesSchema, MAX_CARDS, ScopeRefSchema, SourcesSchema } from "./protocol";
 import { MAX_QUESTION } from "./request";
 
 export const CONVERSATION_FORMAT = "reconix.assistant.conversation/v1";
@@ -62,6 +62,9 @@ export const ReplyMessageSchema = z
     detail: z.string().max(400).optional(), // what went wrong (state "error")
     // the /add-on files whose passages went to the model (came later: older replies have none)
     knowledge: KnowledgeNamesSchema.optional(),
+    // the knowledge the answer cites (came later: older replies, and everything the Core API
+    // rebuilds, have none)
+    sources: SourcesSchema.optional(),
     at: Time,
   })
   .strict();

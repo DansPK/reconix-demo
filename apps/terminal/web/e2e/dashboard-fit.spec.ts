@@ -19,13 +19,13 @@ const SIZES = [
 const label = (s: { width: number; height: number }) => `${s.width}×${s.height}`;
 test.beforeAll(() => expect(sample().length, "the every-run mode needs at least eight runs").toBeGreaterThanOrEqual(8));
 const MODES = [
-  { name: "every run", view: "overview" },
-  { name: "one run", view: `overview&uid=${newest().uid}` },
-  { name: "the run with every severity", view: "overview&uid=20260929-112000-8c51_RCX-001" }, // critical to low, one a false positive
-  { name: "the heaviest run", view: "overview&uid=20261005-140300-9f76_RCX-001" },
-  { name: "the run with twelve findings", view: "overview&uid=20260929-112000-8c51_RCX-002" },
-  { name: "a run with nothing found", view: "overview&uid=20261001-083000-2265_RCX-001" },
-  { name: "a run stopped before its scope", view: "overview&uid=20261001-083000-2265_RCX-003" },
+  { name: "every run", path: "/" },
+  { name: "one run", path: `/assessments/${newest().uid}` },
+  { name: "the run with every severity", path: "/assessments/20260929-112000-8c51_RCX-DEMO-001" }, // critical to low, one a false positive
+  { name: "the heaviest run", path: "/assessments/20261005-140300-9f76_RCX-DEMO-001" },
+  { name: "the run with twelve findings", path: "/assessments/20260929-112000-8c51_RCX-DEMO-002" },
+  { name: "a run with nothing found", path: "/assessments/20261001-083000-2265_RCX-DEMO-001" },
+  { name: "a run stopped before its scope", path: "/assessments/20261001-083000-2265_RCX-DEMO-003" },
 ];
 
 /** The content area's hidden height (0 when nothing scrolls) and the cards outside the viewport. */
@@ -62,7 +62,7 @@ for (const size of SIZES) {
 
     for (const mode of MODES) {
       test(`the Overview for ${mode.name} fits the content area, every card inside the viewport`, async ({ page }) => {
-        await page.goto(`/?view=${mode.view}`);
+        await page.goto(mode.path);
         await expect(page.locator(".dash-overview")).toBeVisible();
         await settled(page);
         const state = await fit(page);
@@ -80,7 +80,7 @@ test.describe("at 1440×900 with motion on", () => {
 
   for (const mode of MODES.slice(0, 2)) {
     test(`the Overview for ${mode.name} fits once the intro has settled`, async ({ page }) => {
-      await page.goto(`/?view=${mode.view}`);
+      await page.goto(mode.path);
       await expect(page.locator(".dash-overview")).toBeVisible();
       // the intro's last frames: the frame scales in (transform) and a card still settles by a few px
       // while it does; the layout is the one measured once the frame holds no transform

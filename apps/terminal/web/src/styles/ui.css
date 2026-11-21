@@ -19,20 +19,38 @@
   padding: 16px;
   border: 1px dashed var(--border);
   border-radius: 10px;
-  font-size: var(--text-small);
+  font-size: 13px;
   color: var(--muted-foreground);
 }
 
 /* ---- A row in a list: a card-like, selectable surface (findings-list.tsx, assessments-rows.tsx) ---- */
 .ui-row {
+  position: relative;
+  isolation: isolate;
   width: 100%;
   text-align: left;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, var(--card), var(--card-2));
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
-.ui-row:hover { border-color: color-mix(in oklab, var(--primary) 30%, var(--border)); }
+.ui-row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(200px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--primary) 12%, transparent), transparent 72%);
+  transition: opacity 0.22s ease;
+}
+.ui-row:hover {
+  border-color: color-mix(in oklab, var(--primary) 36%, var(--border));
+  box-shadow: 0 8px 20px -16px color-mix(in oklab, var(--primary) 45%, transparent);
+}
+.ui-row:hover::before { opacity: 1; }
 .ui-row[aria-current="true"] {
   border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
   background: color-mix(in oklab, var(--primary) 6%, var(--card));
@@ -40,11 +58,11 @@
 
 /* ---- Pager (pagination.tsx; its buttons are the outline xs Button) ---- */
 .ui-pager { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.ui-pager-label { font-family: var(--font-mono); font-size: var(--text-micro); color: var(--muted-foreground); text-align: center; }
+.ui-pager-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); text-align: center; }
 
 /* ---- Checkbox (checkbox.tsx) ---- */
 /* position: relative keeps the 1px input inside the label, so focusing it never scrolls away */
-.ui-check { position: relative; display: inline-flex; align-items: center; gap: 8px; font-size: var(--text-small); color: var(--foreground); cursor: pointer; }
+.ui-check { position: relative; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--foreground); cursor: pointer; }
 .ui-check.is-disabled { color: var(--muted-foreground); cursor: not-allowed; }
 .ui-check-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .ui-check-box {
@@ -80,7 +98,7 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 10px;
-  font-size: var(--text-caption);
+  font-size: 12px;
   color: var(--muted-foreground);
 }
 .ui-split-back:hover { color: var(--primary); }
@@ -111,10 +129,11 @@
   color: var(--foreground);
   box-shadow: 0 24px 60px color-mix(in oklab, var(--background) 70%, transparent);
 }
+.ui-dialog.ui-dialog-wide { width: min(760px, calc(100vw - 32px)); }
 .ui-dialog:focus { outline: none; } /* focused itself (focusSelf): a frame, not a control */
 .ui-dialog::backdrop { background: color-mix(in oklab, var(--background) 72%, transparent); }
 .ui-dialog-body { display: flex; flex-direction: column; gap: 14px; padding: 16px 18px 18px; }
 .ui-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.ui-dialog-title { font-size: 0.9375rem; font-weight: 500; overflow-wrap: anywhere; }
-.ui-dialog-text { font-size: var(--text-caption); line-height: 1.5; color: var(--muted-foreground); }
+.ui-dialog-title { font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
+.ui-dialog-text { font-size: 12.5px; line-height: 1.5; color: var(--muted-foreground); }
 .ui-dialog-foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding-top: 2px; }

@@ -1,4 +1,5 @@
 import {
+  Bot,
   FileText,
   LifeBuoy,
   Rocket,
@@ -71,14 +72,14 @@ const GROUPS: GroupSpec[] = [
   {
     id: "getting-started",
     title: "Getting started",
-    description: "What Reconix is, how to install and launch it, and a first assessment on the example target.",
+    description: "What Reconix is, how to install and launch it, and a first assessment on the demo target.",
     icon: Rocket,
     pages: [
       { title: "Introduction", slug: "introduction", description: "What Reconix does, what is simulated and what is real." },
-      { title: "Requirements", slug: "requirements", description: "Python, a terminal, and the optional pieces for PDF, the dashboard and a model." },
-      { title: "Installation", slug: "installation", description: "Clone, create a virtual environment, install." },
-      { title: "Launching", slug: "launching", description: "python -m reconix, the reconix command and run.py." },
-      { title: "First steps", slug: "first-steps", description: "A first assessment on the example target, gate by gate." },
+      { title: "Requirements", slug: "requirements", description: "A terminal, Docker, a model, and what you need only to build from source." },
+      { title: "Installation", slug: "installation", description: "The installer, a model, the Kali MCP server, and installing from source." },
+      { title: "Launching", slug: "launching", description: "The reconix command, where it writes, and the environment variables it reads." },
+      { title: "First steps", slug: "first-steps", description: "A first assessment on the demo target, gate by gate." },
     ],
   },
   {
@@ -91,6 +92,18 @@ const GROUPS: GroupSpec[] = [
       { title: "Keys", slug: "keys", description: "The keys that work everywhere and the ones each screen adds." },
       { title: "The command bar", slug: "command-bar", description: "Slash commands, Tab completion, history and Ctrl+R." },
       { title: "The prompt", slug: "prompt", description: "What a typed line does: a target, a question, a command or a path." },
+    ],
+  },
+  {
+    id: "ai-models",
+    title: "AI models",
+    description: "Connect a model with /provider and /model, and what runs without one.",
+    icon: Bot,
+    pages: [
+      { title: "Providers", slug: "providers", description: "/provider: set, test, use a model, unset; the six-provider catalog." },
+      { title: "Models", slug: "models", description: "/model: pick the active model, switch mid-run, chat with it." },
+      { title: "Configuration", slug: "configuration", description: "The .env seed, the encrypted llm.db and the 0600 key file." },
+      { title: "Common errors", slug: "errors", description: "Every message the provider and model commands can show." },
     ],
   },
   {
@@ -125,7 +138,7 @@ const GROUPS: GroupSpec[] = [
       { title: "Reviewing results", slug: "reviewing", description: "The Report screen, the summary and the audit trail." },
       { title: "Understanding findings", slug: "understanding-findings", description: "Severity, validation, CVSS, triage, filters and imports." },
       { title: "Exporting", slug: "exporting", description: "PDF, JSON and DOCX from the terminal, saved under ./reports/." },
-      { title: "The web dashboard", slug: "dashboard", description: "Single downloads, the preview, and the combined report of up to five runs." },
+      { title: "The web dashboard", slug: "dashboard", description: "Its views, and the Core API reports the Report view lists and downloads." },
       { title: "Dashboard panels", slug: "panels", description: "What each panel on the dashboard shows, how its numbers are counted and what you can click." },
     ],
   },
@@ -187,21 +200,23 @@ export const DOCS_ENTRIES: DocEntry[] = DOCS_NAV.flatMap((g) => [
 /** The docs' routes: `/docs` and one page per group (a page of a group is an anchor on it). */
 export const DOCS_ROUTES: string[] = ["/docs", ...DOCS_NAV.map((g) => g.href)];
 
-/**
- * Whether `href` is a live docs address: a docs route, optionally with the anchor of one of the
- * pages that route shows. (Section anchors, `#<page>-<section>`, are checked by the tests
- * against the content: lib/docs-search-index.ts.)
- */
-/** The section part of a `<page>-<section>` anchor. */
+/** The section part of a `<page>-<section>` anchor (docs-primitives.ts slugify). */
 const SECTION_PART = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
+/**
+ * Whether `href` is a live docs address: a docs route, optionally with the anchor of one of the
+ * pages that route shows, or of a section of one of them (`#<page>-<section>`). Only the shape
+ * of a section anchor is checked here, since the content lives elsewhere; that the section is
+ * really rendered is checked against it in tests/docs-nav.test.ts and tests/docs-links.test.ts.
+ */
 export function isDocsAddress(href: string): boolean {
   const [path, anchor] = href.split("#", 2);
   if (!DOCS_ROUTES.includes(path)) return false;
   if (anchor === undefined) return true;
   const pages = docsGroupOf(path)?.pages ?? [];
   if (pages.some((p) => p.slug === anchor)) return true;
-  // a section of one of those pages: `<page>-<section>`; that it exists is checked in the tests
+  // a section of one of those pages: `<page>-<section>` (docs-primitives.ts sectionId). Only the
+  // shape is checked here; that the section exists is checked against the content in the tests.
   return pages.some((p) => anchor.startsWith(`${p.slug}-`) && SECTION_PART.test(anchor.slice(p.slug.length + 1)));
 }
 
@@ -226,20 +241,16 @@ export const DOCS = {
   findings: "/docs/reports#understanding-findings",
   exporting: "/docs/reports#exporting",
   dashboard: "/docs/reports#dashboard",
-  knowledge: "/docs/reports#dashboard", // the dashboard and its Security knowledge page
-  // One section per dashboard panel, so a card's help icon lands on the part that explains it.
+  knowledge: "/docs/ai-models#configuration", // its "Security knowledge page" section
+  // One section per dashboard panel ("Dashboard panels"), so a card's help icon lands on the
+  // part that explains that panel. The ids are sectionId("panels", <the DocSection's title>).
   panelActivity: "/docs/reports#panels-activity-timeline",
   panelExecution: "/docs/reports#panels-execution-timeline",
   panelFindingsBySeverity: "/docs/reports#panels-findings-by-severity",
-  panelAssessment: "/docs/reports#panels-assessment",
-  panelReportFindings: "/docs/reports#panels-findings",
-  panelPreview: "/docs/reports#panels-preview",
-  panelRuns: "/docs/reports#panels-runs",
-  panelCombine: "/docs/reports#panels-combine-runs",
-  panelTargets: "/docs/reports#panels-targets",
+  panelReports: "/docs/reports#panels-reports",
+  // the views that are one panel, not a row of cards (QAL-009)
   panelAssessments: "/docs/reports#panels-assessments",
   panelFindingsList: "/docs/reports#panels-findings-list",
-  panelRunLog: "/docs/reports#panels-run-log",
   panelAssistant: "/docs/reports#panels-ai-assistant",
 } as const;
 export type DocsLink = (typeof DOCS)[keyof typeof DOCS];

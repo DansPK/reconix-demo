@@ -4,6 +4,7 @@
    template=API`), so anything unknown is ignored rather than trusted. */
 import type { LibraryItem, Status } from "@/lib/data/view-types";
 import { ASSESSMENT_KEYS } from "@/components/dashboard/view-url";
+import { cleanSearchQuery } from "@/lib/search";
 import { RUN_STATUS, toneColor } from "@/lib/status";
 
 import { type ChipOption, countBy, list, runMatches } from "./filters";
@@ -31,7 +32,7 @@ const isStatus = (value: string): value is Status => Object.hasOwn(RUN_STATUS, v
 export function parseRunFilter(params: { q: string; status: string; template: string }, rows: LibraryItem[]): RunFilter {
   const known = new Set(rows.map((r) => r.template));
   return {
-    q: params.q,
+    q: cleanSearchQuery(params.q),
     status: list(params.status).filter(isStatus),
     template: list(params.template).filter((t) => known.has(t)),
   };

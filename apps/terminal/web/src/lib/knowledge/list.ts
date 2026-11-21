@@ -19,6 +19,7 @@ export const toItem = (e: IndexEntry): KnowledgeItem => ({
   addedAt: e.added_at,
   source: e.source,
   original: e.original,
+  ingested: true,
 });
 
 /** Every file, newest first. */

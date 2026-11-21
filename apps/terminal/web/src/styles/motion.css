@@ -38,7 +38,7 @@
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--foreground);
-  font-size: var(--text-micro);
+  font-size: 11px;
   opacity: 0;
   transform: translateX(-4px);
   pointer-events: none;
@@ -238,9 +238,89 @@
   50% { filter: drop-shadow(0 0 10px color-mix(in oklab, var(--globe-glow) 70%, transparent)); }
 }
 
+/* ---- View & page enter transitions (Overview re-entry, Assessments, Findings, Reports,
+   Security knowledge, Login) ------------------------------------------------------------ */
+@keyframes dash-view-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Re-entering Overview from another view (never on initial Intro or Assistant close). */
+[data-view-pane="overview"][data-reenter] [data-motion="top"] .dash-card,
+[data-view-pane="overview"][data-reenter] [data-motion="hero"],
+[data-view-pane="overview"][data-reenter] [data-motion="right"] .dash-card,
+[data-view-pane="overview"][data-reenter] [data-motion="bottom"] .dash-card {
+  animation: dash-view-rise 0.34s var(--ease-out-expo) both;
+}
+[data-view-pane="overview"][data-reenter] [data-motion="top"] .dash-card:nth-child(2) { animation-delay: 25ms; }
+[data-view-pane="overview"][data-reenter] [data-motion="top"] .dash-card:nth-child(3) { animation-delay: 50ms; }
+[data-view-pane="overview"][data-reenter] [data-motion="top"] .dash-card:nth-child(4) { animation-delay: 75ms; }
+[data-view-pane="overview"][data-reenter] [data-motion="hero"] { animation-delay: 30ms; }
+[data-view-pane="overview"][data-reenter] [data-motion="right"] .dash-card { animation-delay: 60ms; }
+[data-view-pane="overview"][data-reenter] [data-motion="bottom"] .dash-card:nth-child(1) { animation-delay: 85ms; }
+[data-view-pane="overview"][data-reenter] [data-motion="bottom"] .dash-card:nth-child(2) { animation-delay: 115ms; }
+
+/* Secondary dashboard panes animate freshly whenever `hidden` comes off. */
+:is([data-view-pane="assessments"], [data-view-pane="reports"]):not([hidden]) .dash-view > header,
+[data-view-pane="findings"]:not([hidden]) .dash-findings > :first-child {
+  animation: dash-view-rise 0.32s var(--ease-out-expo) both;
+}
+[data-view-pane="assessments"]:not([hidden]) .dash-view > :not(header),
+[data-view-pane="findings"]:not([hidden]) .dash-findings-filters,
+[data-view-pane="findings"]:not([hidden]) .dash-findings-list,
+[data-view-pane="findings"]:not([hidden]) .dash-findings-empty,
+[data-view-pane="findings"]:not([hidden]) .dash-findings-notice {
+  animation: dash-view-rise 0.34s var(--ease-out-expo) 40ms both;
+}
+[data-view-pane="findings"]:not([hidden]) .dash-finding {
+  animation: dash-view-rise 0.36s var(--ease-out-expo) 70ms both;
+}
+[data-view-pane="reports"]:not([hidden]) .dash-summary > .dash-card,
+[data-view-pane="reports"]:not([hidden]) .dash-panels > .dash-card {
+  animation: dash-view-rise 0.36s var(--ease-out-expo) both;
+}
+[data-view-pane="reports"]:not([hidden]) .dash-summary > .dash-card:nth-child(1) { animation-delay: 30ms; }
+[data-view-pane="reports"]:not([hidden]) .dash-summary > .dash-card:nth-child(2) { animation-delay: 55ms; }
+[data-view-pane="reports"]:not([hidden]) .dash-summary > .dash-card:nth-child(3) { animation-delay: 80ms; }
+[data-view-pane="reports"]:not([hidden]) .dash-summary > .dash-card:nth-child(4) { animation-delay: 105ms; }
+[data-view-pane="reports"]:not([hidden]) .dash-panels > .dash-card:nth-child(1) { animation-delay: 65ms; }
+[data-view-pane="reports"]:not([hidden]) .dash-panels > .dash-card:nth-child(2) { animation-delay: 95ms; }
+[data-view-pane="reports"]:not([hidden]) .dash-panels > .dash-card:nth-child(3) { animation-delay: 125ms; }
+
+:is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr):nth-child(-n + 10) {
+  animation: dash-view-rise 0.34s var(--ease-out-expo) both;
+}
+:is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr):nth-child(1) { animation-delay: 45ms; }
+:is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr):nth-child(2) { animation-delay: 68ms; }
+:is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr):nth-child(3) { animation-delay: 91ms; }
+:is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr):nth-child(4) { animation-delay: 114ms; }
+:is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr):nth-child(5) { animation-delay: 137ms; }
+:is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr):nth-child(6) { animation-delay: 160ms; }
+:is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr):nth-child(7) { animation-delay: 183ms; }
+:is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr):nth-child(8) { animation-delay: 206ms; }
+:is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr):nth-child(9) { animation-delay: 229ms; }
+:is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr):nth-child(10) { animation-delay: 252ms; }
+
+[data-view-pane="knowledge"]:not([hidden]) .kn-page {
+  animation: dash-view-rise 0.34s var(--ease-out-expo) both;
+}
+
+.dash-login-card {
+  animation: dash-view-rise 0.38s var(--ease-out-expo) both;
+}
+
 /* Reduced motion: no breathing scale and no loops; a still halo marks the open assistant (and a
    still glow the reply being written). */
 @media (prefers-reduced-motion: reduce) {
+  [data-view-pane="overview"][data-reenter] :is([data-motion="top"] .dash-card, [data-motion="hero"], [data-motion="right"] .dash-card, [data-motion="bottom"] .dash-card),
+  :is([data-view-pane="assessments"], [data-view-pane="reports"]):not([hidden]) .dash-view > *,
+  [data-view-pane="findings"]:not([hidden]) :is(.dash-findings > :first-child, .dash-findings-filters, .dash-findings-list, .dash-findings-empty, .dash-findings-notice, .dash-finding),
+  [data-view-pane="reports"]:not([hidden]) :is(.dash-summary > .dash-card, .dash-panels > .dash-card),
+  :is([data-view-pane="assessments"], [data-view-pane="findings"], [data-view-pane="reports"]):not([hidden]) :is(.asm-list > li, .dash-findings-rows > *, .dash-table tbody tr),
+  [data-view-pane="knowledge"]:not([hidden]) .kn-page,
+  .dash-login-card {
+    animation: none;
+  }
   .dash-frame[data-breathing] [data-breath], [data-reconix-mark][data-live] { animation: none; }
   .dash-frame[data-breathing] .dash-ai-halo { opacity: 0.6; }
   .dash-frame[data-breathing] .dash-assistant-halo-glow { opacity: 0.85; }

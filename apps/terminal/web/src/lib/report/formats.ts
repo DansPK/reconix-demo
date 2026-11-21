@@ -20,7 +20,7 @@ export interface ExportSpec {
 }
 
 /** The three formats a report is saved in, everywhere (the TUI's /export offers the same). The
-    report HTML is only the PDF's source and the combined report's preview: never a download. */
+    report HTML is only the PDF's source: never a download. */
 export const EXPORT_FORMATS: readonly ExportSpec[] = [
   {
     id: "pdf",
@@ -56,8 +56,8 @@ export const NO_PRINTER =
     413 with DOCX_TOO_LARGE (lib/report/docx/ooxml.ts enforces it). */
 export const DOCX_MAX_MIB = 16;
 
-/** The 413 the DOCX routes answer, and the Report view repeats, when a report is too large. */
-export const DOCX_TOO_LARGE = `This report is too large for a Word document (over ${DOCX_MAX_MIB} MB of text). Download the PDF or the JSON instead, or leave the evidence out of a combined report.`;
+/** The 413 the DOCX export answers when a report is too large. */
+export const DOCX_TOO_LARGE = `This report is too large for a Word document (over ${DOCX_MAX_MIB} MB of text). Download the PDF or the JSON instead.`;
 
 export const isExportFormat = (value: string): value is ExportFormat =>
   EXPORT_FORMATS.some((f) => f.id === value);

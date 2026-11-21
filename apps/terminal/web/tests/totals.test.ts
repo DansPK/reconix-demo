@@ -2,15 +2,14 @@
    the Reports with the sample data: the Findings list counted (and listed) a finding an analyst
    had marked as a false positive, which every other count leaves out. Now the list leaves false
    positives out unless they are shown (`?fp=1`), and its headline, chips and summary count what
-   the Overview's strip, Findings by Severity, the Report view, the Assessments rows and the
-   assistant's findings card count. */
+   the Overview's strip, Findings by Severity, the Assessments rows and the assistant's findings
+   card count. */
 import { describe, expect, it } from "vitest";
 
 import { deriveDashboard } from "@/components/dashboard/derive";
 import { deriveOverall } from "@/components/dashboard/derive-overall";
-import { overallReportCards, reportCards, reportFindingsMeta, runRow } from "@/components/dashboard/derive-report";
+import { runRow } from "@/components/dashboard/derive-report";
 import { findingMatches, findingsHeadline, listable, parseFindingFilter, severityChips } from "@/components/dashboard/filters";
-import type { Stat } from "@/components/dashboard/stat-types";
 import { findingsCard } from "@/lib/assistant/cards";
 import { assessmentView } from "@/lib/data/adapt";
 import { overview } from "@/lib/data/stats";
@@ -20,7 +19,6 @@ import { sampleAssessments } from "./fixtures";
 const samples = sampleAssessments();
 const views = samples.map(assessmentView);
 const overall = deriveOverall(views);
-const stat = (stats: Stat[], label: string) => stats.find((s) => s.label === label)!;
 const fileCount = samples.reduce((n, a) => n + a.findings.filter((f) => f.status !== "false-positive").length, 0);
 const falsePositives = samples.reduce((n, a) => n + a.findings.filter((f) => f.status === "false-positive").length, 0);
 
@@ -41,13 +39,11 @@ describe("the findings total, page by page (sample data)", () => {
     expect(falsePositives).toBeGreaterThan(0);
   });
 
-  it("is the same number on Findings, the Overview, the Reports, the Assessments and the assistant", () => {
-    const report = overallReportCards(views, overall.cards.findings);
+  it("is the same number on Findings, the Overview, the Assessments and the assistant", () => {
     const page = findingsPage(overall.findings);
     expect(overall.findingTotal).toBe(fileCount);
     expect(overall.cards.summary.findings.total).toBe(fileCount);
     expect(overall.cards.findings.total).toBe(fileCount);
-    expect(stat(report.stats, "Findings").value).toBe(String(fileCount));
     expect(views.map(runRow).reduce((n, r) => n + r.findings, 0)).toBe(fileCount);
     expect(findingsCard(views).total).toBe(fileCount);
     expect(overview(samples).findings).toBe(fileCount);
@@ -70,22 +66,12 @@ describe("the findings total, page by page (sample data)", () => {
     expect(shown.total).toBe(fileCount);
   });
 
-  it("agrees per run too: the Findings list, the report's strip and its findings table", () => {
+  it("agrees per run too: the Findings list and the Overview's strip", () => {
     for (const v of views) {
       const d = deriveDashboard(v);
-      const r = reportCards(v, d.findings, d.cards.findings);
-      if (r.mode !== "run") throw new Error("one run");
       const counted = d.findings.filter((f) => !f.falsePositive).length;
       expect(findingsPage(d.findings).total).toBe(counted);
-      expect(stat(r.stats, "Findings").value).toBe(String(counted));
       expect(d.cards.summary.findings.total).toBe(counted);
-      expect(reportFindingsMeta(r.rows)).toMatch(new RegExp(`^${counted} findings?\\b`));
     }
-  });
-
-  it("names the false positives beside the report table's count, never in it", () => {
-    expect(reportFindingsMeta([{ falsePositive: false }, { falsePositive: true }])).toBe("1 finding + 1 false positive");
-    expect(reportFindingsMeta([{ falsePositive: false }, { falsePositive: false }])).toBe("2 findings");
-    expect(reportFindingsMeta([])).toBe("0 findings");
   });
 });

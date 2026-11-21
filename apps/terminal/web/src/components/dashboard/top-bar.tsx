@@ -10,6 +10,7 @@ import { DocsSearch } from "@/components/dashboard/docs-search";
 import { LiveRefresh } from "@/components/dashboard/live-refresh";
 import { OverallChips, type OverallChipsData } from "@/components/dashboard/overall-chips";
 import { RunChips, type RunChipsData } from "@/components/dashboard/run-chips";
+import { ReconixLogo } from "@/components/ui/reconix-logo";
 import type { LibraryItem, SkippedFile } from "@/lib/data/view-types";
 import { liveRefreshMs } from "@/lib/live-refresh";
 
@@ -48,6 +49,11 @@ export function TopBar({
   const a = dash?.assessment ?? null;
   return (
     <header className="dash-topbar relative z-30 flex min-w-0 items-center gap-2 border-b border-border px-3 sm:gap-3 sm:px-4">
+      <ReconixLogo
+        data-reconix-header-logo=""
+        className="h-[27px] w-auto shrink-0 select-none text-globe-glow drop-shadow-[0_0_8px_color-mix(in_oklab,var(--globe-glow)_45%,transparent)]"
+      />
+      <span className="hidden h-4 w-px shrink-0 bg-border md:block" aria-hidden />
       <LiveRefresh renderedAt={renderedAt} dir={dir} everyMs={liveRefreshMs()} />
       {(dash || overall) && (
         <div className="dash-reveal flex min-w-0 items-center gap-2 xl:ml-auto">

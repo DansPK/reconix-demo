@@ -1,18 +1,14 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   BookOpen,
   FileText,
   Layers,
   LayoutGrid,
-  ScrollText,
   Sparkles,
   TriangleAlert,
   type LucideIcon,
 } from "lucide-react";
-import type { View } from "@/components/dashboard/view-url";
+import { viewPath, type View } from "@/components/dashboard/view-name";
 import { DOCS } from "@/lib/docs-nav";
 
 type NavItem = { icon: LucideIcon; label: string; view: View };
@@ -23,33 +19,37 @@ const VIEWS: NavItem[] = [
   { icon: Sparkles, label: "AI Assistant", view: "assistant" },
   { icon: Layers, label: "Assessments", view: "assessments" },
   { icon: TriangleAlert, label: "Findings", view: "findings" },
-  { icon: ScrollText, label: "Run log", view: "log" },
   { icon: FileText, label: "Reports", view: "reports" },
 ];
 const DOC_ITEMS: DocItem[] = [
   { icon: BookOpen, label: "Documentation", href: DOCS.home },
 ];
 
-/** A view's own address, for the sidebar outside the viewer (the docs): a plain link to `/`. */
-const viewHref = (view: View): string => (view === "overview" ? "/" : `/?view=${view}`);
-
 const NAV_CLASS = "dash-navbtn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 /**
- * The rail (no logo at its top): the views, then the docs. Inside the viewer (`onSelect` given) a
- * view is a button that switches in place; on the docs pages (`active` null) it is a link back to that view at `/`, and
- * the Documentation item is the one marked (the docs have no other item: no Settings).
+ * The rail (no logo at its top): the views, then the docs. Server-compatible: on the docs pages
+ * and in loading skeletons (`onSelect` omitted) it renders purely on the server; inside the client
+ * `Viewer` (`onSelect` given) a view is a button that switches in place.
  */
-export function Sidebar({ active, onSelect }: { active: View | null; onSelect?: (v: View) => void }) {
-  const pathname = usePathname();
-  // every docs page marks Documentation
-  const docActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+export function Sidebar({
+  active,
+  onSelect,
+  docsActive = false,
+  currentRunId = null,
+}: {
+  active: View | null;
+  onSelect?: (v: View) => void;
+  docsActive?: boolean;
+  currentRunId?: string | null;
+}) {
   return (
     <aside className="dash-sidebar flex items-center border-border">
       <nav aria-label="Views" className="flex flex-1 flex-col items-center gap-2 py-3">
         {VIEWS.map((item) => {
           const Icon = item.icon;
           const label = item.label;
+          const isCurrent = active === item.view;
           const content = (
             <>
               {item.view === "assistant" ? (
@@ -75,15 +75,23 @@ export function Sidebar({ active, onSelect }: { active: View | null; onSelect?: 
               data-view={item.view}
               // the active marker (.dash-navbtn::after, motion.css) slides in once on this
               // attribute: no loop, nothing on the icon or the label
-              data-active={active === item.view ? "true" : undefined}
-              aria-current={active === item.view ? "page" : undefined}
+              data-active={isCurrent ? "true" : undefined}
+              aria-current={isCurrent ? "page" : undefined}
               aria-label={label}
               className={NAV_CLASS}
             >
               {content}
             </button>
           ) : (
-            <Link key={item.view} href={viewHref(item.view)} data-view={item.view} aria-label={label} className={NAV_CLASS}>
+            <Link
+              key={item.view}
+              href={viewPath(item.view, currentRunId)}
+              data-view={item.view}
+              data-active={isCurrent ? "true" : undefined}
+              aria-current={isCurrent ? "page" : undefined}
+              aria-label={label}
+              className={NAV_CLASS}
+            >
               {content}
             </Link>
           );
@@ -92,7 +100,7 @@ export function Sidebar({ active, onSelect }: { active: View | null; onSelect?: 
       <div className="flex flex-col items-center gap-2 pb-3">
         {DOC_ITEMS.map((item) => {
           const Icon = item.icon;
-          const here = active === null && docActive(item.href);
+          const here = active === null && docsActive;
           return (
             <Link
               key={item.href}

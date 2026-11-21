@@ -36,7 +36,7 @@ export function DocSection({ title, page, children }: { title: string; page?: st
       <h3 id={page ? sectionId(page, title) : slugify(title)} data-toc className="scroll-mt-6 text-xl font-semibold tracking-tight">
         {title}
       </h3>
-      <div className="docs-prose space-y-3 text-base leading-relaxed text-muted-foreground">{children}</div>
+      <div className="docs-prose space-y-3 leading-relaxed text-muted-foreground">{children}</div>
     </section>
   );
 }
@@ -65,7 +65,7 @@ export function Code({ children, label = "Copy code" }: { children: string; labe
       <ScrollRegion
         as="pre"
         label="Code"
-        className="overflow-x-auto rounded-lg border border-border bg-card p-4 pr-24 font-mono text-small leading-relaxed text-foreground"
+        className="overflow-x-auto rounded-lg border border-border bg-card p-4 pr-24 font-mono text-[13px] leading-relaxed text-foreground"
       >
         <code>{children}</code>
       </ScrollRegion>
@@ -110,7 +110,7 @@ export function Callout({
     <div role="note" className={cn("flex gap-3 rounded-xl border p-4 text-sm leading-relaxed", c.box)}>
       <Icon className={cn("mt-0.5 size-4 shrink-0", c.tone)} aria-hidden />
       <div className="space-y-1 text-muted-foreground">
-        {title && <p className={cn("font-mono text-micro font-semibold uppercase tracking-[0.16em]", c.tone)}>{title}</p>}
+        {title && <p className={cn("font-mono text-[11px] font-semibold uppercase tracking-[0.16em]", c.tone)}>{title}</p>}
         <div>{children}</div>
       </div>
     </div>
@@ -140,7 +140,7 @@ export function DocTable({ head, rows, caption }: { head: [string, string]; rows
     <ScrollRegion label={caption} className="overflow-x-auto rounded-lg border border-border">
       <table className="docs-table w-full text-left text-sm">
         <caption className="sr-only">{caption}</caption>
-        <thead className="bg-card font-mono text-micro uppercase tracking-[0.18em] text-muted-foreground">
+        <thead className="bg-card font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
           <tr>
             <th scope="col" className="p-3">
               {head[0]}
@@ -176,7 +176,7 @@ export function Facts({ items }: { items: { label: string; value: React.ReactNod
     <dl className="grid gap-x-6 gap-y-2 rounded-xl border border-border bg-card/60 p-4 text-sm sm:grid-cols-[auto_1fr]">
       {items.map((it) => (
         <div key={it.label} className="contents">
-          <dt className="font-mono text-micro uppercase tracking-[0.16em] text-muted-foreground sm:pt-0.5">{it.label}</dt>
+          <dt className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:pt-0.5">{it.label}</dt>
           <dd className="text-foreground">{it.value}</dd>
         </div>
       ))}

@@ -1,11 +1,9 @@
-"use client";
-
 /* The top bar's chips for one open run: its Target (scope in and out), Template and Status
-   (progress, phases, budget). A client component, so it gets only what it shows (RunChipsData,
-   picked on the server in top-bar.tsx), never the whole Dashboard. */
+   (progress, phases, budget). Server component: renders the chip contents on the server and
+   passes them into the Popover client leaf. */
 import Link from "next/link";
 import { Check, X } from "lucide-react";
-import { CHIP, ChipTrigger, Row } from "@/components/dashboard/assessment-switcher";
+import { CHIP, ChipTrigger, Row } from "@/components/dashboard/top-bar-chip";
 import { TEMPLATES, type Dashboard } from "@/components/dashboard/derive";
 import { Popover } from "@/components/dashboard/popover";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -34,7 +32,7 @@ export function RunChips({ dash }: { dash: RunChipsData }) {
                 {dash.scope.include.map((t) => (
                   <li key={t} className="flex items-center gap-1.5">
                     <Check className="size-3.5 shrink-0 text-success" aria-hidden />
-                    <span className="truncate font-mono text-micro text-foreground">{t}</span>
+                    <span className="truncate font-mono text-[11px] text-foreground">{t}</span>
                   </li>
                 ))}
               </ul>
@@ -46,7 +44,7 @@ export function RunChips({ dash }: { dash: RunChipsData }) {
                   {dash.scope.exclude.map((t) => (
                     <li key={t} className="flex items-center gap-1.5">
                       <X className="size-3.5 shrink-0 text-danger" aria-hidden />
-                      <span className="truncate font-mono text-micro text-foreground">{t}</span>
+                      <span className="truncate font-mono text-[11px] text-foreground">{t}</span>
                     </li>
                   ))}
                 </ul>

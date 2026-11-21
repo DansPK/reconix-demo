@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { ReconixSplash } from "@/components/ui/reconix-splash";
+import { Toaster } from "@/components/ui/toast";
 import { SITE_NAME } from "@/lib/site";
 import "./globals.css";
 
@@ -12,7 +14,7 @@ const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: { default: `${SITE_NAME} analysis`, template: `%s · ${SITE_NAME} analysis` },
+  title: SITE_NAME,
   description: "The assessments the Reconix terminal app saved on this computer.",
   robots: { index: false, follow: false },
 };
@@ -21,10 +23,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <body className="min-h-screen antialiased">
+        <ReconixSplash />
         {/* No smooth scrolling library: the dashboard and the docs (which share its frame)
             scroll natively, because on a desktop frame the scroller is the content area
             (.dash-content), not the window. */}
         {children}
+        <Toaster />
       </body>
     </html>
   );

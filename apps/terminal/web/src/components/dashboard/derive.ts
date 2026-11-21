@@ -15,8 +15,8 @@
  */
 import { redact } from "@/lib/assistant/redact";
 import { clock, duration, hourMinute, minutesLimit, shortDay } from "@/lib/data/format";
-import { SEVERITIES } from "@/lib/data/schema";
-import type { ApprovalView, AssessmentView, FindingView, PhaseView, ScopeView } from "@/lib/data/view-types";
+import { FINDING_SEVERITIES, SEVERITIES } from "@/lib/data/schema";
+import type { ApprovalView, AssessmentView, FindingSeverity, FindingView, PhaseView, ScopeView } from "@/lib/data/view-types";
 
 import { activityCard } from "./derive-activity";
 import { executionCard } from "./derive-execution";
@@ -36,7 +36,12 @@ const TOP_FINDINGS = 8; // the card shows as many as its height allows (3 at lea
 export type FindingIcon = "bug" | "code" | "database";
 /** A finding as listed: `key` is unique in the list (the ID for one run, `<uid>~<ID>` across
     runs) and `run` names the assessment it came from when the list spans several. */
-export type FindingRow = FindingView & { icon: FindingIcon; key: string; run: { uid: string; label: string } | null };
+export type FindingRow = FindingView & { icon: FindingIcon; key: string; run: { uid: string; label: string; href?: string } | null };
+/** A row of the Findings list: a FindingRow whose severity may also be the Core API's UNKNOWN or
+    NONE (the Overview and Reports still read the saved files' four levels). */
+export type ListedFinding = Omit<FindingRow, "severity"> & {
+  severity: FindingSeverity;
+};
 
 export interface Dashboard {
   assessment: {
@@ -68,7 +73,7 @@ export interface Dashboard {
 
 // --- shared helpers (derive-overall.ts uses them too) ------------------------------------
 
-function findingIcon(f: FindingView): FindingIcon {
+export function findingIcon(f: Pick<FindingView, "category" | "title">): FindingIcon {
   const about = `${f.category} ${f.title}`;
   if (/secret|credential|password|database|data|exposure|redis/i.test(about)) return "database";
   if (/inject|xss|script|code|sql/i.test(about)) return "code";
@@ -80,9 +85,6 @@ export function findingRow(f: FindingView, run: FindingRow["run"] = null): Findi
   return { ...f, icon: findingIcon(f), key: run ? `${run.uid}~${f.id}` : f.id, run };
 }
 
-/** The host of a finding's URL (tells the same issue on portal/staging/www apart), else null. */
-const hostOf = (target: string) => (URL.canParse(target) ? new URL(target).hostname : null);
-
 /** Findings by Severity, over the four SEVERITIES (Critical first, each even at 0): counts and
     shares by severity, review state and the top CVSS scores. False positives are left out of
     every count, so its total is the summary strip's (findingsSummary). */
@@ -93,18 +95,11 @@ export function findingsSlice(rows: FindingRow[]): FindingsSlice {
     const count = counted.filter((f) => f.severity === level).length;
     return { level, count, share: total ? Math.round((count / total) * 100) : 0, frac: total ? count / total : 0 };
   });
-  // One row per finding: a finding saved by several runs (same id, title and target) is listed
-  // once, from its first (newest) run, so the list isn't one issue repeated.
-  const seen = new Set<string>();
   const top = counted
     .filter((f): f is FindingRow & { score: number } => f.score !== null && f.status !== "fixed")
     .sort((a, b) => b.score - a.score)
-    .filter((f) => {
-      const same = [f.id, f.title, f.target].join("\u0000");
-      return !seen.has(same) && Boolean(seen.add(same));
-    })
     .slice(0, TOP_FINDINGS)
-    .map((f) => ({ key: f.key, id: f.id, title: f.title, severity: f.severity, score: f.score, run: f.run?.label ?? null, host: hostOf(f.target) }));
+    .map((f) => ({ key: f.key, id: f.id, title: f.title, severity: f.severity, score: f.score, run: f.run?.label ?? null }));
   const confirmed = counted.filter((f) => f.confirmed).length;
   const needsReview = counted.filter((f) => f.needsReview).length;
   return {
@@ -120,7 +115,7 @@ export function findingsSlice(rows: FindingRow[]): FindingsSlice {
     total as Findings by Severity), the worst severity present and how many need review. */
 export function findingsSummary(rows: Pick<FindingView, "severity" | "falsePositive" | "needsReview">[]): SummaryStrip["findings"] {
   const counted = rows.filter((f) => !f.falsePositive);
-  const worst = SEVERITIES.find((level) => counted.some((f) => f.severity === level)) ?? null;
+  const worst = FINDING_SEVERITIES.find((level) => counted.some((f) => f.severity === level)) ?? null;
   return {
     total: counted.length,
     worst: worst ? { level: worst, count: counted.filter((f) => f.severity === worst).length } : null,
@@ -163,9 +158,9 @@ export function deriveDashboard(v: AssessmentView): Dashboard {
   const findingCards = findingsSlice(findings);
 
   // run budget
-  const windowLimit = v.scope ? minutesLimit(v.scope.windowMinutes) : null;
+  const maxMinutes = v.scope && v.scope.windowMinutes > 0 ? v.scope.windowMinutes : null;
+  const windowLimit = maxMinutes !== null ? minutesLimit(maxMinutes) : null;
   const usedMinutes = Math.round(v.durationSec / 60);
-  const maxMinutes = v.scope?.windowMinutes ? v.scope.windowMinutes : null;
   const over = maxMinutes !== null && v.durationSec > maxMinutes * 60;
   const minutes = { used: usedMinutes, max: maxMinutes, over };
   const planSteps = { done: v.phases.filter((p) => p.status === "done").length, total: v.phases.length };

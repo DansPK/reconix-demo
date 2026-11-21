@@ -10,11 +10,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { forwardRef, useState } from "react";
 
-import type { FindingRow } from "@/components/dashboard/derive";
+import type { ListedFinding } from "@/components/dashboard/derive";
 import { reviewLabel, validationOf } from "@/components/dashboard/filters";
 import { IconButton } from "@/components/ui/icon-button";
 import { ScrollRegion } from "@/components/ui/scroll-region";
 import { SeverityBadge, StatusBadge } from "@/components/ui/status-badge";
+import { preferredProofLine } from "@/lib/api/adapt";
 import { FINDING_REVIEW } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { runFindingHref } from "@/components/dashboard/view-url";
@@ -30,18 +31,23 @@ const EV_STYLE: Record<string, string> = {
   masked: "text-info",
 };
 
+export { preferredProofLine };
+
 export interface FindingDetailProps {
-  finding: FindingRow;
+  finding: ListedFinding;
   position: { index: number; total: number }; // its place in the filtered order (0-based)
-  prev: FindingRow | null;
-  next: FindingRow | null;
+  prev: ListedFinding | null;
+  next: ListedFinding | null;
   onSelect: (key: string) => void;
 }
 
 /** A link back to the run a finding came from (the list spans several runs). */
 
 export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(function FindingDetail({ finding: f, position, prev, next, onSelect }, ref) {
+  // Demo: the raw values behind the masked evidence, swapped in on request ("Reveal attacker's view").
   const [unmasked, setUnmasked] = useState(false);
+  const revealable = (f.evidenceUnmasked?.length ?? 0) > 0;
+  const shown = unmasked && revealable ? (f.evidenceUnmasked ?? []) : f.evidence;
   return (
     <article
       ref={ref}
@@ -63,7 +69,7 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
             <IconButton label="Previous finding" className={NAV_BTN} aria-disabled={!prev || undefined} onClick={() => prev && onSelect(prev.key)}>
               <ChevronLeft aria-hidden />
             </IconButton>
-            <span className="min-w-[4.5em] text-center font-mono text-micro tabnums text-muted-foreground">
+            <span className="min-w-[4.5em] text-center font-mono text-[11px] tabnums text-muted-foreground">
               {position.index + 1} of {position.total}
             </span>
             <IconButton label="Next finding" className={NAV_BTN} aria-disabled={!next || undefined} onClick={() => next && onSelect(next.key)}>
@@ -75,7 +81,7 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
         {f.run && (
           <p className="text-xs text-muted-foreground">
             From{" "}
-            <Link href={runFindingHref(f.run.uid, f.id)} className="ui-link font-mono">
+            <Link href={f.run.href ?? runFindingHref(f.run.uid, f.id)} className="ui-link font-mono">
               {f.run.label}
             </Link>
           </p>
@@ -88,12 +94,26 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
             ["Target", f.target],
             ["Tool", f.tool],
             ["Weakness", f.cwe],
-            ["Category", f.category || "—"],
-            ["Classification", (f.findingCategory || "INSUFFICIENT_EVIDENCE").replaceAll("_", " ")],
-            ["Confidence", f.confidenceLevel || "UNKNOWN"],
-            ["Evidence quality", f.evidenceQuality || "UNKNOWN"],
-            ["Verification", f.verificationStatus || "UNVERIFIED"],
-            ["Exploitability", f.exploitability || "UNKNOWN"],
+            ["Category", (f.findingCategory ?? "INSUFFICIENT_EVIDENCE").replaceAll("_", " ")],
+            ["Confidence", f.confidenceLevel ?? "UNKNOWN"],
+            ["Evidence quality", f.evidenceQuality ?? "UNKNOWN"],
+            [
+              "Verification",
+              (() => {
+                const ev = f.effectiveVerification;
+                if (ev?.legacy) return "legacy, not verified";
+                if (ev?.status) return ev.status;
+                const isLegacyConfirmed =
+                  f.findingCategory === "CONFIRMED_VULNERABILITY" ||
+                  f.verificationStatus === "CONFIRMED" ||
+                  f.verificationStatus === "legacy, not verified" ||
+                  f.validation?.toUpperCase() === "CONFIRMED";
+                if (isLegacyConfirmed) return "legacy, not verified";
+                return f.verificationStatus ?? "UNKNOWN";
+              })(),
+            ],
+            ["Exploitability", f.exploitability ?? "UNKNOWN"],
+            ["Uncertainty", f.classificationUncertainty || "—"],
           ].map(([k, v]) => (
             <div key={k} className="flex flex-col">
               <dt className="text-muted-foreground">{k}</dt>
@@ -102,9 +122,18 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
           ))}
         </dl>
 
+        {f.validatedCvssVector && (
+          <section>
+            <h3 className="mb-1 text-[13px] font-medium text-foreground">Validated CVSS vector</h3>
+            <p className={cn("font-mono text-[11px] text-muted-foreground", WRAP)}>
+              {f.validatedCvssVector}
+            </p>
+          </section>
+        )}
+
         {(f.description || f.impact) && (
           <section>
-            <h3 className="mb-1 text-small font-medium text-foreground">Description</h3>
+            <h3 className="mb-1 text-[13px] font-medium text-foreground">Description</h3>
             {f.description && <p className={cn("text-sm leading-relaxed text-muted-foreground", WRAP)}>{f.description}</p>}
             {f.impact && (
               <p className={cn("mt-2 text-sm leading-relaxed text-muted-foreground", WRAP)}>
@@ -115,37 +144,160 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
           </section>
         )}
 
-        {f.evidence.length > 0 && (
+        {(f.evidenceSummary || f.evidence.length > 0) && (
           <section>
-            <div className="mb-1.5 flex items-center justify-between gap-2">
-              <h3 className="text-small font-medium text-foreground">
-                {unmasked && f.evidenceUnmasked.length > 0 ? "Evidence — attacker's view (unmasked)" : "Evidence"}
-              </h3>
-              {f.evidenceUnmasked.length > 0 && (
-                <button type="button" onClick={() => setUnmasked((v) => !v)} aria-pressed={unmasked} className="ui-link text-micro font-medium">
+            <h3 className="mb-1.5 flex flex-wrap items-center gap-2 text-[13px] font-medium text-foreground">
+              <span>{unmasked && revealable ? "Evidence — attacker's view (unmasked)" : "Evidence"}</span>
+              {revealable && (
+                <button
+                  type="button"
+                  onClick={() => setUnmasked((v) => !v)}
+                  aria-pressed={unmasked}
+                  className="ui-link text-micro font-medium"
+                >
                   {unmasked ? "Hide" : "Reveal attacker's view"}
                 </button>
               )}
-            </div>
-            <ScrollRegion
-              label="Evidence"
-              className={cn(
-                "dash-tile overflow-x-auto rounded-lg p-3 font-mono text-micro leading-relaxed",
-                unmasked && f.evidenceUnmasked.length > 0 && "ring-1 ring-[var(--sev-critical)]",
-              )}
-            >
-              {(unmasked && f.evidenceUnmasked.length > 0 ? f.evidenceUnmasked : f.evidence).map((e, i) => (
-                <div key={i} className={cn("whitespace-pre", EV_STYLE[e.tone])}>
-                  {e.text}
-                </div>
-              ))}
-            </ScrollRegion>
+            </h3>
+            {f.evidenceSummary && (
+              <p className={cn("mb-2 text-sm leading-relaxed text-muted-foreground", WRAP)}>
+                {f.evidenceSummary}
+              </p>
+            )}
+            {shown.length > 0 && (
+              <ScrollRegion
+                label="Evidence"
+                className={cn(
+                  "dash-tile overflow-x-auto rounded-lg p-3 font-mono text-[11px] leading-relaxed",
+                  unmasked && revealable && "ring-1 ring-[var(--sev-critical)]",
+                )}
+              >
+                {shown.map((e, i) => (
+                  <div key={i} className={cn("whitespace-pre", EV_STYLE[e.tone])}>
+                    {e.text}
+                  </div>
+                ))}
+              </ScrollRegion>
+            )}
+          </section>
+        )}
+
+        <section>
+          <h3 className="mb-1 text-[13px] font-medium text-foreground">Validation</h3>
+          {(() => {
+            const ev = f.effectiveVerification;
+            if (ev) {
+              if (ev.legacy) {
+                return <p className="text-sm text-muted-foreground">legacy, not verified</p>;
+              }
+              const tool = (ev.verifier || f.tool || "VALIDATION").toUpperCase();
+              if (ev.status === "VERIFIED") {
+                const proof = preferredProofLine(ev.proofLines);
+                const subject = ev.subject;
+                const subjectLabel =
+                  subject && typeof subject === "object" && typeof (subject as Record<string, unknown>).label === "string"
+                    ? ((subject as Record<string, unknown>).label as string)
+                    : typeof subject === "string" && subject
+                      ? subject
+                      : undefined;
+                return (
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-teal-400">
+                      {proof ? `✓ Verified by ${tool}: ${proof}` : `✓ Verified by ${tool}`}
+                    </p>
+                    {subjectLabel && (
+                      <p className="text-sm font-semibold text-foreground" data-testid="verification-subject-label">
+                        {subjectLabel}
+                      </p>
+                    )}
+                  </div>
+                );
+              }
+              if (ev.status === "NOT_REPRODUCED") {
+                const subject = ev.subject;
+                const subjectLabel =
+                  subject && typeof subject === "object" && typeof (subject as Record<string, unknown>).label === "string"
+                    ? ((subject as Record<string, unknown>).label as string)
+                    : typeof subject === "string" && subject
+                      ? subject
+                      : undefined;
+                return (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Not reproduced by {tool}</p>
+                    {subjectLabel && (
+                      <p className="text-sm text-muted-foreground">{subjectLabel}</p>
+                    )}
+                  </div>
+                );
+              }
+              if (ev.status === "INCONCLUSIVE") {
+                return (
+                  <p className="text-sm text-purple-400">
+                    {ev.reason ? `Inconclusive: ${ev.reason}` : "Inconclusive"}
+                  </p>
+                );
+              }
+              if (ev.status === "DEFERRED") {
+                return (
+                  <p className="text-sm text-muted-foreground">
+                    {ev.reason ? `Deferred: ${ev.reason}` : "Deferred"}
+                  </p>
+                );
+              }
+              if (ev.status === "UNVERIFIED") {
+                return <p className="text-sm text-muted-foreground">Unverified — needs analyst review.</p>;
+              }
+            }
+            if (
+              f.validation?.toUpperCase() === "CONFIRMED" ||
+              f.verificationStatus === "CONFIRMED" ||
+              f.verificationStatus === "legacy, not verified" ||
+              f.findingCategory === "CONFIRMED_VULNERABILITY"
+            ) {
+              return <p className="text-sm text-muted-foreground">legacy, not verified</p>;
+            }
+            return (
+              <p className="text-sm text-muted-foreground">
+                {f.validation ? `${f.validation} — needs analyst review.` : "Unconfirmed — needs analyst review."}
+              </p>
+            );
+          })()}
+        </section>
+
+        {f.aiNotes && (f.aiNotes.explanation || f.aiNotes.impact || f.aiNotes.remediation || f.aiNotes.uncertainty) && (
+          <section>
+            <h3 className="mb-1 text-[13px] font-medium text-foreground">
+              AI assessment (not verified)
+            </h3>
+            {f.aiNotes.explanation && (
+              <p className={cn("text-sm leading-relaxed text-muted-foreground", WRAP)}>
+                {f.aiNotes.explanation}
+              </p>
+            )}
+            {f.aiNotes.impact && (
+              <p className={cn("mt-2 text-sm leading-relaxed text-muted-foreground", WRAP)}>
+                <span className="text-foreground">Impact · </span>
+                {f.aiNotes.impact}
+              </p>
+            )}
+            {f.aiNotes.remediation && (
+              <p className={cn("mt-2 text-sm leading-relaxed text-muted-foreground", WRAP)}>
+                <span className="text-foreground">Remediation · </span>
+                {f.aiNotes.remediation}
+              </p>
+            )}
+            {f.aiNotes.uncertainty && (
+              <p className={cn("mt-2 text-xs leading-relaxed text-muted-foreground", WRAP)}>
+                <span className="text-foreground">Uncertainty · </span>
+                {f.aiNotes.uncertainty}
+              </p>
+            )}
           </section>
         )}
 
         {f.remediation.length > 0 && (
           <section>
-            <h3 className="mb-1.5 text-small font-medium text-foreground">Remediation</h3>
+            <h3 className="mb-1.5 text-[13px] font-medium text-foreground">Remediation</h3>
             <ul className={cn("list-disc space-y-1 pl-5 text-sm text-muted-foreground", WRAP)}>
               {f.remediation.map((r) => (
                 <li key={r}>{r}</li>
@@ -154,33 +306,56 @@ export const FindingDetail = forwardRef<HTMLElement, FindingDetailProps>(functio
           </section>
         )}
 
-        <section>
-          <h3 className="mb-1.5 text-small font-medium text-foreground">Verification proof</h3>
-          <p className={cn("text-sm text-muted-foreground", WRAP)}>
-            {f.validationReason || "No independent verification was recorded. A scanner claim alone is not verified proof."}
-          </p>
-          {f.validationMethod && <p className="text-xs text-muted-foreground">Method: {f.validationMethod}</p>}
-          {(f.validationProof?.length ?? 0) > 0 && (
-            <pre className="mt-2 overflow-x-auto text-xs text-muted-foreground">{f.validationProof!.join("\n")}</pre>
-          )}
-          {f.classificationUncertainty && <p className={cn("mt-2 text-sm text-muted-foreground", WRAP)}>{f.classificationUncertainty}</p>}
-        </section>
         {(f.sourceClaims?.length ?? 0) > 0 && (
           <section>
-            <h3 className="mb-1.5 text-small font-medium text-foreground">Scanner claims</h3>
-            <ul className={cn("list-disc pl-5 text-sm text-muted-foreground", WRAP)}>
-              {f.sourceClaims!.map((claim, index) => <li key={index}>{claim}</li>)}
+            <h3 className="mb-1.5 text-[13px] font-medium text-foreground">
+              Original scanner claims (unvalidated)
+            </h3>
+            <ul className={cn("list-disc space-y-1 pl-5 text-sm text-muted-foreground", WRAP)}>
+              {f.sourceClaims?.map((claim, i) => <li key={`${claim}-${i}`}>{claim}</li>)}
             </ul>
+          </section>
+        )}
+
+        {(f.reviewHistory?.length ?? 0) > 0 && (
+          <section>
+            <h3 className="mb-1.5 text-[13px] font-medium text-foreground">
+              Analyst review history
+            </h3>
+            <ul className={cn("list-disc space-y-1 pl-5 text-sm text-muted-foreground", WRAP)}>
+              {f.reviewHistory?.map((review, i) => <li key={`${review}-${i}`}>{review}</li>)}
+            </ul>
+          </section>
+        )}
+
+        {f.triageNote && (
+          <section>
+            <h3 className="mb-1 text-[13px] font-medium text-foreground">Analyst note</h3>
+            <p className={cn("text-sm leading-relaxed text-muted-foreground", WRAP)}>{f.triageNote}</p>
           </section>
         )}
 
         <footer className="flex flex-wrap items-center gap-3 border-t border-border pt-3 text-xs">
           <span className="text-muted-foreground">
-            Validation <span className="text-foreground">{f.validation}</span>
+            Evidence validation{" "}
+            <span className="text-foreground">
+              {(() => {
+                const ev = f.effectiveVerification;
+                if (ev?.legacy) return "legacy, not verified";
+                if (ev?.status) return ev.status;
+                const isLegacyConfirmed =
+                  f.findingCategory === "CONFIRMED_VULNERABILITY" ||
+                  f.verificationStatus === "CONFIRMED" ||
+                  f.verificationStatus === "legacy, not verified" ||
+                  f.validation?.toUpperCase() === "CONFIRMED";
+                if (isLegacyConfirmed) return "legacy, not verified";
+                return f.validation || "UNCONFIRMED";
+              })()}
+            </span>
           </span>
           <StatusBadge meaning={FINDING_REVIEW[validationOf(f)]} label={reviewLabel(f)} />
           {f.references.length > 0 && (
-            <span className={cn("min-w-0 basis-full font-mono text-micro text-muted-foreground sm:ml-auto sm:basis-auto sm:text-right", WRAP)}>
+            <span className={cn("min-w-0 basis-full font-mono text-[11px] text-muted-foreground sm:ml-auto sm:basis-auto sm:text-right", WRAP)}>
               {f.references.join(" · ")}
             </span>
           )}

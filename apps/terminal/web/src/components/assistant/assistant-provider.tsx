@@ -11,8 +11,9 @@
 
    Conversations are kept by the dashboard's server (lib/assistant/history-store.ts): a
    question carries only the open conversation's id and the question, never the conversation
-   so far. A conversation stays about the run it was started on. */
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+   so far. A conversation stays about the run it was started on; once the dashboard shows another
+   run, the assistant asks whether to keep it or start a new chat about that run (use-switch-ask). */
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { MAX_QUESTION } from "@/lib/assistant/request";
 import { liveSwitch, type Switched, switchOver } from "./model-switch";
@@ -23,9 +24,10 @@ import { useConversationChanges } from "./use-conversation-changes";
 import { type HistoryState, useHistoryList } from "./use-history-list";
 import { useLatest } from "./use-latest";
 import { type OpenConversation, useOpenConversation } from "./use-open-conversation";
+import { type SwitchChoice, useSwitchAsk } from "./use-switch-ask";
 import { useTabMemory } from "./use-tab-memory";
 
-export type { HistoryState, OpenConversation };
+export type { HistoryState, OpenConversation, SwitchChoice };
 
 interface Assistant {
   info: AssistantInfo; // info.model: the model that answers next, as last switched
@@ -52,6 +54,8 @@ interface Assistant {
   renameConversation: (id: string, title: string) => Promise<string | null>;
   deleteConversation: (id: string) => Promise<string | null>;
   deleteAllConversations: () => Promise<string | null>;
+  /** "Continue this chat, or a new chat about the run the dashboard shows?" */
+  switchChoice: SwitchChoice;
 }
 
 const AssistantContext = createContext<Assistant | null>(null);
@@ -79,16 +83,23 @@ export function AssistantProvider({ info: page, children }: { info: AssistantInf
   const setDraft = useCallback((text: string) => setDraftState(text.slice(0, MAX_QUESTION)), []);
   const clearDraft = useCallback(() => setDraftState(""), []);
   const [stream] = useState(() => createSlot<AbortController>()); // the reply being streamed
+  const onHaltRef = useRef<() => void>(() => {});
 
+  const onHalt = useCallback(() => onHaltRef.current(), []);
   const list = useHistoryList();
-  const open = useOpenConversation(page, stream, list.forget);
+  const open = useOpenConversation(page, stream, list.forget, onHalt);
   const asking = useAsking({ info, open, stream, draft, clearDraft, refreshHistory: list.refreshHistory });
+  useEffect(() => {
+    onHaltRef.current = asking.clearBusy;
+  }, [asking.clearBusy]);
   const changes = useConversationChanges(list, open);
+  const switchChoice = useSwitchAsk({ info, open, ask: asking.ask, setDraft });
   useTabMemory(page, open, draft, setDraft);
 
   const canAsk = info.model.configured; // no model chosen: nothing can be asked
   const { messages, conversation, opening, notice, newChat, openConversation } = open;
-  const { busy, ask, retry, stop } = asking;
+  const { busy, retry, stop } = asking;
+  const ask = switchChoice.askOrHold; // waits while the switch question is open
   const { history, loadHistory } = list;
   const { renameConversation, deleteConversation, deleteAllConversations } = changes;
   const openSaved = useCallback((id: string) => void openConversation(id), [openConversation]);
@@ -115,8 +126,9 @@ export function AssistantProvider({ info: page, children }: { info: AssistantInf
       renameConversation,
       deleteConversation,
       deleteAllConversations,
+      switchChoice,
     }),
-    [info, canAsk, setModel, messages, draft, busy, setDraft, ask, stop, retry, conversation, opening, notice, newChat, openSaved, history, loadHistory, renameConversation, deleteConversation, deleteAllConversations],
+    [info, canAsk, setModel, messages, draft, busy, setDraft, ask, stop, retry, conversation, opening, notice, newChat, openSaved, history, loadHistory, renameConversation, deleteConversation, deleteAllConversations, switchChoice],
   );
   return <AssistantContext.Provider value={value}>{children}</AssistantContext.Provider>;
 }

@@ -16,7 +16,7 @@ export function ToolsCard({ card }: { card: CardOf<"tools"> }) {
         const partial = r.total > r.steps.length;
         return (
           <div key={r.run.uid} className="ai-card-section">
-            <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-caption">
+            <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-[12.5px]">
               <span className="text-foreground">{runName(r.run)}</span>
               <span className="ai-num text-muted-foreground">
                 {r.total} tool {r.total === 1 ? "step" : "steps"} · {r.requests} {r.requests === 1 ? "request" : "requests"} sent
@@ -40,7 +40,7 @@ export function ToolsCard({ card }: { card: CardOf<"tools"> }) {
             ) : (
               <ol className="mt-1.5 space-y-1" aria-label={`Tool steps of ${r.run.label}`}>
                 {r.steps.map((s, i) => (
-                  <li key={i} className="flex gap-3 text-caption leading-snug">
+                  <li key={i} className="flex gap-3 text-[12.5px] leading-snug">
                     <span className="ai-num shrink-0 text-muted-foreground">{s.time}</span>
                     <span className="min-w-0 flex-1 text-foreground [overflow-wrap:anywhere]">{s.text}</span>
                     {s.tool !== "—" && <span className="ai-mono hidden shrink-0 text-primary sm:inline">{s.tool}</span>}

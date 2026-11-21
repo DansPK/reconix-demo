@@ -1,28 +1,24 @@
 /* The Word reports print only what the mask left, wherever a value lands: a marker secret in every
    string of a saved run (findings, blocked requests, approvals and decisions, the scope, the
-   target, the client, the timeline …) never reaches the single or the combined DOCX once the run
-   is masked (lib/report/mask.ts, as both routes do), every case of redact-vectors.json is masked
+   target, the client, the timeline …) never reaches the DOCX once the run
+   is masked (lib/report/mask.ts, as the export route does), every case of redact-vectors.json is masked
    in each field a report prints, a private key split over evidence lines is caught as one block,
    and hostile text (WordprocessingML, a comment, control characters, a lone surrogate) stays text
    in a well-formed package. The unmasked control shows the markers would otherwise get through. */
 import { describe, expect, it } from "vitest";
 
 import type { Assessment } from "@/lib/data/schema";
-import { DEFAULT_COMBINE_OPTIONS } from "@/lib/report/combined/options";
-import { combineAssessments } from "@/lib/report/combined/select";
-import { renderCombinedDocx } from "@/lib/report/docx/combined";
 import { xmlText } from "@/lib/report/docx/ooxml";
 import { renderReportDocx } from "@/lib/report/docx/report";
 import { maskAssessment } from "@/lib/report/mask";
 
 import { sampleAssessments } from "./fixtures";
-import vectors from "./redact-vectors.json";
+import { redactVectors as vectors } from "./vectors";
 import { unzip } from "./unzip";
 import { assertWellFormed } from "./xml";
 
 const all = sampleAssessments();
 const NOW = new Date("2026-10-21T08:00:00Z");
-const ALL_ON = { ...DEFAULT_COMBINE_OPTIONS, evidence: true, low: true, appendix: true };
 
 // enums, ids and times stay as they are (no pattern matches them, and the renderers key on them)
 const KEEP = new Set(["uid", "status", "severity", "type", "decision", "request_id", "created_at", "saved_at", "started_at", "finished_at", "at", "schema"]);
@@ -43,7 +39,6 @@ function markLeaves(value: unknown, c: { n: number }, key = ""): unknown {
 /** Every part of the package, as one text. */
 const docText = (bytes: Uint8Array) => [...unzip(bytes).values()].join("\n");
 const single = (a: Assessment) => docText(renderReportDocx(a, NOW));
-const combined = (...runs: Assessment[]) => docText(renderCombinedDocx(combineAssessments(runs, ALL_ON), NOW));
 
 // a run with findings, a scope, approvals, decisions and a blocked request: every section prints
 const base = all.find((a) => a.findings.length > 0 && a.scope && a.approvals.length && a.decisions.length && a.verdicts.some((v) => !v.allowed))!;
@@ -51,25 +46,22 @@ const base = all.find((a) => a.findings.length > 0 && a.scope && a.approvals.len
 describe("a marker in every field", () => {
   const c = { n: 0 };
   const probe = { ...(markLeaves(base, c) as Assessment), status: "Stopped" as const };
-  const other = markLeaves(all.find((a) => a !== base)!, c) as Assessment;
 
   it("has the sample run it needs", () => {
     expect(base).toBeDefined();
   });
 
-  it("would reach both documents unmasked (the control)", () => {
+  it("would reach the document unmasked (the control)", () => {
     expect(single(probe)).toMatch(MARK);
-    expect(combined(probe, other)).toMatch(MARK);
   });
 
-  it("reaches neither once the runs are masked", () => {
+  it("is gone once the run is masked", () => {
     expect(single(maskAssessment(probe))).not.toMatch(MARK);
-    expect(combined(maskAssessment(probe), maskAssessment(other))).not.toMatch(MARK);
   });
 });
 
 describe("every redact-vectors.json case", () => {
-  const cases = (vectors as [string, string][]).filter(([raw, masked]) => raw !== masked);
+  const cases = vectors.filter(([raw, masked]) => raw !== masked);
 
   it.each(cases)("is masked in every field a report prints: %s", (raw) => {
     const a = structuredClone(base);
@@ -82,20 +74,19 @@ describe("every redact-vectors.json case", () => {
     a.target = raw;
     a.client = raw;
     const m = maskAssessment(a);
-    for (const out of [single(m), combined(m)]) expect(out).not.toContain(xmlText(raw));
+    expect(single(m)).not.toContain(xmlText(raw));
   });
 });
 
 describe("a private key split over evidence lines", () => {
-  it("is masked as one block in both documents", () => {
+  it("is masked as one block", () => {
     const a = structuredClone(base);
     a.findings[0].evidence = ["-----BEGIN RSA PRIVATE KEY-----", "MIIBOgIBAAJBAKleafkeysecret", "-----END RSA PRIVATE KEY-----", "after"];
     const m = maskAssessment(a);
     expect(m.findings[0].evidence).toEqual(["•••• (private key)", "after"]);
-    for (const out of [single(m), combined(m)]) {
-      expect(out.toLowerCase()).not.toContain("leafkeysecret");
-      expect(out).toContain("•••• (private key)");
-    }
+    const out = single(m);
+    expect(out.toLowerCase()).not.toContain("leafkeysecret");
+    expect(out).toContain("•••• (private key)");
   });
 });
 
@@ -110,7 +101,7 @@ describe("hostile text", () => {
     a.scope = { ...a.scope!, tools: [evil], excluded_paths: [evil] };
     a.assessment_id = evil;
     a.client = evil;
-    for (const bytes of [renderReportDocx(a, NOW), renderCombinedDocx(combineAssessments([a], ALL_ON), NOW)]) {
+    for (const bytes of [renderReportDocx(a, NOW)]) {
       const parts = unzip(bytes);
       for (const [name, xml] of parts) expect(() => assertWellFormed(xml), name).not.toThrow();
       const out = [...parts.values()].join("\n");
