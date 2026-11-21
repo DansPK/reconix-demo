@@ -45,6 +45,7 @@ def step_states() -> Dict[str, str]:
 
     if run.completed:
         states["execution"] = "done"
+        states["findings"] = "done"   # the scripted run reveals every finding at completion
     elif run.stopped and run.plan_started:
         states["execution"] = "stopped"
     elif gate in (GATE_ACCOUNT, GATE_CODE) and not run.stopped:

@@ -18,6 +18,7 @@ import tempfile
 import threading
 from pathlib import Path
 from typing import Dict, Optional, Tuple
+from urllib.parse import urlsplit
 
 from ..models import Assessment
 from ..models.base import utc_now
@@ -27,20 +28,25 @@ from .snapshot import snapshot, uid_for
 DATA_DIR = Path(os.environ.get("RECONIX_DATA_DIR") or "~/.reconix/assessments").expanduser()
 ENABLED = os.environ.get("RECONIX_SAVE", "1").strip().lower() not in {"0", "false", "no", "off"}
 
-# Kept for `web_server.start()`'s signature; the static-demo dashboard needs no sign-in link.
+# The launcher writes its current sign-in link here.
 WEB_URL_FILE = Path(os.environ.get("RECONIX_WEB_URL_FILE") or "~/.reconix/web.url").expanduser()
 
 _written: Dict[str, str] = {}     # file path -> digest of the content last written there
 
 
 def web_dashboard_url() -> Optional[str]:
-    """The static-demo dashboard's URL (no sign-in). `web/scripts/serve.mjs` binds here.
-
-    Always a loopback http URL on the dashboard's port (RECONIX_WEB_PORT, default 3100),
-    so `/web` never sends the operator's browser anywhere but this computer.
-    """
+    """Use the running dashboard's private link when it matches the local port."""
     port = (os.environ.get("RECONIX_WEB_PORT") or "3100").strip() or "3100"
-    return f"http://127.0.0.1:{port}/"
+    origin = f"http://127.0.0.1:{port}/"
+    try:
+        link = WEB_URL_FILE.read_text(encoding="utf-8").strip()
+        parts = urlsplit(link)
+        if (link.startswith(origin) and parts.path == "/login" and parts.fragment.startswith("token=")
+                and not any(c.isspace() or ord(c) < 32 for c in link)):
+            return link
+    except (OSError, UnicodeError, ValueError):
+        pass
+    return origin
 
 
 def file_for(assessment: Assessment) -> Path:

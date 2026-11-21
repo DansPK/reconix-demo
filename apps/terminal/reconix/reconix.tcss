@@ -615,6 +615,10 @@ FormScreen {
     height: auto;
 }
 
+#form-error:focus {
+    background: $cyan-bg;
+}
+
 .form-actions {
     height: auto;
     margin-top: 1;

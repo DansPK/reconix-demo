@@ -67,8 +67,11 @@ class SessionBar(Static):
         active = store.active_model()
         if active is None:
             return [Text.assemble(("llm: ", theme.DIM), ("off", theme.MUTED))]
-        color = {"REACHABLE": theme.GREEN, "UNREACHABLE": theme.CRITICAL}.get(
-            store.get_provider(active.provider_id).status, theme.MUTED)
+        try:
+            status = store.get_provider(active.provider_id).status
+        except store.StoreValidationError:
+            status = ""  # the top bar never breaks the app: unread reachability is muted
+        color = {"REACHABLE": theme.GREEN, "UNREACHABLE": theme.CRITICAL}.get(status, theme.MUTED)
         model = active.model
         if len(model) > cls.MODEL_WIDTH:
             model = model[:cls.MODEL_WIDTH - 1] + "…"
@@ -125,12 +128,11 @@ class FlowProgress(Static):
         ── ✓ Start ─ ✓ Template ─ ● Plan ─ ○ Approval ─ ○ Execution ─ ○ Findings ─ ○ Report ──
 
     ✓ settled, ✕ stopped, ! waiting for you, ○ pending; the current step is bold cyan. On
-    narrow terminals only the current step keeps its label.
+    narrow terminals only the current step keeps its label. A step is ✓ only when the store
+    says it is done (`store.step_states`), never because you moved past it.
     """
 
     SUB_STEPS = {"detail": "findings"}    # screens shown under another step
-    PASSED_IS_DONE = ("findings",)        # no settling event; done once you move past
-    LABELS = {"template": "Target"}       # display label overrides (internal key stays "template")
 
     def __init__(self, flow_name: str) -> None:
         super().__init__()
@@ -154,7 +156,7 @@ class FlowProgress(Static):
             return "✕", theme.CRITICAL
         if state == "waiting":
             return "!", theme.MEDIUM
-        if state == "done" or (name in self.PASSED_IS_DONE and index < current):
+        if state == "done":
             return "✓", theme.GREEN
         if index == current:
             return "●", theme.CYAN
@@ -167,7 +169,7 @@ class FlowProgress(Static):
         full, compact = Text(), Text()
         for i, name in enumerate(steps):
             glyph, color = self._glyph(i, name, current, states)
-            label = self.LABELS.get(name, name.title())
+            label = name.title()
             if i == current:
                 label_style = f"bold {theme.CYAN}"
             elif glyph == "!":

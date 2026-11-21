@@ -12,7 +12,7 @@ from reconix.widgets.thinking_block import ThinkingBlock
 
 from .support import SIZE, decide, play_until_gate, settle, show
 
-STEP = re.compile(r"^\d\d:\d\d:\d\d UTC  (ai|policy|tool|you|system) +\S")
+STEP = re.compile(r"^\d\d:\d\d:\d\d  (ai|policy|tool|you|system) +\S")
 
 
 def _testing_at_first_approval() -> str:

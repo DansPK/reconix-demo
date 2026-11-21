@@ -11,10 +11,11 @@ from textual.widgets import Footer, Static
 
 from .. import store, theme
 from ..models import Choice
-from ..widgets import ChoiceMenu, FlowProgress, Question, SessionBar, UserMessage
-from ..widgets.plan_order import PlanOrder
-from ..widgets.step_chat import ChatBar, StepChat
-from ..widgets.tick_list import TickList
+from ..widgets import (
+    ChatBar, ChoiceMenu, FlowProgress, PlanOrder, Question, ScopePanel, SessionBar, StepChat,
+    TickList, UserMessage,
+)
+from ..widgets.plan_rows import PlanPanel
 
 CHAT_DECISION = "chat-decision"
 HIDDEN_CHOICES = "The choices are below — ↓ moves down to them."
@@ -24,14 +25,7 @@ CHAT_MENU_HINT = "Enter to select · ↑/↓ to navigate · type to chat · Esc 
 def scope_card() -> Optional[Widget]:
     """The ⛉ SCOPE card for the current scope (None before there is one)."""
     scope = store.get_scope()
-    if scope is None:
-        return None
-    try:
-        from ..widgets.manifest import ScopePanel
-    except ImportError:  # shortcut: ScopePanel lands with T2; drop this fallback then
-        from ..widgets import ScopeManifestView
-        return ScopeManifestView(scope, classes="chat-line")
-    return ScopePanel(scope)
+    return ScopePanel(scope) if scope is not None else None
 
 
 def plan_card() -> Optional[Widget]:
@@ -39,16 +33,7 @@ def plan_card() -> Optional[Widget]:
     rows = store.plan_overview()
     if not rows:
         return None
-    subtitle = f"{len(rows)} steps · {store.gated_count()} need your approval"
-    try:
-        from ..widgets.plan_rows import PlanPanel
-    except ImportError:  # shortcut: PlanPanel lands with T3; drop this fallback then
-        text = Text(f"▤ PLAN  {subtitle}", style=f"bold {theme.TEXT}")
-        for row in rows:
-            text.append(f"\n{row.num:<4}", style=f"bold {theme.MUTED}")
-            text.append(row.label, style=theme.TEXT)
-        return Static(text, classes="chat-line")
-    return PlanPanel(rows, subtitle)
+    return PlanPanel(rows, f"{len(rows)} steps · {store.gated_count()} need your approval")
 
 
 CARDS = {"scope": scope_card, "plan": plan_card}
@@ -295,8 +280,10 @@ class ReconixScreen(Screen):
         self._ask_in_chat(event.chat, event.text)
 
     def _is_command(self, text: str) -> bool:
-        """`/name …` runs a command; a path (`/api/v1 …`) stays a chat line."""
-        return text.lstrip().startswith("/") and not self.app.is_path_line(text)
+        """`/name …` runs a command; a path (`/api/v1 …`) or a message of several lines stays
+        a chat line."""
+        return ("\n" not in text and text.lstrip().startswith("/")
+                and not self.app.is_path_line(text))
 
     def _chat_command(self, chat: Optional[StepChat], text: str) -> None:
         """A `/name` line typed in the chat or on "Type something.": it runs as from the

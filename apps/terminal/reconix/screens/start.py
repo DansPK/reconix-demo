@@ -40,6 +40,8 @@ QUICKSTART = (
 
 PLACEHOLDER = "Type a target (URL, IPv4, repo, path), a question, or / commands"
 READING = "reconix is reading the target…"
+# An empty Enter runs the scripted demo request (see store.DEMO_REQUEST): the first-run
+# shortcut this demo is shown with.
 
 
 def length_error(text: str) -> str:

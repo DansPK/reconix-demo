@@ -9,9 +9,7 @@ from ..screens import (
     ApprovalScreen, ExecutionScreen, FindingDetailScreen, FindingsListScreen, PlanScreen,
     ReportScreen, StartScreen, TemplateScreen,
 )
-from ..widgets.plan_order import PlanOrder
-from ..widgets.step_chat import StepChat
-from ..widgets.tick_list import TickList
+from ..widgets import PlanOrder, StepChat, TickList
 
 # Ordered flow — left/right arrows and Enter walk through this sequence.
 FLOW = [

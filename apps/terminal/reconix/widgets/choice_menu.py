@@ -1,7 +1,8 @@
 """Claude-Code-style selection menus: ↑/↓ or a number to pick, Enter to choose.
 
-A destructive choice (`tone="danger"`: Reject, Stop, Remove…) never gets a number: one stray
-digit must not be able to stop a run or reject a scope. It takes ↑/↓ and Enter.
+A destructive choice (`tone="danger"`: Reject, Stop, Remove…) is numbered too, but its digit
+only moves the highlight there: one stray digit must not be able to stop a run or reject a
+scope, so it still takes Enter to act.
 """
 
 import textwrap
@@ -32,7 +33,7 @@ class ChoiceMenu(OptionList):
 
         ❯ 1. Approve (Recommended)
              Accept the change and continue.
-             Reject                    (destructive: red, no number)
+             Reject                    (destructive: red; its digit only highlights)
           3. Type something.
         ─────────────────────
           4. Chat about this
@@ -167,11 +168,14 @@ class ChoiceMenu(OptionList):
         index = number - 1
         if not 0 <= index < len(self._choices):
             return
-        if self._choices[index].disabled or self._choices[index].tone == "danger":
-            self.app.bell()          # dead end, or destructive: never on a digit
+        choice = self._choices[index]
+        if choice.disabled:
+            self.app.bell()          # dead end
             return
         self.highlighted = index
-        if self._choices[index].kind != "input":   # the input row just takes the cursor
+        if choice.tone == "danger":
+            return  # destructive: the digit only highlights the row, Enter must act
+        if choice.kind != "input":   # the input row just takes the cursor
             self._activate(index)
 
     # --- rendering --------------------------------------------------------------------
@@ -195,12 +199,11 @@ class ChoiceMenu(OptionList):
             if choice.hint:
                 line.append(f"  {choice.hint}", style=theme.DIM)
             return line
-        number = f"{index + 1}. " if self._numbered else ""
-        if choice.tone == "danger":
-            number = " " * len(number)              # destructive: no digit picks it
+        number = f"{index + 1}. " if self._numbered else ""  # danger rows are numbered too
         if choice.disabled:                         # dead end: visible but not pickable
             line.append(number + choice.label, style=theme.DIM)
-            line.append(f"  ({choice.reason or 'not available'})", style=f"italic {theme.DIM}")
+            why = choice.reason or choice.hint or "unavailable"
+            line.append(f"  ({why})", style=f"italic {theme.DIM}")
             return line
         line.append(number, style=accent if highlighted else theme.DIM)
         if choice.kind == "input":

@@ -18,13 +18,25 @@ class ActivityStatus(Spinner):
     `set_expanded()` switches between the two (the app's Ctrl+O).
     """
 
-    def __init__(self, steps: Sequence[str], placeholder: str, *, expanded: bool = False,
-                 id: Optional[str] = None, classes: Optional[str] = None) -> None:
-        super().__init__(placeholder, id=id, classes=classes)
+    def __init__(
+        self,
+        steps: Sequence[str],
+        placeholder: str,
+        *,
+        expanded: bool = False,
+        reduced_motion: bool = False,
+        id: Optional[str] = None,
+        classes: Optional[str] = None,
+    ) -> None:
+        super().__init__(placeholder, reduced_motion=reduced_motion, id=id, classes=classes)
         self._placeholder = placeholder
         self._done: Sequence[str] = ()
         self._expanded = expanded
         self._set_steps(steps)
+
+    @property
+    def expanded(self) -> bool:
+        return self._expanded
 
     def _set_steps(self, steps: Sequence[str]) -> None:
         self._message = steps[-1] if steps else self._placeholder
@@ -42,11 +54,27 @@ class ActivityStatus(Spinner):
         text = Text()
         if self._expanded:
             for step in self._done:
-                text.append("  ✓ ", style=theme.GREEN)
+                lower = step.lower()
+                if "blocked" in lower or "rejected" in lower:
+                    text.append("  ✕ ", style=theme.CRITICAL)
+                elif "failed" in lower:
+                    text.append("  ✕ ", style=theme.CRITICAL)
+                elif "cancelled" in lower or "stopped" in lower:
+                    text.append("  ✕ ", style=theme.MUTED)
+                else:
+                    text.append("  ✓ ", style=theme.GREEN)
                 text.append(step, style=theme.MUTED)
                 text.append("\n")
         hint = ""
         if self._done:
             hint = f"{EXPAND_KEY} to {'collapse' if self._expanded else 'expand'}"
-        text.append_text(spinner_line(self._frame, self._message, hint))
+        text.append_text(
+            spinner_line(
+                self._frame,
+                self._message,
+                hint,
+                reduced_motion=self._reduced_motion,
+                paused=self._paused,
+            )
+        )
         self.update(text)
