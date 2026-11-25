@@ -12,17 +12,19 @@ this module wires it together.
 
 from typing import Dict, Optional
 
+from textual import events
 from textual.app import App
 from textual.binding import Binding
+from textual.widgets import Input
 
 from . import store, theme
 from .commands import COMMANDS, Command, CommandCheck, check_command_line, parse
-from .screens import ChoiceScreen, CommandBarScreen, HelpScreen, StartScreen
+from .screens import ChoiceScreen, CommandBarScreen, HelpScreen, StartScreen, splash
 from .shell import (
     ActionsMixin, DialogsMixin, KnowledgeMixin, LlmMixin, NavigationMixin,
     RunHostMixin, WebDashboardMixin,
 )
-from .widgets import ActivityStatus, RunLog
+from .widgets import ActivityStatus, RunLog, motion
 
 
 class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
@@ -67,6 +69,8 @@ class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
         self.findings_filter: str = "all"        # Findings list view (kept across screens)
         self.findings_sort: str = "severity"
         self.activity_expanded = False           # Ctrl+O: list the steps Reconix finished
+        self.splash_seconds = 0.0                # how long the launch splash plays (0: none)
+        self.motion_flow = ""                    # the flow screen that last faded in
         self._init_run_host()
         self._init_web()
 
@@ -75,7 +79,37 @@ class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
         return {**super().get_css_variables(), **theme.CSS_TOKENS}
 
     def on_mount(self) -> None:
-        self.push_screen(StartScreen())
+        self._apply_padding()
+        if self._wants_splash():
+            # The Start screen waits under the splash; its own logo sweep and typed tagline
+            # begin as the splash lands.
+            self.splash_seconds = splash.TOTAL_SECONDS
+            self.push_screen(StartScreen())
+            self.push_screen(splash.SplashScreen(), self._splash_done)
+        else:
+            self.push_screen(StartScreen())
+
+    def _splash_done(self, _result: None) -> None:
+        self.splash_seconds = 0.0                # a later Start screen starts its motion at once
+
+    def _wants_splash(self) -> bool:
+        """The launch splash plays with motion on and a terminal big enough for it."""
+        return motion.motion_on(self) and splash.fits(self.size.width, self.size.height)
+
+    def _apply_padding(self) -> None:
+        """Pick the side inset for this size (reconix.tcss, `-pad-m` / `-frame`)."""
+        width = self.size.width
+        self.set_class(width >= 100, "-pad-m")
+        self.set_class(width >= 140 and self.size.height >= 30, "-frame")
+
+    def on_resize(self, _event: events.Resize) -> None:
+        self._apply_padding()
+
+    def on_descendant_focus(self, event: events.DescendantFocus) -> None:
+        """Text fields keep a steady cursor. A blinking one leaves, in its off phase, only the
+        terminal's own cursor in view, which some terminals draw a cell to the right."""
+        if isinstance(event.widget, Input):
+            event.widget.cursor_blink = False
 
     def on_unmount(self) -> None:
         # Quitting ends the session: mark the saved copies so the web dashboard shows an

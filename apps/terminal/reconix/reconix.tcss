@@ -9,10 +9,35 @@ Screen {
     layout: vertical;
 }
 
+/* One box, one background. A box on the screen (panel, table, list, log) has no fill of its
+   own: it shows the screen's background and its rounded line marks it, so no strip of fill
+   shows outside the line and nothing inside it (a note, a table header, a stripe, a scrollbar
+   track) draws a second shade. Only states colour a row: the selected one, the hovered one.
+   Dialogs float over the screen and keep one raised fill ($surface), shared by all inside. */
+* {
+    scrollbar-color: $border-strong;
+    scrollbar-color-hover: $muted;
+    scrollbar-color-active: $cyan-dim;
+    scrollbar-background: $bg;
+    scrollbar-background-hover: $bg;
+    scrollbar-background-active: $bg;
+    scrollbar-corner-color: $bg;
+}
+
+/* ...and a scrollbar inside an overlay runs on that overlay's fill. */
+.dialog, .dialog *, #help-box, #help-box *, #command-bar, #command-bar *, Toast {
+    scrollbar-background: $surface;
+    scrollbar-background-hover: $surface;
+    scrollbar-background-active: $surface;
+    scrollbar-corner-color: $surface;
+}
+
 /* ------------------------------------------------------------ chrome */
+/* The header: one quiet band of two rows (who/where/status, then the steps), set apart from
+   the body by its surface colour instead of rules. */
 SessionBar {
     height: 1;
-    background: $bg;
+    background: $surface2;
     color: $muted;
     padding: 0 2;
     border-bottom: none;
@@ -20,7 +45,8 @@ SessionBar {
 
 FlowProgress {
     height: 1;
-    background: $bg;
+    background: $surface2;
+    padding: 0 2;
 }
 
 #body {
@@ -32,23 +58,49 @@ FlowProgress {
     scrollbar-size-vertical: 1;
 }
 
+/* The footer: the same quiet band as the header, `key label` pairs with room between them. */
 Footer {
     background: $surface2;
-    color: $dim;
+    color: $muted;
+    padding: 0 2;
 }
 
-Footer > .footer--key,
+/* The side inset grows with the terminal (app.py sets the class): 2 columns below 100 wide, so
+   80x24 keeps its layout, then 3. Header, body and footer share it, so their left edges line
+   up. */
+ReconixApp.-pad-m SessionBar, ReconixApp.-pad-m FlowProgress, ReconixApp.-pad-m Footer {
+    padding: 0 3;
+}
+ReconixApp.-pad-m #body { padding: 1 3 0 3; }
+
+/* On a big terminal the whole app floats inside the window: a row and two columns of space
+   around it, so the header, its status and the footer never touch the window's edges. Only
+   flow screens (not dialogs or the splash), and only with room to spare. */
+ReconixApp.-frame ReconixScreen {
+    padding: 1 2;
+}
+
+Footer FooterKey {
+    background: $surface2;
+    margin-right: 3;
+}
+
 FooterKey .footer-key--key {
     background: $surface2;
     color: $text;
     text-style: bold;
+    padding: 0;
 }
 
 FooterKey .footer-key--description {
-    color: $dim;
+    background: $surface2;
+    color: $muted;
+    padding: 0 0 0 1;
 }
 
-FooterKey:hover {
+FooterKey:hover,
+FooterKey:hover .footer-key--key,
+FooterKey:hover .footer-key--description {
     background: $raised;
 }
 
@@ -69,8 +121,8 @@ FooterKey:hover {
     padding: 0 1;
     margin-bottom: 1;
 }
-.tick-list SelectionList { height: auto; max-height: 14; background: $surface; }
-.tick-list OptionList { height: auto; max-height: 14; background: $surface; }
+.tick-list SelectionList { height: auto; max-height: 14; background: transparent; }
+.tick-list OptionList { height: auto; max-height: 14; background: transparent; }
 .ai-label   { color: $dim; margin-bottom: 1; }
 .muted      { color: $muted; }
 .dim        { color: $dim; }
@@ -78,7 +130,7 @@ FooterKey:hover {
 
 /* ------------------------------------------------------------ panels */
 .panel {
-    background: $surface;
+    background: transparent;
     border: round $border;
     border-title-color: $text;
     border-title-style: bold;
@@ -103,6 +155,12 @@ FooterKey:hover {
     padding: 0 1;
     height: auto;
     margin-bottom: 1;
+}
+
+/* Inside a box a note is plain text: the box's one background shows through. */
+.panel .panel-note {
+    background: transparent;
+    padding: 0;
 }
 
 /* ------------------------------------------------------------ buttons
@@ -142,6 +200,49 @@ Button:disabled {
     opacity: 50%;
 }
 
+/* The report's export chips: one row each, one background, read like the footer
+   (`p  PDF`). The first is the main one. Unavailable: plain dim text, never faded. */
+.export-actions {
+    height: 1;
+    margin: 1 0;
+}
+
+.export-label {
+    width: auto;
+    height: 1;
+    margin-right: 2;
+}
+
+Button.export {
+    width: auto;
+    min-width: 0;
+    height: 1;
+    margin-right: 2;
+    padding: 0 2;
+    border: none;
+    background: $raised;
+    color: $text;
+    text-style: none;
+}
+
+Button.export.-main {
+    background: $cyan-bg;
+}
+
+Button.export:hover {
+    background: $border-strong;
+}
+
+Button.export:focus {
+    background: $cyan-dim;
+    text-style: bold;
+}
+
+Button.export:disabled {
+    opacity: 100%;
+    background: $surface2;
+}
+
 /* ------------------------------------------------------------ inputs */
 Input {
     background: $surface;
@@ -156,6 +257,7 @@ Input:focus {
 
 Input.match  { border: tall $teal; }
 Input.nomatch { border: tall $critical; }
+Input.caution { border: tall $medium; }
 
 Input > .input--placeholder { color: $dim; }
 Input > .input--cursor { background: $cyan; color: $bg; }
@@ -163,17 +265,18 @@ Input > .input--cursor { background: $cyan; color: $bg; }
 /* ------------------------------------------------- prompt (Claude-Code style) */
 PromptBox {
     height: auto;
-    margin: 0 2;
+    margin: 0;  /* the body's inset already applies: the ❯ lines up with the header's ◆ */
 }
 
 #prompt {
     margin: 0;
 }
 
+/* Lines up with the text after the "❯ " mark, one row under the input's rule. */
 #prompt-hint {
     height: 1;
     color: $dim;
-    padding: 0 1;
+    padding: 0 2;
 }
 
 /* An error or notice may wrap, but never grows past three lines. */
@@ -184,7 +287,7 @@ PromptBox {
 
 /* ------------------------------------------------- lists & tables (arrow keys) */
 OptionList {
-    background: $surface;
+    background: transparent;
     border: round $border;
     padding: 0 1;
     height: auto;
@@ -255,9 +358,12 @@ SuggestionMenu {
     background: $surface2;
     /* A whole box: it floats over what is above the prompt (the Start card at 80×24), so it
        must read as a popup, not as a row cut into that card's border. */
-    border: round $border-strong;
+    border: tall $border-strong;
     padding: 0 1;
     max-height: 10;
+    scrollbar-background: $surface2;
+    scrollbar-background-hover: $surface2;
+    scrollbar-background-active: $surface2;
 }
 
 /* Question widget: chip, bold question, numbered choices, key hint. */
@@ -292,7 +398,8 @@ Question.danger .chip {
 }
 
 DataTable {
-    background: $surface;
+    background: transparent;
+    scrollbar-size-horizontal: 0;  /* Shift+←/→ scrolls; the hint says so, no grey band */
     height: auto;
     max-height: 16;
     border: round $border;
@@ -304,7 +411,7 @@ DataTable:focus {
 }
 
 DataTable > .datatable--header {
-    background: $surface2;
+    background: transparent;
     color: $dim;
     text-style: bold;
 }
@@ -319,8 +426,10 @@ DataTable > .datatable--hover {
     background: $raised;
 }
 
+DataTable > .datatable--odd-row,
+DataTable > .datatable--fixed,
 DataTable > .datatable--even-row {
-    background: $surface2;
+    background: transparent;
 }
 
 /* ------------------------------------------- execution (no percentages: a spinner) */
@@ -336,7 +445,7 @@ DataTable > .datatable--even-row {
 
 /* --------------------------------------------------------------- log */
 RichLog, RunLog {
-    background: $surface2;
+    background: transparent;
     border: round $border;
     border-title-color: $muted;
     border-subtitle-color: $dim;
@@ -447,6 +556,16 @@ RichLog, RunLog {
     margin-top: 1;
 }
 
+/* The highlighted finding, under the table (hidden on short terminals, findings_list.py). */
+#finding-preview {
+    margin-top: 1;
+    border-title-color: $muted;
+}
+
+#detail-empty {
+    margin-top: 1;
+}
+
 #detail-header {
     height: auto;
 }
@@ -481,7 +600,7 @@ HelpScreen {
     height: auto;
     max-height: 100%;
     background: $surface;
-    border: round $cyan-dim;
+    border: tall $cyan-dim;  /* half-block edge: the fill stops at the line */
     border-title-color: $cyan;
     padding: 1 2;
 }
@@ -501,7 +620,7 @@ CommandBarScreen {
     height: auto;
     background: $surface;
     border-top: solid $border-strong;
-    padding: 1 0 0 0;
+    padding: 1 2 0 2;
 }
 
 /* ------------------------------------------------------------ dialogs */
@@ -516,14 +635,14 @@ ChoiceScreen {
     height: auto;
     max-height: 90%;
     background: $surface;
-    border: round $cyan-dim;
+    border: tall $cyan-dim;  /* half-block edge: the fill stops at the line */
     border-title-color: $cyan;
     border-title-style: bold;
     padding: 1 2;
 }
 
 .dialog.danger {
-    border: round $critical;
+    border: tall $critical;
     border-title-color: $critical;
 }
 

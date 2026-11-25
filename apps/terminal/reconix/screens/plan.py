@@ -43,6 +43,22 @@ def status_counts(rows: List[PlanRow]) -> str:
     return " · ".join(parts)
 
 
+def tool_list(tools: List[str], room: int) -> Text:
+    """`whatweb, httpx, Katana +5 more`: as many tools as fit in `room` cells, then a count."""
+    shown: List[str] = []
+    for index, tool in enumerate(tools):
+        rest = len(tools) - index - 1
+        trial = ", ".join(shown + [tool]) + (f" +{rest} more" if rest else "")
+        if len(trial) > room and shown:
+            break
+        shown.append(tool)
+    hidden = len(tools) - len(shown)
+    out = Text(", ".join(shown), style=theme.MUTED)
+    if hidden:
+        out.append(f" +{hidden} more", style=theme.DIM)
+    return out
+
+
 class PlanScreen(ReconixScreen):
     flow_name = "plan"
     mode_name = "PLAN"
@@ -104,22 +120,26 @@ class PlanScreen(ReconixScreen):
             classes="ai-label")
         scope = store.get_scope()
         limit = scope.time_limit_minutes
-        chips = (("target", assessment.target), ("kind", assessment.target_kind),
-                 ("tools", ", ".join(scope.tools)),
-                 ("time limit", f"{limit} min" if limit else ""))
+        chips = (("target", assessment.target, f"bold {theme.TEAL}"),
+                 ("kind", assessment.target_kind, theme.TEXT),
+                 ("time limit", f"{limit} min" if limit else "", theme.TEXT))
         line = Text()
-        for key, value in chips:
+        for key, value, style in chips:
             if not value:
                 continue                    # a missing value is left out, never "None"
             if line:
                 line.append("   ")
             line.append(f"{key} ", style=theme.DIM)
-            line.append(value, style=f"bold {theme.TEAL}")
+            line.append(value, style=style)
+        if scope.tools:                     # last, and cut to the one line that is left
+            line.append("   tools ", style=theme.DIM)
+            room = self.app.size.width - 11 - line.cell_len   # the widest inset, a scrollbar
+            line.append_text(tool_list(scope.tools, room))
         yield Static(line, classes="muted")
         yield Static("")
         yield Static(Text.assemble(
-            ("●●  Press ", theme.DIM), ("Tab", f"bold {theme.TEXT}"),
-            (" to browse steps with ↑/↓", theme.DIM)), classes="muted")
+            ("Tab", f"bold {theme.TEXT}"), ("  browse the steps with ↑/↓", theme.DIM)),
+            classes="muted")
         plan_list = OptionList(id="plan-list")
         width = self.app.size.width - 8         # until the list is laid out (see on_mount)
         for row in rows:

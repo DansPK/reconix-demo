@@ -1,7 +1,8 @@
 """How a finding's fields look wherever they are shown (findings list, detail, report)."""
 
+import time
 from dataclasses import replace
-from typing import Dict
+from typing import Any, Dict, Optional
 
 from rich.text import Text
 from textual.widgets import Static
@@ -10,6 +11,7 @@ from .. import theme
 from ..models import Finding
 from ..store import SEVERITY_ORDER
 from ..store.redact import redact, redact_all, redact_lines
+from . import motion
 
 
 def mask(text: str) -> str:
@@ -111,7 +113,102 @@ def severity_bars(counts: Dict[str, int], width: int = 28) -> Text:
 
 
 class SeverityStrip(Static):
-    """The one-line severity count strip above a findings table."""
+    """The one-line severity count strip above a findings table.
+
+    With motion on, the counts tick up from what was shown before (from 0 on arrival).
+    """
+
+    COUNT_SECONDS = 1.2
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._shown: Dict[str, int] = {}
+        self._target: Dict[str, int] = {}
+        self._start: Dict[str, int] = {}
+        self._began = 0.0
+        self._timer: Any = None
 
     def show(self, counts: Dict[str, int]) -> None:
-        self.update(severity_strip(counts))
+        counts = dict(counts)
+        if counts == self._target:
+            return
+        self._target = counts
+        if not motion.motion_on(self.app) or not any(counts.values()):
+            self._shown = counts
+            self.update(severity_strip(counts))
+            return
+        self._start = dict(self._shown)
+        self._began = time.monotonic()
+        if self._timer is None:
+            self._timer = self.set_interval(1 / 30, self._tick)
+        self._tick()
+
+    def _tick(self) -> None:
+        t = min(1.0, (time.monotonic() - self._began) / self.COUNT_SECONDS)
+        eased = 1 - (1 - t) ** 3
+        self._shown = {
+            key: round(self._start.get(key, 0) + (value - self._start.get(key, 0)) * eased)
+            for key, value in self._target.items()
+        }
+        self.update(severity_strip(self._shown))
+        if t >= 1.0 and self._timer is not None:
+            self._timer.stop()
+            self._timer = None
+
+
+def _first_sentence(text: str, limit: int) -> str:
+    """The text's first line, cut to `limit` cells with "…" (already masked by the caller)."""
+    line = " ".join((text or "").split())
+    if len(line) <= limit:
+        return line
+    return line[: limit - 1].rstrip() + "…"
+
+
+def finding_preview(finding: Finding, width: int = 100) -> Text:
+    """A few lines on the highlighted finding, under the findings table.
+
+    `finding` must already be masked (`for_display`), like every shown field.
+    """
+    room = max(20, width - 14)
+    out = Text()
+    out.append_text(severity_text(finding))
+    out.append("  ")
+    out.append(finding.title, style=f"bold {theme.TEXT}")
+    where = finding.affected_url or finding.path
+    meta = Text.assemble(
+        ("\n", ""),
+        ("found by ", theme.DIM),
+        (finding.tool or "—", theme.TEAL),
+    )
+    if where:
+        meta.append("  ·  ", style=theme.DIM)
+        meta.append(_first_sentence(where, max(20, width - meta.cell_len)), style=theme.MUTED)
+    out.append_text(meta)
+    rows = (
+        ("What", finding.description),
+        ("Impact", finding.impact),
+        ("Fix", finding.remediation),
+    )
+    for label, value in rows:
+        if value and value.strip():
+            out.append(f"\n{label:<8}", style=theme.DIM)
+            out.append(_first_sentence(value, room), style=theme.TEXT)
+    out.append("\n")
+    out.append("↵ ", style=f"bold {theme.TEXT}")
+    out.append("open the full finding · evidence, validation and triage", style=theme.DIM)
+    return out
+
+
+class FindingPreview(Static):
+    """The highlighted finding's summary under the findings table (masked)."""
+
+    def show(self, finding: Optional[Finding]) -> None:
+        if finding is None:
+            self.update("")
+            return
+        shown = for_display(finding)
+        if shown.fid != getattr(self, "_fid", None):
+            self._fid = shown.fid
+            motion.fade_in(self, duration=0.3)
+        self.border_title = Text(f"Finding {shown.fid}", style=f"bold {theme.TEXT}")
+        self.update(finding_preview(shown, self.size.width or 100))

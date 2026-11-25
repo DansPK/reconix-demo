@@ -3,6 +3,7 @@
 from typing import List, NamedTuple, Optional
 
 from rich.text import Text
+from textual import events, on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
 from textual.screen import Screen
@@ -13,7 +14,7 @@ from .. import store, theme
 from ..models import Choice
 from ..widgets import (
     ChatBar, ChoiceMenu, FlowProgress, PlanOrder, Question, ScopePanel, SessionBar, StepChat,
-    TickList, UserMessage,
+    TickList, UserMessage, motion,
 )
 from ..widgets.plan_rows import PlanPanel
 
@@ -79,6 +80,16 @@ class ReconixScreen(Screen):
         with container:
             yield from self.compose_body()
         yield Footer()
+
+    @on(events.Mount)
+    def _arrive(self) -> None:
+        """Fade the body in when you arrive on this screen, but not when the same screen is
+        rebuilt as the run moves (that would flicker on every step)."""
+        if self.app.motion_flow == self.flow_name:
+            return
+        self.app.motion_flow = self.flow_name
+        for body in self.query("#body"):
+            motion.fade_in(body, duration=0.45)
 
     def compose_body(self) -> ComposeResult:  # pragma: no cover - overridden
         return iter(())
@@ -377,6 +388,10 @@ class ReconixScreen(Screen):
         if not chats:
             return
         field = chats.first(StepChat).input
+        if event.pasted:  # pasted as into the input itself
+            self.set_focus(field)
+            field.post_message(events.Paste(event.text))
+            return
         field.value += event.text  # later keys may still arrive here before the focus moves
         field.cursor_position = len(field.value)
         self.set_focus(field)

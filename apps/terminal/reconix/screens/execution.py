@@ -51,6 +51,7 @@ def task_line(task: PlanTask, state: str) -> Text:
         detail = ACTIVE_DETAIL.get(state, "paused · waiting for you")
     if task.key == "report" and task.status == "active":
         detail = "ready · export on Report (Alt+8)"    # fits 80 columns
+        color, glyph = theme.CYAN, "●"                 # waiting on you, not still working
     text_color = theme.TEXT if task.status == "active" else theme.MUTED
     label = task.label                       # cut, so the status after it still shows
     if len(label) > LABEL_WIDTH - 1:

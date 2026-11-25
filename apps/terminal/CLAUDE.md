@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > `shell/llm.py`, `screens/forms/provider.py`): providers can be set up, tested, picked and
 > unset and the active model shows in the status bar, but nothing talks to a network and chat is
 > still canned. `reset_providers()` (run by `store/seed.py`) **preselects Reconix ·
-> `reconix-security-flash`** at launch, so the status bar never opens on `llm: off`;
+> `reconix-security-flash`** at launch, so the status bar never opens on `○ model off`;
 > `test_default_model_is_preselected_at_launch` guards it. The web dashboard runs via `npm run dev` on `web/sample-data/` with no sign-in
 > and a canned AI Assistant. Notes below that mention the LLM/harness seams, auth or the sign-in
 > link are historical.
@@ -55,7 +55,8 @@ npm run build && npm run e2e      # Playwright on sample-data (needs a Chromium)
 
 Tests: `asyncio_mode = "auto"`, so `async def test_…(app)` needs no marker; Pilot tests use
 `app.run_test(size=SIZE)` (`SIZE` from `tests/support.py`). `tests/conftest.py` resets the store around every test, plays the run instantly
-(`RunController.SPEED = 0`), points reports / saved copies / the web link at temp, and
+(`RunController.SPEED = 0`), turns motion off (`motion.ENABLED`; `RECONIX_REDUCED_MOTION` and
+`TEXTUAL_ANIMATIONS=none` do so for a person), points reports / saved copies / the web link at temp, and
 stubs `browser.open_url/open_path` (the `opened` fixture records them — never launch a
 real browser). `tests/support.py`: `run_to(gate)` / `decide(gate)` / `play_until_gate()`
 drive the store; `run_ui_to(app, pilot, gate)` / `pass_gate()` drive the screens;
@@ -86,6 +87,7 @@ reconix/
 │   ├── templates/    # per-template scope, plan, approvals, findings, script (base.py builds)
 │   ├── scope.py / policy.py / approvals.py / vault.py    # enforcement lives here
 │   ├── providers.py  # static, in-memory providers + the active model (default preselected)
+│   ├── services.py   # the header's Core API / Kali status: scripted, nothing is probed
 │   ├── replies.py    # canned chat replies (no model is ever called)
 │   ├── openapi.py    # an OpenAPI file attached to the API scope draft (read, never widens it)
 │   ├── plan.py / progress.py / findings_view.py          # what the classic screens show
@@ -96,11 +98,13 @@ reconix/
 ├── web_server.py     # start / stop `npm run dev` in web/ quietly (log: ~/.reconix/web.log)
 ├── widgets/          # SessionBar/FlowProgress, ChoiceMenu, PromptBox, Question, RunLog,
 │                     #   ScopeManifestView, Spinner/ActivityStatus,
-│                     #   finding cells (widgets/findings.py)
+│                     #   finding cells + the masked FindingPreview (widgets/findings.py),
+│                     #   motion.py (every animation; `motion_on()` is the one switch)
 └── screens/
     ├── base.py       # ReconixScreen: chrome + body + footer; view_state / refresh_live
     ├── <frame>.py    # one file per flow frame (template.py replaced scope.py)
     ├── forms/        # FormScreen (+ LoginForm, ScopeEditForm, ApprovalEditForm, OpenApiForm)
+    ├── splash.py     # the launch splash over Start (motion on, terminal big enough)
     ├── choice.py     # ChoiceScreen dialog (+ details_body())
     ├── command_bar.py, help.py
 ```
