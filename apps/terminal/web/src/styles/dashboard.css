@@ -521,7 +521,7 @@
 }
 
 /* Tables in a panel (findings, runs): they scroll sideways inside the card when narrow. */
-.dash-table-scroll { min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.dash-table-scroll { position: relative; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
 .dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
 .dash-table thead th {
   padding: 0 14px 7px 0;

@@ -12,6 +12,8 @@ import { CoreApiError } from "./client";
 import type { ApiAssessment, ApiFinding } from "./findings";
 import type { ApiOverview, ApiReport } from "./reports";
 import type { Assessment, Finding } from "../data/schema";
+import { findingId } from "../data/adapt";
+import { isFalsePositive } from "../data/stats";
 import { loadLibrary } from "../data/store";
 
 /** The saved runs' own ids (`20260929-112000-8c51_RCX-001`) double as their assessment ids:
@@ -22,6 +24,9 @@ const findSaved = async (assessmentId: string): Promise<Assessment | null> =>
   (await saved()).find((a) => a.uid === assessmentId || a.core_id === assessmentId) ?? null;
 
 const notFound = (what: string) => new CoreApiError("ASSESSMENT_NOT_FOUND", `The Core API has no ${what} with that id.`);
+
+/** The findings a count includes: false positives are left out, as the Core API leaves them. */
+const countedFindings = (a: Assessment): Finding[] => a.findings.filter((f) => !isFalsePositive(f));
 
 /** A run's status on the Core API's scale. */
 const apiStatus = (a: Assessment): ApiAssessmentRow["assessment_status"] =>
@@ -38,7 +43,7 @@ export async function localAssessments(): Promise<ApiAssessment[]> {
     name: a.template.name,
     targets: [a.target_url || a.target],
     assessment_status: apiStatus(a) as ApiAssessment["assessment_status"],
-    finding_count: a.findings.length,
+    finding_count: countedFindings(a).length,
     created_at: a.created_at,
   }));
 }
@@ -53,7 +58,7 @@ function localFinding(a: Assessment, f: Finding): ApiFinding {
   return {
     finding_id: `${a.uid}~${f.id}`,
     assessment_id: a.uid,
-    code: f.id,
+    code: findingId(f.id),
     title: f.title,
     target: f.affected_url || f.path || a.target,
     description: f.description,
@@ -65,14 +70,14 @@ function localFinding(a: Assessment, f: Finding): ApiFinding {
     impact: f.impact || null,
     remediation: f.remediation || null,
     validation_status: f.validation || "UNCONFIRMED",
-    finding_status: f.status.toUpperCase(),
+    finding_status: f.status.toUpperCase().replace("-", "_"),
     finding_category: category,
     // The saved files predate the Core API's validated_* fields; fill them from the plain
     // ones so a classified finding keeps its severity and CVSS score.
     validated_severity_status: f.validated_severity_status ?? f.severity,
     validated_cwe_ids: f.validated_cwe_ids ?? f.cwe,
     validated_cve_ids: f.validated_cve_ids ?? f.cve,
-    validated_cvss_score: f.validated_cvss_score ?? f.cvss_score,
+    validated_cvss_score: f.validated_cvss_score !== undefined ? f.validated_cvss_score : f.cvss_score > 0 ? f.cvss_score : null,
     validated_cvss_vector: f.validated_cvss_vector ?? f.cvss_vector ?? null,
     confidence_level: f.confidence_level ?? null,
     evidence_quality: f.evidence_quality ?? null,
@@ -140,7 +145,7 @@ export async function localReports(assessmentId: string): Promise<ApiReport[]> {
 export async function localOverview(assessmentId: string): Promise<ApiOverview> {
   const a = await findSaved(assessmentId);
   if (!a) throw notFound("assessment");
-  const counted = a.findings.filter((f) => f.finding_category !== "FALSE_POSITIVE" && f.status !== "false-positive");
+  const counted = countedFindings(a);
   const bySeverity: Record<string, number> = {};
   for (const f of counted) {
     const level = effectiveSeverity(f);
@@ -180,7 +185,7 @@ export async function localAssessmentRows(): Promise<ApiAssessmentRow[]> {
   const all = await saved();
   const worst = (a: Assessment): ApiAssessmentRow["worst_severity"] => {
     const order = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE", "UNKNOWN"];
-    const levels = a.findings.filter((f) => f.finding_category !== "FALSE_POSITIVE").map((f) => effectiveSeverity(f));
+    const levels = countedFindings(a).map((f) => effectiveSeverity(f));
     return (order.find((level) => levels.includes(level)) ?? null) as ApiAssessmentRow["worst_severity"];
   };
   return all.map((a) => ({
@@ -192,7 +197,7 @@ export async function localAssessmentRows(): Promise<ApiAssessmentRow[]> {
     created_at: a.created_at,
     session_id: a.session,
     targets: [a.target_url || a.target],
-    finding_count: a.findings.filter((f) => f.finding_category !== "FALSE_POSITIVE").length,
+    finding_count: countedFindings(a).length,
     worst_severity: worst(a),
     pending_approval_count: 0,
     plan_step_count: a.plan.length,
