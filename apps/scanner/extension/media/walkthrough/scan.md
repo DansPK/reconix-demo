@@ -1,10 +1,18 @@
-# Run your first scan
+# Scan your project
 
-Type `scan this project` in the chat, or run **Reconix: Scan Workspace**.
+1. Open your project folder: **File → Open Folder…** (open the project folder itself).
+2. Start a scan in any of these ways:
+   - Type **`scan`** in the chat and press **Enter**.
+   - Run **Reconix Code Scanner: Scan Workspace** from the Command Palette (`Ctrl+Shift+P`).
+   - Right-click a file or folder → **Scan with Reconix** to scan just that part.
+3. Watch the progress: **collecting files → uploading → scanning → analyzing → done**.
 
-While you work:
+What gets scanned:
 
-- Hover an underlined line to see what's wrong and how to fix it.
-- Press **Ctrl+.** on it for **Fix**, **Explain** and **Ignore**.
-- Use **Ctrl+Alt+.** / **Ctrl+Alt+,** to jump between findings.
-- Right-click a file or folder and choose **Scan with Reconix** to scan just that part.
+- Your open folder's files are sent to the scanner server on this computer (respecting `.gitignore`, skipping
+  binaries and files over `reconixCodeScanner.maxFileSizeKB`).
+- The scanners cover application code (Semgrep), secrets (Gitleaks), dependencies (Trivy, Grype,
+  OSV-Scanner) and the software inventory (Syft).
+
+> **Scan on save:** turn on `reconixCodeScanner.scanOnSave` to re-scan automatically after
+> you save a file that has findings.

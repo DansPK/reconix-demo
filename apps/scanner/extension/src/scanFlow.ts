@@ -1,117 +1,228 @@
-// The upload and scan flows from the contract, without VS Code APIs.
+// Orchestrates collect → sync → archive → upload → scan → watch (pure Node, no vscode import).
+import { createHash } from "node:crypto";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import * as path from "node:path";
+import { createArchive } from "./archive";
+import type { Backend } from "./backend/Backend";
+import { countBySeverity } from "./findingsLogic";
+import type { FileEntry, Finding, FindingsQuery, ScanStage, ScanSummary } from "./shared/contract";
+import { collectFiles } from "./workspaceFiles";
 
-import { Archive, createArchive, formatBytes, largestFolders, removeArchive } from "./archive";
-import { HarnessClient, ServerUnreachableError, ToolCallError } from "./client";
-import type { Finding, ManifestEntry, ScanSummary } from "./shared/contract";
-import { UploadError, uploadFile } from "./upload";
-import { walkWorkspace } from "./workspaceFiles";
-
-export interface FlowSettings {
+export interface ScanFlowOptions {
+  rootDir: string;
+  sessionId: string;
   maxFileSizeKB: number;
   maxUploadMB: number;
   extraExcludes: string[];
-}
-
-export interface FlowUI {
-  walking?: (filesSeen: number) => void;
-  uploading?: (sent: number, total: number) => void;
-  isCancelled?: () => boolean;
+  /** Workspace-relative folders or files the backend should limit the scan to. */
+  paths?: string[];
+  onProgress: (scan: ScanSummary) => void;
   signal?: AbortSignal;
+  /** How long to wait for the backend to confirm a cancel before giving up on it. */
+  cancelGraceMs?: number;
+  /**
+   * Called once the files are collected. Return false to stop without syncing or scanning
+   * (for example: nothing changed since the last finished scan). Without it, an empty folder throws.
+   */
+  shouldScan?: (files: FileEntry[], fingerprint: string) => boolean;
 }
 
-export interface Prepared {
-  /** Nothing to upload and nothing deleted since the last sync. */
-  nothingChanged: boolean;
-  uploadId?: string;
-  deleted: string[];
-  uploaded: string[];
-  fileCount: number;
+/** One hash over every collected file's path and content hash: equal means nothing changed. */
+export function manifestFingerprint(files: FileEntry[]): string {
+  const hash = createHash("sha256");
+  for (const file of [...files].sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))) {
+    hash.update(`${file.path}\0${file.sha256}\n`);
+  }
+  return hash.digest("hex");
 }
 
-export class TooLargeError extends Error {}
+export const DEFAULT_CANCEL_GRACE_MS = 10_000;
 
-const RECONNECT_ATTEMPTS = 6;
-const FINDINGS_PAGE = 200;
+/**
+ * Runs a whole scan and resolves with its final summary (COMPLETED, FAILED or CANCELLED), or
+ * undefined when shouldScan stopped it. Aborting the signal before the scan starts rejects;
+ * aborting while it runs cancels it on the backend and resolves with the CANCELLED summary.
+ * Fetch findings afterwards with getFindings.
+ */
+export async function runScanFlow(backend: Backend, options: ScanFlowOptions): Promise<ScanSummary | undefined> {
+  const { sessionId, signal } = options;
+  const startedAt = new Date().toISOString();
+  // Before the backend has a scan, progress is reported locally with an empty scanId.
+  const reportLocal = (stage: ScanStage): void =>
+    options.onProgress({ scanId: "", sessionId, status: "RUNNING", stage, progress: 0, startedAt, counts: countBySeverity([]), notes: [] });
 
-/** Steps 1-8 of the upload flow: manifest, sync, pack the needed files, upload. */
-export async function prepareWorkspace(client: HarnessClient, sessionId: string, root: string,
-                                       settings: FlowSettings, ui: FlowUI = {}): Promise<Prepared> {
-  const { entries } = await walkWorkspace(root, {
-    maxFileSizeKB: settings.maxFileSizeKB, extraExcludes: settings.extraExcludes,
-    isCancelled: ui.isCancelled, onProgress: ui.walking,
+  reportLocal("COLLECTING");
+  const files = await collectFiles({
+    rootDir: options.rootDir,
+    maxFileSizeKB: options.maxFileSizeKB,
+    extraExcludes: options.extraExcludes,
+    signal,
   });
-  const sync = await client.syncFiles(sessionId, entries);
-  const base = { deleted: sync.delete, fileCount: entries.length };
-  if (sync.need.length === 0) {
-    return { ...base, nothingChanged: sync.delete.length === 0, uploaded: [] };
-  }
-  let archive: Archive | undefined;
-  try {
-    archive = await createArchive(root, sync.need);
-    if (archive.size > settings.maxUploadMB * 1024 * 1024) {
-      const byPath = new Map(entries.map((e) => [e.path, e] as [string, ManifestEntry]));
-      const folders = largestFolders(sync.need.map((p) => byPath.get(p)!).filter(Boolean))
-        .map((f) => `- \`${f.folder}\` ${formatBytes(f.bytes)}`).join("\n");
-      throw new TooLargeError(`The archive is ${formatBytes(archive.size)}, more than the limit of `
-        + `${settings.maxUploadMB} MB (reconix.maxUploadMB). The largest folders are:\n${folders}\n\n`
-        + "Add excludes in reconix.extraExcludes or .gitignore, then try again.");
+  signal?.throwIfAborted();
+  if (options.shouldScan) {
+    if (!options.shouldScan(files, manifestFingerprint(files))) {
+      return undefined;
     }
-    let uploadId = "";
-    for (let attempt = 1; ; attempt++) {
-      const ticket = await client.requestUpload(sessionId, archive.size, archive.sha256);
-      try {
-        await uploadFile(ticket.upload_url, archive.file, archive.size, ui.uploading, ui.signal, client.fetchFn);
-        uploadId = ticket.upload_id;
-        break;
-      } catch (e) {
-        // An expired link gets one more try with a fresh one.
-        if (e instanceof UploadError && e.status === 403 && attempt === 1) continue;
-        throw e;
-      }
-    }
-    return { ...base, nothingChanged: false, uploadId, uploaded: sync.need };
-  } finally {
-    await removeArchive(archive);
+  } else if (files.length === 0) {
+    throw new Error("No files to scan in this workspace folder.");
   }
-}
 
-/** Watch a scan to its end, following progress. If the connection drops, check the
- * status and watch again while the scan is still running. */
-export async function watchToEnd(client: HarnessClient, scanId: string,
-                                 onProgress: (percent: number, message: string) => void,
-                                 signal?: AbortSignal): Promise<ScanSummary> {
-  let failures = 0;
-  for (;;) {
+  // The server names what to upload: only ever files this sync offered (never a path it made up).
+  const offered = new Set(files.map((f) => f.path));
+  const missing = (await backend.syncFiles(sessionId, files)).missing.filter((p) => offered.has(p));
+  signal?.throwIfAborted();
+
+  if (missing.length > 0) {
+    reportLocal("ARCHIVING");
+    const workDir = await mkdtemp(path.join(tmpdir(), "reconix-scan-"));
     try {
-      return await client.watchScan(scanId, onProgress, signal);
-    } catch (e) {
-      if (signal?.aborted || e instanceof ToolCallError) throw e;
-      failures++;
-      if (failures > RECONNECT_ATTEMPTS) throw e;
-      await sleep(Math.min(500 * 2 ** (failures - 1), 10_000));
-      let status: ScanSummary;
-      try {
-        status = await client.getScanStatus(scanId);
-      } catch (e2) {
-        if (e2 instanceof ServerUnreachableError) continue;
-        throw e2;
+      const archive = await createArchive(options.rootDir, missing, path.join(workDir, "workspace.tar.gz"));
+      signal?.throwIfAborted();
+      if (archive.sizeBytes > options.maxUploadMB * 1024 * 1024) {
+        throw new Error(`The files to upload are ${Math.ceil(archive.sizeBytes / 1024 / 1024)} MB, over the ${options.maxUploadMB} MB limit (reconixCodeScanner.maxUploadMB).`);
       }
-      if (status.status !== "running" && status.status !== "queued") return status;
-      onProgress(status.percent, "Reconnected; still scanning");
+      reportLocal("UPLOADING");
+      await backend.uploadCode(sessionId, archive.filePath, signal);
+    } finally {
+      await rm(workDir, { recursive: true, force: true });
+    }
+  }
+  signal?.throwIfAborted();
+
+  return scanAndWatch(backend, sessionId, options);
+}
+
+/** Starts a scan of the code the session already has (synced, or cloned) and follows it to the end. */
+export async function scanAndWatch(
+  backend: Backend,
+  sessionId: string,
+  options: Pick<ScanFlowOptions, "paths" | "onProgress" | "signal" | "cancelGraceMs">,
+): Promise<ScanSummary> {
+  const started = await backend.startScan(sessionId, options.paths);
+  const onProgress = skipRepeats(options.onProgress);
+  onProgress(started);
+  return watchUntilDone(backend, started, onProgress, options.signal, options.cancelGraceMs ?? DEFAULT_CANCEL_GRACE_MS);
+}
+
+/** Reads every page of a scan's findings, and how many point at no file. */
+export async function fetchAllFindings(
+  backend: Backend,
+  scanId: string,
+  query: Omit<FindingsQuery, "offset" | "limit"> = {},
+): Promise<{ items: Finding[]; withoutFile: number }> {
+  const items: Finding[] = [];
+  for (;;) {
+    const page = await backend.getFindings(scanId, { ...query, offset: items.length });
+    items.push(...page.items);
+    if (page.items.length === 0 || items.length >= page.total) {
+      return { items, withoutFile: page.withoutFile ?? 0 };
     }
   }
 }
 
-/** All findings of the latest finished scan, or of `scanId` (for example a scan that is still running). */
-export async function fetchAllFindings(client: HarnessClient, sessionId: string, scanId?: string): Promise<Finding[]> {
-  const all: Finding[] = [];
-  for (let offset = 0; ; offset += FINDINGS_PAGE) {
-    const page = await client.getFindings(sessionId, { limit: FINDINGS_PAGE, offset, scan_id: scanId });
-    all.push(...page.findings);
-    if (page.findings.length === 0 || all.length >= page.total) return all;
-  }
+/** A backend may report the state it already returned from startScan; pass each change once. */
+function skipRepeats(onProgress: (scan: ScanSummary) => void): (scan: ScanSummary) => void {
+  let last = "";
+  return (scan) => {
+    const key = `${scan.status}|${scan.stage}|${scan.progress}`;
+    if (key !== last) {
+      last = key;
+      onProgress(scan);
+    }
+  };
 }
 
-function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms));
+export function watchUntilDone(
+  backend: Backend,
+  started: ScanSummary,
+  onProgress: (scan: ScanSummary) => void,
+  signal: AbortSignal | undefined,
+  cancelGraceMs: number,
+): Promise<ScanSummary> {
+  const { scanId } = started;
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let latest = started;
+    let graceTimer: ReturnType<typeof setTimeout> | undefined;
+    const onAbort = (): void => {
+      // If the backend never reports CANCELLED, stop waiting so the user can scan again.
+      // Set before cancelScan: a backend may report CANCELLED synchronously inside it.
+      graceTimer = setTimeout(() => {
+        if (settled) return;
+        const cancelled: ScanSummary = { ...latest, status: "CANCELLED", finishedAt: new Date().toISOString() };
+        onProgress(cancelled);
+        done(cancelled);
+      }, cancelGraceMs);
+      backend.cancelScan(scanId).catch(finish(reject));
+    };
+    const finish =
+      <T>(settle: (value: T) => void) =>
+      (value: T): void => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(graceTimer);
+        signal?.removeEventListener("abort", onAbort);
+        // watchScan may report a final state synchronously, before `watch` is assigned.
+        queueMicrotask(() => watch.dispose());
+        settle(value);
+      };
+    const done = finish(resolve);
+
+    const watch = backend.watchScan(scanId, (scan) => {
+      latest = scan;
+      onProgress(scan);
+      if (scan.status === "COMPLETED" || scan.status === "FAILED" || scan.status === "CANCELLED") {
+        done(scan);
+      }
+    });
+    if (signal?.aborted) {
+      onAbort();
+    } else {
+      signal?.addEventListener("abort", onAbort, { once: true });
+    }
+  });
+}
+
+/**
+ * Re-runs `task` (a findings fetch) while a scan runs: at most once every `ms`, never two at once,
+ * and a poke during a run runs it once more afterwards, so a busy scan doesn't flood the server.
+ * `stop` drops what is waiting and waits for a running task.
+ */
+export function liveRefresh(task: () => Promise<void>, ms: number): { poke(): void; stop(): Promise<void> } {
+  let running: Promise<void> | undefined;
+  let again = false;
+  let last = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let stopped = false;
+  const run = (): void => {
+    if (stopped) return;
+    if (running) {
+      again = true;
+      return;
+    }
+    last = Date.now();
+    running = task().finally(() => {
+      running = undefined;
+      if (again) {
+        again = false;
+        poke();
+      }
+    });
+  };
+  const poke = (): void => {
+    if (timer || stopped) return;
+    timer = setTimeout(() => {
+      timer = undefined;
+      run();
+    }, Math.max(0, ms - (Date.now() - last)));
+  };
+  return {
+    poke,
+    stop: async () => {
+      stopped = true;
+      clearTimeout(timer);
+      await running;
+    },
+  };
 }

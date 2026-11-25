@@ -1,6 +1,7 @@
 src/**
 test/**
-demo-server/**
+server/**
+**/*.vsix
 out/**
 webview/**/*.ts
 node_modules/**

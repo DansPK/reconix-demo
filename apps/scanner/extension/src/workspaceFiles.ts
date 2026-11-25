@@ -1,109 +1,131 @@
-// Walk a workspace folder and build the manifest: relative path, SHA-256 and size per file.
+// Collects the workspace files to scan (pure Node, no vscode import).
+import { createHash } from "node:crypto";
+import { readFile, readdir, stat } from "node:fs/promises";
+import * as path from "node:path";
+import ignore, { type Ignore } from "ignore";
+import type { FileEntry } from "./shared/contract";
 
-import { createHash } from "crypto";
-import { createReadStream, promises as fs } from "fs";
-import * as path from "path";
-import ignore, { Ignore } from "ignore";
-import type { ManifestEntry } from "./shared/contract";
+export interface CollectOptions {
+  rootDir: string;
+  maxFileSizeKB: number;
+  /** gitignore-style patterns on top of .gitignore and the built-in excludes. */
+  extraExcludes: string[];
+  signal?: AbortSignal;
+}
 
-export const SKIP_FOLDERS = new Set([".git", "node_modules", "build", "dist", "out", "target", "bin", "obj",
-  ".venv", "venv", "__pycache__", ".idea", ".vscode"]);
+/** Folders never worth scanning, at any depth, whatever .gitignore says. */
+export const SKIP_FOLDERS = new Set([
+  ".git", "node_modules", "build", "dist", "out", "target", "bin", "obj",
+  ".venv", "venv", "__pycache__", ".idea", ".vscode",
+]);
+
+/** A zero byte in the first 8 KB means binary. */
 const BINARY_SNIFF_BYTES = 8192;
 
-export interface WalkOptions {
-  maxFileSizeKB: number;
-  extraExcludes: string[];
-  isCancelled?: () => boolean;
-  onProgress?: (filesSeen: number) => void;
-}
-
-export interface WalkResult {
-  entries: ManifestEntry[];
-  skipped: { binary: number; large: number };
-}
-
-export class CancelledError extends Error {
-  constructor() {
-    super("Cancelled");
-  }
-}
-
+/** gitignore rules from one folder; they apply to that folder and below. */
 interface Rules {
-  dir: string; // relative to root, "" for the root
-  ig: Ignore;
+  /** Folder of the .gitignore, as a contract path ("" for the root). */
+  dir: string;
+  filter: Ignore;
 }
 
-function ignored(rel: string, isDir: boolean, rules: Rules[]): boolean {
-  for (const r of rules) {
-    const sub = r.dir ? rel.slice(r.dir.length + 1) : rel;
-    if (sub && r.ig.ignores(isDir ? sub + "/" : sub)) return true;
+/** Workspace-relative path with forward slashes, as the contract requires. */
+export function toContractPath(rootDir: string, absolutePath: string): string {
+  const relative = path.relative(path.resolve(rootDir), path.resolve(absolutePath));
+  if (relative === "" || relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error(`path is outside the workspace folder: ${relative || "."}`);
   }
-  return false;
+  return relative.split(path.sep).join("/");
 }
 
-async function isBinary(full: string): Promise<boolean> {
-  const fh = await fs.open(full, "r");
-  try {
-    const buf = Buffer.alloc(BINARY_SNIFF_BYTES);
-    const { bytesRead } = await fh.read(buf, 0, BINARY_SNIFF_BYTES, 0);
-    return buf.subarray(0, bytesRead).includes(0);
-  } finally {
-    await fh.close();
+/**
+ * True if a path from the backend is a plain workspace-relative contract path: forward slashes,
+ * no "." or ".." segments, not absolute, no drive letter. Anything else could point outside
+ * the workspace and must not be opened or annotated.
+ */
+export function isSafeContractPath(contractPath: string): boolean {
+  if (contractPath === "" || contractPath.startsWith("/") || contractPath.includes("\\") || /^[A-Za-z]:/.test(contractPath)) {
+    return false;
   }
+  return contractPath.split("/").every((segment) => segment !== "" && segment !== "." && segment !== "..");
 }
 
-export function hashFile(full: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const h = createHash("sha256");
-    createReadStream(full).on("data", (c) => h.update(c)).on("end", () => resolve(h.digest("hex"))).on("error", reject);
+/**
+ * Walks rootDir and returns every scannable file, sorted by path.
+ * Skips: SKIP_FOLDERS, .gitignore rules (one file per folder, applying to that folder and below),
+ * extraExcludes, symlinks, binaries and files over maxFileSizeKB.
+ */
+export async function collectFiles(options: CollectOptions): Promise<FileEntry[]> {
+  const rootDir = path.resolve(options.rootDir);
+  const maxBytes = options.maxFileSizeKB * 1024;
+  const files: FileEntry[] = [];
+
+  async function walk(dir: string, inherited: Rules[]): Promise<void> {
+    options.signal?.throwIfAborted();
+    const dirPath = dir === rootDir ? "" : toContractPath(rootDir, dir);
+    const gitignore = await readGitignore(dir);
+    const rules = gitignore ? [...inherited, { dir: dirPath, filter: ignore().add(gitignore) }] : inherited;
+
+    const entries = await readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      options.signal?.throwIfAborted();
+      const absolute = path.join(dir, entry.name);
+      const contractPath = toContractPath(rootDir, absolute);
+      if (entry.isDirectory()) {
+        if (!SKIP_FOLDERS.has(entry.name) && !isIgnored(rules, contractPath, true)) {
+          await walk(absolute, rules);
+        }
+      } else if (entry.isFile() && !isIgnored(rules, contractPath, false)) {
+        const file = await readEntry(absolute, contractPath, maxBytes);
+        if (file) {
+          files.push(file);
+        }
+      }
+      // Symlinks and special files are skipped: a link could point outside the workspace.
+    }
+  }
+
+  await walk(rootDir, [{ dir: "", filter: ignore().add(options.extraExcludes) }]);
+  return files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+}
+
+/** SHA-256 of a file's bytes, as lowercase hex. */
+export async function hashFile(absolutePath: string): Promise<string> {
+  return createHash("sha256").update(await readFile(absolutePath)).digest("hex");
+}
+
+/** Each rule set sees the path relative to its own folder, as git does. */
+function isIgnored(rules: Rules[], contractPath: string, isDir: boolean): boolean {
+  return rules.some(({ dir, filter }) => {
+    const relative = dir ? contractPath.slice(dir.length + 1) : contractPath;
+    return relative !== "" && filter.ignores(isDir ? `${relative}/` : relative);
   });
 }
 
-export async function walkWorkspace(root: string, opts: WalkOptions): Promise<WalkResult> {
-  const entries: ManifestEntry[] = [];
-  const skipped = { binary: 0, large: 0 };
-  const maxBytes = opts.maxFileSizeKB * 1024;
-  const extra: Rules = { dir: "", ig: ignore().add(opts.extraExcludes) };
-  let seen = 0;
-
-  async function walk(dirRel: string, inherited: Rules[]) {
-    if (opts.isCancelled?.()) throw new CancelledError();
-    const dirFull = path.join(root, dirRel);
-    let rules = inherited;
-    try {
-      const gi = await fs.readFile(path.join(dirFull, ".gitignore"), "utf8");
-      rules = [...inherited, { dir: dirRel, ig: ignore().add(gi) }];
-    } catch {
-      // no .gitignore here
-    }
-    const items = await fs.readdir(dirFull, { withFileTypes: true });
-    items.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-    for (const item of items) {
-      const rel = dirRel ? `${dirRel}/${item.name}` : item.name;
-      if (item.isSymbolicLink()) continue;
-      if (item.isDirectory()) {
-        if (SKIP_FOLDERS.has(item.name) || ignored(rel, true, rules)) continue;
-        await walk(rel, rules);
-      } else if (item.isFile()) {
-        if (ignored(rel, false, rules)) continue;
-        seen++;
-        if (seen % 200 === 0) opts.onProgress?.(seen);
-        const full = path.join(dirFull, item.name);
-        const st = await fs.lstat(full);
-        if (st.size > maxBytes) {
-          skipped.large++;
-          continue;
-        }
-        if (await isBinary(full)) {
-          skipped.binary++;
-          continue;
-        }
-        entries.push({ path: rel, sha256: await hashFile(full), size: st.size });
-      }
-    }
+async function readGitignore(dir: string): Promise<string> {
+  try {
+    return await readFile(path.join(dir, ".gitignore"), "utf8");
+  } catch {
+    return "";
   }
+}
 
-  await walk("", [extra]);
-  opts.onProgress?.(seen);
-  return { entries, skipped };
+async function readEntry(absolute: string, contractPath: string, maxBytes: number): Promise<FileEntry | undefined> {
+  const { size } = await stat(absolute);
+  if (size > maxBytes) {
+    return undefined;
+  }
+  const content = await readFile(absolute);
+  if (isBinary(content)) {
+    return undefined;
+  }
+  return {
+    path: contractPath,
+    sizeBytes: size,
+    sha256: createHash("sha256").update(content).digest("hex"),
+  };
+}
+
+function isBinary(content: Buffer): boolean {
+  return content.subarray(0, BINARY_SNIFF_BYTES).includes(0);
 }
