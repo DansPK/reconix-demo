@@ -250,6 +250,12 @@ def check_target(template_id: str, text: str) -> ParsedTarget:
     return found
 
 
+def is_lumina(url: str) -> bool:
+    """The demo's own store: only its evidence may name Lumina's database and staff address."""
+    host = _split(url if "://" in url else f"//{url}").hostname or ""
+    return host == "lumina.com" or host.endswith(".lumina.com")
+
+
 def _single_label(template_id: str, text: str) -> Optional[ParsedTarget]:
     """A one-word host name (a lab service such as "juice-shop"), taken only when you picked
     the template and typed it first. Free text never reads a lone word as a target."""

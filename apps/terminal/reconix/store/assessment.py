@@ -96,6 +96,11 @@ def recorded_line(text: str) -> str:
     return redact(clean_request(text))
 
 
+def shown_line(text: str) -> str:
+    """Typed text as a reply or an error may repeat it: folded and masked. Never raises."""
+    return redact(" ".join(text.split()))
+
+
 def add_request(text: str) -> UserRequest:
     """Store a plain-language request typed at the prompt (masked, see `recorded_line`)."""
     request = UserRequest(recorded_line(text))

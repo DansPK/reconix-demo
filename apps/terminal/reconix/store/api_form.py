@@ -27,7 +27,7 @@ def _retarget(assessment, parsed: ParsedTarget) -> str:
     """Point the draft at the new target and rebuild what the template derives from it.
     Returns the name of a spec removed because it is about another host, else ""."""
     from .run import _client_label
-    from .templates import MODULES
+    from .templates import rebuild_run
 
     old = assessment.scope.target_url
     assessment.target = parsed.target
@@ -37,11 +37,7 @@ def _retarget(assessment, parsed: ParsedTarget) -> str:
     dropped = ""
     if not openapi.recheck_spec_servers(assessment):
         dropped = openapi.detach_spec(assessment)
-    bundle = MODULES[assessment.selected_template].build_run(assessment)
-    assessment.approvals = bundle.approvals
-    assessment.findings = bundle.findings
-    assessment.login_2fa = bundle.login_2fa
-    openapi._refresh_run(assessment)              # the steps after the gate, plan, methodology
+    rebuild_run(assessment)
     add_activity("USER", f"API base URL changed: {old} → {parsed.target_url}", tone="ok")
     log_event("scope.retargeted", f"{old} -> {parsed.target_url}")
     note = f"The draft scope now targets {parsed.target_url}. Review it before you approve."
