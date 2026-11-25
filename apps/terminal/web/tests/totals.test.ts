@@ -4,17 +4,22 @@
    positives out unless they are shown (`?fp=1`), and its headline, chips and summary count what
    the Overview's strip, Findings by Severity, the Assessments rows and the assistant's findings
    card count. */
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { deriveDashboard } from "@/components/dashboard/derive";
+import { deriveDashboard, findingsSlice } from "@/components/dashboard/derive";
 import { deriveOverall } from "@/components/dashboard/derive-overall";
 import { runRow } from "@/components/dashboard/derive-report";
 import { findingMatches, findingsHeadline, listable, parseFindingFilter, severityChips } from "@/components/dashboard/filters";
+import { apiFindingRows } from "@/lib/api/adapt";
+import { localAssessmentRows, localAssessments, localFindings, localOverview } from "@/lib/api/local";
 import { findingsCard } from "@/lib/assistant/cards";
 import { assessmentView } from "@/lib/data/adapt";
 import { overview } from "@/lib/data/stats";
 
 import { sampleAssessments } from "./fixtures";
+
+vi.mock("next/server", () => ({ connection: async () => undefined }));
+vi.mock("@/lib/auth/guard", () => ({ requireSignedIn: async () => undefined, signedIn: async () => true }));
 
 const samples = sampleAssessments();
 const views = samples.map(assessmentView);
@@ -72,6 +77,33 @@ describe("the findings total, page by page (sample data)", () => {
       const counted = d.findings.filter((f) => !f.falsePositive).length;
       expect(findingsPage(d.findings).total).toBe(counted);
       expect(d.cards.summary.findings.total).toBe(counted);
+    }
+  });
+});
+
+/* The Findings and Report views read the sample files through lib/api/local.ts, the Overview
+   through deriveDashboard/deriveOverall: both roads must count the same findings. */
+describe("the Core API answers made from the sample data", () => {
+  beforeAll(() => vi.stubEnv("RECONIX_DATA_DIR", "sample-data"));
+  afterAll(() => vi.unstubAllEnvs());
+
+  const counts = (s: ReturnType<typeof findingsSlice>) => ({ total: s.total, severity: s.severity, review: s.review, top: s.top.map((f) => [f.id, f.score]) });
+
+  it("count every run as the Overview does", async () => {
+    expect(counts(findingsSlice(apiFindingRows(await localFindings(null), await localAssessments()) as typeof overall.findings))).toEqual(counts(overall.cards.findings));
+  });
+
+  it("count each run as its Overview, its Assessments row and its report do", async () => {
+    const listed = await localAssessments();
+    const rows = await localAssessmentRows();
+    for (const v of views) {
+      const cards = deriveDashboard(v).cards.findings;
+      const report = await localOverview(v.uid);
+      expect(counts(findingsSlice(apiFindingRows(await localFindings(v.uid)) as typeof overall.findings)), v.uid).toEqual(counts(cards));
+      expect(report.finding_count, v.uid).toBe(cards.total);
+      for (const s of cards.severity) expect(report.findings_by_severity[s.level] ?? 0, `${v.uid} ${s.level}`).toBe(s.count);
+      expect(listed.find((a) => a.assessment_id === v.uid)?.finding_count, v.uid).toBe(cards.total);
+      expect(rows.find((a) => a.assessment_id === v.uid)?.finding_count, v.uid).toBe(cards.total);
     }
   });
 });

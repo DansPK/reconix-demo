@@ -64,14 +64,16 @@ export function evidenceTone(text: string): EvidenceLine["tone"] {
   return REQUEST.test(text) ? "request" : "response";
 }
 
+/** A finding's id as every view shows and links it: the TUI's `004` is `F-004`. */
+export const findingId = (id: string): string => (/^\d+$/.test(id) ? `F-${id}` : id);
+
 export function findingView(f: Finding): FindingView {
   const classified = f.finding_category != null;
-  const score = classified
-    ? f.validated_cvss_score ?? null
-    : f.cvss_score > 0 ? f.cvss_score : null;
+  // the demo's saved files carry no validated score at all (null is the API saying "unscored")
+  const score = classified && f.validated_cvss_score !== undefined ? f.validated_cvss_score : f.cvss_score > 0 ? f.cvss_score : null;
   const vector = classified ? (f.validated_cvss_vector ?? f.cvss_vector) : "";
   return {
-    id: /^\d+$/.test(f.id) ? `F-${f.id}` : f.id,
+    id: findingId(f.id),
     title: f.title,
     severity: effectiveSeverity(f),
     target: f.affected_url || f.path || "—",

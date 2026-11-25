@@ -103,11 +103,9 @@ export async function renderDashboardPage(
   const runs = views.map(runRow);
   const every = liveRefreshMs();
 
-  const needFindings = routeView === "findings" || routeView === "overview";
-  const needReports = routeView === "reports" || routeView === "overview";
-
   return (
     <Viewer
+      renderedRun={onAssessments ? null : (wanted ?? apiAssessment)}
       topBar={
         <TopBar
           dash={dash}
@@ -142,18 +140,14 @@ export async function renderDashboardPage(
         )
       }
       findings={
-        needFindings ? (
-          <Suspense fallback={<FindingsLoading />}>
-            <ApiFindings assessmentId={selectedAssessment} savedRun={selectedAssessment ? null : wanted} />
-          </Suspense>
-        ) : null
+        <Suspense fallback={<FindingsLoading />}>
+          <ApiFindings assessmentId={selectedAssessment} savedRun={selectedAssessment ? null : wanted} />
+        </Suspense>
       }
       reports={
-        needReports ? (
-          <Suspense fallback={<ReportsLoading selected={selectedAssessment !== null} />}>
-            <ApiReports assessmentId={selectedAssessment} />
-          </Suspense>
-        ) : null
+        <Suspense fallback={<ReportsLoading selected={selectedAssessment !== null} />}>
+          <ApiReports assessmentId={selectedAssessment} />
+        </Suspense>
       }
       knowledge={<KnowledgeView initialData={initialKnowledge} />}
       assistant={assistant}

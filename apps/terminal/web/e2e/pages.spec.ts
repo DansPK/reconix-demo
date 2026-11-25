@@ -48,8 +48,12 @@ test("the overview totals every saved file by default", async ({ page }) => {
   await expect(findingRows(page)).toHaveCount(Math.min(PER_PAGE, total)); // ten a page
   await expect(page.getByText(new RegExp(`^${total} findings across ${all.length} assessments`))).toBeVisible();
   await expect(page.getByText(`Showing ${total} of ${total} findings`)).toBeVisible();
-  // Reports with nothing picked opens the first Core API assessment's report (the newest run)
+  // switching to Reports stays in place and lists every run (view-url.ts showView)
   await page.click(view("Reports"));
+  await expect(page).toHaveURL(/\/reports$/);
+  await expect(page.getByRole("table", { name: "Core API assessments" }).getByRole("row")).toHaveCount(all.length + 1);
+  // opened directly, it redirects to that report
+  await page.goto("/reports");
   await expect(page).toHaveURL(new RegExp(`/reports/${newest().uid}$`));
   await expect(page.getByRole("heading", { name: "Report", level: 1 })).toBeVisible();
   await expect(page.getByRole("button", { name: "Choose an assessment" })).toContainText(newest().label);

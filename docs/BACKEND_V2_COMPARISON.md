@@ -241,3 +241,66 @@ required regression updates, generated snapshots and this comparison document.
 - `apps/terminal/web/tests/report-lifecycle.test.ts`
 - `apps/terminal/web/tests/stats.test.ts`
 - `docs/BACKEND_V2_COMPARISON.md`
+
+## c943971 refresh (2026-11-25): web dashboard
+
+Compared `reconix-core-backend` `apps/web` at Develop `c943971` with `apps/terminal/web`,
+and `b965655..c943971` file by file. This section covers the web dashboard only. The TUI,
+the scanner (`528c6d6`) and the site (`fd24ca3`) are being synced on separate branches;
+their results are not recorded here.
+
+`public/` and `src/styles/` were identical. In `src/app/` every difference is an API route.
+
+### (a) Audience-visible: ported
+
+| Upstream | Demo |
+| --- | --- |
+| `view-url.ts`, `viewer.tsx`: views of the same run switch in place | Same code. `dashboard-page.tsx` now renders Findings and Report on every route and passes `renderedRun`. As upstream, switching to Reports with every run shown lists the runs; opening `/reports` directly still redirects to the newest. |
+| `intro.tsx`: late arrivals are revealed | Same code |
+| Counts agree across views (`derive*.ts`, summary totals) | Fixed in the demo's own adapter, see below |
+
+### (b) Not ported
+
+| Files | Why |
+| --- | --- |
+| `src/app/api/**` (assistant, models, core-reports, knowledge graph, `changes`) | Live API routes; the demo's answers are local |
+| `lib/api/{adapt,adapt-summary,assessments,cache-policy,changes,client,core,findings,knowledge,library,models,reports,summary,swr}.ts`, `lib/revision-poll.ts` | API clients, ETags, SWR, auth. The demo's `adapt.ts` difference carries `evidence_unmasked` |
+| `live-refresh.tsx`, `lib/live-refresh.ts` | Change polling; the demo pill is "Static" by default |
+| `dashboard-data.ts`, `dashboard-sections.tsx`, `top-bar.tsx` streaming, `assistant-feed.tsx`, `types.ts`, `use-switch-ask.ts`, `use-tab-memory.ts` | Stream slow API reads part by part; local files are read before the first byte. The existing route and Findings/Report skeletons match upstream |
+| `derive.ts`, `derive-overall.ts`, `prompts.ts` | Refactored to take the API summary; output for saved runs is the same |
+| `assessment-switcher.tsx`, `assessments-rows.tsx`, `run-link.tsx`, `run-rows.tsx`, `runs-per-day.tsx`, `api-reports.tsx` | `prefetch={false}` and `loadApiRun`: request tuning only |
+| `model-list.tsx`, `finding-detail.tsx`, `lib/data/{adapt,schema,view-types}.ts`, `lib/report/mask.ts`, `lib/assistant/{reply,history-store,turns}.ts`, `lib/api/local.ts`, `lib/knowledge/list.ts` | Demo-only: disabled provider changes, reveal toggle, report versions, masked exports, canned chat |
+| `content/docs/{getting-started,assessment-guide}.tsx`, `lib/docs-nav.ts` | Demo wording (no harness or Kali setup); `docs-nav.ts` differs only in invisible characters |
+
+### Totals in the sample data
+
+Overview, Findings, Reports, Assessments and the assistant now agree: **53 findings**
+(55 saved, 2 false positives). Before:
+
+- Findings said 55, and the Reports list counted 10 for the two runs that have 9:
+  `lib/api/local.ts` sent `FALSE-POSITIVE` where the dashboard reads `FALSE_POSITIVE`.
+- The Overview said "No CVSS-scored findings yet" while Findings showed 9.8: the saved files
+  have no validated score, and only one of the two adapters fell back. An explicit `null` still
+  means unscored.
+- The same finding was `F-004` on the Overview and `004` on Findings, so links missed it.
+
+`tests/totals.test.ts` checks totals, severities, review state, scores and IDs for every
+sample run. Two small fixes: the report no longer says "of 0 min" for a run without a time
+limit, and its table no longer widens the page on a phone.
+`sample-data/` is unchanged.
+
+### Validation
+
+- `npm run typecheck`, `npm run lint` (0 errors, the same 3 warnings), `npm run build`: pass.
+- Portable vitest suite (command above): 57 files, **986 passed**, 9 skipped, 0 failed;
+  before: 56 files, 981 passed, 9 skipped.
+- Playwright with system Chrome, `parallel`: **161 passed, 10 failed**; before 155 passed, 16
+  failed. Four of the ten are load-dependent and also fail before the change: the 1440x900
+  motion fit test (2 of 10 alone, both before and after) and three scroll tests (32 of 32
+  pass when repeated; 29 of 32 before). The other six fail before too. `serial-assistant` 5 passed / 4 failed
+  and `serial-motion` 13 / 3: the same tests fail before. `axe-motion`: 31 passed.
+- Browsed every view in Chrome at 1280x800 and 390x844: no sideways page overflow; same-run
+  switches made no document or RSC request; the reveal toggle shows and hides the raw rows.
+- Already present and left alone: an occasional React streaming error (`$RS`, `parentNode` of
+  null; 4 of 160 loads before, 2 of 160 after), a 503 from `/api/knowledge/reingest`, CSP
+  messages on the 404 page, and 6-7 px of vertical scroll on the Overview at 1280x760.

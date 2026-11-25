@@ -26,7 +26,7 @@ export function ReportAssessmentCard({ overview, view }: { overview: ApiOverview
   const createdMs = view?.createdMs ?? parseTime(a.created_at) ?? 0;
   const started = createdMs ? `${hourMinute(createdMs)} · ${day(createdMs)}` : "—";
   const elapsed = overview.duration_seconds ? duration(overview.duration_seconds) : view ? duration(view.spanSec) : "—";
-  const budget = view?.scope ? ` of ${minutesLimit(view.scope.windowMinutes)}` : "";
+  const budget = view?.scope?.windowMinutes ? ` of ${minutesLimit(view.scope.windowMinutes)}` : "";
   const scope = view?.scope ?? null;
   const runMeaning = view ? RUN_STATUS[view.status] : fallbackStatus(a.assessment_status);
 
