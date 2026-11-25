@@ -1,9 +1,10 @@
 {
   "name": "reconix-code-scanner",
-  "displayName": "Reconix",
-  "description": "Scan your code for vulnerabilities with the Reconix code scanner, and chat about the findings.",
-  "version": "0.1.0",
+  "displayName": "Reconix Code Scanner",
+  "description": "Chat-driven vulnerability scanning for your workspace, backed by the Reconix scanner server.",
+  "version": "0.2.0",
   "publisher": "local",
+  "icon": "media/logo.png",
   "license": "UNLICENSED",
   "private": true,
   "engines": {
@@ -19,181 +20,6 @@
     "onUri"
   ],
   "contributes": {
-    "commands": [
-      {
-        "command": "reconix.setToken",
-        "title": "Set Token",
-        "category": "Reconix"
-      },
-      {
-        "command": "reconix.clearToken",
-        "title": "Clear Token",
-        "category": "Reconix"
-      },
-      {
-        "command": "reconix.openChat",
-        "title": "Open Chat",
-        "category": "Reconix"
-      },
-      {
-        "command": "reconix.newSession",
-        "title": "New Session",
-        "category": "Reconix"
-      },
-      {
-        "command": "reconix.scanWorkspace",
-        "title": "Scan Workspace",
-        "category": "Reconix",
-        "icon": "$(play)"
-      },
-      {
-        "command": "reconix.rescan",
-        "title": "Rescan",
-        "category": "Reconix",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "reconix.cancelScan",
-        "title": "Cancel Scan",
-        "category": "Reconix",
-        "icon": "$(debug-stop)"
-      },
-      {
-        "command": "reconix.selectModel",
-        "title": "Select LLM Model",
-        "category": "Reconix"
-      },
-      {
-        "command": "reconix.fixFinding",
-        "title": "Fix Finding",
-        "category": "Reconix",
-        "icon": "$(wrench)"
-      },
-      {
-        "command": "reconix.fixFindings",
-        "title": "Fix Findings",
-        "category": "Reconix"
-      },
-      {
-        "command": "reconix.fixFile",
-        "title": "Fix All Findings in This File",
-        "category": "Reconix",
-        "icon": "$(wrench)"
-      },
-      {
-        "command": "reconix.explainFinding",
-        "title": "Explain Finding in Chat",
-        "category": "Reconix",
-        "icon": "$(comment-discussion)"
-      },
-      {
-        "command": "reconix.ignoreFinding",
-        "title": "Ignore Finding",
-        "category": "Reconix",
-        "icon": "$(eye-closed)"
-      },
-      {
-        "command": "reconix.clearIgnored",
-        "title": "Show Ignored Findings Again",
-        "category": "Reconix"
-      },
-      {
-        "command": "reconix.openFindingById",
-        "title": "Open Finding",
-        "category": "Reconix"
-      },
-      {
-        "command": "reconix.revealFinding",
-        "title": "Show Finding in the Findings View",
-        "category": "Reconix"
-      },
-      {
-        "command": "reconix.nextFinding",
-        "title": "Go to Next Finding",
-        "category": "Reconix"
-      },
-      {
-        "command": "reconix.previousFinding",
-        "title": "Go to Previous Finding",
-        "category": "Reconix"
-      },
-      {
-        "command": "reconix.scanPath",
-        "title": "Scan with Reconix",
-        "category": "Reconix",
-        "icon": "$(shield)"
-      },
-      {
-        "command": "reconix.explainSelection",
-        "title": "Ask Reconix About This Code",
-        "category": "Reconix"
-      }
-    ],
-    "configuration": {
-      "title": "Reconix",
-      "properties": {
-        "reconix.serverUrl": {
-          "type": "string",
-          "default": "http://127.0.0.1:7357",
-          "description": "Base URL of the Reconix scanner server. The bundled server (npm run server) listens on http://127.0.0.1:7357."
-        },
-        "reconix.token": {
-          "type": "string",
-          "default": "",
-          "markdownDescription": "Paste your token here to sign in. The extension moves it into VS Code's secure storage and clears this field, so it does not stay in your settings file. (Same as running **Reconix: Set Token**.)"
-        },
-        "reconix.caCertificate": {
-          "type": "string",
-          "default": "",
-          "markdownDescription": "Path to a PEM certificate to trust for HTTPS, for example a self-signed `certs/dev-cert.pem`. Trusted in addition to the normal certificates. `~` is allowed."
-        },
-        "reconix.maxFileSizeKB": {
-          "type": "number",
-          "default": 2048,
-          "minimum": 1,
-          "description": "Files larger than this are skipped."
-        },
-        "reconix.maxUploadMB": {
-          "type": "number",
-          "default": 200,
-          "minimum": 1,
-          "description": "Stop before uploading an archive larger than this."
-        },
-        "reconix.extraExcludes": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [],
-          "description": "Extra glob patterns to skip (gitignore syntax)."
-        },
-        "reconix.showLikelyFalsePositives": {
-          "type": "boolean",
-          "default": false,
-          "description": "Show findings the LLM marked as likely false alarms."
-        },
-        "reconix.gutterIcons": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show a coloured dot next to the line numbers on lines with findings."
-        },
-        "reconix.explorerBadges": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show a finding count on files in the Explorer, and colour the folders above them."
-        },
-        "reconix.codeLens": {
-          "type": "boolean",
-          "default": false,
-          "description": "Show a line above each function with findings, with a Fix button."
-        },
-        "reconix.scanOnSave": {
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "Rescan automatically a moment after you save a file in the scanned folder (only changed files are uploaded)."
-        }
-      }
-    },
     "viewsContainers": {
       "activitybar": [
         {
@@ -216,76 +42,150 @@
         }
       ]
     },
+    "commands": [
+      {
+        "command": "reconix.setToken",
+        "title": "Set Server Token",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.clearToken",
+        "title": "Clear Server Token",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.reconnect",
+        "title": "Reconnect to Server",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.openSettings",
+        "title": "Open Settings",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.openChat",
+        "title": "Open Chat",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.newSession",
+        "title": "New Session",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.switchSession",
+        "title": "Switch Session",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.scanWorkspace",
+        "title": "Scan Workspace",
+        "category": "Reconix Code Scanner",
+        "icon": "$(play)"
+      },
+      {
+        "command": "reconix.rescan",
+        "title": "Rescan",
+        "category": "Reconix Code Scanner",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "reconix.scanPath",
+        "title": "Scan with Reconix",
+        "category": "Reconix Code Scanner",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "reconix.scanGithub",
+        "title": "Scan GitHub Repository",
+        "category": "Reconix Code Scanner",
+        "icon": "$(github)"
+      },
+      {
+        "command": "reconix.cancelScan",
+        "title": "Cancel Scan",
+        "category": "Reconix Code Scanner",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "reconix.fixFindings",
+        "title": "Fix Findings",
+        "category": "Reconix Code Scanner",
+        "icon": "$(wrench)"
+      },
+      {
+        "command": "reconix.openFinding",
+        "title": "Open Finding",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.nextFinding",
+        "title": "Next Finding",
+        "category": "Reconix Code Scanner",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "reconix.previousFinding",
+        "title": "Previous Finding",
+        "category": "Reconix Code Scanner",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "reconix.revealFinding",
+        "title": "Reveal Finding",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.explainFinding",
+        "title": "Explain Finding",
+        "category": "Reconix Code Scanner",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "reconix.ignoreFinding",
+        "title": "Ignore Finding",
+        "category": "Reconix Code Scanner",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "reconix.clearIgnored",
+        "title": "Show Ignored Findings Again",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.explainSelection",
+        "title": "Explain Selection",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.fixFile",
+        "title": "Fix Findings in File",
+        "category": "Reconix Code Scanner",
+        "icon": "$(wrench)"
+      },
+      {
+        "command": "reconix.selectModel",
+        "title": "Select Model",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.setApiKey",
+        "title": "Set API Key",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.addModel",
+        "title": "Add Model",
+        "category": "Reconix Code Scanner"
+      },
+      {
+        "command": "reconix.openWalkthrough",
+        "title": "Open Getting Started Walkthrough",
+        "category": "Reconix Code Scanner"
+      }
+    ],
     "menus": {
-      "commandPalette": [
-        {
-          "command": "reconix.fixFinding",
-          "when": "false"
-        },
-        {
-          "command": "reconix.fixFindings",
-          "when": "false"
-        },
-        {
-          "command": "reconix.explainFinding",
-          "when": "false"
-        },
-        {
-          "command": "reconix.ignoreFinding",
-          "when": "false"
-        },
-        {
-          "command": "reconix.openFindingById",
-          "when": "false"
-        },
-        {
-          "command": "reconix.revealFinding",
-          "when": "false"
-        },
-        {
-          "command": "reconix.scanPath",
-          "when": "false"
-        },
-        {
-          "command": "reconix.explainSelection",
-          "when": "editorHasSelection"
-        },
-        {
-          "command": "reconix.cancelScan",
-          "when": "reconix.scanRunning"
-        }
-      ],
-      "explorer/context": [
-        {
-          "command": "reconix.scanPath",
-          "when": "resourceScheme == file",
-          "group": "7_reconix@1"
-        }
-      ],
-      "editor/context": [
-        {
-          "command": "reconix.explainSelection",
-          "when": "editorHasSelection && resourceScheme == file",
-          "group": "7_reconix@1"
-        },
-        {
-          "command": "reconix.fixFile",
-          "when": "resourceScheme == file",
-          "group": "7_reconix@2"
-        },
-        {
-          "command": "reconix.scanPath",
-          "when": "resourceScheme == file",
-          "group": "7_reconix@3"
-        }
-      ],
-      "editor/title/context": [
-        {
-          "command": "reconix.scanPath",
-          "when": "resourceScheme == file",
-          "group": "7_reconix@1"
-        }
-      ],
       "view/title": [
         {
           "command": "reconix.scanWorkspace",
@@ -303,34 +203,242 @@
           "group": "navigation"
         },
         {
-          "command": "reconix.rescan",
+          "command": "reconix.previousFinding",
           "when": "view == reconix.findings",
           "group": "navigation@1"
         },
         {
+          "command": "reconix.nextFinding",
+          "when": "view == reconix.findings",
+          "group": "navigation@2"
+        },
+        {
           "command": "reconix.clearIgnored",
           "when": "view == reconix.findings",
-          "group": "more@1"
+          "group": "1_findings@1"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "reconix.scanPath",
+          "when": "resourceScheme == file && !reconix.scanRunning",
+          "group": "7_reconix@1"
+        },
+        {
+          "command": "reconix.fixFile",
+          "when": "resourceScheme == file && !explorerResourceIsFolder",
+          "group": "7_reconix@4"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "reconix.scanPath",
+          "when": "resourceScheme == file && !reconix.scanRunning",
+          "group": "7_reconix@3"
+        },
+        {
+          "command": "reconix.explainSelection",
+          "when": "editorHasSelection && resourceScheme == file",
+          "group": "7_reconix@4"
+        },
+        {
+          "command": "reconix.fixFile",
+          "when": "resourceScheme == file",
+          "group": "7_reconix@5"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "reconix.scanPath",
+          "when": "resourceScheme == file && !reconix.scanRunning",
+          "group": "7_reconix@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "reconix.scanPath",
+          "when": "resourceScheme == file"
+        },
+        {
+          "command": "reconix.cancelScan",
+          "when": "reconix.scanRunning"
+        },
+        {
+          "command": "reconix.fixFindings",
+          "when": "false"
+        },
+        {
+          "command": "reconix.openFinding",
+          "when": "false"
+        },
+        {
+          "command": "reconix.revealFinding",
+          "when": "false"
+        },
+        {
+          "command": "reconix.explainFinding",
+          "when": "false"
+        },
+        {
+          "command": "reconix.ignoreFinding",
+          "when": "false"
+        },
+        {
+          "command": "reconix.explainSelection",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "reconix.fixFile",
+          "when": "resourceScheme == file"
         }
       ],
       "view/item/context": [
         {
-          "command": "reconix.fixFinding",
+          "command": "reconix.explainFinding",
           "when": "view == reconix.findings && viewItem == finding",
           "group": "inline@1"
         },
         {
-          "command": "reconix.explainFinding",
+          "command": "reconix.ignoreFinding",
           "when": "view == reconix.findings && viewItem == finding",
           "group": "inline@2"
         },
         {
+          "command": "reconix.explainFinding",
+          "when": "view == reconix.findings && viewItem == finding",
+          "group": "1_finding@1"
+        },
+        {
           "command": "reconix.ignoreFinding",
           "when": "view == reconix.findings && viewItem == finding",
-          "group": "inline@3"
+          "group": "1_finding@2"
         }
       ]
     },
+    "configuration": {
+      "title": "Reconix Code Scanner",
+      "properties": {
+        "reconix.serverUrl": {
+          "type": "string",
+          "scope": "application",
+          "default": "http://127.0.0.1:7357",
+          "description": "Base URL of the Reconix scanner server. It must run on this computer."
+        },
+        "reconix.token": {
+          "type": "string",
+          "scope": "application",
+          "default": "",
+          "description": "Server token. A token pasted here is moved to secure storage and cleared from settings."
+        },
+        "reconix.caCertificate": {
+          "type": "string",
+          "scope": "application",
+          "default": "",
+          "description": "Path to a PEM CA certificate to trust for an HTTPS scanner server (optional)."
+        },
+        "reconix.maxFileSizeKB": {
+          "type": "number",
+          "default": 2048,
+          "minimum": 1,
+          "description": "Files larger than this are skipped when collecting the workspace."
+        },
+        "reconix.maxUploadMB": {
+          "type": "number",
+          "default": 200,
+          "minimum": 1,
+          "description": "Maximum size of the workspace archive sent for scanning."
+        },
+        "reconix.extraExcludes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Extra gitignore-style patterns to exclude from scans."
+        },
+        "reconix.scanOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "After a scan, rescan the folder a moment after you save a file in it (only changed files are sent)."
+        },
+        "reconix.showLikelyFalsePositives": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show findings the analyzer marked as likely false positives."
+        },
+        "reconix.gutterIcons": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a coloured dot in the editor gutter on lines with findings."
+        },
+        "reconix.explorerBadges": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the number of findings next to files in the Explorer."
+        },
+        "reconix.codeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the number of findings above each function or class that has them, with a Fix button."
+        }
+      }
+    },
+    "viewsWelcome": [
+      {
+        "view": "reconix.findings",
+        "contents": "No findings to show. A GitHub repository scan lists its findings in the chat.\n[Scan Workspace](command:reconix.scanWorkspace)\n[Getting Started Walkthrough](command:reconix.openWalkthrough)"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "reconix.gettingStarted",
+        "title": "Get started with Reconix Code Scanner",
+        "description": "Scan your project for security vulnerabilities and fix them with AI.",
+        "featuredFor": [
+          "**/*.js",
+          "**/*.ts",
+          "**/*.py",
+          "**/package.json"
+        ],
+        "steps": [
+          {
+            "id": "chooseMode",
+            "title": "Configure server connection",
+            "description": "Connect to the Reconix scanner server on this computer.\n[Open Settings](command:reconix.openSettings)",
+            "media": {
+              "markdown": "media/walkthrough/mode.md"
+            }
+          },
+          {
+            "id": "addModel",
+            "title": "Add an AI model",
+            "description": "The chat, analysis and fix agent need an AI model. Open the chat, choose Add Model, paste your key, then switch to it.\n[Open Chat](command:reconix.openChat)",
+            "media": {
+              "markdown": "media/walkthrough/model.md"
+            }
+          },
+          {
+            "id": "scan",
+            "title": "Scan your project",
+            "description": "Open your project folder, then scan it.\n[Scan Workspace](command:reconix.scanWorkspace)",
+            "media": {
+              "markdown": "media/walkthrough/scan.md"
+            },
+            "completionEvents": [
+              "onCommand:reconix.scanWorkspace"
+            ]
+          },
+          {
+            "id": "reviewFix",
+            "title": "Review findings and fix them",
+            "description": "Findings are sorted by severity; click one to open the file at the line. Ask the chat to fix a finding, then review the diff before applying it.\n[Open Chat](command:reconix.openChat)",
+            "media": {
+              "markdown": "media/walkthrough/fix.md"
+            }
+          }
+        ]
+      }
+    ],
     "keybindings": [
       {
         "command": "reconix.nextFinding",
@@ -349,65 +457,6 @@
         "key": "ctrl+shift+alt+r",
         "mac": "cmd+shift+alt+r"
       }
-    ],
-    "viewsWelcome": [
-      {
-        "view": "reconix.findings",
-        "contents": "No findings yet.\n[Scan Workspace](command:reconix.scanWorkspace)\nOr right-click a file or folder in the Explorer and choose **Scan with Reconix**."
-      }
-    ],
-    "walkthroughs": [
-      {
-        "id": "reconix.start",
-        "title": "Get started with Reconix",
-        "description": "Connect to your scanner server, pick a model, and run your first scan.",
-        "steps": [
-          {
-            "id": "server",
-            "title": "Connect to your harness",
-            "description": "Point Reconix at your scanner server.\n[Open Settings](command:reconix.openSettings)",
-            "media": {
-              "markdown": "media/walkthrough/server.md"
-            },
-            "completionEvents": [
-              "onSettingChanged:reconix.serverUrl"
-            ]
-          },
-          {
-            "id": "token",
-            "title": "Add your token",
-            "description": "Paste the token your admin gave you. It is kept in VS Code's secure storage.\n[Set Token](command:reconix.setToken)",
-            "media": {
-              "markdown": "media/walkthrough/token.md"
-            },
-            "completionEvents": [
-              "onCommand:reconix.setToken"
-            ]
-          },
-          {
-            "id": "model",
-            "title": "Choose an AI model",
-            "description": "Use Reconix's server model, or a custom OpenAI- or Anthropic-compatible API.\n[Choose Model](command:reconix.selectModel)",
-            "media": {
-              "markdown": "media/walkthrough/model.md"
-            },
-            "completionEvents": [
-              "onCommand:reconix.selectModel"
-            ]
-          },
-          {
-            "id": "scan",
-            "title": "Run your first scan",
-            "description": "Scan the open folder. Findings appear in the editor, the Problems panel and the Findings view.\n[Scan Workspace](command:reconix.scanWorkspace)",
-            "media": {
-              "markdown": "media/walkthrough/scan.md"
-            },
-            "completionEvents": [
-              "onCommand:reconix.scanWorkspace"
-            ]
-          }
-        ]
-      }
     ]
   },
   "scripts": {
@@ -418,6 +467,7 @@
     "test:unit": "npm run compile-tests && node --test \"out/test/unit/**/*.test.js\"",
     "test:integration": "npm run build && npm run compile-tests && node out/test/integration/runTest.js",
     "test": "npm run test:unit && npm run test:integration",
+    "package": "npm run build && npx -y @vscode/vsce package --allow-missing-repository --skip-license -o reconix-scanner.vsix",
     "server": "npm run compile-tests && node out/server/server.js"
   },
   "dependencies": {
@@ -434,6 +484,5 @@
     "@vscode/test-electron": "^3.1.0",
     "esbuild": "^0.28.2",
     "typescript": "^5.9.3"
-  },
-  "icon": "media/logo.png"
+  }
 }

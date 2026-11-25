@@ -1,6 +1,6 @@
-/* The chat panel, styled after the Reconix web assistant (Reconnix_Terminal/web/src/styles/assistant.css):
-   same tokens, header, welcome, bubbles, cards and composer. Colours only through the tokens below.
-   Dark is the Reconix palette; a VS Code light theme gets a light variant of it. */
+/* Chat view styles, after the Reconix web assistant: same tokens, header, welcome, bubbles, cards
+   and composer. Colours only through the tokens below. Dark is the Reconix palette; a VS Code light
+   theme gets a light variant of it, and high contrast takes its border from the theme. */
 
 :root {
   --page: #0B1315;
@@ -247,10 +247,9 @@ button.ai-chip:hover:not(:disabled) { color: var(--foreground); background: var(
 .ai-menu-actions .icon-btn .ico { width: 13px; height: 13px; }
 .ai-menu-item:hover .ai-menu-actions, .ai-menu-item:focus-within .ai-menu-actions { opacity: 1; }
 .ai-menu-edit { flex: 1; padding: 4px; }
-.ai-input { width: 100%; height: 30px; border-color: color-mix(in oklab, var(--primary) 40%, var(--border)); }
+.ai-input { width: 100%; height: 30px; padding: 0 9px; line-height: 28px; border-color: color-mix(in oklab, var(--primary) 40%, var(--border)); }
 .ai-menu-state { padding: 18px 12px; font-size: 12.5px; line-height: 1.5; text-align: center; color: var(--muted-foreground); }
 
-/* History: the web assistant's conversation menu (Reconnix_Terminal/web/src/styles/assistant.css) */
 #history-menu { left: auto; right: 10px; width: min(380px, calc(100% - 20px)); }
 #history-menu .ai-menu-head { padding: 10px 10px 8px 14px; }
 #history-menu .ai-menu-head .icon-btn { width: 28px; height: 28px; }
@@ -274,37 +273,6 @@ button.danger-solid { color: var(--foreground); background: color-mix(in oklab, 
 button.danger-solid:hover:not(:disabled) { color: var(--foreground); background: var(--danger); }
 .icon-btn.danger:hover:not(:disabled) { color: var(--danger); background: color-mix(in oklab, var(--danger) 10%, transparent); }
 
-.model-menu .model-body { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px 14px; overflow-y: auto; }
-.model-field { display: flex; flex-direction: column; gap: 4px; }
-.model-field > span { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); }
-.model-field select, .model-field input { width: 100%; }
-.model-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
-
-/* two-way toggle (Provider: Reconix | Custom API; API format: OpenAI | Anthropic) */
-.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; padding: 3px; border-radius: 10px; border: 1px solid var(--border); background: var(--card-2); }
-.seg-btn { gap: 7px; height: 28px; padding: 0 10px; border: 0; border-radius: 7px; background: none; color: var(--muted-foreground); font-size: 12.5px; font-weight: 500; transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; }
-.seg-btn:hover:not(:disabled) { background: color-mix(in oklab, var(--foreground) 6%, transparent); color: var(--foreground); }
-.seg-btn[aria-checked="true"], .seg-btn[aria-checked="true"]:hover:not(:disabled) { background: var(--surface); color: var(--foreground); box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 35%, var(--border)), 0 2px 8px -4px color-mix(in oklab, var(--background) 80%, transparent); }
-.seg-btn:focus-visible { outline: 2px solid var(--ring); outline-offset: -1px; }
-.seg-btn .ai-dot:not([data-tone]), .seg-btn .ai-dot[data-tone=""] { background: color-mix(in oklab, var(--muted-foreground) 50%, transparent); }
-
-/* Reconix: where its model comes from */
-.model-note { display: flex; align-items: flex-start; gap: 8px; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border); background: color-mix(in oklab, var(--card-2) 70%, transparent); font-size: 12px; line-height: 1.5; color: var(--muted-foreground); }
-.model-note .ico { width: 14px; height: 14px; margin-top: 2px; color: var(--primary); }
-.model-note code { padding: 0.05em 0.35em; border-radius: 5px; background: var(--muted); font-size: 0.92em; color: var(--foreground); overflow-wrap: anywhere; }
-.model-note strong { color: var(--foreground); font-weight: 600; }
-.model-note[data-tone="warning"] { border-color: color-mix(in oklab, var(--warning) 28%, var(--border)); background: color-mix(in oklab, var(--warning) 6%, transparent); }
-.model-note[data-tone="warning"] .ico { color: var(--warning); }
-
-/* custom provider's API key: saved / not set, and a link to set it */
-.key-row { display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-2); font-size: 12.5px; }
-.key-row .ico { width: 14px; height: 14px; color: var(--muted-foreground); }
-.key-state { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted-foreground); }
-.key-state[data-saved="1"] { color: var(--foreground); font-family: var(--font-mono); font-size: 12px; }
-.key-row button.link { font-size: 12px; }
-.key-input { flex: 1; min-width: 0; height: 28px; border: 0; background: transparent; color: var(--foreground); font-family: var(--font-mono); font-size: 12px; }
-.key-input::placeholder { font-family: var(--font-sans, sans-serif); color: var(--muted-foreground); }
-.key-input:focus-visible { outline: none; }
 
 /* --- scan progress --- */
 .progress { display: flex; flex-direction: column; gap: 6px; padding: 8px 14px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--muted-foreground); }
@@ -372,7 +340,7 @@ button.danger-solid:hover:not(:disabled) { color: var(--foreground); background:
 /* --- conversation --- */
 .messages { display: flex; flex-direction: column; gap: 22px; padding-block: 20px 16px; }
 .messages:empty { display: none; }
-.ai-row-user { display: flex; justify-content: flex-end; }
+.ai-row-user { display: flex; justify-content: flex-end; align-items: flex-end; gap: 6px; }
 .ai-bubble {
   max-width: min(560px, 88%);
   padding: 9px 14px;
@@ -384,12 +352,60 @@ button.danger-solid:hover:not(:disabled) { color: var(--foreground); background:
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.ai-user-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  margin-bottom: 2px;
+  flex: none;
+}
+.ai-row-user:hover .ai-user-actions,
+.ai-user-actions:focus-within {
+  opacity: 1;
+}
+@media (hover: none) {
+  .ai-user-actions {
+    opacity: 0.7;
+  }
+}
+.ai-msg-action-btn, .ai-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted-foreground);
+  flex: none;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
+}
+.ai-msg-action-btn .ico, .ai-copy-btn .ico {
+  width: 14px;
+  height: 14px;
+}
+.ai-msg-action-btn:hover:not(:disabled), .ai-copy-btn:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--foreground) 8%, transparent);
+  color: var(--foreground);
+}
+.ai-msg-action-btn:active:not(:disabled), .ai-copy-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+.ai-msg-action-btn.copied, .ai-copy-btn.copied {
+  color: var(--success);
+}
 .ai-row-assistant { display: flex; align-items: flex-start; gap: 10px; }
 .ai-row-assistant > .orb { margin-top: 2px; }
 .ai-reply { display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; min-width: 0; }
 @media (max-width: 280px) { .ai-row-assistant > .orb { display: none; } }
 .note-line { align-self: center; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border); font-size: 11.5px; color: var(--muted-foreground); text-align: center; }
-.confirm { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 32px; }
+.confirm, .reply-actions { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 32px; }
+.reply-actions { margin-top: -12px; }
 
 .ai-typing { display: inline-flex; align-items: center; gap: 5px; height: 24px; }
 .ai-typing > span { width: 6px; height: 6px; border-radius: 999px; background: var(--muted-foreground); animation: ai-dot 1.2s ease-in-out infinite; }
@@ -400,6 +416,7 @@ button.danger-solid:hover:not(:disabled) { color: var(--foreground); background:
 
 /* Markdown */
 .ai-prose { font-size: 13.5px; line-height: 1.7; color: color-mix(in oklab, var(--foreground) 88%, var(--muted-foreground)); overflow-wrap: anywhere; }
+.ai-prose.plain { white-space: pre-wrap; }
 .ai-prose > :first-child { margin-top: 0; }
 .ai-prose > :last-child { margin-bottom: 0; }
 .ai-prose p, .ai-prose ul, .ai-prose ol, .ai-prose blockquote { margin: 0.7em 0; }
@@ -419,6 +436,7 @@ pre { margin: 0; }
 code { font-family: var(--font-mono); }
 .ai-code { margin: 0.7em 0; border: 1px solid var(--border); border-radius: 12px; background: var(--card-2); overflow: hidden; }
 .ai-code-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 3px 4px 3px 12px; border-bottom: 1px solid var(--border); background: color-mix(in oklab, var(--surface) 70%, transparent); font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+.ai-code-actions { display: flex; align-items: center; gap: 6px; }
 .ai-code-head button { height: 24px; padding: 0 8px; font-size: 11.5px; }
 .ai-code pre { padding: 12px 14px; overflow-x: auto; font-size: 12px; line-height: 1.6; color: var(--foreground); tab-size: 2; }
 
@@ -476,7 +494,77 @@ code { font-family: var(--font-mono); }
 .ai-composer-hint { flex: 1 9 auto; min-width: 0; text-align: right; margin-left: auto; font-size: 11px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 420px) { .ai-composer-hint { display: none; } .ai-send { margin-left: auto; } }
 
+.ai-send { width: 32px; height: 32px; padding: 0; border-radius: 999px; flex: none; transition: background-color 0.15s ease, transform 0.12s ease; }
+.ai-send .ico { width: 16px; height: 16px; }
+.ai-send:active:not(:disabled) { transform: scale(0.95); }
+.ai-send:disabled { color: var(--muted-foreground); background: color-mix(in oklab, var(--foreground) 10%, transparent); opacity: 1; cursor: not-allowed; }
+.ai-send.is-stop .ico path,
+.ai-send.is-confirm-waiting .ico path { fill: currentColor; }
+.ai-send.is-stop { cursor: pointer; }
+.ai-send.is-confirm-waiting { cursor: not-allowed; }
+.ai-footnote .ai-dot { display: inline-block; margin-right: 6px; vertical-align: 1px; }
+.ai-footnote { padding-inline: 8px; text-align: center; font-size: 11px; line-height: 1.5; color: var(--muted-foreground); }
+
 /* model menu: opens upward from the composer's model chip */
+.ai-mention-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 16px 40px -16px color-mix(in oklab, var(--background) 90%, transparent);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 10;
+  animation: mention-menu-in 0.14s ease-out;
+}
+@keyframes mention-menu-in { from { opacity: 0; transform: translateY(4px); } }
+.ai-mention-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: auto;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground);
+  text-align: left;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+.ai-mention-item:hover, .ai-mention-item.selected {
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+}
+.ai-mention-label {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 11.5px;
+  color: var(--primary);
+  flex: none;
+}
+.ai-mention-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.ai-mention-detail {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  flex: none;
+}
+
 .ai-menu.model-menu {
   top: auto; bottom: calc(100% + 8px); left: 0; right: 0; /* 8px above the message box, same width */
   max-height: min(72vh, 540px);
@@ -511,55 +599,40 @@ code { font-family: var(--font-mono); }
 .model-option[aria-selected="true"] .model-option-icon { color: var(--primary); }
 .model-option-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .model-option-check { width: 14px; height: 14px; flex: none; color: var(--primary); }
-.model-setup-toggle {
+.model-item .model-option { flex: 1 1 auto; min-width: 0; }
+.model-item:hover, .model-item:focus-within { background: none; }
+.model-add {
   display: flex; align-items: center; gap: 8px;
-  width: 100%; height: auto; padding: 11px 16px;
-  border: 0; border-top: 1px solid var(--border); border-radius: 0;
+  margin: 0 6px 8px; padding: 8px 10px; height: auto;
+  border: 1px dashed var(--border); border-radius: 10px;
   background: none; color: var(--muted-foreground);
-  font-size: 12.5px; font-weight: 500; text-align: left;
+  font-size: 12.5px; font-weight: 500;
 }
-.model-setup-toggle:hover:not(:disabled) { background: color-mix(in oklab, var(--foreground) 4%, transparent); color: var(--foreground); }
-.model-setup-toggle:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
-.model-setup-toggle .ico { width: 14px; height: 14px; flex: none; }
-.model-setup-toggle .caret { margin-left: auto; transition: transform 0.15s ease; }
-.model-setup-toggle[aria-expanded="true"] { color: var(--foreground); }
-.model-setup-toggle[aria-expanded="true"] .caret { transform: rotate(180deg); }
-.model-list.hidden + .model-setup-toggle { border-top: 0; }
-/* the setup form: an inset card under the toggle */
-.ai-menu.model-menu .model-body {
-  gap: 10px;
-  margin: 0 10px 10px;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: color-mix(in oklab, var(--surface) 70%, transparent);
-  overflow: visible;
+.model-add:hover:not(:disabled) { background: color-mix(in oklab, var(--foreground) 5%, transparent); color: var(--foreground); border-color: color-mix(in oklab, var(--primary) 40%, var(--border)); }
+.model-add .ico { width: 14px; height: 14px; }
+.model-form { display: flex; flex-direction: column; gap: 8px; margin: 0 6px 8px; padding: 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.model-form-heading { font-size: 12.5px; font-weight: 600; }
+.model-field { display: flex; flex-direction: column; gap: 3px; }
+.model-field-label { font-size: 11px; font-weight: 600; color: var(--muted-foreground); }
+.model-field input, .model-field select {
+  width: 100%;
+  height: 30px;
+  padding: 0 9px;
+  line-height: 28px;
 }
-.ai-menu.model-menu .model-body > * { flex: none; }
-.model-menu .model-field select, .model-menu .model-field input { height: 30px; border-radius: 8px; }
-.model-menu .model-row { margin-top: 2px; }
-.model-menu .model-row button:last-child { margin-left: auto; padding: 0 14px; }
-.picker-status {
-  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
-  min-height: 0; max-width: 100%;
-  padding: 3px 9px; border-radius: 999px;
-  font-size: 11.5px; line-height: 16px;
-  background: color-mix(in oklab, var(--muted-foreground) 12%, transparent);
-  color: var(--muted-foreground);
-}
-.picker-status::before { content: ""; width: 6px; height: 6px; flex: none; border-radius: 999px; background: currentColor; }
-.picker-status[data-tone="success"] { color: var(--success); background: color-mix(in oklab, var(--success) 13%, transparent); }
-.picker-status[data-tone="danger"] { color: var(--danger); background: color-mix(in oklab, var(--danger) 13%, transparent); }
-.picker-status[data-tone="warning"] { color: var(--warning); background: color-mix(in oklab, var(--warning) 14%, transparent); }
-.ai-send { width: 32px; height: 32px; padding: 0; border-radius: 999px; flex: none; transition: background-color 0.15s ease, transform 0.12s ease; }
-.ai-send .ico { width: 16px; height: 16px; }
-.ai-send:active:not(:disabled) { transform: scale(0.95); }
-.ai-send:disabled { color: var(--muted-foreground); background: color-mix(in oklab, var(--foreground) 10%, transparent); opacity: 1; }
-.ai-footnote .ai-dot { display: inline-block; margin-right: 6px; vertical-align: 1px; }
-.ai-footnote { padding-inline: 8px; text-align: center; font-size: 11px; line-height: 1.5; color: var(--muted-foreground); }
+.model-field-controls { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.model-field select:disabled { opacity: 0.7; cursor: default; }
+.model-field-hint { font-size: 11px; color: var(--muted-foreground); }
+.model-form-status { font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+.model-form-status:empty { display: none; }
+.model-form-status[data-tone="busy"] { color: var(--muted-foreground); }
+.model-form-status[data-tone="ok"] { color: var(--success); }
+.model-form-status[data-tone="error"] { color: var(--danger); }
+.model-form-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* --- cards (summary, fix agent) --- */
 .summary-card, .agent { border: 1px solid var(--border); border-radius: 14px; background: color-mix(in oklab, var(--card-2) 75%, transparent); overflow: hidden; }
+
 .summary-card { display: flex; flex-direction: column; }
 .sc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 12px 14px 10px; }
 .sc-title { font-size: 13.5px; font-weight: 600; }
@@ -663,6 +736,8 @@ button.sc-fix-text:hover:not(:disabled) { background: none; color: var(--primary
 @keyframes pulse { 50% { opacity: 0.45; } }
 .new { font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; color: var(--primary); }
 .outdated { color: var(--warning); }
+.manual { font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted-foreground); }
+.sc-fix .manual { flex: none; }
 
 .details { display: flex; flex-direction: column; gap: 4px; padding: 2px 12px 12px 13px; font-size: 13px; line-height: 1.6; }
 .details .label { margin-top: 8px; }
@@ -672,6 +747,8 @@ button.sc-fix-text:hover:not(:disabled) { background: none; color: var(--primary
 .details .body ul, .details .body ol { padding-left: 1.3em; }
 .details .body :not(pre) > code { padding: 0.1em 0.35em; border-radius: 5px; background: var(--muted); font-size: 0.88em; }
 .callout { padding: 8px 10px; border-radius: 10px; font-size: 12px; border: 1px solid var(--border); background: color-mix(in oklab, var(--surface) 50%, transparent); }
+.callout.manual { border-color: color-mix(in oklab, var(--info) 30%, var(--border)); color: var(--foreground); }
+.callout.manual strong { font-weight: 600; }
 .callout.warn { border-color: color-mix(in oklab, var(--warning) 28%, var(--border)); background: color-mix(in oklab, var(--warning) 6%, transparent); }
 .patch { max-height: 260px; overflow: auto; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card-2); font-size: 12px; line-height: 1.55; }
 .detail-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
@@ -694,7 +771,6 @@ button.sc-fix-text:hover:not(:disabled) { background: none; color: var(--primary
 .panel { animation: fade-in 0.2s ease backwards; }
 /* History menu drops down from the header (the model menu has its own rise) */
 .ai-menu:not(.model-menu) { transform-origin: top right; animation: drop-in 0.16s ease-out; }
-.ai-menu.model-menu .model-body { animation: fade-up 0.2s var(--ease-out) backwards; }
 /* welcome: title, subtitle, then the prompt cards one after another */
 .ai-welcome-title { animation: fade-up 0.45s var(--ease-out) backwards; }
 .ai-welcome-sub { animation: fade-up 0.45s var(--ease-out) 0.06s backwards; }

@@ -77,7 +77,7 @@ function Invoke-Vscode {
     Write-Host "Scanner server: $serverUrl  (token: $token)"
     Write-Host "Start it:       .\setup.ps1 scanner"
     Write-Host "Scan target:    open apps\lumina-site\ in VS Code (planted issues in apps\lumina-site\server)"
-    Write-Host 'Then in VS Code: Reload Window -> shield icon -> "Scan with Reconix".'
+    Write-Host 'Then in VS Code: Reload Window -> Reconix icon -> "Scan with Reconix".'
 
     # Open the storefront as its OWN window so the scan sees its source, including the planted
     # vulnerable backend in apps\lumina-site\server.
@@ -93,7 +93,7 @@ function Update-CodeSettings($path, $url, $token) {
         $obj = $null
         if ((Test-Path $path) -and (Get-Item $path).Length -gt 0) {
             # ConvertFrom-Json rejects comments/trailing commas; leave such files alone.
-            $obj = Get-Content -Raw -Path $path | ConvertFrom-Json
+            $obj = Get-Content -Raw -Encoding UTF8 -Path $path | ConvertFrom-Json
         }
         if (-not $obj) { $obj = [pscustomobject]@{} }
         # Migrate keys from older installs (vulnScanner.* -> reconix.*).

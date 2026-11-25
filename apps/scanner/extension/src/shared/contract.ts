@@ -1,199 +1,314 @@
-// Types from the shared contract between the extension and the harness.
+// Data shapes shared by the extension host, the webview and every Backend.
+// This file IS the shared contract: the official shape of everything the extension and the
+// Reconix server exchange. The server team builds against it; change it deliberately.
+//
+// Rules:
+// - All file paths are workspace-relative and use forward slashes ("src/app.ts"), never absolute.
+// - Timestamps are ISO-8601 strings.
+// - Domain enum values (Severity, Verdict, ScanStatus, ScanStage) are UPPERCASE, as in Reconix-Core.
+// - Pure types only: no runtime code, no vscode import (the webview imports this too).
 
-export type Severity = "critical" | "high" | "medium" | "low" | "info";
-export const SEVERITIES: Severity[] = ["critical", "high", "medium", "low", "info"];
+/**
+ * Same values as Reconix-Core's SeverityStatus.
+ * - UNKNOWN: may be a real problem, but the scanner gave no usable severity (an advisory with no CVSS score).
+ * - NONE: no risk; information only (a scanner's "info" result, an open port).
+ */
+export type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "UNKNOWN" | "NONE";
 
-export interface ManifestEntry {
+/** Analyzer verdict on a raw scanner hit. */
+export type Verdict = "CONFIRMED" | "LIKELY_TRUE_POSITIVE" | "LIKELY_FALSE_POSITIVE" | "UNVERIFIED";
+
+/** Same values as Reconix-Core's AgentRunStatus. WAITING_APPROVAL: paused until a person approves a step. */
+export type ScanStatus = "RUNNING" | "WAITING_APPROVAL" | "COMPLETED" | "FAILED" | "CANCELLED";
+
+/** Where a running scan is in its pipeline. */
+export type ScanStage = "COLLECTING" | "ARCHIVING" | "UPLOADING" | "SCANNING" | "ANALYZING" | "DONE";
+
+/** A button that fixes a connection problem: a "reconix." command, e.g. Set Token. */
+export interface ConnectionAction {
+  label: string;
+  command: string;
+}
+
+export type ConnectionStatus =
+  /** label: text for the header, e.g. "Connected (static data)". */
+  | { state: "connected"; label: string }
+  | { state: "connecting" }
+  /** reason: what is wrong, in plain words; action: the button that fixes it, if there is one. */
+  | { state: "disconnected"; reason: string; action?: ConnectionAction };
+
+/** One workspace file offered to the server, used to skip unchanged uploads. */
+export interface FileEntry {
   path: string;
+  sizeBytes: number;
   sha256: string;
-  size: number;
-}
-
-export interface SessionInfo {
-  session_id: string;
-  name: string;
-  target_type: "workspace" | "github";
-  repo_url: string | null;
-  created_at: string;
-  last_scan_at: string | null;
-  last_scan_status: string | null;
-}
-
-export interface ChatMessage {
-  /** "system" is a muted client-side note (e.g. a model switch); the harness only stores user/assistant. */
-  role: "user" | "assistant" | "system";
-  text: string;
-  finding_ids: string[];
-  created_at?: string;
-}
-
-export interface SessionDetail {
-  session: SessionInfo;
-  messages: ChatMessage[];
-  latest_scan_id: string | null;
-  file_count: number;
 }
 
 export interface SyncResult {
-  need: string[];
-  delete: string[];
-  unchanged_count: number;
+  /** Paths the server does not have yet (must be uploaded). */
+  missing: string[];
 }
 
-export interface UploadTicket {
-  upload_id: string;
-  upload_url: string;
-  expires_at: string;
+export interface Session {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  /**
+   * Can be read but not written to here (chat, scans): opened elsewhere, or before a server restart.
+   * Worked out by the extension (no stored token for the session); the server does not send it.
+   */
+  readOnly?: boolean;
 }
 
-export type ScanStatus = "queued" | "running" | "done" | "failed" | "cancelled";
+export interface Message {
+  id: string;
+  role: "user" | "assistant" | "system";
+  text: string;
+  createdAt: string;
+}
+
+export interface SessionDetail extends Session {
+  messages: Message[];
+  lastScan?: ScanSummary;
+}
+
+export type SeverityCounts = Record<Severity, number>;
 
 export interface ScanSummary {
-  scan_id: string;
-  session_id: string;
+  scanId: string;
+  sessionId: string;
   status: ScanStatus;
-  stage: string;
-  percent: number;
-  counts: Partial<Record<Severity, number>>;
-  error: string | null;
-  started_at: string | null;
-  finished_at: string | null;
+  stage: ScanStage;
+  /** 0..100, best effort. */
+  progress: number;
+  startedAt: string;
+  finishedAt?: string;
+  counts: SeverityCounts;
+  /** Short lines about steps, e.g. "GITLEAKS FAILED" (a step that did not finish while the scan did). */
+  notes: string[];
+  error?: string;
+  activeTool?: string;
+  detail?: string;
 }
+
+/** Same values as Reconix-Core's FindingStatus: a person's review of a finding. */
+export type FindingStatus = "OPEN" | "FALSE_POSITIVE" | "FIXED";
 
 export interface Finding {
   id: string;
+  /** Core's short name for the finding, e.g. "RCX-001". */
+  code: string;
+  scanId: string;
+  /** Scanners that found it, named as core names them, e.g. ["SEMGREP"], ["OSV_SCANNER"]. */
   tools: string[];
-  rule_id: string;
+  findingStatus: FindingStatus;
+  ruleId: string;
   title: string;
   severity: Severity;
-  cwe: string | null;
+  verdict: Verdict;
   path: string;
-  start_line: number;
-  end_line: number;
-  start_col: number | null;
-  end_col: number | null;
-  file_sha256: string;
+  line?: number;
+  endLine?: number;
   message: string;
-  snippet: string;
-  verdict: "likely_real" | "likely_false_positive" | "unsure";
-  explanation: string;
-  fix_recommendation: string;
-  suggested_patch: string | null;
-  status: "new" | "existing";
-  web_url: string | null;
+  snippet?: string;
+  cwe?: string[];
+  /** SHA-256 of the file when it was scanned; the extension uses it to spot out-of-date findings. */
+  fileSha256?: string;
+  /** Plain explanation of the problem (from the analyzer review). */
+  explanation?: string;
+  /** Plain steps to fix it (from the analyzer review). */
+  fixRecommendation?: string;
+  /** Set when the fix agent cannot fix this automatically: why, and what to do instead. */
+  manualFix?: string;
 }
 
 export interface FindingsPage {
-  findings: Finding[];
+  items: Finding[];
   total: number;
+  offset: number;
+  limit: number;
+  /** Findings the server has that point at no file (e.g. a dependency problem); not in `items`. */
+  withoutFile?: number;
 }
 
-/** What the agent decided the user wants; the extension carries it out (only it can upload files). */
+/** A button the assistant offers under a reply. */
 export interface ChatAction {
-  /** scan: the current session's target; scan_workspace: the local workspace (from a GitHub session);
-   * scan_github: the repo in `url`; cancel: stop the running scan; fix: fix `finding_ids` with fix_findings;
-   * switch_model: the harness already switched (just refresh); configure_model: open the model picker. */
-  type: "scan" | "scan_workspace" | "scan_github" | "cancel" | "fix" | "switch_model" | "configure_model";
-  full: boolean;
-  /** Folders or files to limit the scan to; empty for everything. */
-  paths: string[];
-  url: string | null;
-  /** Ask the user first: the agent only thinks this is wanted. */
-  confirm: boolean;
-  /** For fix: the findings to fix, most serious first. */
-  finding_ids: string[];
-  /** For switch_model/configure_model: the provider and model the request named. */
-  provider?: string | null;
-  model?: string | null;
+  kind: "scanWorkspace" | "rescan" | "showFindings" | "summarize" | "fixFindings";
+  label: string;
+  findingIds?: string[];
 }
 
-// --- Flexible LLM model (provider store; single source of truth is the harness) ---
+/**
+ * Something the chat asks the extension to do now, decided by the backend (the server's LLM,
+ * or static mode's keyword rules). The extension runs it; `actions` are only buttons.
+ */
+export interface ChatCommand {
+  kind: "scan" | "scanGithub" | "cancel" | "fix" | "summarize" | "showFindings" | "switchModel";
+  /** scan: scan every file again, even when nothing changed. */
+  full?: boolean;
+  /** scan: workspace-relative folders or files to limit the scan to; empty or missing means all. */
+  paths?: string[];
+  /** scanGithub: the https://github.com/owner/repo URL. */
+  url?: string;
+  /** fix: the findings to fix; empty when the message named none. */
+  findingIds?: string[];
+  /** switchModel: the LlmProvider to activate (core's SWITCH_MODEL). */
+  providerId?: string;
+  /** Ask the user Yes/No before running it. */
+  confirm?: boolean;
+}
 
-/** One provider from the catalog, configured or not. Never carries an API key, only a hint. */
-export interface ProviderInfo {
+export interface ChatReply {
+  /** Shown in the chat unless its text is empty (a command with nothing to say). */
+  message: Message;
+  actions: ChatAction[];
+  run?: ChatCommand;
+}
+
+/** Same values as Reconix-Core's ProviderType. */
+export type ProviderType = "RECONIX" | "OPENAI" | "ANTHROPIC" | "DEEPSEEK" | "OLLAMA" | "OPENAI_API_COMPATIBLE";
+
+/**
+ * One LLM the chat and fix agent can run on: a provider with one model, as core stores it.
+ * An API key goes in (LlmProviderInput) but never comes out; only its last 4 characters do.
+ */
+export interface LlmProvider {
   id: string;
-  label: string;
-  /** reconix: the server's own model; custom: an OpenAI- or Anthropic-compatible API the user points at. */
-  kind: "reconix" | "custom";
-  configured: boolean;
-  needs_key: boolean;
-  key_optional: boolean;
-  base_mode: "readonly" | "optional" | "default" | "required" | "fixed";
-  multi_model: boolean;
-  base_url: string;
-  models: string[];
-  api_key_hint: string;
-  status: "UNTESTED" | "REACHABLE" | "UNREACHABLE";
-  status_detail: string;
-  tested_at: string;
-  /** The active model for this provider, or "" when another (or none) is active. */
-  active_model: string;
+  providerType: ProviderType;
+  /** e.g. "GPT-4o". */
+  displayName: string;
+  /** e.g. "gpt-4o", "llama3.1:8b". */
+  modelName: string;
+  /** Empty: the cloud service's own address, or the server's default Ollama. */
+  baseUrl?: string;
+  apiKeyLast4?: string;
+  /** The one chat and fixes use now. */
+  isActive: boolean;
+  /** Runs on the server's computer: it becomes active at once. Any other needs an approval first. */
+  isLocal: boolean;
 }
 
-export interface ActiveModel {
-  provider_id: string;
-  model: string;
-  label: string;
-  activated_at: string;
+export interface LlmProviderInput {
+  providerType: ProviderType;
+  displayName: string;
+  modelName: string;
+  baseUrl?: string;
+  /** OPENAI, ANTHROPIC and DEEPSEEK need one. Never logged or sent to the webview. */
+  apiKey?: string;
 }
 
-export interface ProviderList {
-  providers: ProviderInfo[];
-  active: ActiveModel | null;
+/** Only the fields given change. apiKey null removes the stored key. */
+export interface LlmProviderUpdate {
+  displayName?: string;
+  modelName?: string;
+  baseUrl?: string;
+  apiKey?: string | null;
 }
 
-/** Replace lines start_line..end_line (1-based, inclusive) with `replacement` ("" deletes them). */
+/** The result of one fixed test prompt (with no Reconix data in it). */
+export interface ProviderTest {
+  ok: boolean;
+  modelName: string;
+  latencyMs: number;
+  /** Why it failed, e.g. "MODEL_UNAVAILABLE". */
+  code?: string;
+  message?: string;
+}
+
+export interface ProviderActivation {
+  provider: LlmProvider;
+  /** Set when the provider is not local: it becomes active once this approval is approved. */
+  approvalId?: string;
+}
+
+/** The card drawn after a scan: counts, then what to fix first. */
+export interface SummaryCard {
+  /** Merged findings, likely false alarms included. */
+  total: number;
+  counts: SeverityCounts;
+  /** Findings verified or likely real. Absent when the server does not count verdicts (core today). */
+  likelyReal?: number;
+  falseAlarms?: number;
+  /** Up to three files with the most findings worth fixing. */
+  files: { path: string; count: number }[];
+  /** One sentence on the overall state; absent when there is nothing to say. */
+  overall?: string;
+  /**
+   * Up to three things to fix first; `findingIds` link to the findings (ids are not in `text`).
+   * Core sends only the ids; without `text` the card shows the finding's title.
+   */
+  fixFirst: { text?: string; findingIds: string[] }[];
+}
+
+export interface SummaryReply {
+  scanId: string;
+  /** Markdown, the card as text (for the chat history and clients that do not draw cards). */
+  text: string;
+  counts: SeverityCounts;
+  card: SummaryCard;
+}
+
+/** One line edit: replaces lines startLine..endLine (1-based, inclusive) with `replacement`. */
 export interface FixEdit {
-  start_line: number;
-  end_line: number;
+  startLine: number;
+  endLine: number;
+  /** New text for those whole lines, without a final newline; empty deletes them. */
   replacement: string;
 }
 
-/** The fix agent's changes to one file. They apply only to the file whose hash is `file_sha256`. */
+/** The fix agent's changes to one file. Edits are sorted and never overlap. */
 export interface FileFix {
   path: string;
-  file_sha256: string;
+  /** SHA-256 of the file the edits were made for; apply only if the file still has it. */
+  fileSha256: string;
   edits: FixEdit[];
 }
 
-/** fixed: the scanners no longer report it; still_reported: they still do; not_verified: changed, but
- * SonarQube cannot recheck one file; not_fixed: its file was not changed (`note` says why). */
+export type FixStatus =
+  /** The scanners no longer report it. */
+  | "FIXED"
+  | "STILL_REPORTED"
+  /** Changed, but it could not be rechecked; rescan to confirm. */
+  | "NOT_VERIFIED"
+  /** Its file was not changed; the note says why. */
+  | "NOT_FIXED";
+
 export interface FixOutcome {
-  finding_id: string;
-  status: "fixed" | "still_reported" | "not_verified" | "not_fixed";
+  findingId: string;
+  status: FixStatus;
+  /** One plain sentence. */
   note: string;
 }
 
-/** The structured summary of a scan (summarize_findings), drawn as a card. */
-export interface SummaryCard {
-  total: number;
-  counts: Partial<Record<Severity, number>>;
-  likely_real: number;
-  false_alarms: number;
-  /** Up to three files with the most findings worth fixing. */
-  files: { path: string; count: number }[];
-  overall: string | null;
-  /** Up to three things to fix first; `finding_ids` link to the findings (ids are not in `text`). */
-  fix_first: { text: string; finding_ids: string[] }[];
+/** What fixFindings returns. Nothing is changed on either side until the user applies it. */
+export interface FixResult {
+  files: FileFix[];
+  /** Markdown: what the agent changed and why. */
+  summary: string;
+  /** One entry per requested finding. */
+  results: FixOutcome[];
 }
 
-/** One progress event of fix_findings (its progress `message` is this, as JSON). Text and thinking
- * stream in pieces to append; heartbeat events only keep the request alive. */
+/**
+ * Streamed while the fix agent works. `file` is the file an agent works on, or null for the whole
+ * request; events of different files interleave.
+ * - start: an agent starts on `file` ("3 findings")
+ * - thinking / text: a streamed piece; append it to the previous piece of the same kind
+ * - tool: one line per tool call ("Read db.py", "Edit db.py")
+ * - result: one short line about the last tool's result ("+2 −1 lines")
+ * - status: a line about the whole request ("Checking all changes with the scanners")
+ * - done: the agent for `file` finished ("Finished 2 of 5 files")
+ * - heartbeat: nothing to show; keeps the request alive
+ */
 export interface AgentEvent {
   file: string | null;
   kind: "start" | "thinking" | "text" | "tool" | "result" | "status" | "done" | "heartbeat";
   text: string;
 }
 
-/** What fix_findings returns. */
-export interface FixResult {
-  files: FileFix[];
-  summary: string;
-  results: FixOutcome[];
-}
-
-export interface ChatReply {
-  reply: string;
-  finding_ids: string[];
-  action?: ChatAction | null;
+export interface FindingsQuery {
+  offset?: number;
+  limit?: number;
+  includeLikelyFalsePositives?: boolean;
 }

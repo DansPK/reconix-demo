@@ -4,10 +4,10 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport, StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import { FetchFn, tlsErrorCode } from "./http";
-import type { ActiveModel, ChatReply, FindingsPage, FixResult, ManifestEntry, ProviderInfo, ProviderList, SummaryCard,
-  ScanSummary, SessionDetail, SessionInfo, SyncResult, UploadTicket } from "./shared/contract";
+import type { AgentEvent, ChatContext, ChatReply, FindingsPage, FixResult, ManifestEntry, ScanSummary, SessionDetail,
+  SessionInfo, SyncResult, UploadTicket } from "./backend/wire";
 
-export const TOKEN_REJECTED = "Token rejected. Run Reconix: Set Token.";
+export const TOKEN_REJECTED = "Token rejected. Run Reconix Code Scanner: Set Server Token.";
 const CALL_TIMEOUT_MS = 120_000;
 const WATCH_IDLE_TIMEOUT_MS = 60_000; // reset by every progress notification (the harness sends one at least every 15 s)
 const WATCH_TOTAL_TIMEOUT_MS = 2 * 60 * 60 * 1000;
@@ -51,7 +51,7 @@ export class HarnessClient {
   }
 
   async connect(): Promise<void> {
-    const client = new Client({ name: "reconix-vscode", version: "0.1.0" });
+    const client = new Client({ name: "reconix-vscode", version: "0.2.0" });
     const transport = new StreamableHTTPClientTransport(new URL(this.serverUrl.replace(/\/+$/, "") + "/mcp"), {
       requestInit: { headers: { Authorization: `Bearer ${this.token}` } },
       fetch: this.fetchFn,
@@ -116,8 +116,12 @@ export class HarnessClient {
 
   // --- the contract's tools ---
 
-  createSession(target_type: "workspace" | "github", repo_url?: string, name?: string) {
-    return this.call<{ session_id: string }>("create_session", { target_type, repo_url, name });
+  createSession(name?: string) {
+    return this.call<{ session_id: string }>("create_session", { name });
+  }
+  /** The server only holds the Lumina repository's scripted copy: nothing is fetched from GitHub. */
+  cloneRepo(session_id: string, url: string, signal?: AbortSignal) {
+    return this.call<{ ok: boolean }>("clone_repo", { session_id, url }, { signal });
   }
   listSessions() {
     return this.call<{ sessions: SessionInfo[] }>("list_sessions");
@@ -138,14 +142,8 @@ export class HarnessClient {
     return this.call<UploadTicket>("request_upload", { session_id, size_bytes, sha256 });
   }
   startScan(session_id: string,
-            opts: { upload_id?: string; deleted_paths?: string[]; full?: boolean; paths?: string[];
-                    github_token?: string } = {}) {
+            opts: { upload_id?: string; paths?: string[] } = {}) {
     return this.call<{ scan_id: string }>("start_scan", { session_id, ...opts });
-  }
-  watchScan(scan_id: string, onProgress: (percent: number, message: string) => void, signal?: AbortSignal) {
-    return this.call<ScanSummary>("watch_scan", { scan_id }, {
-      long: true, signal, onprogress: (p) => onProgress(Math.round(p.progress), p.message ?? ""),
-    });
   }
   getScanStatus(scan_id: string) {
     return this.call<ScanSummary>("get_scan_status", { scan_id });
@@ -156,34 +154,12 @@ export class HarnessClient {
   getFindings(session_id: string, opts: { scan_id?: string; limit?: number; offset?: number } = {}) {
     return this.call<FindingsPage>("get_findings", { session_id, ...opts });
   }
-  chat(session_id: string, message: string) {
-    return this.call<ChatReply>("chat", { session_id, message });
+  chat(session_id: string, message: string, context: ChatContext = { last_mentioned: [], providers: [] }, signal?: AbortSignal) {
+    return this.call<ChatReply>("chat", { session_id, message, ...context }, { signal });
   }
-  summarizeFindings(session_id: string) {
-    return this.call<{ summary: string; finding_ids: string[]; card: SummaryCard }>("summarize_findings", { session_id });
-  }
-  fixFindings(session_id: string, finding_ids: string[], onProgress: (percent: number, message: string) => void,
-              signal?: AbortSignal) {
+  fixFindings(session_id: string, finding_ids: string[], onEvent: (event: AgentEvent) => void, signal?: AbortSignal) {
     return this.call<FixResult>("fix_findings", { session_id, finding_ids }, {
-      long: true, signal, onprogress: (p) => onProgress(Math.round(p.progress), p.message ?? ""),
+      long: true, signal, onprogress: (p) => { if (p.message) onEvent(JSON.parse(p.message) as AgentEvent); },
     });
-  }
-
-  // --- flexible LLM model (the harness is the single source of truth) ---
-
-  listProviders() {
-    return this.call<ProviderList>("list_providers");
-  }
-  setProvider(provider_id: string, opts: { api_key?: string; base_url?: string; models?: string[] } = {}) {
-    return this.call<ProviderInfo>("set_provider", { provider_id, ...opts });
-  }
-  testProvider(provider_id: string, model?: string) {
-    return this.call<ProviderInfo>("test_provider", { provider_id, model });
-  }
-  activateModel(provider_id: string, model: string) {
-    return this.call<ActiveModel>("activate_model", { provider_id, model });
-  }
-  activeModel() {
-    return this.call<{ active: ActiveModel | null }>("active_model");
   }
 }

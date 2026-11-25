@@ -9,7 +9,7 @@
 #   ./setup.sh
 #   cd extension && npm run server          # start the scanner server on :7357
 #
-# Then in VS Code: Reload Window, click the shield → "Scan with Reconix".
+# Then in VS Code: Reload Window, click the Reconix icon → "Scan with Reconix".
 set -euo pipefail
 
 case $(uname -s) in
@@ -76,4 +76,4 @@ say "Done"
 echo "Scanner server: $SERVER_URL  (token: $TOKEN)"
 echo "Start it:       cd extension && npm run server"
 echo "Scan target:    open apps/lumina-site/ in VS Code (planted issues in apps/lumina-site/server)"
-echo "Then in VS Code: Reload Window → shield icon → \"Scan with Reconix\"."
+echo "Then in VS Code: Reload Window → Reconix icon → \"Scan with Reconix\"."

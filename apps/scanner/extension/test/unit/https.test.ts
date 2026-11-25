@@ -6,9 +6,9 @@ import * as path from "path";
 import { after, before, test } from "node:test";
 import { HarnessClient } from "../../src/client";
 import { makeFetch } from "../../src/http";
-import { prepareWorkspace } from "../../src/scanFlow";
+import { McpBackend } from "../../src/backend/McpBackend";
 import { FakeHarness } from "../../server/server";
-import { makeTree } from "./helpers";
+import { makeTree, scan } from "./helpers";
 
 let fake: FakeHarness;
 let certFile = "";
@@ -33,14 +33,11 @@ test("an untrusted self-signed certificate gives a clear message", async () => {
 
 test("with the CA certificate: connect, upload and scan over HTTPS", async () => {
   assert.ok(fake.url.startsWith("https://"));
-  const c = new HarnessClient(fake.url, fake.token, makeFetch(certFile));
-  await c.connect();
-  const { session_id } = await c.createSession("workspace");
-  const root = await makeTree({ "a.js": "a" });
-  const p = await prepareWorkspace(c, session_id, root, { maxFileSizeKB: 100, maxUploadMB: 10, extraExcludes: [] });
-  assert.ok(p.uploadId);
+  const backend = new McpBackend({ serverUrl: fake.url, getToken: async () => fake.token, caCertificatePath: certFile, pollMs: 2 });
+  const session = await backend.createSession();
+  const { summary } = await scan(backend, session.id, await makeTree({ "a.js": "a" }));
+  assert.equal(summary.status, "COMPLETED");
   assert.ok(fake.lastUploadArchive());
-  await c.close();
 });
 
 test("a missing CA file is reported by name", () => {

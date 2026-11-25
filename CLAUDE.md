@@ -35,7 +35,10 @@ fix/rescan demo. Re-zip after changing the storefront (bsdtar: `tar --format=zip
   attacker's view" toggle in the dashboard). PDF/DOCX reports stay masked.
 - **VS Code scanner** (`apps/scanner/`): a **source scan** of `apps/lumina-site/`. Canned findings
   (`extension/server/server.ts` `DEMO_FINDINGS`/`FIXES`) match files under `apps/lumina-site/server/`
-  by path; applying a fix changes the file's hash, so a rescan drops that finding.
+  by path; a finding is served while its `FIXES` `original` lines are still in the file, so applying a
+  fix makes a rescan drop it. The extension ID is `local.reconix-code-scanner` and its command, view
+  and setting IDs are `reconix.*`, so it never clashes with the released extension
+  (`reconix.reconix-code-scanner`, `reconixCodeScanner.*`); the launchers must not touch that one.
 
 ## Cross-cutting rules
 

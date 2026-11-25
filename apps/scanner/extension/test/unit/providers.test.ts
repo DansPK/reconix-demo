@@ -1,46 +1,45 @@
 import assert from "node:assert/strict";
-import { after, before, test } from "node:test";
-import { HarnessClient } from "../../src/client";
-import { FakeHarness } from "../../server/server";
+import { test } from "node:test";
+import { McpBackend } from "../../src/backend/McpBackend";
+import { startDemo } from "./helpers";
 
-let fake: FakeHarness;
-let c: HarnessClient;
+const KEY = "sk-ant-not-a-real-key-7f2d";
 
-before(async () => {
-  fake = new FakeHarness({ stepMs: 30 });
-  await fake.start();
-  c = new HarnessClient(fake.url, fake.token);
-  await c.connect();
-});
-after(async () => {
-  await c.close();
-  await fake.stop();
-});
+test("add with a key → test → approve → active; only the key's last 4 characters are kept and nothing is sent", async (t) => {
+  const realFetch = globalThis.fetch;
+  let requests = 0;
+  globalThis.fetch = (() => { requests++; throw new Error("no network"); }) as typeof fetch;
+  t.after(() => { globalThis.fetch = realFetch; });
+  const backend = new McpBackend({ serverUrl: "http://127.0.0.1:1", getToken: async () => "t" });
 
-test("list_providers returns the full catalog in dropdown order", async () => {
-  const { providers, active } = await c.listProviders();
-  assert.deepEqual(providers.map((p) => p.id),
-    ["reconix", "openai", "anthropic", "deepseek", "ollama", "openai_compatible"]);
-  assert.equal(providers.find((p) => p.id === "anthropic")?.base_url, "https://api.anthropic.com");
-  assert.equal(active?.provider_id, "reconix");
-});
+  await assert.rejects(backend.createProvider({ providerType: "ANTHROPIC", displayName: "C", modelName: "claude-opus-5-5" }), /needs an API key/);
+  const made = await backend.createProvider({ providerType: "ANTHROPIC", displayName: "Claude", modelName: "claude-opus-5-5", apiKey: KEY });
+  assert.equal(made.apiKeyLast4, "7f2d");
+  assert.deepEqual(await backend.testProvider(made.id), { ok: true, modelName: "claude-opus-5-5", latencyMs: 120 });
+  const { approvalId } = await backend.activateProvider(made.id);
+  assert.ok(approvalId, "a model off this computer asks first");
+  await backend.approve(approvalId);
+  assert.deepEqual((await backend.listProviders()).filter((p) => p.isActive).map((p) => p.id), [made.id]);
+  await assert.rejects(backend.deleteProvider(made.id), /active provider cannot be deleted/);
 
-test("set key → test with a model name → activate; keys never come back", async () => {
-  const set = await c.setProvider("anthropic", { api_key: "sk-secret-value" });
-  assert.equal(set.configured, true);
-  assert.ok(!JSON.stringify(set).includes("sk-secret-value"));
-
-  const tested = await c.testProvider("anthropic", "claude-opus-5-5");
-  assert.equal(tested.status, "REACHABLE");
-  assert.deepEqual(tested.models, ["claude-opus-5-5"]);
-
-  const active = await c.activateModel("anthropic", "claude-opus-5-5");
-  assert.equal(active.provider_id, "anthropic");
-  assert.equal(active.model, "claude-opus-5-5");
-  assert.equal((await c.activeModel()).active?.model, "claude-opus-5-5");
+  // Everything the backend holds, walked: the key is nowhere.
+  assert.ok(!JSON.stringify(backend, (_k, v) => (v instanceof Map ? [...v] : v)).includes(KEY.slice(0, 10)));
+  assert.equal(requests, 0);
 });
 
-test("activate refuses an untested provider", async () => {
-  await c.setProvider("openai_compatible", { api_key: "sk-x", models: ["gpt-4o"] });
-  await assert.rejects(c.activateModel("openai_compatible", "gpt-4o"), /not reachable/);
+test("the built-in model only takes a key; a local model becomes active at once", async () => {
+  const backend = new McpBackend({ serverUrl: "http://127.0.0.1:1", getToken: async () => "t" });
+  assert.equal((await backend.updateProvider("llm-reconix", { apiKey: KEY })).apiKeyLast4, "7f2d");
+  await assert.rejects(backend.updateProvider("llm-reconix", { modelName: "x" }), /cannot be changed/);
+  await assert.rejects(backend.deleteProvider("llm-reconix"), /cannot be deleted/);
+  const { approvalId, provider } = await backend.activateProvider("llm-ollama");
+  assert.equal(approvalId, undefined);
+  assert.ok(provider.isActive);
+});
+
+test("the chat switches models by name", async (t) => {
+  const demo = await startDemo();
+  t.after(demo.stop);
+  const session = await demo.backend.createSession();
+  assert.deepEqual((await demo.backend.chat(session.id, "switch to Qwen")).run, { kind: "switchModel", providerId: "llm-ollama" });
 });

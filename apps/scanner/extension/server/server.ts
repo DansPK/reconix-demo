@@ -12,15 +12,13 @@ import * as tar from "tar";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { route } from "../src/routing";
-import type { ActiveModel, ChatAction, Finding, ManifestEntry, ProviderInfo, ScanSummary, Severity } from "../src/shared/contract";
-
-// --- static chat answers ----------------------------------------------------
-// The demo has no LLM, so a plain question (not a scan/fix/stop command) is
-// answered from the scan's canned findings. No network, no model call.
-const SEV_ORDER: Severity[] = ["critical", "high", "medium", "low", "info"];
-const bySeverity = (a: Finding, b: Finding) => SEV_ORDER.indexOf(a.severity) - SEV_ORDER.indexOf(b.severity);
-const whereOf = (f: Finding) => `\`${f.path}:${f.start_line}\``;
+import { staticAnswer } from "../src/backend/staticChat";
+import { toFinding, type AgentEvent, type ChatContext, type ChatReply, type FileFix, type Finding, type FixOutcome,
+  type ManifestEntry, type ScanSummary } from "../src/backend/wire";
+import { hiddenAsFalse, mergeFindings, prepareFindings, underPaths } from "../src/findingsLogic";
+import { MAX_FIX_FINDINGS } from "../src/fixLogic";
+import { commandFor, githubRepoUrl } from "../src/routing";
+import type { ChatCommand } from "../src/shared/contract";
 
 // Script the Core API's default source pipeline; these labels never launch a scanner.
 // Sonar is optional in Core and needs a configured server, so it is not a default stage.
@@ -34,68 +32,8 @@ const SCAN_STAGES = [
   { stage: "analysis", label: "Correlate findings and review evidence" },
 ] as const;
 
-function describeFinding(f: Finding): string {
-  const tag = f.cwe ? `${f.severity}, ${f.cwe}` : f.severity;
-  return `**${f.title}** (${tag}) — ${whereOf(f)}\n\n${f.explanation}\n\n_Fix:_ ${f.fix_recommendation}`;
-}
-
-// Topic keywords → the CWE of the finding they ask about.
-const TOPICS: [RegExp, string][] = [
-  [/\bsql\b|database|\bquery\b/, "CWE-89"],
-  [/command inject|os command|\bexec\b|\bshell\b|\bping\b/, "CWE-78"],
-  [/\bxss\b|cross.?site|innerhtml/, "CWE-79"],
-  [/md5|weak hash|password hash|hashing/, "CWE-327"],
-  [/secret|credential|api key|stripe|hard.?cod/, "CWE-798"],
-];
-
-function answerQuestion(text: string, findings: Finding[]): string {
-  if (findings.length === 0) {
-    return "I haven't scanned anything yet. Say **scan** and I'll check the workspace, then ask me about what I find.";
-  }
-  const t = text.toLowerCase();
-  const sorted = [...findings].sort(bySeverity);
-
-  for (const [re, cwe] of TOPICS) {
-    if (re.test(t)) {
-      const f = findings.find((x) => x.cwe === cwe);
-      if (f) return describeFinding(f);
-    }
-  }
-  if (/most severe|worst|first|priorit|biggest|urgent|start with/.test(t)) {
-    return `Start with the ${sorted[0].severity} one:\n\n${describeFinding(sorted[0])}`;
-  }
-  if (/how (do i |to )?fix|remediat|resolve|\bpatch\b/.test(t)) {
-    return sorted.map((f) => `**${f.title}** (${whereOf(f)})\n${f.fix_recommendation}`).join("\n\n");
-  }
-  if (/how many|count|severit|how bad|breakdown|\brisk\b/.test(t)) {
-    const counts: Partial<Record<Severity, number>> = {};
-    for (const f of findings) counts[f.severity] = (counts[f.severity] ?? 0) + 1;
-    const parts = SEV_ORDER.filter((s) => counts[s]).map((s) => `${counts[s]} ${s}`);
-    return `**${findings.length} findings:** ${parts.join(", ")}.`;
-  }
-  if (/\bfind|found|result|vulnerab|issue|problem|summar|wrong|show|list|what did/.test(t)) {
-    const lines = sorted.map((f) => `- **${f.title}** — ${f.severity}, ${whereOf(f)}`);
-    return `I found **${findings.length} issues**:\n\n${lines.join("\n")}\n\nAsk about any one (e.g. "explain the XSS"), or say **fix** to prepare fixes.`;
-  }
-  return `I can answer from the ${findings.length} findings in this scan. Try:\n- "what did you find?"\n- "explain the SQL injection"\n- "what should I fix first?"\n- "how do I fix the XSS?"\n\nOr say **scan**, **rescan** or **fix**.`;
-}
-
-/** A tiny stand-in for the harness provider catalog, enough for the extension's picker tests. */
-const CATALOG: { id: string; label: string; kind: ProviderInfo["kind"]; needs_key: boolean; key_optional: boolean;
-  base_mode: ProviderInfo["base_mode"]; multi_model: boolean; default_models: string[]; default_base: string }[] = [
-  { id: "reconix", label: "Reconix", kind: "reconix", needs_key: true, key_optional: false,
-    base_mode: "readonly", multi_model: false, default_models: ["default-model"], default_base: "http://llm" },
-  { id: "openai", label: "OpenAI", kind: "custom", needs_key: true, key_optional: false,
-    base_mode: "fixed", multi_model: false, default_models: ["gpt-4o-mini"], default_base: "https://api.openai.com/v1" },
-  { id: "anthropic", label: "Anthropic", kind: "custom", needs_key: true, key_optional: false,
-    base_mode: "fixed", multi_model: false, default_models: ["claude-3-5-sonnet-latest"], default_base: "https://api.anthropic.com" },
-  { id: "deepseek", label: "DeepSeek", kind: "custom", needs_key: true, key_optional: false,
-    base_mode: "fixed", multi_model: false, default_models: ["deepseek-chat"], default_base: "https://api.deepseek.com/v1" },
-  { id: "ollama", label: "Ollama", kind: "custom", needs_key: false, key_optional: true,
-    base_mode: "required", multi_model: false, default_models: [], default_base: "http://host.docker.internal:11434/v1" },
-  { id: "openai_compatible", label: "OpenAI-compatible API", kind: "custom", needs_key: true, key_optional: false,
-    base_mode: "required", multi_model: false, default_models: [], default_base: "https://api.openai.com/v1" },
-];
+/** The one repository a GitHub scan knows. It is scripted: nothing is cloned and no host is contacted. */
+export const LUMINA_REPO = "https://github.com/lumina-store/lumina-site";
 
 export interface FakeOptions {
   token?: string;
@@ -113,12 +51,12 @@ export interface FakeOptions {
 interface Session {
   id: string; owner: string; name: string; target_type: "workspace" | "github"; repo_url: string | null;
   created_at: string; manifest: Map<string, ManifestEntry>; pending: ManifestEntry[] | null;
-  messages: { role: "user" | "assistant"; text: string; finding_ids: string[] }[];
+  messages: { role: "user" | "assistant"; text: string; created_at: string }[];
   // The hash each finding-bearing file had when first scanned; a later scan whose file differs
   // counts that finding as fixed and drops it, so applying a fix and rescanning clears it.
   baselineHash: Map<string, string>;
-  // The latest uploaded text of files that have a canned fix: a file already holding its fix has
-  // no finding, even when it was fixed before this session first saw it (e.g. after a restart).
+  // The latest uploaded text of files that have a canned fix: once their vulnerable lines are gone the
+  // finding is too, even when fixed before this session first saw the file (e.g. after a restart).
   content: Map<string, string>;
 }
 
@@ -132,38 +70,19 @@ export class FakeHarness {
   uploads = new Map<string, Upload>();
   scans = new Map<string, ScanSummary>();
   calls: { name: string; args: any }[] = [];
-  /** When set, the next watch_scan drops its connection after the first progress notification. */
-  dropNextWatch = false;
+  /** Folders or files a scan was limited to. */
+  private scanPaths = new Map<string, string[]>();
+  /** When set, the next get_scan_status drops its connection. */
+  dropNextStatus = false;
   /** When set, the next upload is answered with this status. */
   forceUploadStatus: number | null = null;
   /** When set, chat fails as if the LLM were down. */
   llmDown = false;
-  /** Flexible-model state: configured providers + the single active model. */
-  configured = new Map<string, { api_key_hint: string; base_url: string; models: string[];
-    status: ProviderInfo["status"]; status_detail: string; tested_at: string }>();
-  active: ActiveModel | null = null;
   private server?: http.Server | https.Server;
   private timers = new Set<NodeJS.Timeout>();
 
   constructor(private opts: FakeOptions = {}) {
     this.token = opts.token ?? "test-token";
-    // Seed a reachable default, like the harness seeding from LLM_MODEL.
-    this.configured.set("reconix", { api_key_hint: "k…key", base_url: "http://llm", models: ["default-model"],
-      status: "REACHABLE", status_detail: "seeded", tested_at: new Date().toISOString() });
-    this.active = { provider_id: "reconix", model: "default-model", label: "Reconix",
-      activated_at: new Date().toISOString() };
-  }
-
-  private providerView(id: string): ProviderInfo {
-    const c = CATALOG.find((x) => x.id === id)!;
-    const row = this.configured.get(id);
-    const activeHere = this.active?.provider_id === id;
-    return { id, label: c.label, kind: c.kind, needs_key: c.needs_key, key_optional: c.key_optional,
-      base_mode: c.base_mode, multi_model: c.multi_model, configured: !!row,
-      api_key_hint: row?.api_key_hint ?? "", base_url: row?.base_url || c.default_base,
-      models: row?.models ?? c.default_models, status: row?.status ?? "UNTESTED",
-      status_detail: row?.status_detail ?? "", tested_at: row?.tested_at ?? "",
-      active_model: activeHere ? this.active!.model : "" };
   }
 
   async start(): Promise<string> {
@@ -224,7 +143,7 @@ export class FakeHarness {
 
   private session(id: string) {
     const s = this.sessions.get(id);
-    if (!s) throw new Error("session not found");
+    if (!s) throw new Error("SESSION_NOT_FOUND: This session is no longer on the scanner server. Start a new one.");
     return s;
   }
 
@@ -233,12 +152,8 @@ export class FakeHarness {
     switch (name) {
       case "create_session": {
         const id = randomUUID().replace(/-/g, "").slice(0, 24);
-        if (a.target_type === "github" && !/^https:\/\/github\.com\/[\w-]+\/[\w.-]+?(\.git)?\/?$/.test(a.repo_url ?? "")) {
-          throw new Error("only https://github.com/<owner>/<repo> links are supported");
-        }
         this.sessions.set(id, {
-          id, owner: "me", name: a.name ?? (a.target_type === "github" ? a.repo_url.split("github.com/")[1] : "Workspace scan"),
-          target_type: a.target_type ?? "workspace", repo_url: a.repo_url ?? null,
+          id, owner: "me", name: a.name ?? "Workspace scan", target_type: "workspace", repo_url: null,
           created_at: new Date().toISOString(), manifest: new Map(), pending: null, messages: [],
           baselineHash: new Map(), content: new Map(),
         });
@@ -266,7 +181,18 @@ export class FakeHarness {
         const seen = new Set(m.map((e) => e.path));
         const del = [...s.manifest.keys()].filter((p) => !seen.has(p)).sort();
         s.pending = m;
+        s.target_type = "workspace"; // the folder replaces a cloned repository
+        s.repo_url = null;
         return { need, delete: del, unchanged_count: m.length - need.length };
+      }
+      case "clone_repo": {
+        const s = this.session(a.session_id);
+        if (githubRepoUrl(a.url ?? "") !== LUMINA_REPO) {
+          throw new Error(`This scanner has no access to ${a.url}. The connected repository is ${LUMINA_REPO}.`);
+        }
+        s.target_type = "github";
+        s.repo_url = LUMINA_REPO;
+        return { ok: true };
       }
       case "request_upload": {
         this.session(a.session_id);
@@ -281,10 +207,6 @@ export class FakeHarness {
         if ([...this.scans.values()].some((x) => x.session_id === s.id && (x.status === "running" || x.status === "queued"))) {
           throw new Error("a scan is already running for this session");
         }
-        if (s.target_type === "github" && /private/.test(s.repo_url ?? "") && !a.github_token) {
-          const repo = s.repo_url!.split("github.com/")[1];
-          throw new Error(`Could not get ${repo} from GitHub (git clone failed). If the repository is private, sign in to GitHub and scan again.`);
-        }
         if (s.target_type === "workspace") {
           if (s.pending) {
             for (const e of s.pending) s.manifest.set(e.path, e);
@@ -295,30 +217,13 @@ export class FakeHarness {
           if (a.upload_id && !upload?.data) throw new Error("upload not found");
           if (upload?.data) await readFixable(upload.data, s.content);
         }
-        return { scan_id: this.runScan(s) };
-      }
-      case "watch_scan": {
-        const scan = this.scans.get(a.scan_id);
-        if (!scan) throw new Error("scan not found");
-        let first = true;
-        while (scan.status === "running" || scan.status === "queued") {
-          if (progressToken !== undefined) {
-            await extra.sendNotification({ method: "notifications/progress",
-              params: { progressToken, progress: scan.percent, total: 100,
-                message: `${SCAN_STAGES.find((s) => s.stage === scan.stage)?.label ?? scan.stage}: ${scan.percent}%` } });
-          }
-          if (first && this.dropNextWatch) {
-            this.dropNextWatch = false;
-            await sleep(20);
-            res.destroy();
-            await sleep(10_000);
-          }
-          first = false;
-          await sleep(this.step / 2);
-        }
-        return scan;
+        return { scan_id: this.runScan(s, a.paths) };
       }
       case "get_scan_status": {
+        if (this.dropNextStatus) {
+          this.dropNextStatus = false;
+          res.destroy();
+        }
         const scan = this.scans.get(a.scan_id);
         if (!scan) throw new Error("scan not found");
         return scan;
@@ -326,6 +231,7 @@ export class FakeHarness {
       case "cancel_scan": {
         const scan = this.scans.get(a.scan_id);
         if (!scan) throw new Error("scan not found");
+        if (scan.status !== "running") return { ok: true };
         scan.status = "cancelled";
         scan.finished_at = new Date().toISOString();
         return { ok: true };
@@ -333,117 +239,22 @@ export class FakeHarness {
       case "get_findings": {
         const s = this.session(a.session_id);
         const scan = a.scan_id ? this.scans.get(a.scan_id) : this.latestScan(s.id, true);
-        let all = scan ? this.findingsFor(s) : [];
-        if (scan && scan.status === "running") {
-          // While a scan runs, findings come in gradually and have not been reviewed yet.
-          all = all.slice(0, Math.ceil((all.length * scan.percent) / 100))
-            .map((f) => ({ ...f, explanation: "", fix_recommendation: "", verdict: "unsure" as const }));
-        }
+        const all = scan ? this.visible(s, scan) : [];
         const off = a.offset ?? 0;
         const lim = a.limit ?? 200;
         return { findings: all.slice(off, off + lim), total: all.length };
       }
-      case "summarize_findings": {
-        const s = this.session(a.session_id);
-        const all = this.latestScan(s.id, true) ? this.findingsFor(s) : [];
-        const counts: Record<string, number> = {};
-        for (const f of all) counts[f.severity] = (counts[f.severity] ?? 0) + 1;
-        const real = [...all].filter((f) => f.verdict === "likely_real").sort(bySeverity);
-        const false_alarms = all.length - real.length;
-        // Overall verdict is derived from the same all/real/counts, so it can never contradict the numbers.
-        const plural = (k: number, one: string) => `${k} ${k === 1 ? one : one + "s"}`;
-        const breakdown = SEV_ORDER.filter((sv) => real.some((f) => f.severity === sv))
-          .map((sv) => `${real.filter((f) => f.severity === sv).length} ${sv}`).join(", ");
-        let overall: string | null;
-        if (all.length === 0) overall = null; // the card header already reads "No problems found."
-        else if (real.length === 0) overall = `No real problems — all ${plural(all.length, "finding")} look like false alarms.`;
-        else {
-          const topN = real.filter((f) => f.severity === real[0].severity).length;
-          overall = `${plural(real.length, "likely real problem")} to fix — ${breakdown}`
-            + (false_alarms ? ` (${plural(false_alarms, "finding")} look like noise)` : "")
-            + `. Start with the ${real[0].severity} ${topN === 1 ? "one" : "ones"}.`;
-        }
-        const summary = all.length === 0 ? "**No problems found.**"
-          : `**${plural(all.length, "finding")}.** ${overall}`;
-        return {
-          summary, finding_ids: real.slice(0, 1).map((f) => f.id),
-          card: { total: all.length, counts, likely_real: real.length, false_alarms,
-                  files: real.slice(0, 1).map((f) => ({ path: f.path, count: 1 })), overall,
-                  fix_first: real.slice(0, 1).map((f) => ({ text: `${f.title} (${f.path})`, finding_ids: [f.id] })) },
-        };
-      }
-      case "fix_findings": {
-        const s = this.session(a.session_id);
-        if (s.target_type !== "workspace") throw new Error("auto-fix works only for workspace sessions");
-        const all = this.latestScan(s.id, true) ? this.findingsFor(s) : [];
-        const chosen = (a.finding_ids as string[]).map((id) => all.find((x) => x.id === id));
-        if (!chosen.length || chosen.some((f) => !f)) throw new Error("finding not found");
-        if (progressToken !== undefined) {
-          const file = chosen[0]!.path;
-          for (const [kind, text] of [["start", "1 finding"], ["thinking", "Look at the "], ["thinking", "query first."],
-                                      ["tool", `Edit ${file}`], ["result", "+1 −1 lines"], ["heartbeat", ""],
-                                      ["text", "Done."], ["done", "Finished 1 of 1 files"]]) {
-            await extra.sendNotification({ method: "notifications/progress",
-              params: { progressToken, progress: 50, total: 100, message: JSON.stringify({ file, kind, text }) } });
-          }
-        }
-        return {
-          files: chosen.map((f) => {
-            const edit = fixFor(f!.path) ?? { start_line: f!.start_line, end_line: f!.end_line, replacement: "// fixed" };
-            return { path: f!.path, file_sha256: f!.file_sha256, edits: [edit] };
-          }),
-          summary: "- Rewrote the unsafe code to its secure form.",
-          results: chosen.map((f) => ({ finding_id: f!.id, status: "fixed", note: "No longer reported." })),
-        };
-      }
+      case "fix_findings":
+        return this.fix(this.session(a.session_id), a.finding_ids, progressToken, extra);
       case "chat": {
         const s = this.session(a.session_id);
-        if (this.llmDown) throw new Error("The LLM cannot be reached. Check LLM_BASE_URL on the scanner server.");
-        const { reply, action } = this.agent(s, a.message);
-        s.messages.push({ role: "user", text: a.message, finding_ids: [] },
-                        { role: "assistant", text: reply, finding_ids: [] });
-        return { reply, finding_ids: [], action };
+        if (this.llmDown) throw new Error("MODEL_UNAVAILABLE: The model is not answering.");
+        const answer = this.answer(s, a.message, a);
+        const created_at = new Date().toISOString();
+        s.messages.push({ role: "user", text: a.message, created_at });
+        if (answer.reply) s.messages.push({ role: "assistant", text: answer.reply, created_at });
+        return answer;
       }
-      case "list_providers":
-        return { providers: CATALOG.map((c) => this.providerView(c.id)), active: this.active };
-      case "set_provider": {
-        const c = CATALOG.find((x) => x.id === a.provider_id);
-        if (!c) throw new Error("Unknown provider.");
-        const row = this.configured.get(a.provider_id);
-        const models = a.models ?? row?.models ?? c.default_models;
-        if (c.needs_key && !a.api_key && !row) throw new Error(`${c.label} needs an API key.`);
-        this.configured.set(a.provider_id, {
-          api_key_hint: a.api_key ? `${String(a.api_key).slice(0, 3)}…${String(a.api_key).slice(-4)}` : row?.api_key_hint ?? "",
-          base_url: a.base_url ?? row?.base_url ?? "", models, status: "UNTESTED", status_detail: "", tested_at: "" });
-        return this.providerView(a.provider_id);
-      }
-      case "test_provider": {
-        const c = CATALOG.find((x) => x.id === a.provider_id);
-        if (!c) throw new Error("Unknown provider.");
-        const row = this.configured.get(a.provider_id) ?? { api_key_hint: "", base_url: "",
-          models: c.default_models, status: "UNTESTED" as const, status_detail: "", tested_at: "" };
-        if (!a.model && !row.models.length) throw new Error("No model to test. Add a model name first.");
-        // Like the harness: testing a model by name makes it a custom provider's model.
-        if (a.model && c.base_mode !== "readonly" && !row.models.includes(a.model)) row.models = [a.model];
-        row.status = "REACHABLE";
-        row.status_detail = "reachable";
-        row.tested_at = new Date().toISOString();
-        this.configured.set(a.provider_id, row);
-        return this.providerView(a.provider_id);
-      }
-      case "activate_model": {
-        const c = CATALOG.find((x) => x.id === a.provider_id);
-        if (!c) throw new Error("Unknown provider.");
-        const row = this.configured.get(a.provider_id);
-        if (!row) throw new Error(`${c.label} is not configured.`);
-        if (row.status !== "REACHABLE") throw new Error("Test the connection first — the provider is not reachable.");
-        if (!row.models.includes(a.model)) throw new Error(`${a.model} is not configured for ${c.label}.`);
-        this.active = { provider_id: a.provider_id, model: a.model, label: c.label,
-          activated_at: new Date().toISOString() };
-        return this.active;
-      }
-      case "active_model":
-        return { active: this.active };
     }
     throw new Error(`unknown tool ${name}`);
   }
@@ -456,41 +267,93 @@ export class FakeHarness {
     this.opts.stepMs = ms;
   }
 
-  /** A stand-in for the harness's agent: decides with simple rules what the message wants. */
-  private agent(s: Session, text: string): { reply: string; action: ChatAction | null } {
-    const base = { full: false, paths: [] as string[], url: null as string | null, confirm: false, finding_ids: [] as string[] };
-    const running = [...this.scans.values()].some((x) => x.session_id === s.id && x.status === "running");
-    if (/^\s*(stop|cancel)\b/i.test(text)) {
-      return running ? { reply: "Stopping the scan.", action: { ...base, type: "cancel" } }
-        : { reply: "No scan is running right now.", action: null };
+  /** Keyword rules stand in for the agent: a message is a command, or a question the findings answer. */
+  private answer(s: Session, text: string, context: ChatContext): ChatReply {
+    const scan = this.latestScan(s.id, true);
+    const raw = scan ? this.visible(s, scan).map((f, i) => toFinding(f, scan.scan_id, i)) : undefined;
+    const findings = raw ? [...prepareFindings(raw, false).findings, ...mergeFindings(raw.filter(hiddenAsFalse))] : [];
+    const command = scanRequest(text) ?? commandFor(text, {
+      findings, lastMentioned: context.last_mentioned ?? [], providers: context.providers ?? [],
+    });
+    if (command) return { reply: "", actions: [], action: command };
+    const answer = staticAnswer(text, raw);
+    return { reply: answer.text, actions: answer.actions, action: null };
+  }
+
+  /** The scripted fix agent: streams a transcript per file, then returns line edits placed in the uploaded text. */
+  private async fix(s: Session, ids: string[], progressToken: string | number | undefined, extra: any) {
+    if (s.target_type !== "workspace") throw new Error("Fixes work only for an open folder.");
+    if (ids.length > MAX_FIX_FINDINGS) throw new Error(`The fix agent takes at most ${MAX_FIX_FINDINGS} findings at a time.`);
+    const all = this.latestScan(s.id, true) ? this.findingsFor(s) : [];
+    const chosen = ids.map((id) => all.find((f) => f.id === id));
+    if (!chosen.length || chosen.some((f) => !f)) throw new Error("finding not found");
+    const files: FileFix[] = [];
+    const results: FixOutcome[] = [];
+    const scripts: AgentEvent[][] = [];
+    const summary: string[] = [];
+    for (const path of [...new Set(chosen.map((f) => f!.path))].sort()) {
+      const here = chosen.filter((f) => f!.path === path) as Finding[];
+      const fix = fixFor(path);
+      // findingsFor already followed the vulnerable lines to where they are now.
+      const start_line = here[0].start_line;
+      const edit = fix
+        ? { start_line, end_line: start_line + fix.original.length - 1, replacement: fix.replacement }
+        : { start_line, end_line: here[0].end_line, replacement: "// fixed" };
+      files.push({ path, file_sha256: here[0].file_sha256, edits: [edit] });
+      for (const f of here) {
+        results.push({ finding_id: f.id, status: "fixed", note: "No longer reported." });
+        summary.push(`- \`${path}\`: ${f.fix_recommendation}`);
+      }
+      scripts.push([
+        { file: path, kind: "start", text: `${here.length} finding${here.length === 1 ? "" : "s"}` },
+        { file: path, kind: "tool", text: `Read ${path}` },
+        ...(here[0].explanation.match(/[^.]+\.?\s*/g) ?? []).map((text): AgentEvent => ({ file: path, kind: "thinking", text })),
+        { file: path, kind: "tool", text: `Edit ${path}` },
+        { file: path, kind: "result", text: `+${edit.replacement.split("\n").length} −${edit.end_line - edit.start_line + 1} lines` },
+      ]);
     }
-    if (/^\s*fix\b/i.test(text)) {
-      return { reply: "Preparing fixes.", action: { ...base, type: "fix", finding_ids: this.findingsFor(s).map((f) => f.id) } };
+    const events: AgentEvent[] = [
+      { file: null, kind: "status", text: `Working on ${ids.length} finding${ids.length === 1 ? "" : "s"} in ${files.length} file${files.length === 1 ? "" : "s"}` },
+      ...scripts.flatMap((script, i): AgentEvent[] =>
+        [...script, { file: files[i].path, kind: "done", text: `Finished ${i + 1} of ${files.length} file${files.length === 1 ? "" : "s"}` }]),
+      { file: null, kind: "status", text: "Checking all changes with the scanners" },
+    ];
+    for (const [i, event] of events.entries()) {
+      if (extra.signal.aborted) throw new Error("The fix agent was stopped.");
+      if (progressToken !== undefined) {
+        await extra.sendNotification({ method: "notifications/progress",
+          params: { progressToken, progress: i + 1, total: events.length, message: JSON.stringify(event) } });
+      }
+      await sleep(Math.min(this.step, 120));
     }
-    const r = route(text);
-    if (r.kind === "github") return { reply: `Scanning ${r.url}.`, action: { ...base, type: "scan_github", url: r.url } };
-    if (/\bsafe\?/i.test(text)) {
-      return { reply: "Do you want me to scan the workspace?", action: { ...base, type: "scan", confirm: true } };
-    }
-    if (r.kind === "scan" || r.kind === "rescan" || /\bscan\b/i.test(text)) {
-      const only = text.match(/\bonly (?:the )?([\w./-]+?)(?: folder)?\s*$/i);
-      const full = /from scratch|full scan/i.test(text);
-      return { reply: "Starting a scan.", action: { ...base, type: "scan", full, paths: only ? [only[1]] : [] } };
-    }
-    // A plain question: answer from the scan's findings (static, no LLM).
-    const findings = this.latestScan(s.id, true) ? this.findingsFor(s) : [];
-    return { reply: answerQuestion(text, findings), action: null };
+    return { files, results, summary: summary.join("\n") };
+  }
+
+  /** A scan's findings: only its paths, and while it runs only some, not reviewed yet. */
+  private visible(s: Session, scan: ScanSummary): Finding[] {
+    const paths = this.scanPaths.get(scan.scan_id);
+    const all = this.findingsFor(s).filter((f) => !paths?.length || underPaths(f.path, paths));
+    if (scan.status !== "running") return all;
+    return all.slice(0, Math.ceil((all.length * scan.percent) / 100))
+      .map((f) => ({ ...f, explanation: "", fix_recommendation: "", verdict: "unsure" as const }));
+  }
+
+  private count(s: Session, scan: ScanSummary) {
+    const counts: ScanSummary["counts"] = {};
+    for (const f of this.visible(s, scan)) counts[f.severity] = (counts[f.severity] ?? 0) + 1;
+    return counts;
   }
 
   private get step() {
     return this.stepMs;
   }
 
-  private runScan(s: Session) {
+  private runScan(s: Session, paths?: string[]) {
     const id = randomUUID().replace(/-/g, "").slice(0, 24);
-    const scan: ScanSummary = { scan_id: id, session_id: s.id, status: "running", stage: "semgrep", percent: 0,
+    const scan: ScanSummary = { scan_id: id, session_id: s.id, status: "running", ...SCAN_STAGES[0], percent: 0,
       counts: {}, error: null, started_at: new Date().toISOString(), finished_at: null };
     this.scans.set(id, scan);
+    if (paths?.length) this.scanPaths.set(id, paths);
     let stageIndex = 0;
     const t = setInterval(() => {
       if (scan.status !== "running") {
@@ -500,17 +363,15 @@ export class FakeHarness {
       // Six tool stages, then evidence review; preserve the existing seven-tick pacing.
       stageIndex += 1;
       scan.percent = Math.min(scan.percent + 15, 100);
-      if (stageIndex < SCAN_STAGES.length) scan.stage = SCAN_STAGES[stageIndex].stage;
+      if (stageIndex < SCAN_STAGES.length) Object.assign(scan, SCAN_STAGES[stageIndex]);
       if (scan.percent === 100) {
         scan.status = "done";
         scan.stage = "finished";
         scan.error = this.opts.scanError ?? null;
         scan.finished_at = new Date().toISOString();
-        const counts: Record<string, number> = {};
-        for (const f of this.findingsFor(s)) counts[f.severity] = (counts[f.severity] ?? 0) + 1;
-        scan.counts = counts;
         clearInterval(t);
       }
+      scan.counts = this.count(s, scan);
     }, this.step);
     this.timers.add(t);
     return id;
@@ -519,13 +380,12 @@ export class FakeHarness {
   private findingsFor(s: Session): Finding[] {
     const list = (this.opts.findings ?? []).map((o, i) => {
       const f: Finding = {
-        id: `f${i}`, tools: ["semgrep"], rule_id: "rule", title: `Finding ${i}`, severity: "high", cwe: null,
+        id: findingId(o, i), tools: ["semgrep"], rule_id: "rule", title: `Finding ${i}`, severity: "high", cwe: null,
         path: "app.js", start_line: 1, end_line: 1, start_col: null, end_col: null, file_sha256: "", message: "m",
         snippet: "", verdict: "likely_real", explanation: "Explanation. More text.",
         fix_recommendation: "Fix it this way. Then test.", suggested_patch: null, status: "new", web_url: null, ...o,
       };
       f.file_sha256 = s.manifest.get(f.path)?.sha256 ?? "";
-      if (s.target_type === "github") f.web_url = `${s.repo_url}/blob/abc/${f.path}#L${f.start_line}-L${f.end_line}`;
       return f;
     });
     // Workspace: attach each finding to the uploaded file whose path ends with the finding's
@@ -540,7 +400,10 @@ export class FakeHarness {
         const text = s.content.get(match);
         const fix = fixFor(match);
         if (text !== undefined && fix) {
-          if (text.includes(fix.replacement.split("\n")[0].trim())) return []; // the file holds its fix
+          const line = locate(fix, text);
+          if (line === undefined) return []; // the vulnerable lines are gone: fixed
+          f.end_line += line - f.start_line;
+          f.start_line = line; // follow them when edits above moved them
         } else {
           const baseline = s.baselineHash.get(match) ?? (s.baselineHash.set(match, hash), hash);
           if (hash !== baseline) return []; // the file changed since it was first scanned: fix applied
@@ -595,9 +458,8 @@ export class FakeHarness {
 }
 
 const TOOL_NAMES = ["create_session", "list_sessions", "get_session", "rename_session", "delete_session",
-  "sync_files", "request_upload", "start_scan", "watch_scan", "get_scan_status", "cancel_scan", "get_findings", "chat",
-  "fix_findings", "summarize_findings",
-  "list_providers", "set_provider", "test_provider", "activate_model", "active_model"];
+  "sync_files", "clone_repo", "request_upload", "start_scan", "get_scan_status",
+  "cancel_scan", "get_findings", "chat", "fix_findings"];
 
 function readBody(req: http.IncomingMessage): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -614,7 +476,7 @@ function sleep(ms: number) {
 
 /** Canned findings for the demo: a spread of severities across files that exist in a typical
  * JS/TS project. Everything else (snippet, review verdict, ids) is filled in by findingsFor(). */
-const DEMO_FINDINGS: Partial<Finding>[] = [
+export const DEMO_FINDINGS: Partial<Finding>[] = [
   { path: "server/index.js", title: "SQL injection in catalog search", severity: "critical",
     rule_id: "javascript.express.sql-injection", cwe: "CWE-89", tools: ["semgrep"],
     start_line: 42, end_line: 42,
@@ -697,38 +559,55 @@ const DEMO_FINDINGS: Partial<Finding>[] = [
     fix_recommendation: "Set { httpOnly: true, secure: true, sameSite: \"lax\" } on the cookie." },
 ];
 
+interface Fix {
+  start_line: number;
+  /** The vulnerable lines, so the fix still lands (and the finding still shows) after other edits moved them. */
+  original: (string | RegExp)[];
+  replacement: string;
+}
+
 /** The secure replacement for each planted finding, as whole-line edits over the
  * Lumina sample. Keyed by the finding's file; shown as a diff and applied on "Fix". */
-const FIXES: Record<string, { start_line: number; end_line: number; replacement: string }> = {
+const FIXES: Record<string, Fix> = {
   // SQL injection: parameterise the query and bind the search term (lines 42-43).
-  "server/index.js": { start_line: 42, end_line: 43,
+  "server/index.js": { start_line: 42,
+    original: ["  const q = `SELECT id, name, email, phone, address, card_brand, card, exp, password FROM customers WHERE name LIKE '%${req.query.q}%'`;", "  db.all(q, (err, rows) => {"],
     replacement: '  const q = "SELECT id, name, price FROM products WHERE name LIKE ?";\n  db.all(q, ["%" + req.query.q + "%"], (err, rows) => {' },
   // Command injection: execFile with an argument array instead of a shell string.
-  "server/routes/exec.js": { start_line: 17, end_line: 17,
+  "server/routes/exec.js": { start_line: 17,
+    original: ["  exec(`ping -c 1 ${host}`);"],
     replacement: '  require("child_process").execFile("ping", ["-c", "1", host]);' },
   // Hard-coded credential: read it from the environment.
-  "server/config.js": { start_line: 8, end_line: 8,
+  "server/config.js": { start_line: 8,
+    original: [/^const STRIPE_KEY = "sk_live_\w+";$/],
     replacement: 'const STRIPE_KEY = process.env.STRIPE_KEY;' },
   // Reflected XSS: textContent escapes markup; innerHTML does not.
-  "server/views/profile.js": { start_line: 23, end_line: 23,
+  "server/views/profile.js": { start_line: 23,
+    original: ["  el.innerHTML = params.get('name');"],
     replacement: "  el.textContent = params.get('name');" },
   // Weak hash: scrypt is a slow, salted KDF built into Node's crypto.
-  "server/utils/hash.js": { start_line: 5, end_line: 5,
+  "server/utils/hash.js": { start_line: 5,
+    original: ["  return crypto.createHash('md5').update(pw).digest('hex');"],
     replacement: '  return crypto.scryptSync(pw, "salt", 64).toString("hex");' },
   // Path traversal: basename() drops any directory components, so the read stays in INVOICE_DIR.
-  "server/routes/download.js": { start_line: 12, end_line: 12,
+  "server/routes/download.js": { start_line: 12,
+    original: ["  const data = fs.readFileSync(path.join(INVOICE_DIR, file));"],
     replacement: '  const data = fs.readFileSync(path.join(INVOICE_DIR, path.basename(file)));' },
   // SSRF: resolve the URL and allow only the CDN host before fetching it.
-  "server/routes/import.js": { start_line: 9, end_line: 10,
+  "server/routes/import.js": { start_line: 9,
+    original: ["  const target = req.body.url;", "  https.get(target, (upstream) => upstream.pipe(res));"],
     replacement: '  const { hostname } = new URL(req.body.url);\n  if (hostname !== "cdn.lumina.com") return res.status(400).json({ error: "host not allowed" });\n  https.get(req.body.url, (upstream) => upstream.pipe(res));' },
   // Permissive CORS: name a single trusted origin instead of a wildcard.
-  "server/middleware/cors.js": { start_line: 7, end_line: 8,
+  "server/middleware/cors.js": { start_line: 7,
+    original: ["  res.header(\"Access-Control-Allow-Origin\", \"*\");", "  res.header(\"Access-Control-Allow-Credentials\", \"true\");"],
     replacement: '  res.header("Access-Control-Allow-Origin", "https://www.lumina.com");\n  res.header("Access-Control-Allow-Credentials", "true");' },
   // Stack-trace exposure: return a generic message; log the real error server-side.
-  "server/middleware/errors.js": { start_line: 7, end_line: 7,
+  "server/middleware/errors.js": { start_line: 7,
+    original: ["  res.status(500).json({ error: err.message, stack: err.stack });"],
     replacement: '  res.status(500).json({ error: "Something went wrong. Please try again." });' },
   // Insecure cookie: set HttpOnly, Secure and SameSite so scripts and plain HTTP can't take it.
-  "server/session.js": { start_line: 9, end_line: 9,
+  "server/session.js": { start_line: 9,
+    original: ["  res.cookie(\"sid\", sid, { maxAge: 86400000 });"],
     replacement: '  res.cookie("sid", sid, { maxAge: 86400000, httpOnly: true, secure: true, sameSite: "lax" });' },
 };
 
@@ -738,13 +617,36 @@ function fixFor(p: string) {
   return key ? FIXES[key] : undefined;
 }
 
+/** The line (1-based) where a fix's vulnerable code is now, nearest to where it was planted. */
+function locate(fix: Fix, text: string): number | undefined {
+  const lines = text.split(/\r?\n/);
+  const at = lines.map((_, i) => i + 1).filter((n) => fix.original.every((want, k) =>
+    typeof want === "string" ? lines[n - 1 + k] === want : want.test(lines[n - 1 + k] ?? "")));
+  return at.sort((a, b) => Math.abs(a - fix.start_line) - Math.abs(b - fix.start_line))[0];
+}
+
+/** Stable across scans and restarts, so ignored findings stay ignored. */
+export function findingId(f: Partial<Finding>, index: number): string {
+  return `f-${createHash("sha256").update(`${f.path ?? index}|${f.rule_id ?? index}`).digest("hex").slice(0, 10)}`;
+}
+
+/** Scan wordings the shared keyword rules leave to the agent. */
+function scanRequest(text: string): ChatCommand | undefined {
+  const only = text.match(/^\s*(?:please )?(?:scan|check) (?:only|just) (?:the )?([\w./-]+?)(?: folder)?[.!]?\s*$/i);
+  if (only) return { kind: "scan", paths: [only[1]] };
+  if (/^\s*scan(?: now| it)?[.!]?\s*$/i.test(text)) return { kind: "scan" };
+  if (/\bsafe\?/i.test(text)) return { kind: "scan", confirm: true };
+  return undefined;
+}
+
 /** Keep the text of every uploaded file that has a canned fix (the archive is a tar.gz). */
 async function readFixable(archive: Buffer, into: Map<string, string>) {
   const parser = new tar.Parser({ onReadEntry: (e) => {
-    if (!fixFor(e.path)) return e.resume();
+    const file = e.path.replace(/^\.\//, "");
+    if (!fixFor(file)) return e.resume();
     const chunks: Buffer[] = [];
     e.on("data", (c: Buffer) => chunks.push(c));
-    e.on("end", () => into.set(e.path, Buffer.concat(chunks).toString("utf8")));
+    e.on("end", () => into.set(file, Buffer.concat(chunks).toString("utf8")));
   } });
   await new Promise<void>((resolve, reject) => {
     parser.on("end", resolve);

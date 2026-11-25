@@ -1,60 +1,140 @@
-// Messages between the extension and the webview. The webview never talks to the harness.
+// postMessage protocol between the webview and the extension host.
+// Pure types only: the webview bundle imports this file.
+import type {
+  AgentEvent,
+  ChatReply,
+  ConnectionAction,
+  ConnectionStatus,
+  LlmProvider,
+  LlmProviderInput,
+  Message,
+  ScanSummary,
+  Session,
+  SeverityCounts,
+  Severity,
+  SummaryReply,
+  Verdict,
+} from "./contract";
 
-import type { ActiveModel, AgentEvent, ChatMessage, Finding, ProviderInfo, SessionInfo, SummaryCard } from "./contract";
-
-export type ConnectionStatus =
-  | { state: "connected" }
-  | { state: "connecting" }
-  | { state: "disconnected"; reason: string; action?: { label: string; command: string } };
-
-export type ToExtension =
-  | { type: "ready" }
-  | { type: "send"; text: string }
-  | { type: "cancel" }
-  | { type: "confirm"; id: string; accept: boolean }
-  | { type: "newSession" }
-  | { type: "switchSession"; id: string }
-  | { type: "renameSession"; id: string; name: string }
-  /** `confirmed`: the user already said yes in the History menu, so don't ask again. */
-  | { type: "deleteSession"; id: string; confirmed?: boolean }
-  | { type: "deleteAllSessions" }
-  | { type: "openFinding"; id: string }
-  | { type: "fix"; ids: string[] }
-  | { type: "showFalsePositives"; on: boolean }
-  | { type: "runCommand"; command: string }
-  /** Model picker. The API key is a masked password field, sent (with the base URL) only on Test;
-   *  setProviderKey still opens a native password box for the Command Palette flow. */
-  | { type: "testProvider"; id: string; model?: string; base_url?: string; api_key?: string }
-  | { type: "activateModel"; id: string; model: string }
-  | { type: "setProviderKey"; id: string }
-  | { type: "pickModel" };
-
-export interface FindingView extends Finding {
-  /** The file changed since the scan, so lines may have moved. */
-  outdated?: boolean;
+/**
+ * What the webview needs to list a finding. Deliberately has no `snippet`: that is source text
+ * and, for secret scanners, may be the secret itself.
+ */
+export interface FindingView {
+  id: string;
+  title: string;
+  severity: Severity;
+  verdict: Verdict;
+  path: string;
+  line?: number;
+  endLine?: number;
+  /** The scanner's own message. */
+  message: string;
+  ruleIds: string[];
+  tools: string[];
+  cwe?: string[];
+  /** explanation / fixRecommendation rendered by the host with markdown-it (html: false). */
+  explanationHtml?: string;
+  fixRecommendationHtml?: string;
+  /** Why the fix agent can't fix this (plain text); the UI shows it instead of a Fix button. */
+  manualFix?: string;
+  /** The file's content changed since the scan, so the line may have moved. */
+  outdated: boolean;
 }
 
-export type ToWebview =
-  | { type: "state"; connection: ConnectionStatus; sessions: SessionInfo[]; current: string | null;
-      scanning: boolean; busy: boolean;
-      /** Saved files with findings since the last scan: the Rescan button lights up. */
-      changed: number;
-      /** The flexible-model provider list + active model (single source of truth: the harness). */
-      providers: ProviderInfo[]; activeModel: ActiveModel | null }
-  /** Result of a Test connection; updates that provider's status in the picker. */
-  | { type: "testResult"; provider: ProviderInfo }
-  | { type: "history"; messages: ChatMessage[] }
-  | { type: "message"; message: ChatMessage }
-  | { type: "progress"; percent: number; message: string; done?: boolean }
-  | { type: "findings"; findings: FindingView[]; hidden: number; total: number }
-  | { type: "thinking"; on: boolean }
-  /** Yes/No buttons under the last assistant message; the answer comes back as a `confirm` message. */
-  | { type: "confirm"; id: string; yes: string; no: string }
-  | { type: "confirmDone"; id: string }
-  /** The fix agent's live transcript: a block in the chat, then events appended to it as they stream in. */
+/** A chat message as the webview shows it: assistant text also comes as host-rendered markdown. */
+export interface MessageView extends Message {
+  /** `text` rendered with markdown-it (html: false); set for assistant messages. */
+  html?: string;
+}
+
+/** Messages the webview sends to the host. */
+export type WebviewToHost =
+  | { type: "ready" }
+  | { type: "send"; text: string }
+  | { type: "selectSession"; sessionId: string }
+  | { type: "newSession" }
+  | { type: "renameSession"; sessionId: string; title: string }
+  /** `confirmed`: the user already said yes in the History menu, so don't ask again. */
+  | { type: "deleteSession"; sessionId: string; confirmed?: boolean }
+  /** "Delete all" in the History menu, confirmed there. */
+  | { type: "deleteAllSessions" }
+  | { type: "runAction"; action: ChatReply["actions"][number] }
+  | { type: "cancelScan" }
+  | { type: "openFinding"; findingId: string }
+  | { type: "showFalsePositives"; on: boolean }
+  /** The user picked a model in the composer's model menu. */
+  | { type: "activateProvider"; providerId: string }
+  /**
+   * The model menu's form: add (no providerId) or edit a provider, then test it. `apiKey` is typed
+   * in a masked field and sent only here; left out when editing, the saved key stays. The host
+   * never sends a key back.
+   */
+  /** `formId`: which opening of the form asked; its statuses carry it back, so a stale one is dropped. */
+  | { type: "saveProvider"; formId: number; providerId?: string; provider: LlmProviderInput }
+  | { type: "testProvider"; formId: number; providerId: string }
+  /** The host asks for confirmation first. */
+  | { type: "deleteProvider"; providerId: string }
+  /** The user clicked one of the buttons of a `confirm` message. */
+  | { type: "answerConfirm"; id: string; accept: boolean }
+  /** A connection problem's button, e.g. Set Token. Only "reconix." commands run. */
+  | { type: "runCommand"; command: string }
+  /** User cancelled/stopped the active chat request. */
+  | { type: "cancelChat" }
+  /** Insert code block text directly at active editor cursor. */
+  | { type: "insertCode"; text: string };
+
+/** Messages the host sends to the webview. */
+export type HostToWebview =
+  /** Streaming token / piece of assistant reply. */
+  | { type: "chatPiece"; text: string }
+  /** How many saved files have findings since the last scan: the Rescan button lights up with it. */
+  | { type: "changedFiles"; count: number }
+  | {
+      type: "state";
+      connection: ConnectionStatus;
+      sessions: Session[];
+      currentSessionId?: string;
+      messages: MessageView[];
+    }
+  | { type: "chat"; reply: ChatReply; message: MessageView }
+  /** Only the connection changed (e.g. "connecting" while reconnecting): redraw the header and banner. */
+  | { type: "connection"; connection: ConnectionStatus }
+  /** The session list changed (rename, delete) without a switch: redraw History only. */
+  | { type: "sessions"; sessions: Session[]; currentSessionId?: string }
+  /**
+   * Ask this in the chat as if the user typed it (Explain from the editor): the webview shows it,
+   * then sends it back as "send". Only host-built text; it never carries file contents.
+   */
+  | { type: "ask"; text: string }
+  /** Switch the webview to a tab, e.g. after "show findings". */
+  | { type: "showTab"; tab: "chat" | "findings" }
+  /** The LLM providers for the composer's model menu; the active one has isActive. */
+  | { type: "models"; providers: LlmProvider[] }
+  /** The model form's status line: saving / testing, then whether it works. `providerId`: the one saved. */
+  | { type: "providerStatus"; formId: number; providerId?: string; tone: "busy" | "ok" | "error"; text: string }
+  | { type: "progress"; scan: ScanSummary }
+  | {
+      type: "findings";
+      scanId: string;
+      /** Visible findings, same-line hits merged (Q13), sorted most severe first. */
+      findings: FindingView[];
+      counts: SeverityCounts;
+      /** Likely false positives left out because the setting is off. */
+      hiddenFalsePositives: number;
+    }
+  /**
+   * The summary card. `hidden`: likely false alarms hidden by the setting; `error`: problems some
+   * scan steps had.
+   */
+  | { type: "summary"; summary: SummaryReply; hidden: number; error?: string }
+  /** A live fix-agent transcript: start a block, append events to it, then close it. */
   | { type: "agentStart"; id: string; title: string }
   | { type: "agentEvent"; id: string; event: AgentEvent }
   | { type: "agentEnd"; id: string; title: string }
-  /** The scan summary card. `hidden`: likely false alarms hidden by the setting; `error`: scan problems. */
-  | { type: "summaryCard"; card: SummaryCard; hidden: number; error: string | null }
-  | { type: "error"; message: string; action?: { label: string; command: string } };
+  /** Two buttons in the chat (e.g. "Apply fix" / "Skip"); the answer comes back as answerConfirm. */
+  | { type: "confirm"; id: string; yes: string; no: string }
+  /** The question was answered (or dropped): disable its buttons. */
+  | { type: "confirmDone"; id: string }
+  /** `action`: a button that fixes it (only "reconix." commands run). */
+  | { type: "error"; message: string; action?: ConnectionAction };
