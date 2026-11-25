@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { SPLASH_EXIT_EVENT } from "@/components/ui/reconix-splash";
@@ -50,12 +51,38 @@ function countUp(el: HTMLElement, delay: number) {
 
 let introPlayed = false;
 
+/** What the CSS hides until GSAP reveals it (styles/dashboard.css, "Intro reveal"). */
+const REVEAL = ".dash-reveal, .dash-overview .dash-card, .dash-navbtn";
+
+/** The pieces in `node` (itself included) that are still hidden for the intro. */
+function hiddenPieces(node: Node): HTMLElement[] {
+  if (!(node instanceof HTMLElement)) return [];
+  const found = node.matches(REVEAL) ? [node] : [];
+  found.push(...Array.from(node.querySelectorAll<HTMLElement>(REVEAL)));
+  return found.filter((el) => getComputedStyle(el).visibility === "hidden" && !gsap.isTweening(el));
+}
+
+/**
+ * Pieces that stream in after the intro ran (each view's data arrives behind its own Suspense
+ * boundary, seconds after hydration) would stay hidden by the intro CSS: nothing else reveals
+ * them. Watch the page and fade each one in as it arrives. Returns the cleanup.
+ */
+function revealLateArrivals(): () => void {
+  const observer = new MutationObserver((records) => {
+    const late = records.flatMap((r) => Array.from(r.addedNodes).flatMap(hiddenPieces));
+    if (late.length) gsap.fromTo(late, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: "expo.out", stagger: 0.04, clearProps: "transform" });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+  return () => observer.disconnect();
+}
+
 /**
  * Master intro timeline (§7.1). Runs once after hydration. Under reduced motion (or after the
  * first intro has already played in this tab) it reveals everything immediately so returning to
  * Overview after a route skeleton never flashes a blank second loading state.
  */
 export function Intro() {
+  useEffect(() => revealLateArrivals(), []);
   useGSAP(() => {
     const reveal = q(".dash-reveal, .dash-overview .dash-card, .dash-navbtn");
     // only the numbers on screen count up: a hidden view (they all stay mounted) keeps its

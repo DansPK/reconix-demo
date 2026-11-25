@@ -119,25 +119,35 @@ export function registerViewNavigator(fn: ViewNavigator | null): void {
   navigatorFn = fn;
 }
 
+/** The run the mounted views were rendered for (null: every run), set by the Viewer from each
+ *  server render. undefined until the Viewer has mounted. */
+let renderedRun: string | null | undefined;
+
+export function setRenderedRun(run: string | null): void {
+  renderedRun = run;
+}
+
 /** Open `view` at its clean path (`/findings/<id>`, `/reports/<id>`, `/assessments/<id>`, …).
- *  Keeps Overview ↔ Assistant in-place (via history state) so the mounted Viewer can play its
- *  GSAP hero/globe transition; other route switches use Next.js SSR navigation. */
+ *  Every view is already mounted with its data (loaded in the background), so a switch that keeps
+ *  the run the page was rendered for happens in place (history state, synced with usePathname):
+ *  nothing reloads. Only a switch to another run's data goes through Next.js SSR navigation. */
 export function showView(view: View, filters?: ViewParams): void {
   const from = resolveView(window.location.pathname, new URLSearchParams(window.location.search).get("view"));
   const params = new URLSearchParams(viewSearch(window.location.search, view, filters, window.location.pathname));
-  const runId = view === "assessments" || view === "knowledge" ? null : (runIdFromPath(window.location.pathname) ?? params.get("uid") ?? params.get("assessment"));
+  // Security knowledge's address names no run: leaving it returns to the run the views hold
+  const kept = from === "knowledge" ? (renderedRun ?? null) : null;
+  const runId = view === "assessments" || view === "knowledge" ? null : (runIdFromPath(window.location.pathname) ?? params.get("uid") ?? params.get("assessment") ?? kept);
   params.delete("uid");
   params.delete("assessment");
   const base = viewPath(view, runId);
   const query = params.toString();
   const href = query ? `${base}?${query}` : base;
-  const inPlaceAssistantToggle =
-    (from === "overview" && view === "assistant") || (from === "assistant" && view === "overview");
-  if (from !== view && !inPlaceAssistantToggle && navigatorFn) {
+  const sameData = renderedRun !== undefined && (view === "knowledge" || (runId ?? null) === renderedRun);
+  if (from !== view && !sameData && navigatorFn) {
     navigatorFn(href, "push");
     return;
   }
-  write(params, base);
+  writeQuery(params, from !== view ? "push" : "replace", null, undefined, base);
 }
 
 /** Current dashboard view from Next.js pathname (falling back to legacy `?view=`). */

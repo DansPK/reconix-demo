@@ -16,6 +16,7 @@ import {
   registerViewNavigator,
   resolveView,
   runIdFromPath,
+  setRenderedRun,
   showView,
   useCurrentView,
   watchHistory,
@@ -49,6 +50,7 @@ export function Viewer({
   reports,
   knowledge,
   assistant,
+  renderedRun = null,
 }: {
   topBar: React.ReactNode;
   /** A line above whichever view is open (an address naming a run this folder doesn't hold). */
@@ -60,6 +62,9 @@ export function Viewer({
   /** The Security knowledge page. */
   knowledge: React.ReactNode;
   assistant: AssistantInfo;
+  /** The run the server rendered every view for (null: every run). A switch to another view of
+   *  the same run happens in place, with nothing loaded again (showView in view-url.ts). */
+  renderedRun?: string | null;
 }) {
   const router = useRouter();
   const frameRef = useRef<HTMLDivElement>(null);
@@ -72,6 +77,7 @@ export function Viewer({
   const backdrop = shown === "assistant"; // the Overview under the open assistant
 
   useEffect(() => watchHistory(), []);
+  useEffect(() => setRenderedRun(renderedRun), [renderedRun]);
   useEffect(() => {
     registerViewNavigator((href, mode) => {
       if (mode === "replace") router.replace(href);
