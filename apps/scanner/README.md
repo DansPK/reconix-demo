@@ -33,7 +33,7 @@ Then in VS Code:
 
 1. **Developer: Reload Window** (Command Palette).
 2. Open a folder to scan — [`apps/lumina-site/`](../lumina-site/) (planted issues in `server/`).
-3. Click the **shield icon** in the activity bar, or right-click a file/folder → **Scan with Reconix**.
+3. Click the **Reconix icon** in the activity bar, or right-click a file/folder → **Scan with Reconix**.
 
 Findings appear in the panel, as squiggles in the code, and in the Problems panel. Click one
 to jump to its line.
@@ -41,7 +41,7 @@ to jump to its line.
 `setup.sh` works on Linux, macOS and Windows (on Windows, run it in **Git Bash**). It needs
 [Node.js](https://nodejs.org/) 20+, [VS Code](https://code.visualstudio.com/) with the `code`
 command on your PATH, and Python 3. See [docs/SETUP.md](docs/SETUP.md) to do it by hand or to
-set `reconix.serverUrl`/token yourself.
+set `reconixCodeScanner.serverUrl`/token yourself.
 
 ## What you can do
 
@@ -51,6 +51,10 @@ set `reconix.serverUrl`/token yourself.
   matters, and a suggested fix. They're grouped by severity, then by file.
 - **Get a summary.** After a scan, a card shows the counts, the most affected files, and the
   top things to fix first.
+- **Scan a GitHub repository.** Scripted: only Lumina's, `https://github.com/lumina-store/lumina-site`,
+  is available, and nothing is cloned.
+- **Switch models.** Add, test and switch AI models. Scripted and in memory: only the last 4
+  characters of a key are kept, and nothing is sent.
 - **Fix with the agent.** Click **Fix** or **Fix all**, or type "fix all high findings". You
   see every change as a diff and nothing is saved until you click **Apply**.
 - **Ask questions.** "why is this a problem?", "how do I fix finding abc123?".
@@ -59,13 +63,13 @@ set `reconix.serverUrl`/token yourself.
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `reconix.serverUrl` | `http://127.0.0.1:7357` | Base URL of the scanner server. |
-| `reconix.token` | empty | Paste a token here to sign in; it moves to secure storage and the field is cleared. |
-| `reconix.caCertificate` | empty | Full path to a PEM certificate to trust for HTTPS (for a self-signed server). |
-| `reconix.extraExcludes` | `[]` | Extra files or folders to skip, in `.gitignore` style, e.g. `["data/", "*.min.js"]`. |
-| `reconix.maxFileSizeKB` | `2048` | Skip files bigger than this. |
-| `reconix.maxUploadMB` | `200` | Stop before uploading more than this. |
-| `reconix.showLikelyFalsePositives` | `false` | Show findings marked as likely false alarms. |
+| `reconixCodeScanner.serverUrl` | `http://127.0.0.1:7357` | Base URL of the scanner server. |
+| `reconixCodeScanner.token` | empty | Paste a token here to sign in; it moves to secure storage and the field is cleared. |
+| `reconixCodeScanner.caCertificate` | empty | Full path to a PEM certificate to trust for HTTPS (for a self-signed server). |
+| `reconixCodeScanner.extraExcludes` | `[]` | Extra files or folders to skip, in `.gitignore` style, e.g. `["data/", "*.min.js"]`. |
+| `reconixCodeScanner.maxFileSizeKB` | `2048` | Skip files bigger than this. |
+| `reconixCodeScanner.maxUploadMB` | `200` | Stop before uploading more than this. |
+| `reconixCodeScanner.showLikelyFalsePositives` | `false` | Show findings marked as likely false alarms. |
 
 Folders like `.git`, `node_modules`, `dist`, `build` and `.venv`, and everything in your
 `.gitignore`, are never uploaded. The full settings list is in

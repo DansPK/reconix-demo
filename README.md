@@ -41,7 +41,7 @@ reconix
   scripted assessment) and the web dashboard (Next.js, reads `web/sample-data/` or saved TUI runs, opens with a local sign-in link).
 - **`apps/scanner/`** — the VS Code extension plus a bundled **Reconix scanner server**
   (`npm run server`, token `test-token`). Scan the **`apps/lumina-site/`** storefront: open it,
-  click the shield → "Scan with Reconix", and the findings land on their lines.
+  click the Reconix icon → "Scan with Reconix", and the findings land on their lines.
 - **`apps/public-web/`** — the public Reconix marketing site (Next.js). `./setup.sh site`.
 - **`apps/lumina-site/`** — the Lumina storefront (React/Vite), the demo target. It runs offline
   on mock data (`npm run dev`); its planted vulnerable backend lives in `apps/lumina-site/server/`.

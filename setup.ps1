@@ -61,12 +61,14 @@ function Invoke-Vscode {
 
         if (Get-Command code -ErrorAction SilentlyContinue) {
             Write-Host "`n==> Installing the extension and configuring VS Code"
+            # Older builds had another publisher and would stay installed next to this one.
+            if ((code --list-extensions) -contains "local.reconix-code-scanner") { code --uninstall-extension local.reconix-code-scanner | Out-Null }
             code --install-extension reconix-scanner.vsix --force | Out-Null
             $settings = Join-Path $env:APPDATA "Code\User\settings.json"
             if (Update-CodeSettings $settings $serverUrl $token) {
                 Write-Host "VS Code settings updated (serverUrl=$serverUrl, token set)"
             } else {
-                Write-Warning "Could not edit $settings. Set reconix.serverUrl=$serverUrl and token=$token yourself."
+                Write-Warning "Could not edit $settings. Set reconixCodeScanner.serverUrl=$serverUrl and token=$token yourself."
             }
         } else {
             Write-Warning "'code' is not on PATH. Install $Ext\reconix-scanner.vsix from VS Code (Extensions -> ... -> Install from VSIX)."
@@ -77,7 +79,7 @@ function Invoke-Vscode {
     Write-Host "Scanner server: $serverUrl  (token: $token)"
     Write-Host "Start it:       .\setup.ps1 scanner"
     Write-Host "Scan target:    open apps\lumina-site\ in VS Code (planted issues in apps\lumina-site\server)"
-    Write-Host 'Then in VS Code: Reload Window -> shield icon -> "Scan with Reconix".'
+    Write-Host 'Then in VS Code: Reload Window -> Reconix icon -> "Scan with Reconix".'
 
     # Open the storefront as its OWN window so the scan sees its source, including the planted
     # vulnerable backend in apps\lumina-site\server.
@@ -96,14 +98,14 @@ function Update-CodeSettings($path, $url, $token) {
             $obj = Get-Content -Raw -Path $path | ConvertFrom-Json
         }
         if (-not $obj) { $obj = [pscustomobject]@{} }
-        # Migrate keys from older installs (vulnScanner.* -> reconix.*).
-        foreach ($p in @($obj.PSObject.Properties | Where-Object { $_.Name -like "vulnScanner.*" })) {
-            $new = "reconix." + $p.Name.Substring("vulnScanner.".Length)
+        # Migrate keys from older installs (vulnScanner.*, reconix.* -> reconixCodeScanner.*).
+        foreach ($p in @($obj.PSObject.Properties | Where-Object { $_.Name -like "vulnScanner.*" -or $_.Name -like "reconix.*" })) {
+            $new = "reconixCodeScanner." + $p.Name.Substring($p.Name.IndexOf(".") + 1)
             if (-not $obj.PSObject.Properties[$new]) { $obj | Add-Member -NotePropertyName $new -NotePropertyValue $p.Value }
             $obj.PSObject.Properties.Remove($p.Name)
         }
-        $obj | Add-Member -NotePropertyName "reconix.serverUrl" -NotePropertyValue $url -Force
-        $obj | Add-Member -NotePropertyName "reconix.token" -NotePropertyValue $token -Force
+        $obj | Add-Member -NotePropertyName "reconixCodeScanner.serverUrl" -NotePropertyValue $url -Force
+        $obj | Add-Member -NotePropertyName "reconixCodeScanner.token" -NotePropertyValue $token -Force
         $obj | ConvertTo-Json -Depth 20 | Set-Content -Path $path -Encoding UTF8
         return $true
     } catch { return $false }

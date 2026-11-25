@@ -9,7 +9,7 @@
 #   ./setup.sh
 #   cd extension && npm run server          # start the scanner server on :7357
 #
-# Then in VS Code: Reload Window, click the shield → "Scan with Reconix".
+# Then in VS Code: Reload Window, click the Reconix icon → "Scan with Reconix".
 set -euo pipefail
 
 case $(uname -s) in
@@ -39,13 +39,17 @@ echo "Packaged $EXT/reconix-scanner.vsix"
 
 if command -v code >/dev/null; then
   say "Installing the extension and configuring VS Code"
+  # Older builds had another publisher and would stay installed next to this one.
+  if code --list-extensions 2>/dev/null | tr -d '\r' | grep -qx local.reconix-code-scanner; then
+    code --uninstall-extension local.reconix-code-scanner >/dev/null 2>&1 || true
+  fi
   code --install-extension reconix-scanner.vsix --force >/dev/null 2>&1
   case $(uname -s) in
     Darwin) SETTINGS="$HOME/Library/Application Support/Code/User/settings.json" ;;
     MINGW* | MSYS* | CYGWIN*) SETTINGS="${APPDATA//\\//}/Code/User/settings.json" ;;
     *) SETTINGS="${XDG_CONFIG_HOME:-$HOME/.config}/Code/User/settings.json" ;;
   esac
-  # The extension moves reconix.token into secure storage on start and clears the setting.
+  # The extension moves reconixCodeScanner.token into secure storage on start and clears the setting.
   if URL=$SERVER_URL TOKEN=$TOKEN python3 - "$SETTINGS" <<'EOF'
 import json, os, sys
 path = sys.argv[1]
@@ -56,16 +60,16 @@ except FileNotFoundError:
     s = {}
 except ValueError:
     sys.exit(1)  # settings.json has comments or trailing commas; leave it alone
-for k in [k for k in s if k.startswith("vulnScanner.")]:  # migrate keys from older installs
-    s.setdefault("reconix." + k[len("vulnScanner."):], s.pop(k))
-s["reconix.serverUrl"] = os.environ["URL"]
-s["reconix.token"] = os.environ["TOKEN"]
+for k in [k for k in s if k.startswith(("vulnScanner.", "reconix."))]:  # migrate keys from older installs
+    s.setdefault("reconixCodeScanner." + k.split(".", 1)[1], s.pop(k))
+s["reconixCodeScanner.serverUrl"] = os.environ["URL"]
+s["reconixCodeScanner.token"] = os.environ["TOKEN"]
 json.dump(s, open(path, "w", encoding="utf-8"), indent=4)
 EOF
   then
     echo "VS Code settings updated (serverUrl=$SERVER_URL, token set)"
   else
-    warn "Could not edit $SETTINGS. Set reconix.serverUrl=$SERVER_URL and token=$TOKEN yourself."
+    warn "Could not edit $SETTINGS. Set reconixCodeScanner.serverUrl=$SERVER_URL and token=$TOKEN yourself."
   fi
 else
   warn "'code' is not on PATH. Install $EXT/reconix-scanner.vsix from VS Code (Extensions → … → Install from VSIX)."
@@ -76,4 +80,4 @@ say "Done"
 echo "Scanner server: $SERVER_URL  (token: $TOKEN)"
 echo "Start it:       cd extension && npm run server"
 echo "Scan target:    open apps/lumina-site/ in VS Code (planted issues in apps/lumina-site/server)"
-echo "Then in VS Code: Reload Window → shield icon → \"Scan with Reconix\"."
+echo "Then in VS Code: Reload Window → Reconix icon → \"Scan with Reconix\"."
