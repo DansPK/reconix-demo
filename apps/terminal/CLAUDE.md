@@ -161,7 +161,10 @@ Key invariants:
   `border_title` / `border_subtitle` and `Label`s (Textual parses plain strings as markup).
 - **Human-in-the-loop questions use the `Question` widget** (chip, numbered choices with a
   description, `(Recommended)`, "Type something." → `store.add_feedback`, "Chat about this"
-  → `app.open_chat`). Handle `ChoiceMenu.Chosen`; add `Binding("enter", "choose", show=False)`.
+  → `app.open_chat`). At the Scope and Plan steps "Type something." may edit: the line is read by
+  local rules (`store/edit_interpreter.py`, fails closed) and applied only through
+  `store.apply_scope_changes` / `store.redraft_plan` (all or nothing; an approved
+  scope re-opens). Handle `ChoiceMenu.Chosen`; add `Binding("enter", "choose", show=False)`.
   Pop-ups use `ChoiceScreen`; risky ones (`danger=True`) are unnumbered and default to the
   safe choice. The Approval menu highlights "View details" first so a stray Enter is harmless.
 - **Text input pop-ups use `FormScreen`** (`screens/forms/`): fields, an error line, Submit /
