@@ -7,6 +7,7 @@ from .approval import ApprovalDecision, ApprovalRequest, Confirmation
 from .assessment import Assessment, UserRequest
 from .auth import AuthChallenge, AuthField, challenge_for
 from .choice import Choice
+from .edit_intent import EditIntent, ScopeChanges
 from .finding import Finding
 from .provider import ActiveModel, ProviderView
 from .report import AssessmentSummary, ReportFormat
@@ -21,6 +22,7 @@ from .transcript import ActivityEntry, ChatEntry, Entry, MessageItem, StreamItem
 from .vault import Secret, TestAccount, VaultEntry
 
 __all__ = [
+    "EditIntent", "ScopeChanges",
     "ApiSpec", "ApiFormResult", "ApiSchemaDigest", "ApiEndpoint", "ApiParam", "ApiBodyField",
     "Assessment", "UserRequest", "AuthChallenge", "AuthField", "challenge_for",
     "ApprovalRequest", "ApprovalDecision", "Confirmation",

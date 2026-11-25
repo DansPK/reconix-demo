@@ -93,8 +93,9 @@ _SCOPE_SUBJECT = re.compile(r"\b(?:ports?|tools?|scope)\b", re.IGNORECASE)
 NOTHING_YET = "Only you decide this: choose below. Nothing changes until you do."
 NOTHING_WAITS = "Nothing waits for your decision here."
 SCOPE_ONLY_YOU = "Only you can change the scope. Tick what it allows, then press Enter to save."
-SCOPE_LOCKED = ("The scope is approved and locked, so it can't change now. Start a new "
-                "assessment (/new) to test with a different scope.")
+SCOPE_LOCKED = ("The scope is approved and locked. Until the plan runs, “Type something.” on "
+                "the Plan step can re-open and change it (you approve it again); after that, "
+                "start a new assessment (/new).")
 STEP_HINTS = {
     "template": "Ask to see the scope, or to add or remove a port or tool.",
     "plan": "Ask to see the plan, or to move a gated check (move 3b before 3a).",
@@ -148,14 +149,20 @@ def decision_reply(pending: bool) -> str:
     return text
 
 
+def small_talk(text: str) -> str:
+    """The answer to thanks or a greeting in a step ("" for anything else)."""
+    if _THANKS.search(text):
+        return "You're welcome. The step waits for your choice below."
+    if _GREETING.search(text):
+        return "Hi! I'm here while you decide this step."
+    return ""
+
+
 def step_reply(flow_name: str, text: str) -> str:
     """The built-in answer to any other line in a step's chat (recorded): advice only, the
     step still waits for the operator."""
-    if _THANKS.search(text):
-        answer = "You're welcome. The step waits for your choice below."
-    elif _GREETING.search(text):
-        answer = "Hi! I'm here while you decide this step."
-    else:
+    answer = small_talk(text)
+    if not answer:
         answer = ("I can't change this step from the chat: you decide with the choices "
                   "below. " + STEP_HINTS.get(flow_name, "Esc goes back to the step.")).strip()
     add_chat("text", "reconix", answer, tone="muted")
