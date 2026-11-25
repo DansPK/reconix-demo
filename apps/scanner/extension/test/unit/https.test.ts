@@ -28,7 +28,7 @@ after(() => fake.stop());
 
 test("an untrusted self-signed certificate gives a clear message", async () => {
   const c = new HarnessClient(fake.url, fake.token);
-  await assert.rejects(c.connect(), /certificate is not trusted.*reconixCodeScanner\.caCertificate/s);
+  await assert.rejects(c.connect(), /certificate is not trusted.*reconix\.caCertificate/s);
 });
 
 test("with the CA certificate: connect, upload and scan over HTTPS", async () => {

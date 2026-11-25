@@ -5,8 +5,15 @@ import { Controller } from "./controller";
 import { allDisplays, FindingDiagnostics } from "./diagnostics";
 import { EditorFeatures, EXPLAIN_FINDING_COMMAND, findingIdOf, IGNORE_FINDING_COMMAND, OPEN_FINDING_COMMAND } from "./editorFeatures";
 import { initLog, log } from "./log";
+import type { HostToWebview, WebviewToHost } from "./shared/messages";
 
-export function activate(context: vscode.ExtensionContext): void {
+/** What the integration suite gets (test mode only): the chat's messages, and answers to them. */
+export interface TestApi {
+  onPost: (listener: (message: HostToWebview) => void) => void;
+  send: (message: WebviewToHost) => Promise<void>;
+}
+
+export function activate(context: vscode.ExtensionContext): TestApi | undefined {
   initLog(context);
 
   const diagnostics = new FindingDiagnostics();
@@ -14,7 +21,9 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(diagnostics, editorFeatures);
   const controller = new Controller(() => createBackend(context), allDisplays([diagnostics, editorFeatures]), context.globalState, context.workspaceState, context.secrets);
   const chatView = new ChatViewProvider(context.extensionUri, (message) => void controller.onWebviewMessage(message), () => controller.onViewDisposed());
+  const listeners: ((message: HostToWebview) => void)[] = [];
   controller.attachView((message) => {
+    for (const listener of listeners) listener(message);
     chatView.post(message);
     editorFeatures.onHostMessage(message); // the status bar follows the connection and scan progress
   });
@@ -26,32 +35,32 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   const commands: Record<string, (...args: never[]) => Promise<void>> = {
-    "reconixCodeScanner.setToken": () => controller.setToken(),
-    "reconixCodeScanner.clearToken": () => controller.clearToken(),
-    "reconixCodeScanner.reconnect": () => controller.reconnect(),
-    "reconixCodeScanner.openSettings": () => controller.openSettings(),
-    "reconixCodeScanner.openChat": () => controller.openChat(),
-    "reconixCodeScanner.newSession": () => controller.newSession(),
-    "reconixCodeScanner.switchSession": () => controller.switchSession(),
-    "reconixCodeScanner.scanWorkspace": () => controller.scanWorkspace(),
-    "reconixCodeScanner.rescan": () => controller.rescan(),
-    "reconixCodeScanner.cancelScan": () => controller.cancelScan(),
+    "reconix.setToken": () => controller.setToken(),
+    "reconix.clearToken": () => controller.clearToken(),
+    "reconix.reconnect": () => controller.reconnect(),
+    "reconix.openSettings": () => controller.openSettings(),
+    "reconix.openChat": () => controller.openChat(),
+    "reconix.newSession": () => controller.newSession(),
+    "reconix.switchSession": () => controller.switchSession(),
+    "reconix.scanWorkspace": () => controller.scanWorkspace(),
+    "reconix.rescan": () => controller.rescan(),
+    "reconix.cancelScan": () => controller.cancelScan(),
     // The Explorer and editor menus pass the file or folder; the Command Palette, none (the open file).
-    "reconixCodeScanner.scanPath": (uri?: vscode.Uri) => controller.scanPath(uri),
-    "reconixCodeScanner.scanGithub": (url?: string) => controller.askGithubScan(url),
+    "reconix.scanPath": (uri?: vscode.Uri) => controller.scanPath(uri),
+    "reconix.scanGithub": (url?: string) => controller.askGithubScan(url),
     // Hidden: ids of shown findings, or none for "fix all" (used by buttons and quick fixes).
-    "reconixCodeScanner.fixFindings": (findingIds?: string[]) => controller.requestFix(findingIds),
+    "reconix.fixFindings": (findingIds?: string[]) => controller.requestFix(findingIds),
     // Hidden: a finding's id (the Findings tree's click).
     [OPEN_FINDING_COMMAND]: (findingId: string) => controller.openFindingFromEditor(findingId),
     // A finding's id (hover, CodeLens) or its Findings tree node (the tree's context menu).
     [EXPLAIN_FINDING_COMMAND]: (finding?: unknown) => controller.explainFinding(findingIdOf(finding)),
     [IGNORE_FINDING_COMMAND]: (finding?: unknown) => controller.ignoreFinding(findingIdOf(finding)),
-    "reconixCodeScanner.clearIgnored": () => controller.clearIgnored(),
-    "reconixCodeScanner.explainSelection": () => controller.explainSelection(),
-    "reconixCodeScanner.selectModel": () => controller.selectModel(),
-    "reconixCodeScanner.setApiKey": () => controller.setApiKey(),
-    "reconixCodeScanner.addModel": () => controller.addModel(),
-    "reconixCodeScanner.openWalkthrough": () => openWalkthrough(context),
+    "reconix.clearIgnored": () => controller.clearIgnored(),
+    "reconix.explainSelection": () => controller.explainSelection(),
+    "reconix.selectModel": () => controller.selectModel(),
+    "reconix.setApiKey": () => controller.setApiKey(),
+    "reconix.addModel": () => controller.addModel(),
+    "reconix.openWalkthrough": () => openWalkthrough(context),
   };
   for (const [id, handler] of Object.entries(commands)) {
     context.subscriptions.push(vscode.commands.registerCommand(id, handler));
@@ -60,7 +69,7 @@ export function activate(context: vscode.ExtensionContext): void {
     controller.registerFixDocuments(),
     vscode.workspace.onDidChangeConfiguration((event) => void controller.onConfigurationChanged(event)),
     vscode.workspace.onDidSaveTextDocument((document) => void controller.onDocumentSaved(document)),
-    // vscode://reconix.reconix-code-scanner/set-token?token=... lets a setup script hand over a token.
+    // vscode://local.reconix-code-scanner/set-token?token=... lets a setup script hand over a token.
     // Always ask first, so a web page cannot swap the token silently.
     vscode.window.registerUriHandler({
       handleUri: async (uri) => {
@@ -83,16 +92,18 @@ export function activate(context: vscode.ExtensionContext): void {
   void maybeShowWalkthrough(context);
 
   log.info("Reconix Code Scanner activated");
+  if (context.extensionMode !== vscode.ExtensionMode.Test) return undefined;
+  return { onPost: (listener) => void listeners.push(listener), send: (message) => controller.onWebviewMessage(message) };
 }
 
 const HAS_SEEN_WALKTHROUGH = "reconix.hasSeenWalkthrough";
 
 async function openWalkthrough(context: vscode.ExtensionContext): Promise<void> {
-  const extensionId = context.extension?.id ?? "reconix.reconix-code-scanner";
+  const extensionId = context.extension?.id ?? "local.reconix-code-scanner";
   try {
     await vscode.commands.executeCommand(
       "workbench.action.openWalkthrough",
-      `${extensionId}#reconixCodeScanner.gettingStarted`,
+      `${extensionId}#reconix.gettingStarted`,
       false,
     );
   } catch {

@@ -3,17 +3,17 @@ import * as vscode from "vscode";
 import type { Backend } from "./Backend";
 import { McpBackend } from "./McpBackend";
 
-export const TOKEN_SECRET_KEY = "reconixCodeScanner.token";
+export const TOKEN_SECRET_KEY = "reconix.token";
 
 /** The settings createBackend reads: when one changes, the backend must be built again. */
 const BACKEND_SETTINGS = ["serverUrl", "caCertificate"];
 
 export function affectsBackend(event: vscode.ConfigurationChangeEvent): boolean {
-  return BACKEND_SETTINGS.some((key) => event.affectsConfiguration(`reconixCodeScanner.${key}`));
+  return BACKEND_SETTINGS.some((key) => event.affectsConfiguration(`reconix.${key}`));
 }
 
 export function createBackend(context: vscode.ExtensionContext): Backend {
-  const config = vscode.workspace.getConfiguration("reconixCodeScanner");
+  const config = vscode.workspace.getConfiguration("reconix");
   return new McpBackend({
     serverUrl: config.get<string>("serverUrl", ""),
     getToken: async () => context.secrets.get(TOKEN_SECRET_KEY),

@@ -9,8 +9,8 @@ Scan your code for vulnerabilities from a chat panel in the sidebar. Scanning is
    npm install
    npm run server      # listens on http://127.0.0.1:7357, token "test-token"
    ```
-2. `reconixCodeScanner.serverUrl` already defaults to `http://127.0.0.1:7357`, so you don't need to change it.
-3. Run **Reconix Code Scanner: Set Token** and paste `test-token` (it is kept only in VS Code's secret storage; the `reconixCodeScanner.token` setting, if you use it, is cleared right away).
+2. `reconix.serverUrl` already defaults to `http://127.0.0.1:7357`, so you don't need to change it.
+3. Run **Reconix Code Scanner: Set Token** and paste `test-token` (it is kept only in VS Code's secret storage; the `reconix.token` setting, if you use it, is cleared right away).
 4. Open a project to scan — the **Lumina storefront** (`apps/lumina-site/`) has planted issues in `apps/lumina-site/server/`, matched to the findings.
 5. Open the **Reconix** view in the activity bar (the Reconix icon), or right-click a file/folder → **Scan with Reconix**. The findings land on their lines in `apps/lumina-site/server/`.
 
@@ -41,25 +41,25 @@ When a scan ends, a summary card appears in the chat: a severity bar, one senten
 Only files under the chosen workspace folder, skipping:
 - `.git`, `node_modules`, `build`, `dist`, `out`, `target`, `bin`, `obj`, `.venv`, `venv`, `__pycache__`, `.idea`, `.vscode`
 - anything your `.gitignore` files exclude (every folder's `.gitignore` applies to that folder and below)
-- `reconixCodeScanner.extraExcludes` patterns, binary files, files over `reconixCodeScanner.maxFileSizeKB`, and symlinks
+- `reconix.extraExcludes` patterns, binary files, files over `reconix.maxFileSizeKB`, and symlinks
 
-On a rescan, only new and changed files are sent. Before uploading, the extension stops if the archive is over `reconixCodeScanner.maxUploadMB` and lists the largest folders, so you can exclude them.
+On a rescan, only new and changed files are sent. Before uploading, the extension stops if the archive is over `reconix.maxUploadMB` and lists the largest folders, so you can exclude them.
 
 ## Settings
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `reconixCodeScanner.serverUrl` | `http://127.0.0.1:7357` | Base URL of the scanner server; any address off this computer is refused |
-| `reconixCodeScanner.token` | empty | Paste a token here to sign in; it moves to secure storage and this field is cleared |
-| `reconixCodeScanner.caCertificate` | empty | PEM certificate to trust for HTTPS (for a self-signed server), in addition to the normal ones |
-| `reconixCodeScanner.maxFileSizeKB` | `2048` | Files larger than this are skipped |
-| `reconixCodeScanner.maxUploadMB` | `200` | Stop before uploading an archive larger than this |
-| `reconixCodeScanner.extraExcludes` | `[]` | Extra patterns to skip (gitignore syntax) |
-| `reconixCodeScanner.showLikelyFalsePositives` | `false` | Show findings marked as likely false alarms |
-| `reconixCodeScanner.gutterIcons` | `true` | Severity dot next to the line numbers on lines with findings |
-| `reconixCodeScanner.explorerBadges` | `true` | Finding count on files in the Explorer |
-| `reconixCodeScanner.codeLens` | `true` | A line above each function with findings, with a Fix button |
-| `reconixCodeScanner.scanOnSave` | `false` | Rescan a moment after you save a file in the scanned folder |
+| `reconix.serverUrl` | `http://127.0.0.1:7357` | Base URL of the scanner server; any address off this computer is refused |
+| `reconix.token` | empty | Paste a token here to sign in; it moves to secure storage and this field is cleared |
+| `reconix.caCertificate` | empty | PEM certificate to trust for HTTPS (for a self-signed server), in addition to the normal ones |
+| `reconix.maxFileSizeKB` | `2048` | Files larger than this are skipped |
+| `reconix.maxUploadMB` | `200` | Stop before uploading an archive larger than this |
+| `reconix.extraExcludes` | `[]` | Extra patterns to skip (gitignore syntax) |
+| `reconix.showLikelyFalsePositives` | `false` | Show findings marked as likely false alarms |
+| `reconix.gutterIcons` | `true` | Severity dot next to the line numbers on lines with findings |
+| `reconix.explorerBadges` | `true` | Finding count on files in the Explorer |
+| `reconix.codeLens` | `true` | A line above each function with findings, with a Fix button |
+| `reconix.scanOnSave` | `false` | Rescan a moment after you save a file in the scanned folder |
 
 ## In the editor
 

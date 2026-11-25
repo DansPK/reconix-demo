@@ -6,7 +6,7 @@
   Findings tree all point at the same place.
 - Ask the chat about them, e.g. **"summarize the findings"** or **"explain this one"**.
 - Findings judged **likely false positives** are hidden by default
-  (`reconixCodeScanner.showLikelyFalsePositives` shows them).
+  (`reconix.showLikelyFalsePositives` shows them).
 
 ### Fix
 Ask the chat to **fix** a finding (or use the finding's **Fix** action). The AI fix agent:

@@ -10,9 +10,9 @@
 What gets scanned:
 
 - Your open folder's files are sent to the scanner server on this computer (respecting `.gitignore`, skipping
-  binaries and files over `reconixCodeScanner.maxFileSizeKB`).
+  binaries and files over `reconix.maxFileSizeKB`).
 - The scanners cover application code (Semgrep), secrets (Gitleaks), dependencies (Trivy, Grype,
   OSV-Scanner) and the software inventory (Syft).
 
-> **Scan on save:** turn on `reconixCodeScanner.scanOnSave` to re-scan automatically after
+> **Scan on save:** turn on `reconix.scanOnSave` to re-scan automatically after
 > you save a file that has findings.

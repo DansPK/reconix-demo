@@ -4,17 +4,17 @@ import type { ConnectionAction } from "./shared/contract";
 
 const RULES: [RegExp, ConnectionAction][] = [
   // This session can't be written to here: a new one can.
-  [/^(SESSION_READ_ONLY|NOT_YOUR_SESSION|SESSION_CLOSED|SESSION_NOT_FOUND|NOT_VSCODE_SESSION)\b/, { label: "New Session", command: "reconixCodeScanner.newSession" }],
+  [/^(SESSION_READ_ONLY|NOT_YOUR_SESSION|SESSION_CLOSED|SESSION_NOT_FOUND|NOT_VSCODE_SESSION)\b/, { label: "New Session", command: "reconix.newSession" }],
   // Core's only 401 code. (Not TOKEN_BUDGET: that is the LLM's token budget, not the session token.)
-  [/^(UNAUTHORIZED|HTTP_401)\b/, { label: "Set Token", command: "reconixCodeScanner.setToken" }],
-  [/certificate is not trusted|reconixCodeScanner\.caCertificate|No server URL/i, { label: "Open Settings", command: "reconixCodeScanner.openSettings" }],
-  [/^The scanner server cannot be reached|did not answer in time/i, { label: "Retry", command: "reconixCodeScanner.reconnect" }],
+  [/^(UNAUTHORIZED|HTTP_401)\b/, { label: "Set Token", command: "reconix.setToken" }],
+  [/certificate is not trusted|reconix\.caCertificate|No server URL/i, { label: "Open Settings", command: "reconix.openSettings" }],
+  [/^The scanner server cannot be reached|did not answer in time/i, { label: "Retry", command: "reconix.reconnect" }],
   // The model can't answer (no address, no key, refused key, not running, gone): pick or add another.
     // The model's key is missing or refused: enter/update the key.
-  [/^(PROVIDER_AUTH_FAILED|PROVIDER_KEY_MISSING)\b/, { label: "Add API Key", command: "reconixCodeScanner.setApiKey" }],
+  [/^(PROVIDER_AUTH_FAILED|PROVIDER_KEY_MISSING)\b/, { label: "Add API Key", command: "reconix.setApiKey" }],
   // The model can't answer (no address, not running, gone, or no active model): pick or add another.
   [/^(NO_ACTIVE_PROVIDER|PROVIDER_URL_MISSING|PROVIDER_URL_NOT_ALLOWED|MODEL_UNAVAILABLE|LLM_PROVIDER_NOT_FOUND)\b/,
-    { label: "Choose Model", command: "reconixCodeScanner.selectModel" }],
+    { label: "Choose Model", command: "reconix.selectModel" }],
 ];
 
 export function errorAction(message: string): ConnectionAction | undefined {

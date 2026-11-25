@@ -3,7 +3,7 @@
   "displayName": "Reconix Code Scanner",
   "description": "Chat-driven vulnerability scanning for your workspace, backed by the Reconix scanner server.",
   "version": "0.2.0",
-  "publisher": "reconix",
+  "publisher": "local",
   "icon": "media/logo.png",
   "license": "UNLICENSED",
   "private": true,
@@ -23,164 +23,164 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "reconixCodeScanner",
+          "id": "reconix",
           "title": "Reconix Code Scanner",
           "icon": "media/icon.svg"
         }
       ]
     },
     "views": {
-      "reconixCodeScanner": [
+      "reconix": [
         {
           "type": "webview",
-          "id": "reconixCodeScanner.chat",
+          "id": "reconix.chat",
           "name": "Chat"
         },
         {
-          "id": "reconixCodeScanner.findings",
+          "id": "reconix.findings",
           "name": "Findings"
         }
       ]
     },
     "commands": [
       {
-        "command": "reconixCodeScanner.setToken",
+        "command": "reconix.setToken",
         "title": "Set Server Token",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.clearToken",
+        "command": "reconix.clearToken",
         "title": "Clear Server Token",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.reconnect",
+        "command": "reconix.reconnect",
         "title": "Reconnect to Server",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.openSettings",
+        "command": "reconix.openSettings",
         "title": "Open Settings",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.openChat",
+        "command": "reconix.openChat",
         "title": "Open Chat",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.newSession",
+        "command": "reconix.newSession",
         "title": "New Session",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.switchSession",
+        "command": "reconix.switchSession",
         "title": "Switch Session",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.scanWorkspace",
+        "command": "reconix.scanWorkspace",
         "title": "Scan Workspace",
         "category": "Reconix Code Scanner",
         "icon": "$(play)"
       },
       {
-        "command": "reconixCodeScanner.rescan",
+        "command": "reconix.rescan",
         "title": "Rescan",
         "category": "Reconix Code Scanner",
         "icon": "$(refresh)"
       },
       {
-        "command": "reconixCodeScanner.scanPath",
+        "command": "reconix.scanPath",
         "title": "Scan with Reconix",
         "category": "Reconix Code Scanner",
         "icon": "$(shield)"
       },
       {
-        "command": "reconixCodeScanner.scanGithub",
+        "command": "reconix.scanGithub",
         "title": "Scan GitHub Repository",
         "category": "Reconix Code Scanner",
         "icon": "$(github)"
       },
       {
-        "command": "reconixCodeScanner.cancelScan",
+        "command": "reconix.cancelScan",
         "title": "Cancel Scan",
         "category": "Reconix Code Scanner",
         "icon": "$(debug-stop)"
       },
       {
-        "command": "reconixCodeScanner.fixFindings",
+        "command": "reconix.fixFindings",
         "title": "Fix Findings",
         "category": "Reconix Code Scanner",
         "icon": "$(wrench)"
       },
       {
-        "command": "reconixCodeScanner.openFinding",
+        "command": "reconix.openFinding",
         "title": "Open Finding",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.nextFinding",
+        "command": "reconix.nextFinding",
         "title": "Next Finding",
         "category": "Reconix Code Scanner",
         "icon": "$(arrow-down)"
       },
       {
-        "command": "reconixCodeScanner.previousFinding",
+        "command": "reconix.previousFinding",
         "title": "Previous Finding",
         "category": "Reconix Code Scanner",
         "icon": "$(arrow-up)"
       },
       {
-        "command": "reconixCodeScanner.revealFinding",
+        "command": "reconix.revealFinding",
         "title": "Reveal Finding",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.explainFinding",
+        "command": "reconix.explainFinding",
         "title": "Explain Finding",
         "category": "Reconix Code Scanner",
         "icon": "$(comment-discussion)"
       },
       {
-        "command": "reconixCodeScanner.ignoreFinding",
+        "command": "reconix.ignoreFinding",
         "title": "Ignore Finding",
         "category": "Reconix Code Scanner",
         "icon": "$(eye-closed)"
       },
       {
-        "command": "reconixCodeScanner.clearIgnored",
+        "command": "reconix.clearIgnored",
         "title": "Show Ignored Findings Again",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.explainSelection",
+        "command": "reconix.explainSelection",
         "title": "Explain Selection",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.fixFile",
+        "command": "reconix.fixFile",
         "title": "Fix Findings in File",
         "category": "Reconix Code Scanner",
         "icon": "$(wrench)"
       },
       {
-        "command": "reconixCodeScanner.selectModel",
+        "command": "reconix.selectModel",
         "title": "Select Model",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.setApiKey",
+        "command": "reconix.setApiKey",
         "title": "Set API Key",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.addModel",
+        "command": "reconix.addModel",
         "title": "Add Model",
         "category": "Reconix Code Scanner"
       },
       {
-        "command": "reconixCodeScanner.openWalkthrough",
+        "command": "reconix.openWalkthrough",
         "title": "Open Getting Started Walkthrough",
         "category": "Reconix Code Scanner"
       }
@@ -188,129 +188,129 @@
     "menus": {
       "view/title": [
         {
-          "command": "reconixCodeScanner.scanWorkspace",
-          "when": "view == reconixCodeScanner.chat && !reconixCodeScanner.scanRunning",
+          "command": "reconix.scanWorkspace",
+          "when": "view == reconix.chat && !reconix.scanRunning",
           "group": "navigation"
         },
         {
-          "command": "reconixCodeScanner.rescan",
-          "when": "view == reconixCodeScanner.chat && !reconixCodeScanner.scanRunning",
+          "command": "reconix.rescan",
+          "when": "view == reconix.chat && !reconix.scanRunning",
           "group": "navigation@1"
         },
         {
-          "command": "reconixCodeScanner.cancelScan",
-          "when": "view == reconixCodeScanner.chat && reconixCodeScanner.scanRunning",
+          "command": "reconix.cancelScan",
+          "when": "view == reconix.chat && reconix.scanRunning",
           "group": "navigation"
         },
         {
-          "command": "reconixCodeScanner.previousFinding",
-          "when": "view == reconixCodeScanner.findings",
+          "command": "reconix.previousFinding",
+          "when": "view == reconix.findings",
           "group": "navigation@1"
         },
         {
-          "command": "reconixCodeScanner.nextFinding",
-          "when": "view == reconixCodeScanner.findings",
+          "command": "reconix.nextFinding",
+          "when": "view == reconix.findings",
           "group": "navigation@2"
         },
         {
-          "command": "reconixCodeScanner.clearIgnored",
-          "when": "view == reconixCodeScanner.findings",
+          "command": "reconix.clearIgnored",
+          "when": "view == reconix.findings",
           "group": "1_findings@1"
         }
       ],
       "explorer/context": [
         {
-          "command": "reconixCodeScanner.scanPath",
-          "when": "resourceScheme == file && !reconixCodeScanner.scanRunning",
+          "command": "reconix.scanPath",
+          "when": "resourceScheme == file && !reconix.scanRunning",
           "group": "7_reconix@1"
         },
         {
-          "command": "reconixCodeScanner.fixFile",
+          "command": "reconix.fixFile",
           "when": "resourceScheme == file && !explorerResourceIsFolder",
           "group": "7_reconix@4"
         }
       ],
       "editor/context": [
         {
-          "command": "reconixCodeScanner.scanPath",
-          "when": "resourceScheme == file && !reconixCodeScanner.scanRunning",
+          "command": "reconix.scanPath",
+          "when": "resourceScheme == file && !reconix.scanRunning",
           "group": "7_reconix@3"
         },
         {
-          "command": "reconixCodeScanner.explainSelection",
+          "command": "reconix.explainSelection",
           "when": "editorHasSelection && resourceScheme == file",
           "group": "7_reconix@4"
         },
         {
-          "command": "reconixCodeScanner.fixFile",
+          "command": "reconix.fixFile",
           "when": "resourceScheme == file",
           "group": "7_reconix@5"
         }
       ],
       "editor/title/context": [
         {
-          "command": "reconixCodeScanner.scanPath",
-          "when": "resourceScheme == file && !reconixCodeScanner.scanRunning",
+          "command": "reconix.scanPath",
+          "when": "resourceScheme == file && !reconix.scanRunning",
           "group": "7_reconix@1"
         }
       ],
       "commandPalette": [
         {
-          "command": "reconixCodeScanner.scanPath",
+          "command": "reconix.scanPath",
           "when": "resourceScheme == file"
         },
         {
-          "command": "reconixCodeScanner.cancelScan",
-          "when": "reconixCodeScanner.scanRunning"
+          "command": "reconix.cancelScan",
+          "when": "reconix.scanRunning"
         },
         {
-          "command": "reconixCodeScanner.fixFindings",
+          "command": "reconix.fixFindings",
           "when": "false"
         },
         {
-          "command": "reconixCodeScanner.openFinding",
+          "command": "reconix.openFinding",
           "when": "false"
         },
         {
-          "command": "reconixCodeScanner.revealFinding",
+          "command": "reconix.revealFinding",
           "when": "false"
         },
         {
-          "command": "reconixCodeScanner.explainFinding",
+          "command": "reconix.explainFinding",
           "when": "false"
         },
         {
-          "command": "reconixCodeScanner.ignoreFinding",
+          "command": "reconix.ignoreFinding",
           "when": "false"
         },
         {
-          "command": "reconixCodeScanner.explainSelection",
+          "command": "reconix.explainSelection",
           "when": "editorHasSelection"
         },
         {
-          "command": "reconixCodeScanner.fixFile",
+          "command": "reconix.fixFile",
           "when": "resourceScheme == file"
         }
       ],
       "view/item/context": [
         {
-          "command": "reconixCodeScanner.explainFinding",
-          "when": "view == reconixCodeScanner.findings && viewItem == finding",
+          "command": "reconix.explainFinding",
+          "when": "view == reconix.findings && viewItem == finding",
           "group": "inline@1"
         },
         {
-          "command": "reconixCodeScanner.ignoreFinding",
-          "when": "view == reconixCodeScanner.findings && viewItem == finding",
+          "command": "reconix.ignoreFinding",
+          "when": "view == reconix.findings && viewItem == finding",
           "group": "inline@2"
         },
         {
-          "command": "reconixCodeScanner.explainFinding",
-          "when": "view == reconixCodeScanner.findings && viewItem == finding",
+          "command": "reconix.explainFinding",
+          "when": "view == reconix.findings && viewItem == finding",
           "group": "1_finding@1"
         },
         {
-          "command": "reconixCodeScanner.ignoreFinding",
-          "when": "view == reconixCodeScanner.findings && viewItem == finding",
+          "command": "reconix.ignoreFinding",
+          "when": "view == reconix.findings && viewItem == finding",
           "group": "1_finding@2"
         }
       ]
@@ -318,37 +318,37 @@
     "configuration": {
       "title": "Reconix Code Scanner",
       "properties": {
-        "reconixCodeScanner.serverUrl": {
+        "reconix.serverUrl": {
           "type": "string",
           "scope": "application",
           "default": "http://127.0.0.1:7357",
           "description": "Base URL of the Reconix scanner server. It must run on this computer."
         },
-        "reconixCodeScanner.token": {
+        "reconix.token": {
           "type": "string",
           "scope": "application",
           "default": "",
           "description": "Server token. A token pasted here is moved to secure storage and cleared from settings."
         },
-        "reconixCodeScanner.caCertificate": {
+        "reconix.caCertificate": {
           "type": "string",
           "scope": "application",
           "default": "",
           "description": "Path to a PEM CA certificate to trust for an HTTPS scanner server (optional)."
         },
-        "reconixCodeScanner.maxFileSizeKB": {
+        "reconix.maxFileSizeKB": {
           "type": "number",
           "default": 2048,
           "minimum": 1,
           "description": "Files larger than this are skipped when collecting the workspace."
         },
-        "reconixCodeScanner.maxUploadMB": {
+        "reconix.maxUploadMB": {
           "type": "number",
           "default": 200,
           "minimum": 1,
           "description": "Maximum size of the workspace archive sent for scanning."
         },
-        "reconixCodeScanner.extraExcludes": {
+        "reconix.extraExcludes": {
           "type": "array",
           "items": {
             "type": "string"
@@ -356,27 +356,27 @@
           "default": [],
           "description": "Extra gitignore-style patterns to exclude from scans."
         },
-        "reconixCodeScanner.scanOnSave": {
+        "reconix.scanOnSave": {
           "type": "boolean",
           "default": false,
           "description": "After a scan, rescan the folder a moment after you save a file in it (only changed files are sent)."
         },
-        "reconixCodeScanner.showLikelyFalsePositives": {
+        "reconix.showLikelyFalsePositives": {
           "type": "boolean",
           "default": false,
           "description": "Show findings the analyzer marked as likely false positives."
         },
-        "reconixCodeScanner.gutterIcons": {
+        "reconix.gutterIcons": {
           "type": "boolean",
           "default": true,
           "description": "Show a coloured dot in the editor gutter on lines with findings."
         },
-        "reconixCodeScanner.explorerBadges": {
+        "reconix.explorerBadges": {
           "type": "boolean",
           "default": true,
           "description": "Show the number of findings next to files in the Explorer."
         },
-        "reconixCodeScanner.codeLens": {
+        "reconix.codeLens": {
           "type": "boolean",
           "default": true,
           "description": "Show the number of findings above each function or class that has them, with a Fix button."
@@ -385,13 +385,13 @@
     },
     "viewsWelcome": [
       {
-        "view": "reconixCodeScanner.findings",
-        "contents": "No findings to show. A GitHub repository scan lists its findings in the chat.\n[Scan Workspace](command:reconixCodeScanner.scanWorkspace)\n[Getting Started Walkthrough](command:reconixCodeScanner.openWalkthrough)"
+        "view": "reconix.findings",
+        "contents": "No findings to show. A GitHub repository scan lists its findings in the chat.\n[Scan Workspace](command:reconix.scanWorkspace)\n[Getting Started Walkthrough](command:reconix.openWalkthrough)"
       }
     ],
     "walkthroughs": [
       {
-        "id": "reconixCodeScanner.gettingStarted",
+        "id": "reconix.gettingStarted",
         "title": "Get started with Reconix Code Scanner",
         "description": "Scan your project for security vulnerabilities and fix them with AI.",
         "featuredFor": [
@@ -404,7 +404,7 @@
           {
             "id": "chooseMode",
             "title": "Configure server connection",
-            "description": "Connect to the Reconix scanner server on this computer.\n[Open Settings](command:reconixCodeScanner.openSettings)",
+            "description": "Connect to the Reconix scanner server on this computer.\n[Open Settings](command:reconix.openSettings)",
             "media": {
               "markdown": "media/walkthrough/mode.md"
             }
@@ -412,7 +412,7 @@
           {
             "id": "addModel",
             "title": "Add an AI model",
-            "description": "The chat, analysis and fix agent need an AI model. Open the chat, choose Add Model, paste your key, then switch to it.\n[Open Chat](command:reconixCodeScanner.openChat)",
+            "description": "The chat, analysis and fix agent need an AI model. Open the chat, choose Add Model, paste your key, then switch to it.\n[Open Chat](command:reconix.openChat)",
             "media": {
               "markdown": "media/walkthrough/model.md"
             }
@@ -420,18 +420,18 @@
           {
             "id": "scan",
             "title": "Scan your project",
-            "description": "Open your project folder, then scan it.\n[Scan Workspace](command:reconixCodeScanner.scanWorkspace)",
+            "description": "Open your project folder, then scan it.\n[Scan Workspace](command:reconix.scanWorkspace)",
             "media": {
               "markdown": "media/walkthrough/scan.md"
             },
             "completionEvents": [
-              "onCommand:reconixCodeScanner.scanWorkspace"
+              "onCommand:reconix.scanWorkspace"
             ]
           },
           {
             "id": "reviewFix",
             "title": "Review findings and fix them",
-            "description": "Findings are sorted by severity; click one to open the file at the line. Ask the chat to fix a finding, then review the diff before applying it.\n[Open Chat](command:reconixCodeScanner.openChat)",
+            "description": "Findings are sorted by severity; click one to open the file at the line. Ask the chat to fix a finding, then review the diff before applying it.\n[Open Chat](command:reconix.openChat)",
             "media": {
               "markdown": "media/walkthrough/fix.md"
             }
@@ -441,19 +441,19 @@
     ],
     "keybindings": [
       {
-        "command": "reconixCodeScanner.nextFinding",
+        "command": "reconix.nextFinding",
         "key": "ctrl+alt+.",
         "mac": "cmd+alt+.",
         "when": "editorTextFocus"
       },
       {
-        "command": "reconixCodeScanner.previousFinding",
+        "command": "reconix.previousFinding",
         "key": "ctrl+alt+,",
         "mac": "cmd+alt+,",
         "when": "editorTextFocus"
       },
       {
-        "command": "reconixCodeScanner.openChat",
+        "command": "reconix.openChat",
         "key": "ctrl+shift+alt+r",
         "mac": "cmd+shift+alt+r"
       }

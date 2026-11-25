@@ -31,7 +31,7 @@ export interface McpBackendOptions {
 const RECONNECT_ATTEMPTS = 6;
 const DEFAULT_PAGE_LIMIT = 200;
 const MAX_TITLE = 120;
-const NOT_LOCAL = "The scanner server must run on this computer. Check reconixCodeScanner.serverUrl.";
+const NOT_LOCAL = "The scanner server must run on this computer. Check reconix.serverUrl.";
 
 export class McpBackend implements Backend {
   private client: HarnessClient | undefined;
@@ -46,8 +46,8 @@ export class McpBackend implements Backend {
 
   async status(): Promise<ConnectionStatus> {
     const { serverUrl } = this.options;
-    const settings = { label: "Open Settings", command: "reconixCodeScanner.openSettings" };
-    const token = { label: "Set Token", command: "reconixCodeScanner.setToken" };
+    const settings = { label: "Open Settings", command: "reconix.openSettings" };
+    const token = { label: "Set Token", command: "reconix.setToken" };
     if (!serverUrl) return { state: "disconnected", reason: "No server URL is set.", action: settings };
     if (!isLoopback(serverUrl)) return { state: "disconnected", reason: NOT_LOCAL, action: settings };
     if (!(await this.options.getToken())) return { state: "disconnected", reason: "No token is set.", action: token };
@@ -55,7 +55,7 @@ export class McpBackend implements Backend {
       await (await this.connection()).listSessions();
       return { state: "connected", label: "Connected to MCP Server" };
     } catch (err) {
-      const action = err instanceof TokenRejectedError ? token : { label: "Retry", command: "reconixCodeScanner.reconnect" };
+      const action = err instanceof TokenRejectedError ? token : { label: "Retry", command: "reconix.reconnect" };
       return { state: "disconnected", reason: (err as Error).message, action };
     }
   }

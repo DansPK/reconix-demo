@@ -284,7 +284,7 @@ const EXAMPLES: Example[] = [
   { icon: "folder", title: "Scan this project", detail: "Scan the workspace for vulnerabilities", run: () => sendText("Scan this project") },
   { icon: "file", title: "Scan the current file", detail: "Only the file open in the editor", run: () => {
     if (confirms.size > 0 || thinkingActive || scanning) return;
-    send({ type: "runCommand", command: "reconixCodeScanner.scanPath" });
+    send({ type: "runCommand", command: "reconix.scanPath" });
   } },
   { icon: "github", title: "Scan a GitHub repo", detail: "Paste the repository's address", run: () => prefill("Scan https://github.com/") },
   { icon: "alert", title: "Most serious problems", detail: "Show the top critical issues", run: () => sendText("What are the most serious problems?") },

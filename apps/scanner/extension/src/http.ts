@@ -22,7 +22,7 @@ export function makeFetch(caCertificatePath?: string): FetchFn {
   try {
     ca = readFileSync(expandHome(caCertificatePath), "utf8");
   } catch {
-    throw new Error(`Cannot read the CA certificate at ${caCertificatePath} (reconixCodeScanner.caCertificate).`);
+    throw new Error(`Cannot read the CA certificate at ${caCertificatePath} (reconix.caCertificate).`);
   }
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Agent, fetch: undiciFetch } = require("undici") as typeof import("undici");

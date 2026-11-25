@@ -24,7 +24,7 @@ export type ScanStatus = "RUNNING" | "WAITING_APPROVAL" | "COMPLETED" | "FAILED"
 /** Where a running scan is in its pipeline. */
 export type ScanStage = "COLLECTING" | "ARCHIVING" | "UPLOADING" | "SCANNING" | "ANALYZING" | "DONE";
 
-/** A button that fixes a connection problem: a "reconixCodeScanner." command, e.g. Set Token. */
+/** A button that fixes a connection problem: a "reconix." command, e.g. Set Token. */
 export interface ConnectionAction {
   label: string;
   command: string;

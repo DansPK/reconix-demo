@@ -4,7 +4,7 @@ import { makeFetch, tlsErrorCode } from "../../src/http";
 
 test("makeFetch is the plain fetch without a CA file, and says clearly when the file can't be read", () => {
   assert.equal(makeFetch(undefined), fetch);
-  assert.throws(() => makeFetch("/no/such/ca.pem"), /Cannot read the CA certificate at \/no\/such\/ca\.pem \(reconixCodeScanner\.caCertificate\)/);
+  assert.throws(() => makeFetch("/no/such/ca.pem"), /Cannot read the CA certificate at \/no\/such\/ca\.pem \(reconix\.caCertificate\)/);
 });
 
 test("tlsErrorCode finds a certificate problem anywhere in the cause chain", () => {

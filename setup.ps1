@@ -61,14 +61,12 @@ function Invoke-Vscode {
 
         if (Get-Command code -ErrorAction SilentlyContinue) {
             Write-Host "`n==> Installing the extension and configuring VS Code"
-            # Older builds had another publisher and would stay installed next to this one.
-            if ((code --list-extensions) -contains "local.reconix-code-scanner") { code --uninstall-extension local.reconix-code-scanner | Out-Null }
             code --install-extension reconix-scanner.vsix --force | Out-Null
             $settings = Join-Path $env:APPDATA "Code\User\settings.json"
             if (Update-CodeSettings $settings $serverUrl $token) {
                 Write-Host "VS Code settings updated (serverUrl=$serverUrl, token set)"
             } else {
-                Write-Warning "Could not edit $settings. Set reconixCodeScanner.serverUrl=$serverUrl and token=$token yourself."
+                Write-Warning "Could not edit $settings. Set reconix.serverUrl=$serverUrl and token=$token yourself."
             }
         } else {
             Write-Warning "'code' is not on PATH. Install $Ext\reconix-scanner.vsix from VS Code (Extensions -> ... -> Install from VSIX)."
@@ -95,17 +93,17 @@ function Update-CodeSettings($path, $url, $token) {
         $obj = $null
         if ((Test-Path $path) -and (Get-Item $path).Length -gt 0) {
             # ConvertFrom-Json rejects comments/trailing commas; leave such files alone.
-            $obj = Get-Content -Raw -Path $path | ConvertFrom-Json
+            $obj = Get-Content -Raw -Encoding UTF8 -Path $path | ConvertFrom-Json
         }
         if (-not $obj) { $obj = [pscustomobject]@{} }
-        # Migrate keys from older installs (vulnScanner.*, reconix.* -> reconixCodeScanner.*).
-        foreach ($p in @($obj.PSObject.Properties | Where-Object { $_.Name -like "vulnScanner.*" -or $_.Name -like "reconix.*" })) {
-            $new = "reconixCodeScanner." + $p.Name.Substring($p.Name.IndexOf(".") + 1)
+        # Migrate keys from older installs (vulnScanner.* -> reconix.*).
+        foreach ($p in @($obj.PSObject.Properties | Where-Object { $_.Name -like "vulnScanner.*" })) {
+            $new = "reconix." + $p.Name.Substring("vulnScanner.".Length)
             if (-not $obj.PSObject.Properties[$new]) { $obj | Add-Member -NotePropertyName $new -NotePropertyValue $p.Value }
             $obj.PSObject.Properties.Remove($p.Name)
         }
-        $obj | Add-Member -NotePropertyName "reconixCodeScanner.serverUrl" -NotePropertyValue $url -Force
-        $obj | Add-Member -NotePropertyName "reconixCodeScanner.token" -NotePropertyValue $token -Force
+        $obj | Add-Member -NotePropertyName "reconix.serverUrl" -NotePropertyValue $url -Force
+        $obj | Add-Member -NotePropertyName "reconix.token" -NotePropertyValue $token -Force
         $obj | ConvertTo-Json -Depth 20 | Set-Content -Path $path -Encoding UTF8
         return $true
     } catch { return $false }

@@ -22,7 +22,7 @@ after(() => demo.stop());
 test("a valid token connects; a bad or missing one offers Set Token without leaking it", async () => {
   assert.deepEqual(await backend.status(), { state: "connected", label: "Connected to MCP Server" });
   const status = (token?: string) => new McpBackend({ serverUrl: demo.fake.url, getToken: async () => token }).status();
-  const action = { label: "Set Token", command: "reconixCodeScanner.setToken" };
+  const action = { label: "Set Token", command: "reconix.setToken" };
   assert.deepEqual(await status("wrong-token-123"), { state: "disconnected", reason: TOKEN_REJECTED, action });
   assert.deepEqual(await status(), { state: "disconnected", reason: "No token is set.", action });
 });
@@ -35,8 +35,8 @@ test("an unreachable or missing server says so, with the button that helps", asy
   };
   const down = await status("http://127.0.0.1:1");
   assert.match(down.reason, /cannot be reached/);
-  assert.equal(down.action?.command, "reconixCodeScanner.reconnect");
-  assert.equal((await status("")).action?.command, "reconixCodeScanner.openSettings");
+  assert.equal(down.action?.command, "reconix.reconnect");
+  assert.equal((await status("")).action?.command, "reconix.openSettings");
 });
 
 test("sessions: create, rename, list newest first, history, delete; a lost one reads as SESSION_NOT_FOUND", async () => {

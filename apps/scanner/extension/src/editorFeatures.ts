@@ -29,18 +29,18 @@ import type { Severity } from "./shared/contract";
 import type { HostToWebview } from "./shared/messages";
 import { isSafeContractPath } from "./workspaceFiles";
 
-const CONFIG_SECTION = "reconixCodeScanner";
-const FIX_COMMAND = "reconixCodeScanner.fixFindings";
+const CONFIG_SECTION = "reconix";
+const FIX_COMMAND = "reconix.fixFindings";
 /** Opens a finding's lines (hidden command: the tree's click). */
-export const OPEN_FINDING_COMMAND = "reconixCodeScanner.openFinding";
-export const FINDINGS_VIEW_ID = "reconixCodeScanner.findings";
-export const NEXT_FINDING_COMMAND = "reconixCodeScanner.nextFinding";
-export const PREVIOUS_FINDING_COMMAND = "reconixCodeScanner.previousFinding";
+export const OPEN_FINDING_COMMAND = "reconix.openFinding";
+export const FINDINGS_VIEW_ID = "reconix.findings";
+export const NEXT_FINDING_COMMAND = "reconix.nextFinding";
+export const PREVIOUS_FINDING_COMMAND = "reconix.previousFinding";
 /** Selects a finding in the tree (hidden command: the CodeLens's click). */
-export const REVEAL_FINDING_COMMAND = "reconixCodeScanner.revealFinding";
-export const EXPLAIN_FINDING_COMMAND = "reconixCodeScanner.explainFinding";
-export const IGNORE_FINDING_COMMAND = "reconixCodeScanner.ignoreFinding";
-export const FIX_FILE_COMMAND = "reconixCodeScanner.fixFile";
+export const REVEAL_FINDING_COMMAND = "reconix.revealFinding";
+export const EXPLAIN_FINDING_COMMAND = "reconix.explainFinding";
+export const IGNORE_FINDING_COMMAND = "reconix.ignoreFinding";
+export const FIX_FILE_COMMAND = "reconix.fixFile";
 const ICONS: GutterIcon[] = ["critical", "high", "medium", "low", "info"];
 
 /** Theme colours (they follow the user's theme) for the overview ruler and the tree. */
@@ -186,7 +186,7 @@ export class EditorFeatures implements FindingsDisplay, vscode.Disposable {
   private readonly disposables: vscode.Disposable[] = [];
   private readonly gutter: Record<GutterIcon, vscode.TextEditorDecorationType>;
   private readonly fileDecorations = new vscode.EventEmitter<vscode.Uri[] | undefined>();
-  private readonly status = vscode.window.createStatusBarItem("reconixCodeScanner.status", vscode.StatusBarAlignment.Left, 50);
+  private readonly status = vscode.window.createStatusBarItem("reconix.status", vscode.StatusBarAlignment.Left, 50);
   private readonly tree = new FindingsTree();
   private readonly treeView: vscode.TreeView<Node>;
   /** Shown findings by file URI (toString()). */

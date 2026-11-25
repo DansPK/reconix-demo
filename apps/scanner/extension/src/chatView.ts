@@ -5,7 +5,7 @@ import * as vscode from "vscode";
 import type { HostToWebview, WebviewToHost } from "./shared/messages";
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
-  public static readonly viewId = "reconixCodeScanner.chat";
+  public static readonly viewId = "reconix.chat";
 
   private view: vscode.WebviewView | undefined;
 

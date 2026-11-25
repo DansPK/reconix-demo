@@ -161,8 +161,8 @@ For extension development, open `extension/` in VS Code and press **F5** instead
 
 ## 7. Connect VS Code
 
-1. Open Settings and set **`reconixCodeScanner.serverUrl`** to the harness URL, for example `http://localhost:8080`. It must match `HARNESS_PUBLIC_URL`.
-2. Run **Reconix Code Scanner: Set Token** from the Command Palette and paste the token from step 5. You can also paste it into the `reconixCodeScanner.token` setting. Either way, the extension moves it into VS Code's secure storage and clears the setting.
+1. Open Settings and set **`reconix.serverUrl`** to the harness URL, for example `http://localhost:8080`. It must match `HARNESS_PUBLIC_URL`.
+2. Run **Reconix Code Scanner: Set Token** from the Command Palette and paste the token from step 5. You can also paste it into the `reconix.token` setting. Either way, the extension moves it into VS Code's secure storage and clears the setting.
 3. Reload the window (**Developer: Reload Window**).
 4. Open the **Reconix** view (the Reconix icon in the activity bar) and type `scan this project`.
 
@@ -183,7 +183,7 @@ HARNESS_TLS_CERT=/certs/dev-cert.pem
 HARNESS_TLS_KEY=/certs/dev-key.pem
 ```
 
-Run `docker compose up -d harness`. In VS Code, change `reconixCodeScanner.serverUrl` to `https://…` and set `reconixCodeScanner.caCertificate` to the full path of `analyzer-agent-harness/certs/dev-cert.pem`.
+Run `docker compose up -d harness`. In VS Code, change `reconix.serverUrl` to `https://…` and set `reconix.caCertificate` to the full path of `analyzer-agent-harness/certs/dev-cert.pem`.
 
 ## Troubleshooting
 
@@ -196,7 +196,7 @@ Run `docker compose up -d harness`. In VS Code, change `reconixCodeScanner.serve
 | Chat replies are odd, but scan commands still work | Small models sometimes ignore instructions. When the LLM fails, scan commands fall back to keyword matching. A larger model gives better routing and reviews. |
 | Extension says "No token is set" | Run **Reconix Code Scanner: Set Token** again. Tokens are stored per VS Code profile. |
 | Upload fails with HTTP 403 | The upload link expired or was signed with a different secret. Check that `HARNESS_PUBLIC_URL` matches the URL VS Code uses, then rescan. |
-| Logs show `Invalid HTTP request received` | Something is connecting with HTTPS, or isn't sending HTTP, to a plain-HTTP harness. Check that the `reconixCodeScanner.serverUrl` scheme matches the server. |
+| Logs show `Invalid HTTP request received` | Something is connecting with HTTPS, or isn't sending HTTP, to a plain-HTTP harness. Check that the `reconix.serverUrl` scheme matches the server. |
 
 To see what the harness is doing:
 

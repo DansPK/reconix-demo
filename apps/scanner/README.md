@@ -41,7 +41,7 @@ to jump to its line.
 `setup.sh` works on Linux, macOS and Windows (on Windows, run it in **Git Bash**). It needs
 [Node.js](https://nodejs.org/) 20+, [VS Code](https://code.visualstudio.com/) with the `code`
 command on your PATH, and Python 3. See [docs/SETUP.md](docs/SETUP.md) to do it by hand or to
-set `reconixCodeScanner.serverUrl`/token yourself.
+set `reconix.serverUrl`/token yourself.
 
 ## What you can do
 
@@ -63,13 +63,13 @@ set `reconixCodeScanner.serverUrl`/token yourself.
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `reconixCodeScanner.serverUrl` | `http://127.0.0.1:7357` | Base URL of the scanner server. |
-| `reconixCodeScanner.token` | empty | Paste a token here to sign in; it moves to secure storage and the field is cleared. |
-| `reconixCodeScanner.caCertificate` | empty | Full path to a PEM certificate to trust for HTTPS (for a self-signed server). |
-| `reconixCodeScanner.extraExcludes` | `[]` | Extra files or folders to skip, in `.gitignore` style, e.g. `["data/", "*.min.js"]`. |
-| `reconixCodeScanner.maxFileSizeKB` | `2048` | Skip files bigger than this. |
-| `reconixCodeScanner.maxUploadMB` | `200` | Stop before uploading more than this. |
-| `reconixCodeScanner.showLikelyFalsePositives` | `false` | Show findings marked as likely false alarms. |
+| `reconix.serverUrl` | `http://127.0.0.1:7357` | Base URL of the scanner server. |
+| `reconix.token` | empty | Paste a token here to sign in; it moves to secure storage and the field is cleared. |
+| `reconix.caCertificate` | empty | Full path to a PEM certificate to trust for HTTPS (for a self-signed server). |
+| `reconix.extraExcludes` | `[]` | Extra files or folders to skip, in `.gitignore` style, e.g. `["data/", "*.min.js"]`. |
+| `reconix.maxFileSizeKB` | `2048` | Skip files bigger than this. |
+| `reconix.maxUploadMB` | `200` | Stop before uploading more than this. |
+| `reconix.showLikelyFalsePositives` | `false` | Show findings marked as likely false alarms. |
 
 Folders like `.git`, `node_modules`, `dist`, `build` and `.venv`, and everything in your
 `.gitignore`, are never uploaded. The full settings list is in

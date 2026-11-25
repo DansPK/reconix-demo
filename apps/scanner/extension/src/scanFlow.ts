@@ -80,7 +80,7 @@ export async function runScanFlow(backend: Backend, options: ScanFlowOptions): P
       const archive = await createArchive(options.rootDir, missing, path.join(workDir, "workspace.tar.gz"));
       signal?.throwIfAborted();
       if (archive.sizeBytes > options.maxUploadMB * 1024 * 1024) {
-        throw new Error(`The files to upload are ${Math.ceil(archive.sizeBytes / 1024 / 1024)} MB, over the ${options.maxUploadMB} MB limit (reconixCodeScanner.maxUploadMB).`);
+        throw new Error(`The files to upload are ${Math.ceil(archive.sizeBytes / 1024 / 1024)} MB, over the ${options.maxUploadMB} MB limit (reconix.maxUploadMB).`);
       }
       reportLocal("UPLOADING");
       await backend.uploadCode(sessionId, archive.filePath, signal);

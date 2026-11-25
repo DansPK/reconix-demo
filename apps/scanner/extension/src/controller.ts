@@ -38,8 +38,8 @@ import type { ChatCommand, ChatReply, FileFix, Finding, FixOutcome, ConnectionAc
 import type { HostToWebview, MessageView, WebviewToHost } from "./shared/messages";
 import { hashFile, isSafeContractPath, toContractPath } from "./workspaceFiles";
 
-const SCAN_RUNNING_CONTEXT = "reconixCodeScanner.scanRunning";
-const CONFIG_SECTION = "reconixCodeScanner";
+const SCAN_RUNNING_CONTEXT = "reconix.scanRunning";
+const CONFIG_SECTION = "reconix";
 /** Chat errors the keyword rules must not paper over: the session refused the message. */
 const NO_KEYWORD_FALLBACK = /^(CHAT_IN_PROGRESS|SESSION_READ_ONLY|NOT_YOUR_SESSION|SESSION_CLOSED|NOT_VSCODE_SESSION)\b/;
 /** scanOnSave waits this long after the last save, so several quick saves start one scan. */
@@ -48,15 +48,16 @@ const SCAN_ON_SAVE_DELAY_MS = 2000;
 const LIVE_REFRESH_MS = 1500;
 const OUTDATED_TEXT = "This file changed since the scan. The line may have moved. Click Rescan to update.";
 /** workspaceState: the session this workspace had open last. */
-const LAST_SESSION_KEY = "reconixCodeScanner.lastSession";
+const LAST_SESSION_KEY = "reconix.lastSession";
 /** globalState: session id → absolute path of the folder it scans (session ids are global). */
-const SESSION_FOLDERS_KEY = "reconixCodeScanner.sessionFolders";
+const SESSION_FOLDERS_KEY = "reconix.sessionFolders";
 /** workspaceState, per session: raw finding ids the user chose to ignore here (local only). */
-const IGNORED_KEY = "reconixCodeScanner.ignored";
+const IGNORED_KEY = "reconix.ignored";
 /** globalState: chat history the extension kept before the backend did (Phase 2); removed once. */
-const OLD_HISTORY_KEY = "reconixCodeScanner.history";
+const OLD_HISTORY_KEY = "reconix.history";
 /** Virtual documents holding a proposed fix, shown on the right of the diff editor. */
-const FIX_SCHEME = "reconix-fix";
+// Not "reconix-fix": the released extension uses that, and both can be installed.
+const FIX_SCHEME = "reconix-local-fix";
 
 /** What the notification says while the extension prepares files, before the backend scan starts. */
 const PREPARE_TEXT: Partial<Record<ScanStage, string>> = {
@@ -312,7 +313,7 @@ export class Controller {
   }
 
   /**
-   * A token pasted into the reconixCodeScanner.token user setting moves to SecretStorage, and the
+   * A token pasted into the reconix.token user setting moves to SecretStorage, and the
    * setting is cleared. Returns whether it moved one.
    * Only the user (global) value counts: a cloned repo's .vscode/settings.json must never be able
    * to swap the token (the setting is also "scope": "application" in package.json).
@@ -330,7 +331,7 @@ export class Controller {
   }
 
   async openChat(): Promise<void> {
-    await vscode.commands.executeCommand("reconixCodeScanner.chat.focus");
+    await vscode.commands.executeCommand("reconix.chat.focus");
   }
 
   // ---- sessions ------------------------------------------------------------------------
@@ -366,7 +367,7 @@ export class Controller {
   /** Why the session can't change now (a scan or the fix agent is running), or undefined. */
   /** The button for busyText: a running scan can be stopped; the fix agent can't. */
   private busyAction(): ConnectionAction | undefined {
-    return this.runningScan ? { label: "Cancel Scan", command: "reconixCodeScanner.cancelScan" } : undefined;
+    return this.runningScan ? { label: "Cancel Scan", command: "reconix.cancelScan" } : undefined;
   }
 
   private busyText(): string | undefined {
@@ -504,7 +505,7 @@ export class Controller {
    */
   async scanWorkspace(full = false, paths?: string[], inFolder?: vscode.Uri, quiet = false): Promise<void> {
     if (this.runningScan) {
-      this.postError("A scan is already running. Wait for it, or cancel it.", { label: "Cancel Scan", command: "reconixCodeScanner.cancelScan" });
+      this.postError("A scan is already running. Wait for it, or cancel it.", { label: "Cancel Scan", command: "reconix.cancelScan" });
       return;
     }
     if (this.fixing) {
@@ -653,7 +654,7 @@ export class Controller {
     } else if (result.status === "CANCELLED") {
       this.say("The scan was cancelled.");
     } else {
-      this.postError(`The scan failed: ${result.error ?? "unknown error"}`, { label: "Rescan", command: "reconixCodeScanner.rescan" });
+      this.postError(`The scan failed: ${result.error ?? "unknown error"}`, { label: "Rescan", command: "reconix.rescan" });
     }
   }
 
@@ -685,7 +686,7 @@ export class Controller {
 
     this.postError("A scan is currently running on the server.", {
       label: "Cancel Server Scan",
-      command: "reconixCodeScanner.cancelScan",
+      command: "reconix.cancelScan",
     });
   }
 
@@ -716,7 +717,7 @@ export class Controller {
       return;
     }
     if (this.runningScan) {
-      this.postError("A scan is already running. Wait for it, or cancel it.", { label: "Cancel Scan", command: "reconixCodeScanner.cancelScan" });
+      this.postError("A scan is already running. Wait for it, or cancel it.", { label: "Cancel Scan", command: "reconix.cancelScan" });
       return;
     }
     if (this.fixing) {
@@ -1575,7 +1576,7 @@ export class Controller {
       this.say(`Skipping ${manual.length} finding${manual.length === 1 ? " that needs" : "s that need"} a manual fix (see the Findings tab).`);
     }
     if (this.runningScan) {
-      this.postError("A scan is running. Fix findings after it finishes.", { label: "Cancel Scan", command: "reconixCodeScanner.cancelScan" });
+      this.postError("A scan is running. Fix findings after it finishes.", { label: "Cancel Scan", command: "reconix.cancelScan" });
       return;
     }
     if (this.fixing) {
@@ -1788,7 +1789,7 @@ export class Controller {
       if (!run) {
         this.postError("No AI model is active. Choose or add a model below to chat.", {
           label: "Choose Model",
-          command: "reconixCodeScanner.selectModel",
+          command: "reconix.selectModel",
         });
         return;
       }

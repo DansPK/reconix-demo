@@ -77,7 +77,7 @@ export type WebviewToHost =
   | { type: "deleteProvider"; providerId: string }
   /** The user clicked one of the buttons of a `confirm` message. */
   | { type: "answerConfirm"; id: string; accept: boolean }
-  /** A connection problem's button, e.g. Set Token. Only "reconixCodeScanner." commands run. */
+  /** A connection problem's button, e.g. Set Token. Only "reconix." commands run. */
   | { type: "runCommand"; command: string }
   /** User cancelled/stopped the active chat request. */
   | { type: "cancelChat" }
@@ -136,5 +136,5 @@ export type HostToWebview =
   | { type: "confirm"; id: string; yes: string; no: string }
   /** The question was answered (or dropped): disable its buttons. */
   | { type: "confirmDone"; id: string }
-  /** `action`: a button that fixes it (only "reconixCodeScanner." commands run). */
+  /** `action`: a button that fixes it (only "reconix." commands run). */
   | { type: "error"; message: string; action?: ConnectionAction };

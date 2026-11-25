@@ -28,7 +28,7 @@ export function mapError(e: unknown, serverUrl: string): Error {
   const tlsCode = tlsErrorCode(e);
   if (tlsCode) {
     return new ServerUnreachableError(`The server's HTTPS certificate is not trusted (${tlsCode}). `
-      + "For a self-signed certificate, set reconixCodeScanner.caCertificate to its .pem file.");
+      + "For a self-signed certificate, set reconix.caCertificate to its .pem file.");
   }
   const err = e as Error & { code?: number };
   if ((e instanceof StreamableHTTPError && e.code === 401) || /\b401\b|unauthori[sz]ed/i.test(err?.message ?? "")) {
