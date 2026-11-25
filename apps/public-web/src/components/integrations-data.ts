@@ -4,15 +4,14 @@ import {
   siFastapi,
   siHuggingface,
   siNextdotjs,
+  siOllama,
   siOwasp,
   siPython,
   siQdrant,
   siRich,
   siTextual,
   siTrivy,
-  siTyper,
   siTypescript,
-  siVllm,
   siZap,
 } from "simple-icons";
 import {
@@ -83,7 +82,7 @@ export const INTEGRATION_GROUPS: (IntegrationGroup & { id: GroupId })[] = [
     icon: BrainCircuit,
     blurb: "Language steps only, with short context, never raw tool output.",
     items: [
-      { name: "vLLM", note: "local LLM", icon: siVllm },
+      { name: "Ollama", note: "local LLM", icon: siOllama },
       { name: "OpenAI-compatible", note: "any endpoint", glyph: Plug },
       { name: "BGE-M3", note: "embeddings", icon: siHuggingface },
     ],
@@ -115,7 +114,6 @@ export const INTEGRATION_GROUPS: (IntegrationGroup & { id: GroupId })[] = [
     icon: SquareTerminal,
     blurb: "Where you start, approve and review assessments.",
     items: [
-      { name: "Typer", note: "cli", icon: siTyper },
       { name: "Textual", note: "tui", icon: siTextual },
       { name: "Rich", note: "output", icon: siRich },
     ],
@@ -124,9 +122,9 @@ export const INTEGRATION_GROUPS: (IntegrationGroup & { id: GroupId })[] = [
     id: "frontend",
     title: "Frontend",
     icon: LayoutDashboard,
-    blurb: "Read-only local viewer for findings, evidence and reports.",
+    blurb: "Local dashboard for findings, evidence and reports.",
     items: [
-      { name: "Next.js", note: "local viewer", icon: siNextdotjs },
+      { name: "Next.js", note: "local dashboard", icon: siNextdotjs },
       { name: "TypeScript", note: "dashboard", icon: siTypescript },
     ],
   },

@@ -1,11 +1,11 @@
 import figlet from "figlet";
 import { AsciiArt, type AsciiArtProps } from "@/components/ascii-art";
 
-type Fonts = figlet.Fonts;
+type Fonts = NonNullable<Parameters<typeof figlet.textSync>[1]>["font"];
 
 export type AsciiBannerProps = Omit<AsciiArtProps, "lines" | "label"> & {
   text: string;
-  /** Any font shipped in node_modules/figlet/fonts. Sections and the hero use "ANSI Shadow". */
+  /** Any font shipped in node_modules/figlet/fonts. Sections use "ANSI Shadow". */
   font?: Fonts;
   /** true = visual only (aria-hidden); the caller must provide the heading text itself. */
   decorative?: boolean;
@@ -20,10 +20,7 @@ export function asciiLines(text: string, font: Fonts = "ANSI Shadow"): string[] 
     .map((l) => l.trimEnd());
 }
 
-/**
- * Title drawn as an ASCII-art banner. Rendered on the server, so the client
- * gets plain text in a <pre>. Must stay server-only: figlet fonts are not bundled for the client.
- */
+
 export function AsciiBanner({ text, font = "ANSI Shadow", decorative = false, ...rest }: AsciiBannerProps) {
   return <AsciiArt lines={asciiLines(text, font)} label={decorative ? undefined : text} {...rest} />;
 }

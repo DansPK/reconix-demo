@@ -4,11 +4,6 @@ import { AsciiBanner } from "@/components/ascii-banner";
 import { SectionShell } from "@/components/section-shell";
 import { WorkflowStepper } from "@/components/workflow-stepper";
 
-/**
- * How an assessment runs, as a horizontal, clickable stepper. The section stays a
- * server component (AsciiBanner is server-only); the interactive part is
- * WorkflowStepper, with its steps in workflow-data.ts.
- */
 export function Workflow() {
   return (
     <SectionShell id="workflow" backdrop="grid" tint="primary" className="bg-card/40">

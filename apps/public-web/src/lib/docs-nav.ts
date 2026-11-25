@@ -21,18 +21,9 @@ export type DocGroup = {
   description: string;
   icon: LucideIcon;
   pages: DocPage[];
-  /**
-   * Single-page groups only: the page's DocSection titles, shown as #anchor links on the docs
-   * overview cards in place of sub-pages. Keep in step with the page's headings.
-   */
   sections?: string[];
 };
 
-/**
- * The docs structure, single source of truth for the docs sidebar, the navbar "Docs" and
- * "Guardrails" dropdowns, breadcrumbs, prev/next links and the sitemap. Adding a page = add it
- * here and add its content to src/content/docs/<group>.tsx under the same slug.
- */
 export const DOCS_NAV: DocGroup[] = [
   {
     id: "overview",
@@ -46,11 +37,11 @@ export const DOCS_NAV: DocGroup[] = [
     id: "getting-started",
     title: "Getting started",
     href: "/docs/getting-started",
-    description: "Install the services and the terminal, then run your first assessment.",
+    description: "Install Reconix, add a model, then run your first assessment.",
     icon: Rocket,
     pages: [
       { title: "Requirements", href: "/docs/getting-started/requirements", description: "What you need before installing." },
-      { title: "Installation", href: "/docs/getting-started/installation", description: "Start the services and install the terminal client." },
+      { title: "Installation", href: "/docs/getting-started/installation", description: "Install Reconix and add a model." },
       { title: "Configuration", href: "/docs/getting-started/configuration", description: "The main settings in .env." },
       { title: "First assessment", href: "/docs/getting-started/first-assessment", description: "From request to report, step by step." },
     ],
@@ -70,12 +61,12 @@ export const DOCS_NAV: DocGroup[] = [
     id: "interfaces",
     title: "Interfaces",
     href: "/docs/interfaces",
-    description: "The terminal you work in, the VS Code extension and the read-only viewer.",
+    description: "The terminal you work in, the VS Code extension and the local dashboard.",
     icon: SquareTerminal,
     pages: [
       { title: "Terminal", href: "/docs/interfaces/terminal", description: "Start assessments, edit the scope and approve actions." },
       { title: "VS Code extension", href: "/docs/interfaces/vscode-extension", description: "Work with Reconix from inside your editor." },
-      { title: "Local assessment viewer", href: "/docs/interfaces/local-viewer", description: "Browse findings, evidence, the audit log and reports." },
+      { title: "Local dashboard", href: "/docs/interfaces/local-viewer", description: "Browse findings, evidence and reports." },
     ],
   },
   {
@@ -101,7 +92,7 @@ export const DOCS_NAV: DocGroup[] = [
       { title: "Approval model", href: "/docs/guardrails/approval-model", description: "Who approves what, and when." },
       { title: "Credential handling", href: "/docs/guardrails/credential-handling", description: "How secrets are masked." },
       { title: "LLM data handling", href: "/docs/guardrails/llm-data-handling", description: "What the model sees, and what it never does." },
-      { title: "Model switching", href: "/docs/guardrails/model-switching", description: "Use the local model or any OpenAI-compatible endpoint." },
+      { title: "Model switching", href: "/docs/guardrails/model-switching", description: "Use the RECONIX model, a cloud provider or your own Ollama." },
       { title: "Knowledge & RAG", href: "/docs/guardrails/knowledge-and-rag", description: "Answers grounded in public sources and your own documents." },
       { title: "Limitations", href: "/docs/guardrails/limitations", description: "What Reconix does not do." },
     ],
@@ -122,7 +113,7 @@ export const DOCS_NAV: DocGroup[] = [
     description: "The findings format and reports.",
     icon: BookMarked,
     pages: [
-      { title: "Findings", href: "/docs/reference/findings", description: "Severity, confidence and evidence." },
+      { title: "Findings", href: "/docs/reference/findings", description: "Severity, review state and evidence." },
       { title: "Reports", href: "/docs/reference/reports", description: "What a report contains and how to export it." },
     ],
   },

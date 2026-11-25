@@ -1,4 +1,4 @@
-import { DocLink, DocSection, Mono } from "@/components/docs-layout";
+import { Callout, DocLink, DocSection, Mono } from "@/components/docs-layout";
 import type { GroupContent } from "@/content/docs/types";
 
 export const reference: GroupContent = {
@@ -15,22 +15,40 @@ export const reference: GroupContent = {
         </DocSection>
         <DocSection title="Severity">
           <p>
-            Severity comes from the scanner or a CVSS score, never a guess. Without either, a finding is marked{" "}
-            <Mono>UNKNOWN</Mono>.
+            <Mono>CRITICAL</Mono>, <Mono>HIGH</Mono>, <Mono>MEDIUM</Mono> and <Mono>LOW</Mono>. Severity comes from the
+            scanner or a CVSS score, never a guess. Two more values mark findings without a rated impact:
           </p>
+          <ul>
+            <li>
+              <Mono>UNKNOWN</Mono>: the tool gave no severity. Review it.
+            </li>
+            <li>
+              <Mono>NONE</Mono>: informational, with no direct impact, such as an open port.
+            </li>
+          </ul>
         </DocSection>
-        <DocSection title="Confidence">
-          <p>
-            Classifications with confidence below 0.80 are marked <Mono>NEEDS_REVIEW</Mono> for a person to check.
-          </p>
+        <DocSection title="Review state">
+          <p>Every finding carries where its review stands, so nothing uncertain reads as settled.</p>
+          <ul>
+            <li>
+              <strong>Confirmed</strong>: validated with evidence.
+            </li>
+            <li>
+              <strong>Needs review</strong>: open and not confirmed yet, for a person to check.
+            </li>
+            <li>
+              <strong>Closed</strong>: fixed, accepted, or a false positive.
+            </li>
+          </ul>
         </DocSection>
         <DocSection title="Evidence">
           <p>Each finding keeps its original evidence linked, with secrets masked.</p>
         </DocSection>
         <DocSection title="Browsing findings">
           <p>
-            In the <DocLink href="/docs/interfaces/local-viewer">local viewer</DocLink>, filter findings by severity, target,
-            category and tool.
+            In the <DocLink href="/docs/interfaces/local-viewer">local dashboard</DocLink>, filter findings by severity
+            and review state, or search them as text. In the terminal, <Mono>/findings</Mono> lists them and{" "}
+            <Mono>/finding</Mono> opens one.
           </p>
         </DocSection>
       </>
@@ -41,18 +59,25 @@ export const reference: GroupContent = {
     body: (
       <>
         <DocSection title="What a report contains">
-          <ul>
-            <li>The approved scope.</li>
-            <li>Findings, with their evidence (masked).</li>
-            <li>Limitations of the assessment.</li>
-            <li>Recommended fixes.</li>
-          </ul>
+          <ol className="space-y-2 [&_li]:ml-5 [&_li]:list-decimal">
+            <li>Executive summary.</li>
+            <li>Findings summary, with severity, CVSS, status and category per finding.</li>
+            <li>Approved scope and the assessment&apos;s limitations.</li>
+            <li>Detailed findings, with their masked evidence.</li>
+            <li>Policy and governance: the gated actions you decided on, and any blocked requests with the reason.</li>
+          </ol>
+          <p>When an assessment follows an earlier one, the report also lists the changes since then.</p>
         </DocSection>
         <DocSection title="Generating and exporting">
           <p>
-            Generate the report from the terminal when the analysis is complete. Review it in the{" "}
-            <DocLink href="/docs/interfaces/local-viewer">local viewer</DocLink> and export it as PDF.
+            Open the report with <Mono>/report</Mono> in the terminal, then <Mono>/export</Mono> to save it as PDF, JSON
+            or DOCX. The same three formats are available in the{" "}
+            <DocLink href="/docs/interfaces/local-viewer">local dashboard</DocLink>.
           </p>
+          <Callout>
+            A report can be generated once the assessment is complete. PDF and DOCX need their optional libraries
+            installed; JSON always works.
+          </Callout>
         </DocSection>
       </>
     ),

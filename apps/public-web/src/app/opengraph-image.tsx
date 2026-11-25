@@ -5,11 +5,7 @@ export const alt = `${SITE_NAME} — ${SITE_TAGLINE}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-/*
- * Share card for links to the site (og:image / twitter:image), rendered at
- * build time by Satori. Satori cannot read CSS variables, so the palette is
- * repeated here as literals: keep it in step with the tokens in globals.css.
- */
+
 const palette = {
   background: "#0a0f17",
   foreground: "#e8edf5",

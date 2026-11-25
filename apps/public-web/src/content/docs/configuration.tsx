@@ -1,4 +1,4 @@
-import { Code, DocLink, DocSection, Mono } from "@/components/docs-layout";
+import { Code, DocLink, DocSection } from "@/components/docs-layout";
 import { Badge } from "@/components/ui/badge";
 import type { GroupContent } from "@/content/docs/types";
 
@@ -61,10 +61,7 @@ limits: 5 req/s · 2h window`}</Code>
               <Badge variant="accent">HIGH</Badge> Needs explicit, clear approval.
             </li>
           </ul>
-          <p>
-            Classification uses this fixed table. The AI may suggest a level, but the backend decides. Point{" "}
-            <Mono>RISK_POLICY</Mono> in <Mono>.env</Mono> at the table you want to use.
-          </p>
+          <p>Classification uses this fixed table. The AI may suggest a level, but the backend decides.</p>
         </DocSection>
         <DocSection title="Execution limits">
           <p>

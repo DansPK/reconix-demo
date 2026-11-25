@@ -7,7 +7,7 @@ export type ProductView = {
   id: string;
   label: string;
   /** which Reconix surface the screen belongs to */
-  surface: "terminal" | "viewer";
+  surface: "terminal" | "dashboard";
   /** pre-rendered lucide icon (a component can't cross the server/client boundary) */
   icon: ReactNode;
   /** one line under the window; also the panel's accessible description */
@@ -16,14 +16,6 @@ export type ProductView = {
   screen: ReactNode;
 };
 
-/**
- * Tabbed product preview: an ARIA tablist of screens above one large window.
- * Same mechanics as WorkflowStepper: roving tabindex (Left/Right/Home/End),
- * panels stacked in one grid cell on lg+ so switching never shifts the layout (below lg
- * only the active panel is laid out, the screens differ too much in height),
- * panels swapped through `.wipe[data-state]`, tabs styled by the `.wf-step` rules.
- * Screens arrive pre-rendered from the server (sections/product-preview.tsx).
- */
 export function ProductTabs({ views }: { views: ProductView[] }) {
   const [selected, setSelected] = useState(0);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -88,7 +80,10 @@ export function ProductTabs({ views }: { views: ProductView[] }) {
         </div>
       </div>
 
-      <div data-reveal className="grid grid-cols-[minmax(0,1fr)]">
+      {/* items-start: the screens differ a lot in height, and the cell is as tall as the tallest.
+          Top-aligning them keeps the gap under the tabs identical on every tab; centring would
+          push the short ones (the wide Execution frame) down by half the difference. */}
+      <div data-reveal className="grid grid-cols-[minmax(0,1fr)] items-start">
         {views.map((v, i) => {
           const shown = i === selected;
           return (
@@ -109,9 +104,6 @@ export function ProductTabs({ views }: { views: ProductView[] }) {
               <div aria-hidden>{v.screen}</div>
               <p id={`${uid}-cap-${v.id}`} className="mt-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
                 <span className="text-sm text-foreground/90 sm:text-base">{v.caption}</span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                  Simplified preview · sample data
-                </span>
               </p>
             </div>
           );

@@ -11,13 +11,6 @@ const group = (id: GroupId) => INTEGRATION_GROUPS.find((g) => g.id === id)!;
 /** What the backend enforces on every request (docs/architecture: Backend row). */
 const CONTROLS = ["Scope Manifest", "Risk policy", "Execution limits", "Approvals", "Audit log"];
 
-/**
- * The stack drawn as an architecture diagram, top to bottom: interfaces (terminal +
- * read-only viewer) → backend control plane → services (AI, knowledge, security tools)
- * → infrastructure. Rows share a 12-column grid on lg so each connector sits under the
- * layer it leaves; below lg everything stacks and each gap shows one combined connector.
- * Connector + layer CSS: `.stack-link`, `.integration-card`, `.stack-foundation` in globals.css.
- */
 export function Integrations() {
   return (
     <SectionShell id="integrations" backdrop="grid" tint="muted">

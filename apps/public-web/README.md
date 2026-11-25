@@ -29,9 +29,10 @@ SITE_URL=https://your-domain.example docker compose up -d --build
 - `src/lib/dot-field.ts` (+ `src/components/dot-field.tsx`): cursor-reactive dot grid behind the Categories section
 - `src/components/sections/showcase.tsx`: pinned feature showcase; one node map whose camera pans and zooms between hubs as you scroll (scrubbed), text alternating sides
 - `src/lib/node-graph.js`: framework-free canvas node map (hubs, leaves, camera); keep it free of imports
-- `src/components/ascii-banner.tsx`: figlet banners, server-rendered — "ANSI Shadow" for section titles, "Pagga" for the hero wordmark (`ascii-art.tsx` is the figlet-free renderer)
-- `src/components/sections/hero.tsx`: centered figlet wordmark that boots in row by row, typed tagline, status chips
+- `src/components/ascii-banner.tsx`: figlet banners, server-rendered — "ANSI Shadow" for section titles (`ascii-art.tsx` is the figlet-free renderer)
+- `src/components/sections/hero.tsx`: centered wordmark (`reconix-wordmark.tsx`, a Figma export) that wipes in, typed tagline, status chips
 - `src/components/sections/integrations.tsx`: integrated tools and stack, grouped by function (`integrations-data.ts` + `tool-logo.tsx`, marks from `simple-icons`)
 - `src/app/globals.css`: colour and font tokens, hero/banner effects, section backdrops
 
-The install commands in Getting started are placeholders. Update them when the repository and packages exist.
+The product previews (`src/components/product-preview/`) are React markup, not screenshots. Their data mirrors the
+`www.lumina.com` run in `apps/terminal`; keep the two equal. No extension package or installer is served from this site.
