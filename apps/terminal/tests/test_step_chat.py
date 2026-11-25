@@ -114,7 +114,7 @@ async def test_type_something_opens_the_step_chat_and_esc_brings_the_menu_back(a
 async def test_an_unknown_command_in_the_chat_is_answered_there(app):
     async with app.run_test(size=SIZE) as pilot:
         await start_demo(pilot)
-        await pilot.press("4", *"hi", "enter")
+        await pilot.press("5")                               # Chat about this
         await settle(pilot)
         await pilot.press(*"/nope", "enter")
         await settle(pilot)
@@ -124,7 +124,9 @@ async def test_an_unknown_command_in_the_chat_is_answered_there(app):
 async def test_a_scope_change_line_opens_the_tick_list(app):
     async with app.run_test(size=SIZE) as pilot:
         await start_demo(pilot)
-        await pilot.press("4", *"add port 3389", "enter")
+        await pilot.press("5")                               # Chat about this
+        await settle(pilot)
+        await pilot.press(*"add port 3389", "enter")
         await settle(pilot)
         assert app.screen.query(TickList)
         assert "Only you can change the scope" in chat_text(app)

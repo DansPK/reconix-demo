@@ -11,14 +11,17 @@ from textual.widget import Widget
 from textual.widgets import Footer, Static
 
 from .. import store, theme
-from ..models import Choice
+from ..flow import RunController
+from ..models import Choice, EditIntent
 from ..widgets import (
     ChatBar, ChoiceMenu, FlowProgress, PlanOrder, Question, ScopePanel, SessionBar, StepChat,
     TickList, UserMessage, motion,
 )
 from ..widgets.plan_rows import PlanPanel
+from ..widgets.step_chat import THINKING
 
 CHAT_DECISION = "chat-decision"
+THINK_SECONDS = 1.2      # how long "thinking…" shows before an edit is read (× the run's SPEED)
 HIDDEN_CHOICES = "The choices are below — ↓ moves down to them."
 CHAT_MENU_HINT = "Enter to select · ↑/↓ to navigate · type to chat · Esc back to the step"
 
@@ -201,6 +204,7 @@ class ReconixScreen(Screen):
     async def _open_about_step(self) -> None:
         """The step's content (and its card), then the input: you came to talk."""
         chat = await self.open_step_chat(self.step_content())
+        chat.ai_edit = False    # "Chat about this" stays a chat, never an edit
         card = self.chat_card()
         if card is not None:
             chat.add(card)
@@ -232,8 +236,13 @@ class ReconixScreen(Screen):
     async def on_choice_menu_typed(self, event: ChoiceMenu.Typed) -> None:
         """ "Type something.": keep it as feedback (echoed above the menu), then answer it in
         the step chat. A `/name` line is a command instead: it runs, and is neither feedback
-        nor asked."""
+        nor asked. At the Scope and Plan steps the line may be an edit (`_edit_in_chat`)."""
         event.stop()
+        try:
+            store.refuse_at_login()     # it may be the password: never kept, run or echoed
+        except store.StoreValidationError as exc:
+            self.notify_error(str(exc))
+            return
         if self._is_command(event.text):
             chats = self.query(StepChat)
             self._chat_command(chats.first(StepChat) if chats else None, event.text)
@@ -246,7 +255,100 @@ class ReconixScreen(Screen):
             return
         if not self.query(StepChat):
             self._echo_feedback(echo_text)  # stays above the menu once the chat closes
-        self._ask_in_chat(await self.open_step_chat(), event.text)
+        chat = await self.open_step_chat()
+        if self._edits_here():
+            chat.ai_edit = True     # the next lines typed in this chat may be edits too
+        self._answer_in_chat(chat, event.text)
+
+    def _answer_in_chat(self, chat: StepChat, text: str) -> None:
+        """A line in a chat opened by "Type something." at the Scope or Plan step may be an
+        edit (`_edit_in_chat`); any other chat line is only answered (`_ask_in_chat`)."""
+        if chat.ai_edit and self._edits_here():
+            self._edit_in_chat(chat, text)
+        else:
+            self._ask_in_chat(chat, text)
+
+    # --- "Type something." at the Scope and Plan steps ---------------------------------------
+    def _edits_here(self) -> bool:
+        return self.flow_name in store.EDIT_STEPS and store.get_scope() is not None
+
+    def _edit_in_chat(self, chat: StepChat, text: str) -> None:
+        """Read the line (`store.ask_edit_intent`, local rules): a question (its answer, then
+        the step's menu), a scope change (saved through the store's checks, then the scope card
+        and menu: you still approve it) or a plan change (the plan is re-drafted with it)."""
+        step = store.EDIT_STEPS[self.flow_name]
+        try:
+            line = store.say_operator_line(text)    # masked, as the chat and history keep it
+        except store.StoreValidationError as exc:
+            self.notify_error(str(exc))
+            return
+        chat.add_you(line)
+        for old in [*self.query(TickList), *self.query(PlanOrder)]:
+            old.remove()
+        self._drop_decision()
+        reply = chat.add_reply(THINKING, tone="muted")
+        assessment = store.get_assessment()     # the one this line was typed in
+
+        def done() -> None:
+            if store.get_assessment() is not assessment or not chat.is_attached:
+                return      # another assessment is current, or the chat is gone: change nothing
+            intent = store.ask_edit_intent(line, step)
+            if intent.intent == "SCOPE_EDIT":
+                self._ai_scope_edit(chat, reply, intent)
+            elif intent.intent == "PLAN_EDIT":
+                self._ai_plan_edit(chat, reply, intent)
+            else:
+                self._put_reply(chat, reply, store.record_answer(intent))
+
+        delay = THINK_SECONDS * RunController.SPEED
+        if delay > 0:
+            self.set_timer(delay, done)
+        else:
+            done()
+
+    def _ai_scope_edit(self, chat: StepChat, reply: Static, intent: EditIntent) -> None:
+        """Save the scope change (the store validates all of it or none), then show the changed
+        scope and the menu. An approved scope is re-opened: you review and approve it again on
+        the Scope step, and the plan is drafted again."""
+        approved = store.is_scope_approved()
+        try:
+            store.apply_scope_changes(intent.scope_changes)
+        except store.StoreValidationError as exc:
+            self._put_reply(chat, reply, store.record_refusal(exc), "warn")
+            return
+        entry = store.last_exchange()[1][-1]
+        if approved:
+            self.app.scope_change_note = entry.text + " The plan is drafted again after that."
+            self.app.goto("template")       # the Scope step, to approve the changed scope
+            self.app.refresh_view()
+            return
+        self.app.refresh_view()
+        self._put_reply(chat, reply, entry.text, entry.tone, scope_card())
+
+    def _ai_plan_edit(self, chat: StepChat, reply: Static, intent: EditIntent) -> None:
+        """Re-draft the plan (at the Plan step); at the Scope step there is no plan yet."""
+        if self.flow_name != "plan":
+            self._put_reply(chat, reply, store.record_note(
+                "The plan is drafted after you approve the scope; ask for that change at the "
+                "Plan step."), "muted")
+            return
+        try:
+            store.redraft_plan(intent.plan_feedback)
+        except store.StoreValidationError as exc:
+            self._put_reply(chat, reply, store.record_refusal(exc), "warn")
+            return
+        entry = store.last_exchange()[1][-1]
+        self.app.refresh_view()
+        self._put_reply(chat, reply, entry.text, entry.tone, plan_card())
+
+    def _put_reply(self, chat: StepChat, reply: Static, text: str, tone: str = "default",
+                   card: Optional[Widget] = None) -> None:
+        """The finished reply, right above the menu so it stays in view; a changed step's card
+        goes above the reply."""
+        if card is not None:
+            chat.mount(card, before=reply)
+        chat.show_reply(reply, text, tone)
+        self._show_decision(chat)
 
     def _echo_feedback(self, text: str) -> None:
         """Your feedback on screen (built as Text, so brackets are never markup)."""
@@ -288,7 +390,7 @@ class ReconixScreen(Screen):
         if self._is_command(event.text):
             self._chat_command(event.chat, event.text)
             return
-        self._ask_in_chat(event.chat, event.text)
+        self._answer_in_chat(event.chat, event.text)
 
     def _is_command(self, text: str) -> bool:
         """`/name …` runs a command; a path (`/api/v1 …`) or a message of several lines stays
@@ -369,8 +471,10 @@ class ReconixScreen(Screen):
             decision.choices,
             default=decision.default,
             hint=CHAT_MENU_HINT,
-            typing=False,  # typing anywhere goes to the chat: no "Type something." row
-            type_out=True,  # a typed key brings the input back (on_choice_menu_typed_out)
+            # "Type something." stays, as on the step's own menu; a key typed on any other
+            # row brings the chat input back (on_choice_menu_typed_out).
+            typing=True,
+            type_out=True,
         )
         question.add_class(CHAT_DECISION)
         chat.add(question)
@@ -408,7 +512,9 @@ class ReconixScreen(Screen):
         anything else closes the chat and does what the step's menu does."""
         if choice_id == "chat":
             self._drop_decision()
-            self.query_one(StepChat).focus_input()
+            chat = self.query_one(StepChat)
+            chat.ai_edit = False    # "Chat about this": a chat line from here on, not an edit
+            chat.focus_input()
             return
         store.log_event(f"{self.flow_name}.chat.decided", choice_id)
         self._close_chat()

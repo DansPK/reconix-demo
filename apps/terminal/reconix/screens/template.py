@@ -131,6 +131,10 @@ class TemplateScreen(ReconixScreen):
         yield from _request_message()
         yield _ai_label(f"{template.name} template {picked} · drafted a scope manifest for "
                         "your approval")
+        note = self.app.scope_change_note
+        if note:    # a change made at the Plan step: what changed, above the changed card
+            yield Static(Text(note, style=theme.MEDIUM), id="scope-change-note",
+                         classes="panel-note")
         yield from self._manifest_panel()
         decision = self._review_decision()
         yield Question(decision.chip, decision.question, decision.choices,
@@ -188,6 +192,7 @@ class TemplateScreen(ReconixScreen):
 
     # --- focus and live updates -----------------------------------------------------------------
     def on_mount(self) -> None:
+        self.app.scope_change_note = None      # shown once, by this screen's first draw
         preset = self.app.template_pick
         self.app.template_pick = None
         if self.state() == "pick" and preset:

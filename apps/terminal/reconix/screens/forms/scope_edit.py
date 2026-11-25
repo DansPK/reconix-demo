@@ -1,8 +1,8 @@
 """EDIT SCOPE — change the drafted manifest before it is approved.
 
-The limits are edited as comma-separated lists and a number; the target itself is fixed
-for the assessment. The store validates every field and the policy engine then enforces
-exactly what was approved.
+The limits are edited as comma-separated lists and a number; the target itself changes
+elsewhere (the OpenAPI form, or "Type something."). The store validates every field and the
+policy engine then enforces exactly what was approved.
 """
 
 from typing import Dict, List, Optional
@@ -52,7 +52,9 @@ class ScopeEditForm(FormScreen):
     def note(self) -> Optional[Text]:
         target = (f"Target {self._scope.target_url}: change the API base URL with the OpenAPI "
                   "spec choice." if self._scope.kind == "api"
-                  else f"Target {self._scope.target_url} is fixed for this assessment.")
+                  else f"Target {self._scope.target_url} is fixed for this assessment."
+                  if self._scope.kind == "source"
+                  else f"Target {self._scope.target_url}: change it with “Type something.”.")
         return Text(f"{target} Edit the limits below; commas separate list items.",
                     style=theme.MUTED)
 

@@ -45,7 +45,8 @@ LIST_ROWS: List[Row] = [
 
 MENU_ROWS: List[Row] = LIST_ROWS + [
     ("1 … 9", "pick a numbered choice (a red, unnumbered one needs ↑/↓ and Enter)"),
-    ("type", "on \"Type something.\", write it, then Enter"),
+    ("type", 'on "Type something.", write it, then Enter (at Scope and Plan Reconix reads it: '
+             'it answers, or changes the scope or plan for you to approve)'),
 ]
 
 # Textual's short key names, written the way the rows above write them.

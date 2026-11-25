@@ -66,6 +66,8 @@ class ReconixApp(NavigationMixin, RunHostMixin, ActionsMixin, DialogsMixin,
         self.finding_unmasked: bool = False      # Detail screen: raw evidence revealed (demo)
         self.pending_prompt: str = ""            # draft for the Start prompt ("Chat about this")
         self.template_pick: Optional[str] = None  # template chosen with /template <id>
+        # What a scope change from the Plan step changed, shown once on the Scope step.
+        self.scope_change_note: Optional[str] = None
         self.findings_filter: str = "all"        # Findings list view (kept across screens)
         self.findings_sort: str = "severity"
         self.activity_expanded = False           # Ctrl+O: list the steps Reconix finished
