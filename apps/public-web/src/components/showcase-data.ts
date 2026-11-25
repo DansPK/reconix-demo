@@ -51,7 +51,7 @@ export const SHOWCASE: ShowcaseItem[] = [
     title: "Findings, not raw output.",
     tagline: "Turn scanner output into structured findings by classifying, correlating, prioritizing and attaching evidence.",
     points: [
-      "Low-confidence findings are flagged NEEDS_REVIEW for human validation",
+      "Findings that are not yet validated stay flagged for human review",
       "Severity is derived from scanner data, CVSS or defined policy rules",
       "Related results from multiple tools are correlated into one finding",
       "AI explains findings without changing the underlying evidence",
@@ -75,7 +75,7 @@ export const SHOWCASE: ShowcaseItem[] = [
     eyebrow: "Assessment & Reporting",
     word: "Reports",
     title: "Review it. Report it.",
-    tagline: "Inspect every assessment in one read-only view, then generate a handoff-ready security report.",
+    tagline: "Inspect every assessment in one local dashboard, then generate a handoff-ready security report.",
     points: [
       "Filter findings by severity, target, category, status and source tool",
       "Review masked evidence, validation status, remediation and audit history",

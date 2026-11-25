@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { AsciiBanner } from "@/components/ascii-banner";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { ReconixWordmark } from "@/components/reconix-wordmark";
 import { StatusChip } from "@/components/ui/status-chip";
 import { TypedLine } from "@/components/typed-line";
 import { cn } from "@/lib/utils";
@@ -15,10 +14,10 @@ const STATUS = [
 const monoBtn = "font-mono text-xs font-semibold uppercase tracking-[0.14em]";
 
 /**
- * Centered hero: figlet "ANSI Shadow" wordmark with a teal gradient fill that boots in
- * row by row (CSS, see `.ascii-banner--hero`), typed tagline, status readouts and two
- * calls to action. The nav hides its own "Get started" while this section is on screen.
- * The visible heading is the ASCII art; the sr-only h1 carries the name for assistive tech.
+ * Centered hero: the RECONIX wordmark exported from Figma, which wipes in on load
+ * (CSS, see `.reconix-wordmark`), typed tagline, status readouts and two calls to action.
+ * The nav hides its own "Get started" while this section is on screen. The visible
+ * heading is the wordmark; the sr-only h1 carries the name for assistive tech.
  */
 export function Hero() {
   return (
@@ -36,7 +35,7 @@ export function Hero() {
         <h1 id="hero-title" className="sr-only">
           Reconix
         </h1>
-        <AsciiBanner text="Reconix" variant="hero" decorative />
+        <ReconixWordmark className="reconix-wordmark--hero" />
 
         <TypedLine
           className="max-w-4xl font-mono text-sm uppercase tracking-[0.14em] text-foreground sm:text-base lg:text-lg"
@@ -59,7 +58,7 @@ export function Hero() {
             Get started
           </Link>
           <Link
-            href="/docs/getting-started/installation"
+            href="/docs"
             className={cn(
               buttonVariants({ variant: "outline", size: "lg" }),
               monoBtn,

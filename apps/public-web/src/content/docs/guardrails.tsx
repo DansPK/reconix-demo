@@ -1,4 +1,4 @@
-import { Callout, Code, DocLink, DocSection, Mono } from "@/components/docs-layout";
+import { Callout, DocLink, DocSection, Mono } from "@/components/docs-layout";
 import { Badge } from "@/components/ui/badge";
 import type { GroupContent } from "@/content/docs/types";
 
@@ -77,7 +77,10 @@ export const guardrails: GroupContent = {
           <p>The AI may suggest a risk level, but the backend decides. You can stop an assessment at any time.</p>
         </DocSection>
         <DocSection title="Audit">
-          <p>Every request, decision and approver lands in the audit log, which you can review in the local viewer.</p>
+          <p>
+            Every request, decision and approver lands in the audit log. Review it in the terminal with{" "}
+            <Mono>/audit</Mono>.
+          </p>
         </DocSection>
         <DocSection title="Related">
           <p>
@@ -101,13 +104,13 @@ export const guardrails: GroupContent = {
           <ul>
             <li>In the tool service, before results leave it.</li>
             <li>Before results are displayed, stored or written to a report.</li>
-            <li>Evidence in findings and in the local viewer is the masked version.</li>
+            <li>Evidence in findings and in the local dashboard is the masked version.</li>
           </ul>
         </DocSection>
         <DocSection title="Your own keys">
           <p>
-            Service keys such as <Mono>NVD_API_KEY</Mono> live in <Mono>.env</Mono>. See{" "}
-            <DocLink href="/docs/getting-started/configuration">Configuration</DocLink>.
+            Provider API keys are added in the terminal with <Mono>/provider</Mono> and stored encrypted, not in a file
+            you edit by hand. See <DocLink href="/docs/getting-started/configuration">Configuration</DocLink>.
           </p>
         </DocSection>
       </>
@@ -125,11 +128,13 @@ export const guardrails: GroupContent = {
         </DocSection>
         <DocSection title="Where the model runs">
           <p>
-            By default a local model served by vLLM, on your own server. You can point <Mono>LLM_BASE_URL</Mono> at any
-            OpenAI-compatible endpoint instead. See <DocLink href="/docs/guardrails/model-switching">Model switching</DocLink>.
+            By default the RECONIX model, served by the Reconix team. You can switch to OpenAI, Anthropic, DeepSeek, any
+            OpenAI-compatible endpoint, or your own Ollama on this computer. See{" "}
+            <DocLink href="/docs/guardrails/model-switching">Model switching</DocLink>.
           </p>
           <Callout variant="warning">
-            If you use an external endpoint, the short context for each language step is sent to that endpoint.
+            Unless the model runs on your own computer, the short context for each language step is sent to the
+            model&apos;s server. That includes the default RECONIX model.
           </Callout>
         </DocSection>
         <DocSection title="Untrusted content">
@@ -141,7 +146,7 @@ export const guardrails: GroupContent = {
         <DocSection title="Grounded answers">
           <ul>
             <li>Before the model explains an impact or recommends a fix, Reconix retrieves matching knowledge with hybrid search.</li>
-            <li>Internal knowledge comes first, filtered by the user&apos;s role.</li>
+            <li>Your own documents are searched along with the public sources.</li>
             <li>Missing facts are filled from the knowledge base or the NVD API, or clearly marked unknown.</li>
           </ul>
           <p>
@@ -152,39 +157,37 @@ export const guardrails: GroupContent = {
     ),
   },
   "model-switching": {
-    lede: "Run the bundled local model, or point Reconix at any OpenAI-compatible endpoint.",
-    draft: true,
+    lede: "Use the built-in RECONIX model, or switch to another provider at any time.",
     body: (
       <>
-        <DocSection title="Where the model runs">
+        <DocSection title="Providers">
           <ul>
             <li>
-              <strong>Default:</strong> a local model served by vLLM, running as a container on your own server. A GPU is
-              recommended.
+              <strong>Default:</strong> the RECONIX model, served by the Reconix team on an OpenAI-compatible server.
             </li>
             <li>
-              <strong>Alternative:</strong> any OpenAI-compatible endpoint. The AI service talks to the model through an
-              OpenAI-compatible client, so it works with either.
+              <strong>Cloud:</strong> OpenAI, Anthropic or DeepSeek, with your own API key.
+            </li>
+            <li>
+              <strong>Local:</strong> your own Ollama, on this computer.
+            </li>
+            <li>
+              <strong>Any other</strong> OpenAI-compatible endpoint.
             </li>
           </ul>
+          <p>Only one model is active at a time.</p>
         </DocSection>
         <DocSection title="Switch the model">
           <ol className="space-y-2 [&_li]:ml-5 [&_li]:list-decimal">
             <li>
-              Open <Mono>.env</Mono>.
+              In the terminal, add the provider with <Mono>/provider</Mono>, then pick its model with{" "}
+              <Mono>/model</Mono>. Its API key is entered there and stored encrypted.
             </li>
             <li>
-              Set <Mono>LLM_BASE_URL</Mono> to the endpoint you want. Leave the default to keep the bundled vLLM service.
-            </li>
-            <li>
-              Restart the services with <Mono>docker compose up -d</Mono>.
+              To change the RECONIX model&apos;s server address or key, run <Mono>reconix model</Mono> from your shell.
             </li>
           </ol>
-          <Code>{`# .env
-LLM_BASE_URL=https://llm.lumina.com/v1   # any OpenAI-compatible endpoint`}</Code>
-          <Callout variant="draft">
-            The settings for the model name and the endpoint&apos;s API key are still to document.
-          </Callout>
+          <p>The VS Code extension and the local dashboard can add models too, and use the same list.</p>
         </DocSection>
         <DocSection title="What switching does not change">
           <p>
@@ -207,28 +210,41 @@ LLM_BASE_URL=https://llm.lumina.com/v1   # any OpenAI-compatible endpoint`}</Cod
     ),
   },
   "knowledge-and-rag": {
-    lede: "Before the model explains an impact or recommends a fix, Reconix retrieves matching knowledge, your own documents first.",
-    draft: true,
+    lede: "Before the model explains an impact or recommends a fix, Reconix retrieves matching knowledge from public sources and your own documents.",
     body: (
       <>
         <DocSection title="How retrieval works">
           <ol className="space-y-2 [&_li]:ml-5 [&_li]:list-decimal">
             <li>A finding needs an explanation of its impact or a recommended fix.</li>
             <li>Reconix runs a hybrid search over the knowledge base: BGE-M3 embeddings stored in Qdrant.</li>
-            <li>Internal documents come first, filtered by the user&apos;s role.</li>
-            <li>Public sources fill in the rest: OWASP, CWE, CVE/NVD and advisories.</li>
+            <li>
+              Results are spread across the sources, so one long document cannot crowd out the rest, and an exact ID
+              match (a CVE or CWE number) always comes first.
+            </li>
             <li>The model answers from what was retrieved. Facts it cannot find are marked unknown, never guessed.</li>
           </ol>
         </DocSection>
+        <DocSection title="Public sources">
+          <ul>
+            <li>CISA Known Exploited Vulnerabilities: the newest 1,000 CVEs.</li>
+            <li>CWE weaknesses.</li>
+            <li>OWASP Top 10 and OWASP API Security Top 10.</li>
+            <li>MITRE ATT&amp;CK techniques.</li>
+            <li>Guides for the tools Reconix runs.</li>
+          </ul>
+        </DocSection>
         <DocSection title="Your own documents">
           <p>
-            Internal documents live in the same knowledge base as the public sources and rank ahead of them, so explanations
-            and fixes follow your organization&apos;s own guidance. Retrieval is filtered by role: a user only gets passages
-            from documents their role allows.
+            Add reference files in the terminal with <Mono>/add-on</Mono>. They are searched alongside the public
+            sources, so explanations and fixes can follow your organization&apos;s own guidance.
           </p>
-          <Callout variant="draft">
-            How to add, update and remove documents, the supported formats and how roles are assigned are still to document.
-          </Callout>
+          <ul>
+            <li>
+              Formats: <Mono>.txt</Mono>, <Mono>.md</Mono>, <Mono>.json</Mono>, <Mono>.yaml</Mono>,{" "}
+              <Mono>.yml</Mono>, <Mono>.docx</Mono> and <Mono>.pdf</Mono>, up to 10 MB each.
+            </li>
+            <li>Secrets in the text are masked before it is stored. The original file is not kept.</li>
+          </ul>
         </DocSection>
         <DocSection title="Retrieved text is data">
           <p>
@@ -238,8 +254,8 @@ LLM_BASE_URL=https://llm.lumina.com/v1   # any OpenAI-compatible endpoint`}</Cod
         </DocSection>
         <DocSection title="CVE lookups">
           <p>
-            CVE details come from the NVD API. Set <Mono>NVD_API_KEY</Mono> in <Mono>.env</Mono> to raise the rate limit. See{" "}
-            <DocLink href="/docs/getting-started/configuration">Configuration</DocLink>.
+            When a question names a CVE ID, Reconix asks the NVD API first for the current description and CVSS score.
+            If NVD cannot be reached, it falls back to the knowledge base.
           </p>
         </DocSection>
         <DocSection title="Related">
@@ -259,16 +275,14 @@ LLM_BASE_URL=https://llm.lumina.com/v1   # any OpenAI-compatible endpoint`}</Cod
         <DocSection title="Known limitations">
           <ul>
             <li>
-              Findings generated with AI can be wrong. Classifications with confidence below 0.80 are marked{" "}
-              <Mono>NEEDS_REVIEW</Mono> for a person to check.
+              Findings generated with AI can be wrong. A finding that has not been validated stays{" "}
+              <strong>Needs review</strong> until a person confirms it.
             </li>
-            <li>
-              Severity is never guessed. Without a scanner rating or a CVSS score, a finding is marked <Mono>UNKNOWN</Mono>.
-            </li>
+            <li>Severity is never guessed: it comes from the scanner or a CVSS score.</li>
             <li>Reconix supports predefined tasks. Requests outside those tasks, or outside the approved scope, are refused.</li>
           </ul>
           <p>
-            More on severity and confidence in <DocLink href="/docs/reference/findings">Findings</DocLink>.
+            More on severity and review state in <DocLink href="/docs/reference/findings">Findings</DocLink>.
           </p>
         </DocSection>
       </>

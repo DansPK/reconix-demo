@@ -50,7 +50,6 @@ export const assessments: GroupContent = {
   },
   templates: {
     lede: "Four templates cover the targets teams assess most: what each needs from you and what the results show.",
-    draft: true,
     body: (
       <>
         <DocSection title="The four templates">
@@ -83,9 +82,6 @@ export const assessments: GroupContent = {
             <li>Each template asks for the inputs it needs; your answers become the draft Scope Manifest.</li>
             <li>Selecting a template never authorizes testing on its own: the approved Scope Manifest does.</li>
           </ul>
-        </DocSection>
-        <DocSection title="Still to document">
-          <p>Template-specific questions, the tools used for each category and their options.</p>
         </DocSection>
       </>
     ),
