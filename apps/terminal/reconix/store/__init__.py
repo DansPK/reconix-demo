@@ -67,7 +67,9 @@ from .scope import (
 )
 from .scope_view import describe_scope
 from .seed import DEMO_REQUEST, load_demo_data
-from .targets import check_target
+from .services import api_online, kali_host, kali_status
+from .targets import FieldCheck, check_field, check_target
+from .targets import max_length as target_max_length, needs as target_needs
 from .templates import get_template, list_templates, select_template, selected_template
 from .transcript import last_exchange, list_activity, list_chat
 from .thinking import block_seconds, group_stream, stream
@@ -87,7 +89,9 @@ __all__ = [
     "get_assessment", "assessment_label", "list_requests", "add_request", "recorded_line",
     "list_assessments", "switch_assessment", "assessment_status", "AssessmentCard",
     # the run
-    "submit_prompt", "start_run", "check_target", "say_to_assistant", "say_operator_line",
+    "submit_prompt", "start_run", "check_target", "check_field", "FieldCheck",
+    "target_max_length", "target_needs", "api_online", "kali_status", "kali_host",
+    "say_to_assistant", "say_operator_line",
     "llm_answer", "new_assessment",
     "advance", "peek", "gate_state", "stop_run",
     "waiting_gate", "get_run", "display_phase", "is_completed", "is_finished", "counters",
