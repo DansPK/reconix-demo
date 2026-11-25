@@ -77,6 +77,9 @@ class StepChat(Vertical):
     def __init__(self, first: str = "", *, id: str = "step-chat") -> None:
         super().__init__(id=id, classes="step-chat")
         self._first = first
+        # Opened by "Type something." at the Scope or Plan step: the lines typed here are read
+        # as scope or plan edits. "Chat about this" clears it.
+        self.ai_edit = False
 
     def compose(self) -> ComposeResult:
         if self._first:

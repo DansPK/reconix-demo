@@ -2,6 +2,7 @@
 
 from ...models import Finding, ScopeManifest, Template
 from ...models.parser import ParsedTarget
+from ..targets import is_lumina
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 from ..scenario import card, log, say
 
@@ -48,15 +49,20 @@ _DUMP = (
 )
 _B = "•"   # the bullet used for masking across the demo
 _DB_NAME = "lumina_shop"
+# Another target's dump never names Lumina: a neutral database name and the last row's contact.
+_OTHER = {"lumina_shop": "shop", "admin@lumina.com": "vanna_prak@gmail.com",
+          "Lumina@2024": "Vanna@2024"}
 _TOTAL_ROWS = 48_215
 _COLUMNS = ("id", "name", "email", "phone", "card", "exp", "password")
 
 
-def _dump_cells(masked: bool) -> list:
+def _dump_cells(masked: bool, lumina: bool) -> list:
     """Per-column text for each sampled customer row — raw, or with the sensitive cells bulleted
     out. The brand rides with the raw card number; a masked card keeps only its last four."""
     rows = []
     for i, (name, email, phone, brand, card_no, exp, pw) in enumerate(_DUMP, 1):
+        if not lumina:
+            email, pw = _OTHER.get(email, email), _OTHER.get(pw, pw)
         if masked:
             email = email[0] + _B * 3 + "@" + email.split("@")[1]
             phone = " ".join(phone.split()[:2]) + " " + _B * 3
@@ -69,11 +75,11 @@ def _dump_cells(masked: bool) -> list:
     return rows
 
 
-def _dump_table(masked: bool) -> list:
+def _dump_table(masked: bool, lumina: bool) -> list:
     """A sampled SQL dump, boxed like sqlmap's --dump output (a Database/Table banner over ruled
     columns). Masked is what the saved report keeps; the raw table — full card and cracked
     password — appears only behind the detail screen's unmask."""
-    rows = _dump_cells(masked)
+    rows = _dump_cells(masked, lumina)
     widths = [max(len(_COLUMNS[c]), *(len(r[c]) for r in rows)) for c in range(len(_COLUMNS))]
     rule = "+" + "+".join("-" * (w + 2) for w in widths) + "+"
 
@@ -83,7 +89,8 @@ def _dump_table(masked: bool) -> list:
     tail = (f"... {_TOTAL_ROWS - len(rows):,} more rows · passwords were unsalted MD5, "
             "cracked offline in seconds")
     return [
-        f"Database: {_DB_NAME}   Table: customers   [{_TOTAL_ROWS:,} entries]",
+        f"Database: {_DB_NAME if lumina else _OTHER[_DB_NAME]}   Table: customers   "
+        f"[{_TOTAL_ROWS:,} entries]",
         rule, row(_COLUMNS), rule,
         *(row(r) for r in rows),
         rule, tail,
@@ -161,8 +168,8 @@ def _findings(url: str) -> list:
             references=["OWASP A03:2021", "CWE-89"],
             cvss_score=9.8, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
             category="Web App",
-            evidence=[*_PROBE, *_dump_table(masked=True)],
-            evidence_unmasked=[*_PROBE, *_dump_table(masked=False)],
+            evidence=[*_PROBE, *_dump_table(True, is_lumina(url))],
+            evidence_unmasked=[*_PROBE, *_dump_table(False, is_lumina(url))],
         ),
         Finding(
             "005", "HIGH", "Outdated JavaScript dependency with a known CVE",

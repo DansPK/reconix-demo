@@ -70,7 +70,7 @@ Then, in the TUI:
 
 ```
 /provider set reconix     # enter the API key → test → REACHABLE
-/model reconix/<model>    # the top bar shows: llm: Reconix · <model> ●
+/model reconix/<model>    # the top bar shows: ● Reconix · <model>
 ```
 
 - **Chat** in natural language — just type a question; the agent answers (scrolls back).
@@ -216,11 +216,18 @@ Type `/`, keep typing to filter, `↑`/`↓` to pick, `Tab` to complete, `Enter`
 
 `/scope` is now `/template`.
 
+**"Type something." at the Scope and Plan steps** reads your line with local rules (no model is
+called): a question is answered; `add sqlmap`, `exclude /checkout`, `only GET`, `time limit 30
+minutes` or `change target to <url>` changes the scope, all of it or nothing; `focus on TLS first`
+or `move 3b before 3a` re-drafts the plan. You still approve: a scope change at the Plan step
+re-opens the scope, and the plan is drafted again after you approve it. "Chat about this" only
+talks.
+
 ## LLM providers (flexible model integration)
 
 Chat lines typed **during and after a run** go to a real LLM; everything else stays scripted. Set a
 provider with `/provider`, test it, then `/model` to make one active — the top bar shows
-`llm: <provider> · <model> ●`. You can switch provider or model mid-run; the run, findings
+`● <provider> · <model>`. You can switch provider or model mid-run; the run, findings
 and approvals are unchanged, and the model never decides a gate. Reconix, Ollama and OpenAI
 work for real; Anthropic, DeepSeek and a custom OpenAI-compatible endpoint are wired through
 LiteLLM the same way. Cloud providers (OpenAI, Anthropic, DeepSeek) need **only an API key** —

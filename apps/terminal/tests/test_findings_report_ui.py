@@ -11,7 +11,11 @@ from reconix.screens import (
     ChoiceScreen, FindingDetailScreen, FindingsListScreen, ReportScreen,
 )
 
-from .support import SIZE, add_finding, run_to, run_ui_to, screen_text, settle, show
+from reconix.widgets import FindingPreview
+
+from .support import (
+    SIZE, TEST_PASSWORD, add_finding, run_to, run_ui_to, screen_text, settle, show, wait_until,
+)
 
 def row_ids(app) -> list:
     table = app.screen.query_one("#findings-table", DataTable)
@@ -236,3 +240,67 @@ async def test_the_report_has_no_web_button_or_key(app):
 def test_web_only_opens_a_loopback_url():
     # The static-demo dashboard URL is always loopback; /web never opens anything else.
     assert store.web_dashboard_url().startswith("http://127.0.0.1:")
+
+
+# --- the preview under the table and the detail's empty state -------------------------------
+async def test_preview_follows_the_highlighted_finding(app):
+    run_to(None)
+    async with app.run_test(size=SIZE) as pilot:
+        await show(app, pilot, "findings")
+        preview = app.screen.query_one("#finding-preview", FindingPreview)
+        assert preview.display
+        first = store.get_finding(app.screen._cursor_key())
+        assert first.title in str(preview.render())
+        await pilot.press("down")
+        await settle(pilot)
+        second = store.get_finding(app.screen._cursor_key())
+        assert second.fid != first.fid
+        assert second.title in str(preview.render())
+
+
+async def test_preview_never_shows_the_unmasked_evidence(app):
+    run_to(None)
+    app.finding_unmasked = True              # revealed on the detail: the list stays masked
+    checked = 0
+    async with app.run_test(size=SIZE) as pilot:
+        await show(app, pilot, "findings")
+        preview = app.screen.query_one("#finding-preview", FindingPreview)
+        for finding in store.list_findings():
+            app.screen._move_to(finding.fid)
+            await settle(pilot)
+            shown = str(preview.render())
+            assert finding.title in shown
+            # every leaked cell: an email, a phone, a card, a hash, a cracked password
+            for cell in " ".join(finding.evidence_unmasked).replace("|", " ").split():
+                if any(c.isdigit() or c == "@" for c in cell) and len(cell) >= 6:
+                    assert cell not in shown
+                    checked += 1
+    assert checked > 10                      # the SQL injection's dump was there to leak
+
+
+async def test_preview_masks_secrets(app):
+    run_to(None)
+    add_finding("Leak token", description=f"password={TEST_PASSWORD}")
+    fid = next(f.fid for f in store.list_findings() if f.title == "Leak token")
+    app.selected_finding = fid
+    async with app.run_test(size=SIZE) as pilot:
+        await show(app, pilot, "findings")
+        await wait_until(pilot, lambda: app.screen._cursor_key() == fid, what="the finding")
+        shown = str(app.screen.query_one("#finding-preview", FindingPreview).render())
+        assert "Leak token" in shown
+        assert TEST_PASSWORD not in shown
+
+
+async def test_preview_gives_way_on_a_short_terminal(app):
+    run_to(None)
+    async with app.run_test(size=(80, 24)) as pilot:
+        await show(app, pilot, "findings")
+        assert not app.screen.query_one("#finding-preview", FindingPreview).display
+
+
+async def test_detail_without_a_finding_points_to_the_list(app):
+    run_to(None)
+    async with app.run_test(size=SIZE) as pilot:
+        await show(app, pilot, "detail")
+        note = str(app.screen.query_one("#detail-empty", Static).render())
+        assert f"{len(store.list_findings())} findings to look at" in note

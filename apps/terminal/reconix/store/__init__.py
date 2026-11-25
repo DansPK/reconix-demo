@@ -39,6 +39,7 @@ from .persist import (
     autosave, autosave_async, close_session, flush_saves, save_failed, web_dashboard_url,
 )
 from .plan import gated_count, plan_overview
+from .plan_edit import redraft_plan
 from .plan_order import answer_plan_reorder, reorder_gated, wants_plan_reorder
 from .plan_order import movable as movable_checks
 from .progress import step_states
@@ -58,16 +59,23 @@ from .retest import compare_findings, previous_assessment, retest, severity_tren
 from .run import (
     advance, counters, display_phase, elapsed, gate_state, get_run, is_completed, is_finished,
     is_plan_started, llm_answer, new_assessment, peek, phase_progress, pipeline_stage,
-    plan_tasks, reject_scope, run_plan, say_operator_line, say_to_assistant, start_run,
+    plan_tasks, refuse_at_login, reject_scope, run_plan, say_operator_line,
+    say_to_assistant, start_run,
     stop_run, submit_prompt, time_limit, waiting_gate,
 )
 from .scope import (
     approve_scope, blocked_count, check_request, edit_scope, get_scope, is_scope_approved,
-    list_verdicts,
+    list_verdicts, reopen_scope, scope_changeable,
+)
+from .scope_edit_ai import (
+    EDIT_STEPS, apply_scope_changes, ask_edit_intent, record_answer, record_note,
+    record_refusal,
 )
 from .scope_view import describe_scope
 from .seed import DEMO_REQUEST, load_demo_data
-from .targets import check_target
+from .services import api_online, kali_host, kali_status
+from .targets import FieldCheck, check_field, check_target
+from .targets import max_length as target_max_length, needs as target_needs
 from .templates import get_template, list_templates, select_template, selected_template
 from .transcript import last_exchange, list_activity, list_chat
 from .thinking import block_seconds, group_stream, stream
@@ -87,7 +95,9 @@ __all__ = [
     "get_assessment", "assessment_label", "list_requests", "add_request", "recorded_line",
     "list_assessments", "switch_assessment", "assessment_status", "AssessmentCard",
     # the run
-    "submit_prompt", "start_run", "check_target", "say_to_assistant", "say_operator_line",
+    "submit_prompt", "start_run", "check_target", "check_field", "FieldCheck",
+    "target_max_length", "target_needs", "api_online", "kali_status", "kali_host",
+    "say_to_assistant", "say_operator_line",
     "llm_answer", "new_assessment",
     "advance", "peek", "gate_state", "stop_run",
     "waiting_gate", "get_run", "display_phase", "is_completed", "is_finished", "counters",
@@ -102,6 +112,9 @@ __all__ = [
     "wants_decision", "asks_about_decision", "wants_view", "view_reply", "decision_reply",
     "step_reply", "wants_scope_change", "answer_scope_change", "ScopeChoices",
     "wants_plan_reorder", "answer_plan_reorder", "reorder_gated", "movable_checks",
+    # "Type something." at the Scope and Plan steps: read locally, validated, then applied
+    "EDIT_STEPS", "ask_edit_intent", "apply_scope_changes", "redraft_plan", "record_answer",
+    "record_note", "record_refusal", "reopen_scope", "scope_changeable", "refuse_at_login",
     "provide_auth", "current_auth_challenge", "has_test_account",
     "is_authenticated", "is_code_verified", "vault_scope",
     "login_kind", "login_tools", "login_done", "code_needed", "tool_login", "tools_login",

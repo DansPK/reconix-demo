@@ -75,10 +75,11 @@ class ChoiceMenu(OptionList):
     class TypedOut(Message):
         """A key typed on a `type_out` menu: it belongs in the input the menu stands in for."""
 
-        def __init__(self, menu: "ChoiceMenu", text: str) -> None:
+        def __init__(self, menu: "ChoiceMenu", text: str, pasted: bool = False) -> None:
             super().__init__()
             self.menu = menu
             self.text = text
+            self.pasted = pasted  # a paste, not a key: the input pastes it as it would its own
 
         @property
         def control(self) -> "ChoiceMenu":
@@ -273,8 +274,13 @@ class ChoiceMenu(OptionList):
     def on_blur(self) -> None:
         self.call_later(self._move_pointer, self.highlighted)
 
+    def _on_input_row(self) -> bool:
+        choice = self._highlighted_choice()
+        return choice is not None and choice.kind == "input"
+
     def _on_key(self, event: events.Key) -> None:
-        if self._type_out and self._types_out(event):
+        # On a "Type something." row keys type there, even on a `type_out` menu.
+        if self._type_out and not self._on_input_row() and self._types_out(event):
             event.stop()
             event.prevent_default()  # digits too: they type, they don't pick
             self._typed_out = True
@@ -305,6 +311,27 @@ class ChoiceMenu(OptionList):
         event.stop()
         event.prevent_default()
         self._move_pointer(self.highlighted)
+
+    def _on_paste(self, event: events.Paste) -> None:
+        """A paste is text the person meant to type: a `type_out` menu sends it on to its
+        input; a menu with a "Type something." row takes it there as one line."""
+        text = event.text
+        if not text.strip():
+            return
+        if self._type_out and not self._on_input_row():
+            event.stop()
+            event.prevent_default()
+            self._typed_out = True
+            self.post_message(self.TypedOut(self, text, pasted=True))
+            return
+        row = next((i for i, c in enumerate(self._choices) if c.kind == "input"), None)
+        if row is None:
+            return
+        event.stop()
+        event.prevent_default()
+        self._draft += " ".join(text.split())  # one line: the row shows a single line
+        self.highlighted = row
+        self._move_pointer(row)
 
     def _types_out(self, event: events.Key) -> bool:
         """A printable key with no Ctrl/Alt (Alt+1…8 still jump screens). Space moves the

@@ -43,6 +43,15 @@ def test_an_edit_shows_up_in_the_words():
     assert summary.never == ["/admin", "/ops"]
 
 
+def test_a_typed_edit_shows_up_in_the_words():
+    run_to("scope")
+    intent = store.ask_edit_intent("exclude /ops and only GET", "SCOPE")
+    store.apply_scope_changes(intent.scope_changes)
+    summary = store.describe_scope(store.get_scope())
+    assert "Send only GET requests" in summary.may_do
+    assert summary.never == ["/admin", "/ops"]
+
+
 async def test_the_template_screen_shows_no_json(app):
     async with app.run_test(size=SIZE) as pilot:
         await start_demo(pilot)

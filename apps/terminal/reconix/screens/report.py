@@ -73,8 +73,8 @@ class ReportScreen(ReconixScreen):
     mode_name = "REPORT"
 
     BINDINGS = [
-        Binding("a", "sign_off", "sign off report"),
-        *(Binding(key, f"export('{fid}')", f"export {label}") for fid, key, label in EXPORTS),
+        Binding("a", "sign_off", "sign off"),
+        *(Binding(key, f"export('{fid}')", label) for fid, key, label in EXPORTS),
         Binding("c", "chat", "chat"),
         Binding("escape", "back", "back", show=False),
     ]
@@ -118,7 +118,8 @@ class ReportScreen(ReconixScreen):
             yield Static("")
             yield Static(Text("Changes since the last assessment", style=f"bold {theme.TEXT}"))
             yield Static(retest_line())
-        with Horizontal(classes="actions"):
+        with Horizontal(classes="actions export-actions"):
+            yield Static(Text("Export", style=f"bold {theme.MUTED}"), classes="export-label")
             yield from self._buttons()
         path = store.get_run().report_path
         footer = (Text.assemble(("✓ report saved: ", theme.GREEN), (path, theme.TEXT),
@@ -137,11 +138,16 @@ class ReportScreen(ReconixScreen):
 
     @staticmethod
     def _buttons() -> Iterable[Button]:
+        """One chip per format, read like the footer: the key, then what it does."""
         formats = {f.id: f for f in store.list_report_formats()}
         for i, (fid, key, label) in enumerate(EXPORTS):
-            text = f"{key}  {label}" if formats[fid].available else f"{label} (not installed)"
-            yield Button(text, id=fid, classes="primary" if i == 0 else "ghost-cyan",
-                         disabled=not can_export(fid))   # the same rule as the keys
+            enabled = can_export(fid)                        # the same rule as the keys
+            name = label if formats[fid].available else f"{label} · not installed"
+            text = Text.assemble(
+                (key, f"bold {theme.CYAN if enabled else theme.DIM}"), "  ",
+                (name, theme.TEXT if enabled else theme.DIM))
+            yield Button(text, id=fid, classes="export" + (" -main" if i == 0 else ""),
+                         disabled=not enabled)
 
     # --- actions ----------------------------------------------------------------------------
     def action_sign_off(self) -> None:

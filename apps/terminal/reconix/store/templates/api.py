@@ -2,6 +2,7 @@
 
 from ...models import Finding, ScopeManifest, Template
 from ...models.parser import ParsedTarget
+from ..targets import is_lumina
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 
 TOOLS = ["httpx", "Katana", "ffuf", "Nuclei", "schemathesis", "dalfox", "testssl.sh"]
@@ -27,6 +28,7 @@ def build_scope(parsed: ParsedTarget) -> ScopeManifest:
 
 
 def _findings(url: str) -> list:
+    mail = "lumina.com" if is_lumina(url) else "gmail.com"
     return [
         Finding(
             "001", "MEDIUM", "Broken object-level authorization", "/v1/orders/{id}", "CONFIRMED",
@@ -38,7 +40,7 @@ def _findings(url: str) -> list:
             cvss_score=6.5, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
             category="API",
             evidence=["GET /v1/orders/8842 as token A → HTTP 200",
-                      "owner: tenant_••7 · email: b•••@lumina.com"],
+                      f"owner: tenant_••7 · email: b•••@{mail}"],
         ),
         Finding(
             "002", "MEDIUM", "Missing authorization on export endpoint", "/v1/reports/export",

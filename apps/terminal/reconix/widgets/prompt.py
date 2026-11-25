@@ -1,6 +1,6 @@
 """The Claude-Code-style prompt: slash-command suggestions, history, and a hint line."""
 
-from typing import Callable, List, Optional, Sequence
+from typing import Callable, List, Optional, Sequence, Tuple
 
 from rich.text import Text
 from textual import events
@@ -17,6 +17,17 @@ from ..commands.registry import Command, find, match
 from ..models import Choice
 from .choice_menu import ChoiceMenu, SuggestionMenu
 from .history import PromptHistory
+
+
+def key_hints(keys: List[Tuple[str, str]]) -> Text:
+    """`↵ send   ↑ history   ctrl+r search`: each key, then what it does, like the footer."""
+    out = Text()
+    for index, (key, label) in enumerate(keys):
+        if index:
+            out.append("   ")
+        out.append(key, style=f"bold {theme.MUTED}")
+        out.append(f" {label}", style=theme.DIM)
+    return out
 
 
 class PromptInput(Input):
@@ -249,18 +260,19 @@ class PromptBox(Vertical):
         if self._message:
             line.update(Text(self._message, style=self._message_style))
             return
-        esc = "esc clear" if self._escape_clears else "esc close"
+        esc = ("esc", "clear" if self._escape_clears else "close")
         if self._mode == "history":
-            hint = "type to search history · ↑↓ pick · ↵ insert · esc cancel"
+            keys = [("type", "to search history"), ("↑↓", "pick"), ("↵", "insert"),
+                    ("esc", "cancel")]
         elif self.menu_open:
-            hint = "↑↓ navigate · tab complete · ↵ run · esc close"
+            keys = [("↑↓", "navigate"), ("tab", "complete"), ("↵", "run"), ("esc", "close")]
         elif self._history.browsing:
-            hint = f"↑↓ history · ↵ send · {esc}"
+            keys = [("↑↓", "history"), ("↵", "send"), esc]
         elif self.input.value:
-            hint = f"↵ send · {esc}"
-        else:
-            hint = "/ for commands · ↑ history · ^R search · ? for shortcuts"
-        line.update(Text(hint, style=theme.DIM))
+            keys = [("↵", "send"), esc]
+        else:  # "/" is in the footer already
+            keys = [("↵", "send"), ("↑", "history"), ("ctrl+r", "search"), ("?", "shortcuts")]
+        line.update(key_hints(keys))
 
     # --- keys forwarded by PromptInput (False = let the key fall through) -------------
     def handle_prompt_key(self, key: str) -> bool:

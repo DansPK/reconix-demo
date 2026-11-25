@@ -1,5 +1,6 @@
 """The Template screen (formerly Scope): pick + target, the AI's pick, the scope gate."""
 
+import pytest
 from textual.widgets import Input, Static
 
 from reconix import store
@@ -160,3 +161,94 @@ async def test_template_during_the_scope_review_shows_it(app):
         await open_template(app, pilot)
         assert app.screen.state() == "review"
         assert len(store.list_assessments()) == 1
+
+
+# --- the target field, checked as you type ----------------------------------------------------
+@pytest.mark.parametrize("template,value,level", [
+    ("network", "10.0.0.0/24", "ok"),
+    ("network", "scanme.example.com", "ok"),
+    ("network", "metasploitable", "caution"),            # a one-word lab host: allowed, flagged
+    ("network", "10.0.0.1 please", "error"),             # one value only, nothing dropped
+    ("network", "10.0.0.1-10.0.0.20", "error"),          # a dash range is not its first address
+    ("network", "10.0.0.300", "error"),
+    ("network", "", "error"),
+    ("network", "a" * 250 + ".io", "error"),             # past the hostname limit
+    ("network", "http://x]x[", "error"),                 # urlsplit raises on it
+    ("web_url", "https://shop.example.com/" + "p" * 500, "error"),
+    ("web_url", "https://shop.example.com", "ok"),
+    ("web_url", "http://juice-shop:3000", "caution"),
+    ("web_url", "http://x]x[", "error"),
+    ("web_url", "ftp://shop.example.com", "error"),
+    ("source", "https://git.example.com/acme/app.git", "ok"),
+    ("source", "git@github.com:acme/app.git", "ok"),
+    ("source", "/definitely/not/a/folder", "error"),
+])
+def test_the_field_check_reads_the_whole_value(template, value, level):
+    assert store.check_field(template, value).level == level
+
+
+def test_an_existing_folder_is_a_source_target(tmp_path):
+    (tmp_path / "file.py").write_text("")
+    assert store.check_field("source", str(tmp_path)).level == "ok"
+    assert "is a file" in store.check_field("source", str(tmp_path / "file.py")).message
+
+
+@pytest.mark.parametrize("template", ["network", "web_url", "api", "source"])
+def test_every_templates_own_example_passes_the_check(template):
+    assert store.check_field(template, store.get_template(template).example).level == "ok"
+
+
+async def test_the_field_says_what_it_reads_as_you_type(app):
+    async with app.run_test(size=SIZE) as pilot:
+        await open_template(app, pilot, "network")
+        target = app.screen.query_one("#target", Input)
+        line = app.screen.query_one("#target-error", Static)
+        target.value = "10.0.0."
+        await settle(pilot)
+        assert "keep typing" in str(line.render())            # not an error while typing
+        assert not target.has_class("nomatch")
+        target.value = "10.0.0.0/24"
+        await settle(pilot)
+        assert "network range: 10.0.0.0/24" in str(line.render())
+        assert target.has_class("match")
+        target.value = "lab-box"
+        await settle(pilot)
+        assert "one-word host name" in str(line.render())
+        assert target.has_class("caution") and not target.has_class("match")
+
+
+async def test_after_enter_errors_turn_red_and_follow_the_typing(app):
+    async with app.run_test(size=SIZE) as pilot:
+        await open_template(app, pilot, "network")
+        target = app.screen.query_one("#target", Input)
+        target.value = "10.0.0.1 please"
+        await pilot.press("enter")
+        await settle(pilot)
+        assert not store.get_run().started
+        assert "without spaces" in str(app.screen.query_one("#target-error", Static).render())
+        assert target.has_class("nomatch")
+        target.value = "10.0.0.1"
+        await settle(pilot)
+        assert target.has_class("match") and not target.has_class("nomatch")
+
+
+async def test_text_fields_keep_a_steady_cursor(app):
+    async with app.run_test(size=SIZE) as pilot:
+        await open_template(app, pilot, "network")
+        assert app.screen.query_one("#target", Input).cursor_blink is False
+
+
+async def test_typing_stops_at_the_limit_and_a_counter_shows_near_it(app):
+    async with app.run_test(size=SIZE) as pilot:
+        await open_template(app, pilot, "network")
+        target = app.screen.query_one("#target", Input)
+        assert target.max_length == 253
+        target.value = "a" * 10
+        await settle(pilot)
+        assert "/253" not in str(app.screen.query_one("#target-error", Static).render())
+        target.value = "a" * 253
+        await settle(pilot)
+        await pilot.press("b")                               # one more is refused
+        await settle(pilot)
+        assert len(target.value) == 253
+        assert "253/253" in str(app.screen.query_one("#target-error", Static).render())
