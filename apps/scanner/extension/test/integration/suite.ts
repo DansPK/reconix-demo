@@ -143,16 +143,15 @@ export async function run(): Promise<void> {
     const after = Buffer.from(await vscode.workspace.fs.readFile(indexJs)).toString("utf8");
     assert.equal(after, before, "the file must not change before the user clicks Apply");
 
-    // Apply writes exactly the proposed text, and the rescan drops that finding only.
+    // Apply writes exactly the proposed text, and the automatic rescan drops that finding only.
     await answer("Apply fix");
     const onDisk = async (uri: vscode.Uri): Promise<string> => Buffer.from(await vscode.workspace.fs.readFile(uri)).toString("utf8");
     assert.equal(await onDisk(indexJs), proposed.getText(), "Apply saves the proposed text");
-    await vscode.commands.executeCommand("reconix.rescan");
-    assert.equal(reconixDiagnostics().length, 9, "the rescan drops the fixed finding");
+    assert.ok(await waitFor(() => reconixDiagnostics().length === 9), "the rescan after Apply (no click) drops the fixed finding");
     const left = new Map(vscode.languages.getDiagnostics().map(([uri, d]) => [uri.toString(), d.filter((x) => x.source?.startsWith("Reconix")).length]));
     assert.equal(left.get(indexJs.toString()) ?? 0, 0, "and it was the one in server/index.js");
 
-    // Fix all, then Apply all: the other nine files change on disk, and the rescan is clean.
+    // Fix all, then Apply all: the other nine files change on disk, and the automatic rescan is clean.
     const others = DEMO_FINDINGS.slice(1).map((f) => vscode.Uri.joinPath(folder, f.path!));
     const originals = await Promise.all(others.map(onDisk));
     await vscode.commands.executeCommand("reconix.fixFindings");
@@ -160,8 +159,7 @@ export async function run(): Promise<void> {
     assert.deepEqual(await Promise.all(others.map(onDisk)), originals, "nothing changes before Apply all");
     await answer("Apply all (9 files)");
     for (const [i, uri] of others.entries()) assert.notEqual(await onDisk(uri), originals[i], `${uri.path} is fixed`);
-    await vscode.commands.executeCommand("reconix.rescan");
-    assert.equal(reconixDiagnostics().length, 0, "the rescan after Apply all is clean");
+    assert.ok(await waitFor(() => reconixDiagnostics().length === 0), "the rescan after Apply all (no click) is clean");
 
     // A GitHub repo is scanned in its own session, with no Problems entries (its files aren't here).
     await vscode.commands.executeCommand("reconix.scanGithub", `${LUMINA_REPO}.git`);

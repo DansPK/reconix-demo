@@ -1703,13 +1703,23 @@ export class Controller {
       if (problem) problems.push(`- ${problem}`);
       else applied += 1;
     }
-    this.say(`Applied changes to ${applied} of ${files.length} files. Rescan to check them.` +
+    this.say(`Applied changes to ${applied} of ${files.length} files.${applied ? " Rescanning to check them…" : ""}` +
       (problems.length ? `\n\nNot applied:\n${problems.join("\n")}` : ""));
+    if (applied) await this.rescanAfterFix();
+  }
+
+  /** Checks applied fixes right away: the same rescan as the Rescan button (only changed files are sent). */
+  private async rescanAfterFix(): Promise<void> {
+    clearTimeout(this.scanOnSaveTimer); // the fix's own saves must not queue a second scan
+    if (this.runningScan) return; // a scan is already on its way; it sees the saved files
+    log.info("fix: rescanning after applied fixes");
+    await this.rescan();
   }
 
   /** One file at a time: open its diff, wait for Apply or Skip, then go on to the next. */
   private async reviewFileFixes(rootUri: vscode.Uri, files: FileFix[], outcomes: Map<string, FixOutcome>): Promise<void> {
     const scan = this.lastScan;
+    let applied = 0;
     for (const [i, file] of files.entries()) {
       const fix = await this.prepareFileFix(rootUri, file);
       if ("problem" in fix) {
@@ -1732,7 +1742,10 @@ export class Controller {
             this.proposed.delete(right.toString());
             const problem = await this.writeFileFix(fix);
             if (problem) this.postError(problem.replace(/`/g, ""));
-            else this.say(`Applied the fix to \`${fix.rel}\` (Ctrl+Z in the editor undoes it).${i === files.length - 1 ? " Rescan to check it." : ""}`);
+            else {
+              applied += 1;
+              this.say(`Applied the fix to \`${fix.rel}\` (Ctrl+Z in the editor undoes it).${i === files.length - 1 ? " Rescanning to check it…" : ""}`);
+            }
             resolve();
           },
           "Skip",
@@ -1744,6 +1757,7 @@ export class Controller {
         ),
       );
     }
+    if (applied) await this.rescanAfterFix(); // after the last file: check every fix applied
   }
 
   /** Two buttons in the chat; the answer comes back through answerConfirm. */
