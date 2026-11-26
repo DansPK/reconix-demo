@@ -319,6 +319,19 @@ _STORIES = {
         "support", 3, 46, "nginx · Python · Django",
         "The help search repeats its term inside a script block.", "help search",
         "/help/search?q=delivery"),
+    # Other clients' websites (rows in companies.py).
+    ("web_url", "www.contoso.com"): _web(
+        "contoso", 6, 34, "IIS · .NET Framework",
+        "Booking confirmations open from a short reference without a session.",
+        "booking access", "/bookings/CTX-48210"),
+    ("web_url", "shop.fabrikam.com"): _web(
+        "fabrikam", 5, 58, "nginx · PHP · Magento",
+        "Order pages open for order numbers that belong to other shoppers.",
+        "order access", "/orders/700318"),
+    ("web_url", "www.northwind.com"): _web(
+        "northwind", 5, 27, "Apache · Java · Spring",
+        "The trade price list update may accept another buyer's account number.",
+        "price list access", "/trade/prices/NW-2207"),
     ("api", "inventory.lumina.com"): _api(
         "inventory", 4, 31, "/v2/stock/adjust",
         "The stock adjustment endpoint may accept requests without credentials.",

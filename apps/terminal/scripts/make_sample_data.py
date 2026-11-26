@@ -1,4 +1,5 @@
-"""Write the prepared history the web dashboard shows: one assessment per Lumina system.
+"""Write the prepared history the web dashboard shows: one assessment per Lumina system,
+plus a few other clients' websites.
 
 Plays the templates through the real store (every gate decided through the same store
 functions the TUI uses) with a fake clock, so the files look like a month of work. Only
@@ -78,11 +79,13 @@ def decide(gate: str, *, high: str, spec: str = "") -> bool:
 
 
 def play(text: str, *, high: str = "approve", fmt: str = "docx", stop_at: str = "",
-         spec: str = "", signed_off: bool = True, triage: tuple = ()) -> None:
+         spec: str = "", signed_off: bool = True, triage: tuple = (),
+         client: str = "Lumina") -> None:
     """Play one run from `text`.
 
     `stop_at`: "scope" stops the run at the template/scope gate (nothing approved);
-    `spec`: an OpenAPI file attached to the draft scope before it is approved (API runs).
+    `spec`: an OpenAPI file attached to the draft scope before it is approved (API runs);
+    `client`: the client label ("" keeps the one read from the target, e.g. Contoso).
     """
     if store.get_run().started:
         store.new_assessment()
@@ -97,7 +100,8 @@ def play(text: str, *, high: str = "approve", fmt: str = "docx", stop_at: str = 
                 break
             if not decide(step.name, high=high, spec=spec):
                 break
-    lists.current().client = "Lumina"
+    if client:
+        lists.current().client = client
     for fid, status, note in triage:      # follow-up recorded before the report is made
         FakeClock.current += timedelta(minutes=FakeClock.rng.uniform(2, 9))
         store.triage_finding(fid, status=status, note=note)
@@ -136,8 +140,9 @@ def main() -> None:
     os.chdir(work)                         # reports land in ./reports of a scratch folder
     report.REPORTS_DIR = Path("reports")
 
-    # One assessment per Lumina system, each with its own findings. The last is the showcase:
-    # the www.lumina.com scan the presenter runs (seed.FIRST_NUMBER), already finished here.
+    # One assessment per Lumina system, each with its own findings. The last Lumina run is the
+    # showcase: the www.lumina.com scan the presenter runs (seed.FIRST_NUMBER), already
+    # finished here. Other clients' websites follow.
     utc = timezone.utc
     showcase = seed.FIRST_NUMBER
     snapshots = []
@@ -207,6 +212,25 @@ def main() -> None:
     ])
     snapshots += session(datetime(2026, 11, 24, 2, 4, tzinfo=utc), showcase, [
         dict(text="Assess https://www.lumina.com for web security issues."),
+    ])
+
+    # Other clients' websites (stories in store/templates/companies.py), dated before the
+    # Lumina history. Played last so every file above stays exactly as it was (the fake
+    # clock's random steps are shared across sessions).
+    snapshots += session(datetime(2026, 9, 22, 6, 40, tzinfo=utc), 14, [
+        dict(text="Assess https://www.contoso.com for web security issues.", client="",
+             triage=(
+                 ("004", "fixed", "Uploads moved behind signed links."),
+                 ("006", "accepted", "Header removal scheduled with the IIS upgrade."))),
+    ])
+    snapshots += session(datetime(2026, 9, 25, 2, 15, tzinfo=utc), 15, [
+        dict(text="Assess https://shop.fabrikam.com for web security issues.", client="",
+             triage=(
+                 ("005", "fixed", "Directory listing turned off on the media server."),)),
+    ])
+    snapshots += session(datetime(2026, 10, 1, 8, 5, tzinfo=utc), 16, [
+        dict(text="Assess https://www.northwind.com for web security issues.", client="",
+             signed_off=False),
     ])
 
     for data in snapshots:

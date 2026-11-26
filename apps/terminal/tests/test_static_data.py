@@ -52,14 +52,19 @@ CASES = [
     ("source", "review git@git.lumina.com:shop/checkout.git", "Lumina"),
     ("source", "review git@git.lumina.com:shop/mobile-app.git", "Lumina"),
     ("source", "review git@git.lumina.com:platform/deploy.git", "Lumina"),
+    ("web_url", "Assess https://www.contoso.com for web security issues.", "Contoso"),
+    ("web_url", "Assess https://shop.fabrikam.com for web security issues.", "Fabrikam"),
+    ("web_url", "Assess https://www.northwind.com for web security issues.", "Northwind"),
 ]
-# Lumina systems with their own story (store/templates/lumina.py): how many findings each has.
+# Systems with their own story (store/templates/lumina.py): how many findings each has.
 LUMINA_FINDINGS = {
     "portal.lumina.com": 6, "loyalty.lumina.com": 5, "support.lumina.com": 3,
     "api.lumina.com": 6, "payments.lumina.com": 3, "inventory.lumina.com": 4,
     "10.20.0.15": 4, "10.20.4.0/24": 3,
     "git@git.lumina.com:shop/storefront.git": 10, "git@git.lumina.com:shop/checkout.git": 6,
     "git@git.lumina.com:shop/mobile-app.git": 5, "git@git.lumina.com:platform/deploy.git": 5,
+    # other clients' websites (store/templates/companies.py)
+    "www.contoso.com": 6, "shop.fabrikam.com": 5, "www.northwind.com": 5,
 }
 IDS = [request for _, request, _ in CASES]
 

@@ -8,6 +8,7 @@ the saved-copy host guard reads anything else as a real site.
 from typing import List
 
 from ...models import Finding
+from . import companies
 
 # Base vectors by the severity band they score in (tests/cvss.py checks each one).
 _V = {
@@ -351,7 +352,7 @@ _ROWS = {
 
 def rows(system: str, where: str, start: int = 1) -> List[Finding]:
     """The findings of `system` at `where` (a URL, a repository or a host), from id `start`."""
-    category, listed = _ROWS[system]
+    category, listed = _ROWS[system] if system in _ROWS else companies.ROWS[system]
     out = []
     for number, row in enumerate(listed, start):
         validation, key, title, path, tool, refs, description, impact, fix, *evidence = row
