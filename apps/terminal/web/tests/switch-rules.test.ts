@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { forget, switchAsk, type SwitchState } from "@/components/assistant/switch-rules";
+import { covers, forget, switchAsk, type SwitchState } from "@/components/assistant/switch-rules";
 
 const A = { uid: "run-a", label: "RCX-DEMO-001" };
 const B = { uid: "run-b", label: "RCX-DEMO-002" };
@@ -29,6 +29,12 @@ describe("switchAsk", () => {
 
   it("never asks when the chat is about the dashboard's run", () => {
     expect(switchAsk({ ...base, page: A })).toBeNull();
+  });
+
+  it("never asks when the chat is about every run: it already covers the run shown", () => {
+    expect(switchAsk({ ...base, about: ALL, page: B })).toBeNull();
+    expect(covers(ALL, B)).toBe(true);
+    expect(covers(A, B)).toBe(false);
   });
 
   it("asks once per switch: an answered pair is not asked again", () => {

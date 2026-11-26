@@ -17,6 +17,7 @@ import { Composer } from "./composer";
 import { Message } from "./message";
 import { ScrollToBottom } from "./scroll-to-bottom";
 import { SwitchDialog } from "./switch-dialog";
+import { covers } from "./switch-rules";
 import { useStickToBottom } from "./use-stick-to-bottom";
 import { Welcome } from "./welcome";
 
@@ -62,7 +63,7 @@ export const AssistantView = forwardRef<HTMLTextAreaElement, { onMinimize: () =>
   }, [welcome, scrollToTop]);
 
   const reason = model.configured ? null : model.reason;
-  const elsewhere = conversation.id !== null && conversation.scope.uid !== info.scope.uid;
+  const elsewhere = conversation.id !== null && !covers(conversation.scope, info.scope);
   const last = messages[messages.length - 1];
 
   return (
