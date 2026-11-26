@@ -49,10 +49,10 @@ function portInUse(p) {
 const child = spawn(process.execPath, [require.resolve("next/dist/bin/next"), mode, "-H", "127.0.0.1", "-p", port], {
   stdio: ["inherit", "pipe", "inherit"],
   env: {
-    // Static demo defaults: the bundled sample runs, and no live polling (the globe and
-    // views are static; the "live" pill stays off). Either can be overridden from the outside.
+    // Demo defaults: the bundled sample runs, re-read every 10 s so the top bar shows the
+    // "Live" pill. Either can be overridden from the outside (RECONIX_LIVE_REFRESH_MS=0 = off).
     RECONIX_DATA_DIR: "sample-data",
-    RECONIX_LIVE_REFRESH_MS: "0",
+    RECONIX_LIVE_REFRESH_MS: "10000",
     ...process.env,
     // This launcher always serves the offline demo, including on hosts running Reconix Core.
     RECONIX_CORE_API: "",
