@@ -2,22 +2,24 @@
 /* Start the dashboard on 127.0.0.1 with a fresh launch token, then print (and open) the
    sign-in link.
 
-     npm start                     # next start  (after npm run build)
-     npm run dev                   # next dev    (hot reload)
+     npm start                     # next start  (fast; builds first when the build is missing or
+                                   #              older than the code, so no separate build step)
+     npm run dev                   # next dev    (hot reload, for working on the dashboard)
      npm start -- --no-open        # don't open a browser
 
    Env: RECONIX_WEB_PORT (3100), RECONIX_DATA_DIR (sample-data: the bundled demo runs), RECONIX_PYTHON
         (the Python the Security knowledge page runs: the TUI passes its uv tool environment,
         else the workspace's .venv, then python3; python on Windows), RECONIX_WEB_TOKEN (only for tests; normally a new random token each start). */
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import net from "node:net";
 import { homedir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { openPrivately, waitUntilAnswering } from "./serve-helpers.mjs";
+import { buildIsStale, openPrivately, waitUntilAnswering } from "./serve-helpers.mjs";
 
 const require = createRequire(import.meta.url);
 const mode = process.argv[2] === "dev" ? "dev" : "start";
@@ -44,6 +46,22 @@ function portInUse(p) {
     probe.once("listening", () => probe.close(() => resolve(false)));
     probe.listen(Number(p), "127.0.0.1");
   });
+}
+
+/* `next start` serves the production build: make it first when it is missing or older than the
+   code (a minute or two, once; later starts skip this). Saved runs are read per request. */
+const webDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+if (mode === "start" && buildIsStale(webDir)) {
+  console.log("[web] Building the dashboard (first start, or the code changed)…");
+  const build = spawnSync(process.execPath, [require.resolve("next/dist/bin/next"), "build"], {
+    cwd: webDir,
+    stdio: "inherit",
+    env: { ...process.env, NODE_ENV: "production" },
+  });
+  if (build.status !== 0) {
+    console.error("[web] The build failed; see the output above.");
+    process.exit(build.status || 1);
+  }
 }
 
 const child = spawn(process.execPath, [require.resolve("next/dist/bin/next"), mode, "-H", "127.0.0.1", "-p", port], {

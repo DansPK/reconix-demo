@@ -1,6 +1,7 @@
-"""Start the read-only web dashboard (web/) for /web, so nobody has to `cd web && npm run dev`.
+"""Start the read-only web dashboard (web/) for /web, so nobody has to `cd web && npm start`.
 
-The dashboard's own launcher (`npm run dev` → web/scripts/serve.mjs) binds to 127.0.0.1,
+The dashboard's own launcher (`npm start` → web/scripts/serve.mjs) serves the production
+build (building it first when it is missing or older than the code), binds to 127.0.0.1,
 makes a fresh sign-in token, writes the sign-in link where the TUI looks for it, and opens
 the browser when it's ready. This module only finds the folder, installs its packages the
 first time, and starts or stops that launcher quietly: its output goes to a log file,
@@ -82,7 +83,7 @@ def install() -> bool:
 
 
 def start(data_dir: Path, url_file: Path) -> subprocess.Popen:
-    """`npm run dev` in the background, reading `data_dir` and writing its link to `url_file`
+    """`npm start` in the background, reading `data_dir` and writing its link to `url_file`
     (the places the TUI saves to and reads from). It opens the browser when it's ready.
     Its Security knowledge page runs the knowledge CLI with this same Python
     (RECONIX_PYTHON)."""
@@ -91,7 +92,7 @@ def start(data_dir: Path, url_file: Path) -> subprocess.Popen:
     url_file.unlink(missing_ok=True)      # a link left by a dashboard that died is stale
     with _log() as out:
         return subprocess.Popen(
-            [shutil.which("npm") or "npm", "run", "dev", "--silent"], cwd=WEB_DIR, env=env,
+            [shutil.which("npm") or "npm", "run", "start", "--silent"], cwd=WEB_DIR, env=env,
             stdin=subprocess.DEVNULL, stdout=out, stderr=subprocess.STDOUT,
             **_own_group())               # stopped as one, never ^C'd with the TUI
 

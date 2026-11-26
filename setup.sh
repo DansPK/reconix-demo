@@ -50,7 +50,8 @@ case "${1:-}" in
     cd "$TUI/web"
     [ -d node_modules ] || npm install
     # serve.mjs shows the prepared history (sample-data) unless RECONIX_DATA_DIR is set.
-    exec npm run dev
+    # `npm start` serves the fast production build (built first when missing or out of date).
+    exec npm start
     ;;
   site)
     cd "$SITE"

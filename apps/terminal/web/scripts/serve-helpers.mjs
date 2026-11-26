@@ -1,5 +1,9 @@
-/* The two careful steps of scripts/serve.mjs, kept apart so tests/serve-helpers.test.ts can run
+/* The careful steps of scripts/serve.mjs, kept apart so tests/serve-helpers.test.ts can run
    them on their own:
+
+   - buildIsStale: `npm start` serves the production build, so it is (re)built first whenever it
+     is missing or older than the code it was built from (saved runs are read at request time
+     and never need a build).
 
    - waitUntilAnswering: Next.js prints "Ready" before it has loaded next.config.ts, so a config
      that fails only shows on the first request. The sign-in link is written and the browser
@@ -8,12 +12,41 @@
      removed after a minute), never on the link itself, so the token doesn't show up in other
      users' view of the process list. */
 import { spawn } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+/** What a production build is made from, relative to web/ (folders are walked). */
+export const BUILD_INPUTS = [
+  "src", "public", "next.config.ts", "package.json", "package-lock.json", "tsconfig.json",
+  "postcss.config.mjs",
+];
+
+/** The newest modification time under `entry` (0 when it is missing). */
+function newestMtime(entry) {
+  let stat;
+  try {
+    stat = statSync(entry);
+  } catch {
+    return 0;
+  }
+  if (!stat.isDirectory()) return stat.mtimeMs;
+  let newest = stat.mtimeMs; // a deleted file still moves its folder's time
+  for (const name of readdirSync(entry)) newest = Math.max(newest, newestMtime(path.join(entry, name)));
+  return newest;
+}
+
+/** True when web/.next holds no production build, or one older than any of its inputs.
+    @param {string} webDir
+    @returns {boolean} */
+export function buildIsStale(webDir, inputs = BUILD_INPUTS) {
+  const built = newestMtime(path.join(webDir, ".next", "BUILD_ID"));
+  if (!built) return true;
+  return inputs.some((input) => newestMtime(path.join(webDir, input)) > built);
+}
+
 /** How long the server may take to answer its first request (a first `next dev` compile is
-    slow), each try, and the pause between tries. */
+    slow; `next start` answers at once), each try, and the pause between tries. */
 export const ANSWER_WITHIN_MS = 150_000;
 const TRY_MS = 30_000;
 const PAUSE_MS = 500;

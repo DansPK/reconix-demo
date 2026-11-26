@@ -132,7 +132,8 @@ switch ($Command) {
     "web"     {
         Need-NodeModules (Join-Path $Tui "web"); Push-Location (Join-Path $Tui "web")
         # serve.mjs shows the prepared history (sample-data) unless RECONIX_DATA_DIR is set.
-        npm run dev; break
+        # `npm start` serves the fast production build (built first when missing or out of date).
+        npm start; break
     }
     "site"    { Need-NodeModules $Site; Push-Location $Site; npm run dev; break }
     "store"   { Need-NodeModules $ScanTarget; Push-Location $ScanTarget; npm run dev; break }
