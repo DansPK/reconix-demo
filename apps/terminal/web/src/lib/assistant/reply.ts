@@ -61,6 +61,14 @@ const STREAM_MS = (() => {
   return Number.isFinite(n) ? Math.max(0, n) : 24;
 })();
 
+// The pause (2 s) before the answer starts, while the page shows its thinking status ("Thinking…",
+// "Analyzing…"), so the canned reply reads like a model working. A Stop cuts it short.
+// RECONIX_ASSISTANT_THINK_MS overrides it (the e2e server sets 0).
+const THINK_MS = (() => {
+  const n = Number(process.env.RECONIX_ASSISTANT_THINK_MS ?? 2000);
+  return Number.isFinite(n) ? Math.max(0, n) : 2000;
+})();
+
 /** A delay a Stop can cut short (resolves on abort so the loop's signal check ends it). */
 const sleep = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve) => {
@@ -98,7 +106,8 @@ export function replyStream({ conversation, asked, cards, knowledge = [], signal
       }
     };
     send({ t: "meta", conversationId: conversation.id, title: conversation.title, scope: conversation.scope, ...used });
-    for (const card of cards) send({ t: "card", card });
+    await sleep(THINK_MS, signal); // "processing": the page shows its thinking status meanwhile
+    if (!signal.aborted) for (const card of cards) send({ t: "card", card });
 
     const text = narrate(cards, conversation.scope.label || "this assessment");
     let reply = "";

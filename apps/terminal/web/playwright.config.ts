@@ -96,6 +96,8 @@ export default defineConfig({
         RECONIX_KNOWLEDGE_DIR: KNOWLEDGE_DIR,
         // the specs ask more than the default 12 questions a minute
         RECONIX_ASSISTANT_RATE_PER_MINUTE: "120",
+        // no 2 s "thinking" pause before each answer under a test
+        RECONIX_ASSISTANT_THINK_MS: "0",
       },
       reuseExistingServer: false,
       timeout: 60_000,
