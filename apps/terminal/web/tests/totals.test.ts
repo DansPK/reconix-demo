@@ -84,7 +84,7 @@ describe("the findings total, page by page (sample data)", () => {
 /* The Findings and Report views read the sample files through lib/api/local.ts, the Overview
    through deriveDashboard/deriveOverall: both roads must count the same findings. */
 describe("the Core API answers made from the sample data", () => {
-  beforeAll(() => vi.stubEnv("RECONIX_DATA_DIR", "sample-data"));
+  beforeAll(() => vi.stubEnv("RECONIX_DATA_DIR", "tests/sample-data"));
   afterAll(() => vi.unstubAllEnvs());
 
   const counts = (s: ReturnType<typeof findingsSlice>) => ({ total: s.total, severity: s.severity, review: s.review, top: s.top.map((f) => [f.id, f.score]) });

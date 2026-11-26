@@ -3,6 +3,7 @@
 from ...models import Finding, ScopeManifest, Template
 from ...models.parser import ParsedTarget
 from ..targets import is_lumina
+from . import lumina
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 from ..scenario import card, log, say
 
@@ -252,7 +253,8 @@ def build_run(assessment) -> RunBundle:
                  ("Sample pulled", "12"), ("Hashes cracked", "12/12")),
         ),
     )
+    profile = lumina.for_target("web_url", host, url, profile)
     return RunBundle(scope=scope, script=build_rest(profile),
-                     approvals=[profile.medium], findings=findings,
+                     approvals=[profile.medium], findings=profile.findings,
                      login_2fa=profile.login_2fa, plan=make_plan(profile.plan, PHASE_TOOLS),
                      methodology=list(profile.methodology))

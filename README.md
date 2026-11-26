@@ -38,7 +38,7 @@ reconix
 ## The surfaces
 
 - **`apps/terminal/`** — the terminal TUI (`python -m reconix`, or just `reconix` in the venv; a
-  scripted assessment) and the web dashboard (Next.js, reads `web/sample-data/` or saved TUI runs, opens with a local sign-in link).
+  scripted assessment) and the web dashboard (Next.js, reads `web/sample-data/`, opens with a local sign-in link).
 - **`apps/scanner/`** — the VS Code extension plus a bundled **Reconix scanner server**
   (`npm run server`, token `test-token`). Scan the **`apps/lumina-site/`** storefront: open it,
   click the Reconix icon → "Scan with Reconix", and the findings land on their lines.

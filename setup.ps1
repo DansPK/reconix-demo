@@ -131,11 +131,7 @@ switch ($Command) {
     }
     "web"     {
         Need-NodeModules (Join-Path $Tui "web"); Push-Location (Join-Path $Tui "web")
-        # Prefer saved TUI runs when available. Fresh demos use the bundled sample data.
-        $savedDir = Join-Path $HOME ".reconix/assessments"
-        if (-not $env:RECONIX_DATA_DIR -and (Get-ChildItem -LiteralPath $savedDir -Filter '*.json' -File -ErrorAction SilentlyContinue | Select-Object -First 1)) {
-            $env:RECONIX_DATA_DIR = $savedDir
-        }
+        # serve.mjs shows the prepared history (sample-data) unless RECONIX_DATA_DIR is set.
         npm run dev; break
     }
     "site"    { Need-NodeModules $Site; Push-Location $Site; npm run dev; break }

@@ -40,7 +40,27 @@ CASES = [
     ("source", "review repo https://git.example.com/acme/app.git for secrets", "Example"),
     ("source", "review git@git.example.com:shop/storefront.git", "Example"),
     ("source", "static review of /home/me/shop-app", "Shop App"),
+    ("web_url", "Assess https://portal.lumina.com for web security issues.", "Lumina"),
+    ("web_url", "Assess https://loyalty.lumina.com for web security issues.", "Lumina"),
+    ("web_url", "Assess https://support.lumina.com for web security issues.", "Lumina"),
+    ("api", "test the API at https://api.lumina.com/v1", "Lumina"),
+    ("api", "test the API at https://payments.lumina.com/v1", "Lumina"),
+    ("api", "test the API at https://inventory.lumina.com/v2", "Lumina"),
+    ("network", "port scan 10.20.0.15", "10.20.0.15"),
+    ("network", "scan 10.20.4.0/24 for open ports", "10.20.4.0/24"),
+    ("source", "review git@git.lumina.com:shop/storefront.git", "Lumina"),
+    ("source", "review git@git.lumina.com:shop/checkout.git", "Lumina"),
+    ("source", "review git@git.lumina.com:shop/mobile-app.git", "Lumina"),
+    ("source", "review git@git.lumina.com:platform/deploy.git", "Lumina"),
 ]
+# Lumina systems with their own story (store/templates/lumina.py): how many findings each has.
+LUMINA_FINDINGS = {
+    "portal.lumina.com": 6, "loyalty.lumina.com": 5, "support.lumina.com": 3,
+    "api.lumina.com": 6, "payments.lumina.com": 3, "inventory.lumina.com": 4,
+    "10.20.0.15": 4, "10.20.4.0/24": 3,
+    "git@git.lumina.com:shop/storefront.git": 10, "git@git.lumina.com:shop/checkout.git": 6,
+    "git@git.lumina.com:shop/mobile-app.git": 5, "git@git.lumina.com:platform/deploy.git": 5,
+}
 IDS = [request for _, request, _ in CASES]
 
 # RFC 2606 reserved domains, plus the standard fictional companies (Contoso, Fabrikam,
@@ -90,7 +110,7 @@ def _revealed():
 def test_every_value_is_in_its_allowed_set(completed):
     template_id, _, _ = completed
     findings = _revealed()
-    expected = 5 if template_id == "web_url" else 3
+    expected = LUMINA_FINDINGS.get(lists.current().target, 5 if template_id == "web_url" else 3)
     assert len(findings) == expected
     assert len({f.fid for f in findings}) == expected
     for finding in findings:

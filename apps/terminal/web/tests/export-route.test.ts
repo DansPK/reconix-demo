@@ -41,7 +41,7 @@ afterAll(() => rmSync(HUGE_DIR, { recursive: true, force: true }));
 const saved = { ...process.env };
 beforeEach(() => {
   process.env.RECONIX_WEB_TOKEN = TOKEN;
-  process.env.RECONIX_DATA_DIR = "sample-data";
+  process.env.RECONIX_DATA_DIR = "tests/sample-data";
   process.env.RECONIX_MOCK = "1";
   process.env.RECONIX_STALE_AFTER_HOURS = "0";
   delete process.env.RECONIX_CHROME;

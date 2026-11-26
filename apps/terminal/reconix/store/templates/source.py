@@ -2,6 +2,7 @@
 
 from ...models import Finding, ScopeManifest, Template
 from ...models.parser import ParsedTarget
+from . import lumina
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 
 TOOLS = ["Semgrep", "gitleaks", "trivy", "grype", "osv-scanner", "syft"]
@@ -108,7 +109,8 @@ def build_run(assessment) -> RunBundle:
               ("report", "Generate report")),
         methodology=("OWASP ASVS", "CWE Top 25"),
     )
+    profile = lumina.for_target("source", ref, ref, profile)
     return RunBundle(scope=scope, script=build_rest(profile),
-                     approvals=[profile.medium, profile.high], findings=findings,
+                     approvals=[profile.medium, profile.high], findings=profile.findings,
                      plan=make_plan(profile.plan, PHASE_TOOLS),
                      methodology=list(profile.methodology))

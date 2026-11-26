@@ -17,11 +17,18 @@ _VERIFIED = {
 }
 
 
-def classify_fixtures(template: str, findings: List[Finding]) -> None:
+def classify_fixtures(template: str, findings: List[Finding], target: str = "") -> None:
     """Attach current backend-shaped facts to authored fixtures in the store only."""
+    from .templates.lumina import has_story     # here: templates imports this module
+
+    own_story = has_story(template, target)
     for finding in findings:
         finding.source_claims = [f"{finding.tool}: {finding.title}"]
-        method = _VERIFIED.get(template, {}).get(finding.fid)
+        if own_story:       # its facts follow the authored validation, not the built-in ids
+            method = ("manual_review" if finding.validation == "CONFIRMED" and template != "source"
+                      else "")
+        else:
+            method = _VERIFIED.get(template, {}).get(finding.fid)
         if method:
             finding.finding_category = "CONFIRMED_VULNERABILITY"
             finding.confidence_level = "HIGH"
@@ -39,7 +46,7 @@ def classify_fixtures(template: str, findings: List[Finding]) -> None:
                 "proof_lines": list(finding.validation_proof),
                 "legacy": False,
             }
-        elif template == "web_url" and finding.fid == "003":
+        elif not own_story and template == "web_url" and finding.fid == "003":
             finding.finding_category = "SECURITY_HARDENING_RECOMMENDATION"
             finding.confidence_level = "MEDIUM"
             finding.evidence_quality = "MEDIUM"

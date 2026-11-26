@@ -69,7 +69,7 @@ export default defineConfig({
       env: {
         RECONIX_WEB_PORT: String(LIVE_PORT),
         RECONIX_WEB_TOKEN: TOKEN,
-        RECONIX_DATA_DIR: "sample-data",
+        RECONIX_DATA_DIR: "tests/sample-data",
         RECONIX_STALE_AFTER_HOURS: "0",
         RECONIX_LIVE_REFRESH_MS: "1000",
         RECONIX_WEB_URL_FILE: path.join(tmpdir(), `reconix-e2e-live-${PORT}.url`),
@@ -83,7 +83,7 @@ export default defineConfig({
       env: {
         RECONIX_WEB_PORT: String(PORT),
         RECONIX_WEB_TOKEN: TOKEN,
-        RECONIX_DATA_DIR: "sample-data",
+        RECONIX_DATA_DIR: "tests/sample-data",
         // the sample files are old: keep their waiting run waiting instead of reading it as stale
         RECONIX_STALE_AFTER_HOURS: "0",
         // no 10 s self-refresh under a test (a spec that wants it sets its own server)

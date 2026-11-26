@@ -131,7 +131,7 @@ function seedCoreAssessment() {
 
 beforeEach(() => {
   process.env.RECONIX_WEB_TOKEN = TOKEN;
-  process.env.RECONIX_DATA_DIR = "sample-data";
+  process.env.RECONIX_DATA_DIR = "tests/sample-data";
   process.env.RECONIX_CORE_API = core.url;
   delete process.env.RECONIX_MOCK;
   cookie = sessionValue(TOKEN);

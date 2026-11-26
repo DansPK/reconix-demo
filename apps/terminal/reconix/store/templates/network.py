@@ -7,6 +7,7 @@ from ...models import ApprovalRequest, Finding, ScopeManifest, Template
 from ...models.parser import ParsedTarget
 from ..errors import StoreValidationError
 from ..targets import as_network
+from . import lumina
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 
 TOOLS = ["nmap", "Nuclei", "testssl.sh", "enum4linux", "onesixtyone"]
@@ -147,6 +148,8 @@ def _approvals(host: str, ports: Ports) -> Tuple[ApprovalRequest, ApprovalReques
 
 def align_to_scope(assessment) -> None:
     """Rebuild the findings and approvals on the approved ports (see templates.align_to_scope)."""
+    if lumina.has_story("network", assessment.target):
+        return            # its ports are fixed facts about that system
     host = sample_host(assessment.target)
     ports = pick_ports(assessment.scope.allowed_ports)
     findings = {f.fid: f for f in _findings(host, ports)}
@@ -189,7 +192,8 @@ def build_run(assessment) -> RunBundle:
               ("report", "Generate report")),
         methodology=("NIST SP 800-115", "PTES"),
     )
+    profile = lumina.for_target("network", target, host, profile)
     return RunBundle(scope=scope, script=build_rest(profile),
-                     approvals=[profile.medium, profile.high], findings=findings,
+                     approvals=[profile.medium, profile.high], findings=profile.findings,
                      plan=make_plan(profile.plan, PHASE_TOOLS),
                      methodology=list(profile.methodology))

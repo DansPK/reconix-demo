@@ -126,8 +126,10 @@ How the pieces connect:
   in-memory configs, one active model (Reconix preselected by `reset_providers()`). Nothing is
   sent anywhere: chat during a run always answers from `store/replies.py` via
   `run.llm_answer`, whichever model is active.
-- **Saved copies for `web/`**: `persist.autosave` writes `snapshot()` (secrets removed) to
-  `~/.reconix/assessments/` (`RECONIX_DATA_DIR`). The dashboard validates those files with
+- **Saved copies for `web/`**: saving is off unless `RECONIX_SAVE=1`: the dashboard shows the prepared history
+  (`web/sample-data`), and a scan must not add to it. Each Lumina system has its own findings
+  (`store/templates/lumina.py`). With saving on, `persist.autosave` writes `snapshot()` (secrets
+  removed) to `~/.reconix/assessments/` (`RECONIX_DATA_DIR`). The dashboard validates those files with
   `web/src/lib/data/schema.ts`: change it together with `store/snapshot.py`, then rerun
   `make_sample_data.py`.
 

@@ -3,6 +3,7 @@
 from ...models import Finding, ScopeManifest, Template
 from ...models.parser import ParsedTarget
 from ..targets import is_lumina
+from . import lumina
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 
 TOOLS = ["httpx", "Katana", "ffuf", "Nuclei", "schemathesis", "dalfox", "testssl.sh"]
@@ -121,7 +122,8 @@ def build_run(assessment) -> RunBundle:
         + ((f"Operator-supplied OpenAPI spec: {_plain(spec.label)} "
             f"(OpenAPI {spec.spec_version}, {spec.total} endpoints)",) if spec else ()),
     )
+    profile = lumina.for_target("api", host, url, profile)
     return RunBundle(scope=scope, script=build_rest(profile),
-                     approvals=[profile.medium, profile.high], findings=findings,
+                     approvals=[profile.medium, profile.high], findings=profile.findings,
                      login_2fa=profile.login_2fa, plan=make_plan(profile.plan, PHASE_TOOLS),
                      methodology=list(profile.methodology))

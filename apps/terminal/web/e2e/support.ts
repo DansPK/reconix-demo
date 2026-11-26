@@ -87,7 +87,7 @@ interface SampleAssessment {
 /** The sample files as the dashboard reads them: an informational finding an older file may
     hold is left out, as the reader leaves it out (lib/data/schema.ts `isInfoFinding`). */
 export function sample(): SampleAssessment[] {
-  const dir = path.join(__dirname, "..", "sample-data");
+  const dir = path.join(__dirname, "..", "tests", "sample-data");
   return readdirSync(dir)
     .filter((n) => n.endsWith(".json"))
     .map((n) => JSON.parse(readFileSync(path.join(dir, n), "utf8")) as SampleAssessment)

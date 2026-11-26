@@ -83,7 +83,7 @@ def apply_template(template_id: str, *, auto: bool = False) -> Template:
     assessment.scope = bundle.scope
     assessment.approvals = bundle.approvals
     assessment.findings = bundle.findings
-    classify_fixtures(template_id, assessment.findings)
+    classify_fixtures(template_id, assessment.findings, assessment.target)
     assessment.login_2fa = bundle.login_2fa
     assessment.plan = bundle.plan or []
     assessment.methodology = bundle.methodology or []
@@ -133,7 +133,7 @@ def align_to_scope(assessment) -> None:
         task.tools = tuple(tool for tool in task.tools if tool.casefold() in approved)
         if task.key == "scanning":
             task.tools += added             # a tool the operator added scans with the others
-    classify_fixtures(assessment.selected_template, assessment.findings)
+    classify_fixtures(assessment.selected_template, assessment.findings, assessment.target)
 
 
 def _with_intent(assessment, script: List[RunStep]) -> List[RunStep]:

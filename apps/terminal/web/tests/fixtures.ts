@@ -5,7 +5,7 @@ import path from "node:path";
 
 import { type Assessment, AssessmentSchema } from "@/lib/data/schema";
 
-export const SAMPLE_DIR = path.join(__dirname, "..", "sample-data");
+export const SAMPLE_DIR = path.join(__dirname, "sample-data");
 
 export function sampleNames(): string[] {
   return readdirSync(SAMPLE_DIR).filter((n) => n.endsWith(".json")).sort();
