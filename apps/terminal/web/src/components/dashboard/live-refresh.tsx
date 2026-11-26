@@ -4,11 +4,21 @@
    RECONIX_LIVE_REFRESH_MS through lib/live-refresh.ts, 0 turns it off, as the e2e server does) while the tab is visible, so
    a run going on in the TUI shows up without a reload. Click to pause.
    The refresh re-renders the server views and keeps client state, so an open conversation and
-   the chosen view survive it. */
+   the chosen view survive it. It skips its turn while the AI Assistant or Security knowledge is
+   open: they read their own data, and a re-render there visibly jolts an answer being read. */
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useState } from "react";
 
+import { resolveView, type View } from "@/components/dashboard/view-name";
 import { DEFAULT_REFRESH_MS } from "@/lib/live-refresh";
+
+/** Views that never show the saved runs, so re-reading them there only causes a flicker. */
+const QUIET_VIEWS: readonly View[] = ["assistant", "knowledge"];
+
+function inQuietView(): boolean {
+  const view = resolveView(window.location.pathname, new URLSearchParams(window.location.search).get("view"));
+  return QUIET_VIEWS.includes(view);
+}
 
 export function LiveRefresh({ renderedAt, dir, everyMs = DEFAULT_REFRESH_MS }: { renderedAt: string; dir: string; everyMs?: number }) {
   const router = useRouter();
@@ -18,7 +28,7 @@ export function LiveRefresh({ renderedAt, dir, everyMs = DEFAULT_REFRESH_MS }: {
   useEffect(() => {
     if (!live || everyMs <= 0) return;
     const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") startTransition(() => router.refresh());
+      if (document.visibilityState === "visible" && !inQuietView()) startTransition(() => router.refresh());
     }, everyMs);
     return () => window.clearInterval(timer);
   }, [live, everyMs, router]);

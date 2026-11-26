@@ -1,7 +1,8 @@
 /* The top bar's live-refresh pill. The e2e server reads the saved files once per load
    (RECONIX_LIVE_REFRESH_MS=0: a self-refresh under a test would re-render a view mid-assertion),
    so it shows "Static". A second dashboard (playwright.config.ts, LIVE_PORT) refreshes every
-   second: its pill is "Live", re-reads on its own, and pauses on a click. */
+   second: its pill is "Live", re-reads on its own, pauses on a click, and stays quiet while the
+   AI Assistant is open. */
 import { expect, test } from "./fixtures";
 
 import { LIVE_PORT, PORT } from "../playwright.config";
@@ -62,5 +63,20 @@ test.describe("with live refresh on (every second)", () => {
     expect(await pill(page).getAttribute("data-rendered-at"), "paused: the render stamp stays").toBe(paused);
     await pill(page).click();
     await expect(pill(page)).toHaveAttribute("data-live-refresh", "on");
+  });
+
+  test("the AI Assistant is never re-rendered under an answer being read", async ({ page }) => {
+    await page.goto("/?view=assistant");
+    await hydrated(page);
+    await expect(pill(page)).toHaveAttribute("data-live-refresh", "on");
+    const stamp = await pill(page).getAttribute("data-rendered-at");
+    let asked = 0;
+    page.on("request", (r) => {
+      if (isRefresh(r)) asked += 1;
+    });
+    // two intervals go by (nothing happening cannot be polled for)
+    await page.waitForTimeout(2200);
+    expect(asked, "no refresh while the assistant is open").toBe(0);
+    expect(await pill(page).getAttribute("data-rendered-at"), "the render stamp stays").toBe(stamp);
   });
 });
