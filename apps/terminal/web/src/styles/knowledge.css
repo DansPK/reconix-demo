@@ -25,7 +25,7 @@
   height: 24px;
   padding: 0 9px;
   border-radius: 8px;
-  font-size: var(--text-caption);
+  font-size: 12px;
   color: var(--muted-foreground);
   transition: color 0.2s ease, background-color 0.2s ease;
 }
@@ -34,10 +34,10 @@
 .kn-switch-btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
 
 /* what was just added or removed, and errors */
-.kn-notice { font-size: var(--text-caption); color: var(--success); }
+.kn-notice { font-size: 12.5px; color: var(--success); }
 .kn-notice:empty { margin-bottom: -12px; } /* no text: no room (the view's 12px gap taken back) */
-.kn-error { font-size: var(--text-caption); line-height: 1.45; color: var(--danger); overflow-wrap: anywhere; }
-.kn-state { font-size: var(--text-small); color: var(--muted-foreground); }
+.kn-error { font-size: 12px; line-height: 1.45; color: var(--danger); overflow-wrap: anywhere; }
+.kn-state { font-size: 13px; color: var(--muted-foreground); }
 .kn-card:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 .kn-empty { flex-direction: column; align-items: flex-start; }
 .kn-empty > p { max-width: 62ch; line-height: 1.55; }
@@ -62,6 +62,13 @@
 .kn-name-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .kn-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--foreground); font-weight: 500; }
 .kn-table tbody th { max-width: 0; width: 38%; } /* the name gives way, the other columns keep their text */
+.kn-col-actions { text-align: right; white-space: nowrap; }
+/* wide: room for Open and Remove side by side, and for the remove question in their place
+   (narrower, they stack in the cell) */
+@media (min-width: 1024px) {
+  .kn-table .kn-col-actions { width: 250px; }
+  .kn-col-actions .kn-action-row, .kn-col-actions .kn-confirm { flex-wrap: nowrap; justify-content: flex-end; }
+}
 
 /* a phone: each row a block, its cells labelled */
 @media (max-width: 639.98px) {
@@ -71,6 +78,7 @@
   .kn-table tbody tr:first-child { border-top: 0; padding-top: 0; }
   .kn-table tbody th, .kn-table td { padding: 2px 0; border-top: 0; text-align: left; white-space: normal; }
   .kn-table td[data-label]::before { content: attr(data-label) ": "; color: var(--muted-foreground); }
+  .kn-table .kn-col-actions { padding-top: 8px; }
 }
 
 /* ---- The cards ---- */
@@ -94,10 +102,400 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  font-size: var(--text-small);
+  font-size: 13px;
   font-weight: 500;
   line-height: 1.35;
   color: var(--foreground);
   overflow-wrap: anywhere;
 }
-.kn-tile-meta { font-size: var(--text-caption); color: var(--muted-foreground); }
+.kn-tile-meta { font-size: 12px; color: var(--muted-foreground); }
+.kn-tile .kn-actions { margin-top: auto; padding-top: 6px; }
+
+/* ---- A file's actions, and the remove question ---- */
+.kn-actions { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.kn-col-actions .kn-actions { align-items: flex-end; }
+.kn-action-row, .kn-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.kn-remove:not([aria-disabled="true"]):hover { color: var(--danger); background: color-mix(in oklab, var(--danger) 10%, transparent); }
+.kn-confirm-text { font-size: 12px; color: var(--foreground); }
+.kn-danger { color: var(--foreground); background: color-mix(in oklab, var(--danger) 70%, var(--card)); }
+.kn-danger:not(:disabled):hover { background: var(--danger); }
+@media (max-width: 639.98px) { .kn-col-actions .kn-actions { align-items: flex-start; } }
+
+/* ---- The upload dialog (its frame is .ui-dialog, styles/ui.css) ---- */
+.kn-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.kn-label { font-size: 12px; font-weight: 500; }
+.kn-hint { font-size: 11.5px; line-height: 1.45; color: var(--muted-foreground); }
+.kn-chosen { font-size: 12px; color: var(--muted-foreground); overflow-wrap: anywhere; }
+.kn-chosen-name { color: var(--foreground); }
+
+.kn-file { width: 100%; min-width: 0; font-size: 12px; color: var(--muted-foreground); border-radius: 8px; }
+.kn-file::file-selector-button {
+  height: 30px;
+  margin-right: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--foreground);
+  font: inherit;
+  cursor: pointer;
+}
+.kn-file:hover::file-selector-button { border-color: color-mix(in oklab, var(--primary) 40%, var(--border)); }
+.kn-file:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.kn-file:disabled { opacity: 0.5; }
+
+.kn-progress { appearance: none; width: 100%; height: 6px; border: 0; border-radius: 999px; overflow: hidden; background: var(--muted); }
+.kn-progress::-webkit-progress-bar { background: var(--muted); border-radius: 999px; }
+.kn-progress::-webkit-progress-value { background: var(--primary); border-radius: 999px; transition: width 0.2s ease; }
+.kn-progress::-moz-progress-bar { background: var(--primary); border-radius: 999px; }
+
+/* ---- The knowledge stage: documents on the left, the graph on the right ---------------------- */
+.kn-view { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.kn-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  height: max(480px, calc(100dvh - 210px));
+}
+@media (min-width: 900px) { .kn-stage { grid-template-columns: 300px minmax(0, 1fr); } }
+@media (min-width: 1280px) { .kn-stage { grid-template-columns: 340px minmax(0, 1fr); } }
+/* The fixed desktop frame (frame.css, the same breakpoint as findings.css): the view fills the
+   content area and the stage takes the height left under the header and any message, so the
+   cards end at the frame's bottom whatever shows above them. */
+@media (min-width: 1280px) and (min-height: 760px) {
+  .dash-content > div:has(> .kn-view) { height: 100%; }
+  .kn-view { height: 100%; }
+  .kn-stage { flex: 1 1 0; height: auto; min-height: 420px; }
+}
+
+/* a panel: the dashboard's card, a little glass */
+.kn-side, .kn-graph {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--card) 92%, transparent);
+  overflow: hidden;
+}
+.kn-side { max-height: 100%; }
+/* Expanded (the graph's corner button): the list folds away and the graph takes the stage */
+.kn-stage { transition: grid-template-columns 0.35s ease, gap 0.35s ease; }
+.kn-side { transition: opacity 0.2s ease, visibility 0s linear 0s; }
+.kn-stage[data-expanded] { grid-template-columns: 0px minmax(0, 1fr); gap: 0; }
+.kn-stage[data-expanded] .kn-side { opacity: 0; visibility: hidden; border-width: 0; transition: opacity 0.2s ease, visibility 0s linear 0.2s; }
+@media (prefers-reduced-motion: reduce) { .kn-stage, .kn-side, .kn-stage[data-expanded] .kn-side { transition: none; } }
+@media (max-width: 899px) {
+  .kn-stage[data-expanded] { grid-template-columns: minmax(0, 1fr); }
+  .kn-stage[data-expanded] .kn-side { display: none; }
+  .kn-stage[data-expanded] .kn-graph { height: max(520px, calc(100dvh - 200px)); }
+}
+@media (max-width: 899px) { .kn-stage { height: auto; } .kn-side { max-height: 360px; } .kn-graph { height: 520px; order: -1; } } /* small screens: the graph first, the list under it */
+.kn-side-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted-foreground);
+}
+.kn-side-count {
+  min-width: 22px; padding: 1px 7px; border-radius: 999px; text-align: center; letter-spacing: 0;
+  color: var(--primary); background: color-mix(in oklab, var(--primary) 14%, transparent);
+}
+
+/* ---- the document list ---- */
+.kn-docs { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.kn-docs-search {
+  display: flex; align-items: center; gap: 8px; margin: 0 12px 8px; padding: 0 10px; height: 34px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--card-2); color: var(--muted-foreground);
+}
+.kn-docs-search:focus-within { border-color: color-mix(in oklab, var(--primary) 55%, var(--border)); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 16%, transparent); }
+.kn-docs-search svg { width: 14px; height: 14px; flex-shrink: 0; }
+.kn-docs-search input { flex: 1; min-width: 0; height: 100%; background: transparent; border: 0; outline: none; font-size: 13px; color: var(--foreground); }
+.kn-docs-empty { padding: 12px 16px; font-size: 12.5px; color: var(--muted-foreground); }
+.kn-docs-list { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0 8px 10px; list-style: none; overflow-y: auto; min-height: 0; }
+.kn-doc {
+  position: relative; display: flex; align-items: center; gap: 2px; border-radius: 11px;
+  border: 1px solid transparent; transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  animation: kn-rise 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.kn-doc:hover { background: color-mix(in oklab, var(--foreground) 5%, transparent); }
+.kn-doc.is-focused {
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+  background: linear-gradient(90deg, color-mix(in oklab, var(--primary) 16%, transparent), color-mix(in oklab, var(--primary) 4%, transparent));
+}
+.kn-doc.is-focused::before {
+  content: ""; position: absolute; left: -1px; top: 10px; bottom: 10px; width: 3px; border-radius: 3px;
+  background: var(--primary); box-shadow: 0 0 12px var(--primary);
+}
+.kn-doc-main { display: flex; flex: 1; align-items: center; gap: 10px; min-width: 0; padding: 9px 8px 9px 10px; text-align: left; border-radius: 11px; }
+.kn-doc-main:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.kn-doc-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kn-doc-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 500; color: var(--foreground); }
+.kn-doc-meta { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; color: var(--muted-foreground); }
+.kn-doc-remove {
+  display: grid; place-items: center; width: 28px; height: 28px; margin-right: 6px; flex-shrink: 0; border-radius: 8px;
+  color: var(--muted-foreground); opacity: 0; transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+.kn-doc:hover .kn-doc-remove, .kn-doc-remove:focus-visible, .kn-doc.is-focused .kn-doc-remove { opacity: 1; }
+.kn-doc-remove:hover { color: var(--danger); background: color-mix(in oklab, var(--danger) 12%, transparent); }
+.kn-doc-remove:focus-visible { outline: 2px solid var(--ring); }
+.kn-doc-remove svg { width: 14px; height: 14px; }
+@media (hover: none) { .kn-doc-remove { opacity: 1; } }
+.kn-doc.is-asking {
+  flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px; font-size: 12.5px; color: var(--foreground);
+  border-color: color-mix(in oklab, var(--danger) 35%, var(--border)); background: color-mix(in oklab, var(--danger) 6%, transparent);
+}
+.kn-doc-confirm { display: flex; justify-content: flex-end; gap: 6px; }
+
+/* ---- the graph ---- */
+.kn-graph {
+  background:
+    radial-gradient(120% 90% at 50% 40%, color-mix(in oklab, var(--primary) 7%, transparent), transparent 60%),
+    color-mix(in oklab, var(--card) 94%, transparent);
+  min-height: 0;
+}
+.kn-graph-top {
+  position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px;
+  padding: 12px 14px; border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+}
+.kn-graph-stats { font-size: 12px; color: var(--muted-foreground); }
+.kn-graph-stats strong { font-weight: 600; color: var(--foreground); font-variant-numeric: tabular-nums; }
+.kn-graph-canvas { position: relative; flex: 1; min-height: 300px; }
+.kn-graph-canvas canvas { position: absolute; inset: 0; display: block; touch-action: none; }
+.kn-graph-canvas canvas:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.kn-graph-zoom {
+  position: absolute; left: 12px; bottom: 12px; z-index: 2; display: flex; flex-direction: column; overflow: hidden;
+  border: 1px solid var(--border); border-radius: 10px; background: color-mix(in oklab, var(--card) 80%, transparent); backdrop-filter: blur(8px);
+}
+.kn-graph-zoom button { display: grid; place-items: center; width: 32px; height: 30px; color: var(--foreground); transition: background-color 0.15s ease, color 0.15s ease; }
+.kn-graph-zoom button + button { border-top: 1px solid var(--border); }
+.kn-graph-zoom button:hover { color: var(--primary); background: color-mix(in oklab, var(--primary) 12%, transparent); }
+.kn-graph-zoom button:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.kn-graph-zoom svg { width: 14px; height: 14px; }
+.kn-graph-hint {
+  position: absolute; left: 50%; bottom: 14px; z-index: 2; transform: translateX(-50%); max-width: calc(100% - 120px);
+  padding: 5px 12px; border-radius: 999px; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: var(--muted-foreground); background: color-mix(in oklab, var(--card) 75%, transparent); border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  backdrop-filter: blur(8px); pointer-events: none; animation: kn-fade 0.6s ease 0.8s both;
+}
+
+/* the colour of each kind of node (the canvas reads the same tokens) */
+.kn-type-dot { display: inline-block; width: 8px; height: 8px; flex-shrink: 0; border-radius: 999px; background: var(--kn-c, var(--muted-foreground)); box-shadow: 0 0 8px var(--kn-c, transparent); }
+[data-type="DOC"] { --kn-c: var(--primary); }
+[data-type="CVE"] { --kn-c: var(--sev-critical); }
+[data-type="CWE"] { --kn-c: var(--sev-high); }
+[data-type="OWASP"] { --kn-c: var(--sev-medium); }
+[data-type="ATTACK"] { --kn-c: var(--accent); }
+[data-type="TOOL"] { --kn-c: var(--info); }
+[data-type="TOPIC"] { --kn-c: var(--success); }
+
+/* the legend, which filters */
+.kn-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.kn-legend-doc { display: inline-flex; align-items: center; gap: 6px; padding: 0 6px; font-size: 11.5px; color: var(--muted-foreground); }
+.kn-legend-chip {
+  display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 9px; border-radius: 999px; font-size: 11.5px;
+  border: 1px solid var(--border); color: var(--muted-foreground); background: transparent;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+}
+.kn-legend-chip[aria-pressed="true"] {
+  color: var(--foreground);
+  border-color: color-mix(in oklab, var(--kn-c, var(--primary)) 45%, var(--border));
+  background: color-mix(in oklab, var(--kn-c, var(--primary)) 13%, transparent);
+}
+.kn-legend-chip[aria-pressed="false"] .kn-type-dot { opacity: 0.35; box-shadow: none; }
+.kn-legend-chip:hover { border-color: color-mix(in oklab, var(--kn-c, var(--primary)) 55%, var(--border)); }
+.kn-legend-chip:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+.kn-legend-count { font-variant-numeric: tabular-nums; color: var(--muted-foreground); }
+.kn-legend-chip.is-shared { --kn-c: var(--primary); }
+
+/* the focused node's details */
+.kn-details {
+  position: absolute; right: 12px; bottom: 12px; z-index: 3; width: min(320px, calc(100% - 70px)); max-height: calc(100% - 90px); overflow-y: auto;
+  padding: 14px; border-radius: 14px; border: 1px solid color-mix(in oklab, var(--kn-c, var(--primary)) 35%, var(--border));
+  background: color-mix(in oklab, var(--card) 86%, transparent); backdrop-filter: blur(14px);
+  box-shadow: 0 18px 50px -20px color-mix(in oklab, var(--kn-c, var(--primary)) 45%, transparent);
+  animation: kn-pop 0.32s cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+}
+.kn-details-head { display: flex; align-items: center; gap: 8px; }
+.kn-details-type { flex: 1; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--kn-c, var(--muted-foreground)); }
+.kn-details-close { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; color: var(--muted-foreground); }
+.kn-details-close:hover { color: var(--foreground); background: color-mix(in oklab, var(--foreground) 8%, transparent); }
+.kn-details-close svg { width: 14px; height: 14px; }
+.kn-details-title { margin-top: 6px; font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--foreground); overflow-wrap: anywhere; }
+.kn-details-sub { margin-top: 3px; font-size: 12px; color: var(--muted-foreground); }
+.kn-details-label { margin-top: 12px; margin-bottom: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted-foreground); }
+.kn-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.kn-chip {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%; height: 24px; padding: 0 8px; border-radius: 999px; font-size: 11.5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--foreground);
+  border: 1px solid color-mix(in oklab, var(--kn-c) 35%, var(--border)); background: color-mix(in oklab, var(--kn-c) 10%, transparent);
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.kn-chip:hover { background: color-mix(in oklab, var(--kn-c) 22%, transparent); transform: translateY(-1px); }
+.kn-chip:focus-visible, .kn-details-doc:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+.kn-details-docs { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.kn-details-doc {
+  width: 100%; padding: 7px 9px; border-radius: 9px; text-align: left; font-size: 12.5px; color: var(--foreground);
+  border: 1px solid var(--border); background: var(--card-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.kn-details-doc:hover { border-color: color-mix(in oklab, var(--primary) 45%, var(--border)); }
+
+/* loading, error and empty */
+.kn-stage-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 48px 24px; text-align: center;
+  border: 1px solid var(--border); border-radius: 16px; font-size: 13px; color: var(--muted-foreground);
+  background: radial-gradient(70% 60% at 50% 45%, color-mix(in oklab, var(--primary) 9%, transparent), transparent 70%), var(--card);
+}
+.kn-empty-orb {
+  display: grid; place-items: center; width: 72px; height: 72px; border-radius: 999px; color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 12%, transparent); box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 30%, transparent), 0 0 40px color-mix(in oklab, var(--primary) 30%, transparent);
+  animation: kn-breathe 3.2s ease-in-out infinite;
+}
+.kn-empty-orb svg { width: 30px; height: 30px; }
+.kn-empty-title { font-size: 16px; font-weight: 600; color: var(--foreground); }
+.kn-empty-text { max-width: 58ch; line-height: 1.55; }
+
+@keyframes kn-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes kn-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes kn-pop { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes kn-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@media (prefers-reduced-motion: reduce) {
+  .kn-doc, .kn-details, .kn-graph-hint, .kn-empty-orb { animation: none; }
+  .kn-chip:hover { transform: none; }
+}
+
+/* ---- the details panel's tabs and content ---- */
+.kn-details { display: flex; flex-direction: column; width: min(400px, calc(100% - 70px)); max-height: calc(100% - 80px); overflow: hidden; }
+.kn-tabs { display: flex; gap: 2px; margin-top: 12px; padding: 3px; border-radius: 10px; background: color-mix(in oklab, var(--foreground) 5%, transparent); }
+.kn-tab {
+  flex: 1; height: 28px; border-radius: 8px; font-size: 12px; font-weight: 500; color: var(--muted-foreground);
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+.kn-tab:hover { color: var(--foreground); }
+.kn-tab[aria-selected="true"] { color: var(--foreground); background: var(--card); box-shadow: 0 1px 0 color-mix(in oklab, var(--kn-c, var(--primary)) 40%, transparent), 0 4px 14px -6px color-mix(in oklab, var(--kn-c, var(--primary)) 50%, transparent); }
+.kn-tab:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+.kn-details-body { min-height: 0; margin-top: 10px; overflow-y: auto; overscroll-behavior: contain; padding-right: 2px; animation: kn-fade 0.25s ease both; }
+.kn-details-empty { font-size: 12px; line-height: 1.5; color: var(--muted-foreground); }
+
+/* a marked reference in the text: its colour, tinted, and it moves the focus there */
+.kn-mark {
+  display: inline; padding: 0 3px; margin: 0 -1px; border-radius: 4px; font: inherit; line-height: inherit; text-align: inherit; cursor: pointer;
+  color: color-mix(in oklab, var(--kn-c) 70%, var(--foreground));
+  background: color-mix(in oklab, var(--kn-c) 16%, transparent);
+  box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--kn-c) 55%, transparent);
+  transition: background-color 0.15s ease;
+}
+.kn-mark:hover { background: color-mix(in oklab, var(--kn-c) 30%, transparent); }
+.kn-mark[data-current] { color: var(--foreground); background: color-mix(in oklab, var(--kn-c) 38%, transparent); box-shadow: 0 0 0 1px color-mix(in oklab, var(--kn-c) 70%, transparent), 0 0 12px color-mix(in oklab, var(--kn-c) 45%, transparent); }
+.kn-mark:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+/* text inside a passage that matched the AI reply that cited it (warm amber highlight, distinct from cyan DOC chrome) */
+.kn-used {
+  padding: 1px 3px;
+  border-radius: 3px;
+  color: var(--foreground);
+  background: color-mix(in oklab, var(--sev-medium) 26%, transparent);
+  box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--sev-medium) 65%, transparent);
+  box-decoration-break: clone;
+}
+
+/* Content: the passages */
+.kn-passages { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.kn-passage { padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in oklab, var(--border) 80%, transparent); background: color-mix(in oklab, var(--card-2) 80%, transparent); animation: kn-rise 0.35s ease both; }
+.kn-passage-index { display: block; margin-bottom: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); }
+.kn-passage-text { font-size: 12.5px; line-height: 1.65; color: var(--foreground); white-space: pre-wrap; overflow-wrap: anywhere; }
+.kn-more { width: 100%; margin-top: 10px; }
+
+/* About */
+.kn-about { display: flex; flex-direction: column; gap: 8px; }
+.kn-about-title { font-size: 13px; font-weight: 600; color: var(--foreground); }
+.kn-about-text { font-size: 12.5px; line-height: 1.65; color: color-mix(in oklab, var(--foreground) 88%, var(--muted-foreground)); white-space: pre-line; }
+.kn-about-source { font-size: 11px; color: var(--muted-foreground); }
+.kn-about-link { display: inline-flex; align-items: center; gap: 3px; color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.kn-about-link svg { width: 11px; height: 11px; }
+
+/* Mentions */
+.kn-mentions { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.kn-mention { display: flex; flex-direction: column; gap: 6px; }
+.kn-mention-doc { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; font-size: 12.5px; font-weight: 600; text-align: left; color: var(--foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kn-mention-doc:hover { color: var(--primary); }
+.kn-mention-doc:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+.kn-mention-wait { width: 14px; height: 14px; color: var(--muted-foreground); }
+.kn-snippet {
+  padding: 8px 10px; border-left: 2px solid color-mix(in oklab, var(--kn-c, var(--primary)) 60%, transparent); border-radius: 0 8px 8px 0;
+  font-size: 12px; line-height: 1.6; color: color-mix(in oklab, var(--foreground) 85%, var(--muted-foreground)); white-space: pre-wrap; overflow-wrap: anywhere;
+  background: color-mix(in oklab, var(--card-2) 75%, transparent);
+}
+
+/* loading: a shimmer */
+.kn-skeleton { display: flex; flex-direction: column; gap: 8px; }
+.kn-skeleton span {
+  display: block; height: 11px; border-radius: 6px;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 6%, transparent) 0%, color-mix(in oklab, var(--foreground) 14%, transparent) 50%, color-mix(in oklab, var(--foreground) 6%, transparent) 100%);
+  background-size: 200% 100%; animation: kn-shimmer 1.3s linear infinite;
+}
+.kn-skeleton span:nth-child(2) { width: 88%; }
+.kn-skeleton span:nth-child(3) { width: 72%; }
+.kn-skeleton span:nth-child(4) { width: 80%; }
+@keyframes kn-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .kn-details-body, .kn-passage { animation: none; }
+  .kn-skeleton span { animation: none; }
+}
+/* the passage a mention or cited source opened: highlighted border & tint, plus an initial glow */
+.kn-passage.is-found {
+  border-color: color-mix(in oklab, var(--primary) 65%, var(--border));
+  background: color-mix(in oklab, var(--primary) 10%, var(--card-2));
+  animation: kn-found 1.6s ease both;
+}
+@keyframes kn-found { 0%, 40% { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), 0 0 22px color-mix(in oklab, var(--primary) 40%, transparent); } 100% { box-shadow: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .kn-passage.is-found {
+    animation: none;
+    border-color: var(--primary);
+    background: color-mix(in oklab, var(--primary) 10%, var(--card-2));
+  }
+}
+
+/* ---- re-ingest ---- */
+.kn-reingest-ask {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 6px 4px 12px; border-radius: 10px; font-size: 12.5px; color: var(--foreground);
+  border: 1px solid color-mix(in oklab, var(--primary) 40%, var(--border)); background: color-mix(in oklab, var(--primary) 8%, transparent);
+  animation: kn-fade 0.2s ease both;
+}
+.kn-reingest {
+  position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, var(--border)); background: color-mix(in oklab, var(--primary) 7%, var(--card));
+  animation: kn-rise 0.35s ease both;
+}
+.kn-reingest[data-status="COMPLETED"] { border-color: color-mix(in oklab, var(--success) 40%, var(--border)); background: color-mix(in oklab, var(--success) 7%, var(--card)); }
+.kn-reingest[data-status="FAILED"] { border-color: color-mix(in oklab, var(--danger) 40%, var(--border)); background: color-mix(in oklab, var(--danger) 7%, var(--card)); }
+.kn-reingest-icon { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 999px; color: var(--primary); background: color-mix(in oklab, var(--primary) 14%, transparent); }
+.kn-reingest[data-status="COMPLETED"] .kn-reingest-icon { color: var(--success); background: color-mix(in oklab, var(--success) 14%, transparent); }
+.kn-reingest[data-status="FAILED"] .kn-reingest-icon { color: var(--danger); background: color-mix(in oklab, var(--danger) 14%, transparent); }
+.kn-reingest-icon svg { width: 15px; height: 15px; }
+.kn-reingest-text { display: flex; flex: 1; flex-direction: column; gap: 7px; min-width: 0; }
+.kn-reingest-title { font-size: 12.5px; color: var(--foreground); overflow-wrap: anywhere; }
+.kn-reingest-bar { position: relative; height: 5px; border-radius: 999px; overflow: hidden; background: color-mix(in oklab, var(--foreground) 8%, transparent); }
+.kn-reingest-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, var(--primary), color-mix(in oklab, var(--primary) 50%, var(--accent))); box-shadow: 0 0 12px var(--primary); transition: width 0.5s ease; }
+.kn-reingest-bar[data-indeterminate] > span { width: 35%; animation: kn-slide 1.4s ease-in-out infinite; }
+@keyframes kn-slide { from { left: -35%; } to { left: 100%; } }
+.kn-reingest-close { width: 24px; height: 24px; flex-shrink: 0; border-radius: 7px; font-size: 16px; line-height: 1; color: var(--muted-foreground); }
+.kn-reingest-close:hover { color: var(--foreground); background: color-mix(in oklab, var(--foreground) 8%, transparent); }
+@media (prefers-reduced-motion: reduce) { .kn-reingest, .kn-reingest-ask { animation: none; } .kn-reingest-bar[data-indeterminate] > span { animation: none; left: 0; width: 100%; opacity: 0.5; } }
+
+/* ---- ingested or not ---- */
+.kn-status {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; height: 18px; padding: 0 7px; border-radius: 999px;
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap;
+  color: var(--warning); background: color-mix(in oklab, var(--warning) 13%, transparent); border: 1px dashed color-mix(in oklab, var(--warning) 55%, transparent);
+}
+.kn-status::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; animation: kn-wait 1.6s ease-in-out infinite; }
+.kn-status[data-ingested] { color: var(--success); background: color-mix(in oklab, var(--success) 12%, transparent); border-style: solid; border-color: color-mix(in oklab, var(--success) 35%, transparent); }
+.kn-status[data-ingested]::before { animation: none; box-shadow: 0 0 6px currentColor; }
+@keyframes kn-wait { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.kn-doc-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.kn-doc-head .kn-doc-name { flex: 1; }
+.kn-ingest-summary { display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 14px 10px; }
+.kn-details-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; font-size: 11.5px; color: var(--muted-foreground); }
+.kn-ingest-new { box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent), 0 0 18px color-mix(in oklab, var(--primary) 35%, transparent); }
+@media (prefers-reduced-motion: reduce) { .kn-status::before { animation: none; } }

@@ -1,11 +1,10 @@
-"""Write realistic sample assessments for the web dashboard (development and tests).
+"""Write the prepared history the web dashboard shows: one assessment per Lumina system,
+plus a few other clients' websites.
 
-Plays the four templates through the real store (every gate decided through the same
-store functions the TUI uses) with a fake clock, so the files look like a week of work:
-completed runs with reports, extra scanner findings, a run stopped by a rejected HIGH
-approval, and one still waiting at a HIGH approval. Only fictional company domains
-(Contoso, Fabrikam, Northwind) and documentation IP ranges, with fake,
-masked evidence are used. No secret is written (the store's snapshot leaves them out).
+Plays the templates through the real store (every gate decided through the same store
+functions the TUI uses) with a fake clock, so the files look like a month of work. Only
+Lumina's own domains and private addresses are used, with fake, masked evidence. The web
+tests read their own frozen copy (web/tests/sample-data), which this script never touches.
 
     python scripts/make_sample_data.py [OUT_DIR]      # default: web/sample-data
 """
@@ -18,91 +17,16 @@ import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Callable, Optional
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = ROOT / "scripts" / "sample" / "openapi-demo.yaml"   # the API run's attached spec
 sys.path.insert(0, str(ROOT))
 
 from reconix import store  # noqa: E402
-from reconix.models import Finding, base  # noqa: E402
-from reconix.store import lists, report, snapshot  # noqa: E402
-from reconix.store.findings import SEVERITY_ORDER, ingest_external  # noqa: E402
-from reconix.store.redact import clean, redact  # noqa: E402
+from reconix.models import base  # noqa: E402
+from reconix.store import lists, report, seed, snapshot  # noqa: E402
 
 FILE_NAME = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{4}_[A-Za-z0-9-]{1,64}\.json$")
-
-NUCLEI = "\n".join(json.dumps(row) for row in [
-    {"template-id": "server-version", "matched-at": "https://{host}/",
-     "info": {"name": "Web server version disclosed", "severity": "low",
-              "description": "The Server header names the web server and its version."},
-     "extracted-results": ["Server: nginx/1.18.0"]},
-    {"template-id": "api-docs-exposed", "matched-at": "https://{host}/docs",
-     "info": {"name": "API documentation exposed", "severity": "medium",
-              "description": "Interactive API documentation is reachable without a login."}},
-    {"template-id": "missing-hsts", "matched-at": "https://{host}/",
-     "info": {"name": "HSTS header missing", "severity": "low"}},
-])
-
-# Scanner rows (nuclei's JSON lines) the script turns into findings itself; only the four
-# severities exist, so a row with another one is a mistake in this file (`add_scanner_rows`).
-# A run with every severity the scale has, a title that must stay text, and a login in a URL
-# (the store masks the login in what it keeps).
-NUCLEI_EDGE = "\n".join(json.dumps(row) for row in [
-    {"template-id": "admin-console-open", "matched-at": "https://ops:hunter2@{host}/console",
-     "info": {"name": "Admin console reachable without authentication", "severity": "critical",
-              "description": "The management console answers without a login."}},
-    {"template-id": "title-markup", "matched-at": "https://{host}/status",
-     "info": {"name": "<b>Status page</b> leaks build details", "severity": "high",
-              "description": "The page prints the <i>build number</i> and the host name."}},
-    {"template-id": "tech-detect", "matched-at": "https://{host}/",
-     "info": {"name": "Web server banner names nginx", "severity": "low"}},
-    {"template-id": "robots-txt", "matched-at": "https://{host}/robots.txt",
-     "info": {"name": "robots.txt lists internal paths", "severity": "low"},
-     "extracted-results": ["Disallow: /internal/"]},
-    {"template-id": "old-cert", "matched-at": "https://{host}/",
-     "info": {"name": "Certificate expires within 30 days", "severity": "medium"}},
-])
-
-# Nine more rows: with the template's own findings one run lists more than ten.
-NUCLEI_MANY = "\n".join(json.dumps(row) for row in [
-    {"template-id": f"exposed-{name}", "matched-at": f"https://{{host}}/{name}",
-     "info": {"name": f"Exposed {name} endpoint", "severity": severity}}
-    for name, severity in [("backup", "high"), ("metrics", "medium"), ("debug", "medium"),
-                           ("swagger", "low"), ("health", "low"), ("version", "low"),
-                           ("status", "low"), ("config", "medium"), ("trace", "low")]
-])
-
-
-def add_scanner_rows(rows_text: str) -> None:
-    """Add the findings in `rows_text` (nuclei JSON lines) to the current assessment.
-
-    They get `IMP-NNN` ids, are unconfirmed and are masked like the store masks any text.
-    """
-    findings = []
-    for line in rows_text.splitlines():
-        row = json.loads(line)
-        info = row["info"]
-        severity = info["severity"].upper()
-        assert severity in SEVERITY_ORDER, f"not a severity: {severity}"
-        url = row["matched-at"]
-        path = "/" + url.split("://", 1)[1].split("/", 1)[1] if url.count("/") > 2 else "/"
-        findings.append(Finding(
-            fid="", severity=severity, title=redact(info["name"]), path=redact(path),
-            validation="UNCONFIRMED", description=redact(info.get("description") or
-                                                         "Reported by nuclei."),
-            affected_url=redact(url), impact="Review the finding and confirm its impact.",
-            remediation="See the tool's guidance for remediation.", tool="nuclei",
-            evidence=[redact(" ".join(str(e).split()))[:200]
-                      for e in row.get("extracted-results", [])],
-            references=[clean(str(r)) for r in info.get("reference", [])]))
-    ingest_external(findings, prefix="IMP")
-
-
-def triage_false_positive() -> None:
-    store.triage_finding("IMP-003", status="false-positive",
-                         note="Banner is a test fixture; the scanner matched a stale cache.")
-
 
 # --- a clock that moves a few seconds per reading ----------------------------------------------
 class FakeClock(datetime):
@@ -150,25 +74,22 @@ def decide(gate: str, *, high: str, spec: str = "") -> bool:
         else:
             token = store.request_confirmation(request.request_id, request.command_hash)
             store.approve(request.request_id, command_hash=request.command_hash,
-                          confirmation_token=token)
+                          confirmation_token=token, typed_target=request.target)
     return True
 
 
-def play(text: str, *, high: str = "approve", fmt: str = "", rows: str = "",
-         stop_at: str = "", running_steps: int = 0, no_findings: bool = False,
-         after: Optional[Callable[[], None]] = None, spec: str = "") -> None:
+def play(text: str, *, high: str = "approve", fmt: str = "docx", stop_at: str = "",
+         spec: str = "", signed_off: bool = True, triage: tuple = (),
+         client: str = "Lumina") -> None:
     """Play one run from `text`.
 
     `stop_at`: "scope" stops the run at the template/scope gate (nothing approved);
-    `running_steps`: leave the run Running after that many played steps once the plan runs;
-    `no_findings`: drop every finding (a completed run that found nothing);
-    `after`: a callable run last (triage a finding, for instance);
-    `spec`: an OpenAPI file attached to the draft scope before it is approved (API runs).
+    `spec`: an OpenAPI file attached to the draft scope before it is approved (API runs);
+    `client`: the client label ("" keeps the one read from the target, e.g. Contoso).
     """
     if store.get_run().started:
         store.new_assessment()
     store.start_run(text)
-    played = 0
     while True:
         step = store.advance()
         if step is None:
@@ -179,28 +100,22 @@ def play(text: str, *, high: str = "approve", fmt: str = "", rows: str = "",
                 break
             if not decide(step.name, high=high, spec=spec):
                 break
-        elif running_steps and store.get_run().plan_started:
-            played += 1
-            if played >= running_steps:
-                break
-    if no_findings:
-        run = store.get_assessment().run
-        store.get_assessment().findings.clear()
-        run.revealed.clear()
+    if client:
+        lists.current().client = client
+    for fid, status, note in triage:      # follow-up recorded before the report is made
+        FakeClock.current += timedelta(minutes=FakeClock.rng.uniform(2, 9))
+        store.triage_finding(fid, status=status, note=note)
     if fmt and store.is_completed():
         store.generate_report(fmt)
-    if rows:
-        add_scanner_rows(rows.replace("{host}", store.get_assessment().target))
-    if after:
-        after()
+        if signed_off:
+            store.sign_off_report()  # authored operator decision, separate from generation
 
 
-def session(moment: datetime, runs, closed: bool = True) -> list:
-    """One TUI session starting at `moment`; returns its saved snapshots.
-
-    `closed` marks the copies the way quitting the TUI does (the latest session stays open).
-    """
+def session(moment: datetime, first: int, runs) -> list:
+    """One TUI session starting at `moment`, numbered from `first`; returns its snapshots,
+    marked closed the way quitting the TUI does."""
     FakeClock.start(moment)                # before reset: the fresh assessment is stamped now
+    seed.FIRST_NUMBER = first
     store.reset()
     lists.SESSION_ID = f"{moment:%Y%m%d-%H%M%S}-{random.Random(moment.day).getrandbits(16):04x}"
     for kwargs in runs:
@@ -209,7 +124,7 @@ def session(moment: datetime, runs, closed: bool = True) -> list:
     out = []
     for assessment in lists.ASSESSMENTS:
         if assessment.run.started:
-            data = snapshot.snapshot(assessment, session_closed=closed)
+            data = snapshot.snapshot(assessment, session_closed=True)
             data["saved_at"] = FakeClock.now(timezone.utc).isoformat(timespec="seconds")
             out.append(data)
     return out
@@ -225,61 +140,97 @@ def main() -> None:
     os.chdir(work)                         # reports land in ./reports of a scratch folder
     report.REPORTS_DIR = Path("reports")
 
+    # One assessment per Lumina system, each with its own findings. The last Lumina run is the
+    # showcase: the www.lumina.com scan the presenter runs (seed.FIRST_NUMBER), already
+    # finished here. Other clients' websites follow.
     utc = timezone.utc
+    showcase = seed.FIRST_NUMBER
     snapshots = []
-    snapshots += session(datetime(2026, 9, 28, 9, 12, tzinfo=utc), [
-        dict(text="Review the source repository git@git.lumina.com:shop/storefront.git "
-                  "for security issues.", fmt="docx"),
+    snapshots += session(datetime(2026, 10, 6, 2, 12, tzinfo=utc), 17, [
+        dict(text="Review the source repository "
+                  "git@git.lumina.com:platform/deploy.git for security issues.",
+             triage=(
+                 ("002", "fixed", "Registry password rotated and moved to the secret store."),
+                 ("005", "accepted", "Covered by the monthly image rebuild."))),
     ])
-    snapshots += session(datetime(2026, 9, 30, 16, 5, tzinfo=utc), [
-        dict(text="Test the REST API at https://api.lumina.com/v1 for security issues.",
-             fmt="docx", spec=str(SPEC)),
+    snapshots += session(datetime(2026, 10, 9, 7, 40, tzinfo=utc), 18, [
+        dict(text="Assess https://careers.lumina.com for web security issues."),
     ])
-    snapshots += session(datetime(2026, 10, 3, 10, 15, tzinfo=utc), [
-        dict(text="Scan the network host 10.0.0.10 for exposed services.", fmt="json"),
-        dict(text="Test the REST API at https://api.lumina.com/v1 for security issues.",
-             high="reject", rows=NUCLEI, gap=12),
+    snapshots += session(datetime(2026, 10, 14, 3, 5, tzinfo=utc), 19, [
+        dict(text="Scan the network host 10.20.0.15 for exposed services.",
+             triage=(
+                 ("001", "fixed", "Firewall now allows only the application servers."),)),
     ])
-    snapshots += session(datetime(2026, 10, 5, 14, 3, tzinfo=utc), [
-        dict(text="Assess https://staging.lumina.com for web security issues.", fmt="docx",
-             rows=NUCLEI.split("\n")[0]),
-        dict(text="Review the source repository git@git.lumina.com:shop/storefront.git "
-                  "for security issues.", high="wait", gap=6),
-    ], closed=False)
+    snapshots += session(datetime(2026, 10, 20, 8, 26, tzinfo=utc), 20, [
+        dict(text="Assess https://support.lumina.com for web security issues.",
+             triage=(
+                 ("003", "false-positive", "Served from Lumina and pinned at build."),)),
+    ])
+    snapshots += session(datetime(2026, 10, 23, 1, 51, tzinfo=utc), 21, [
+        dict(text="Test the REST API at https://inventory.lumina.com/v2 for "
+                  "security issues.",
+             triage=(
+                 ("003", "accepted", "Version 1 is switched off with the November release."),)),
+    ])
+    snapshots += session(datetime(2026, 10, 28, 6, 33, tzinfo=utc), 22, [
+        dict(text="Scan the network range 10.20.4.0/24 for exposed services."),
+    ])
+    snapshots += session(datetime(2026, 11, 3, 2, 12, tzinfo=utc), 23, [
+        dict(text="Review the source repository "
+                  "git@git.lumina.com:shop/storefront.git for security issues.",
+             triage=(
+                 ("010", "accepted", "Tracked with the session rework planned for December."),)),
+    ])
+    snapshots += session(datetime(2026, 11, 6, 3, 5, tzinfo=utc), 24, [
+        dict(text="Test the REST API at https://api.lumina.com/v1 for security "
+                  "issues.",
+             spec=str(SPEC)),
+    ])
+    snapshots += session(datetime(2026, 11, 10, 8, 26, tzinfo=utc), 25, [
+        dict(text="Assess https://loyalty.lumina.com for web security issues.",
+             triage=(
+                 ("004", "fixed", "Older cipher suites removed at the load balancer."),)),
+    ])
+    snapshots += session(datetime(2026, 11, 12, 1, 51, tzinfo=utc), 26, [
+        dict(text="Review the source repository "
+                  "git@git.lumina.com:shop/checkout.git for security issues."),
+        dict(text="Test the REST API at https://payments.lumina.com/v1 for "
+                  "security issues.",
+             high="reject", gap=47),
+    ])
+    snapshots += session(datetime(2026, 11, 17, 6, 33, tzinfo=utc), 28, [
+        dict(text="Assess https://portal.lumina.com for web security issues.",
+             triage=(
+                 ("006", "fixed", "Directory listing turned off."),)),
+        dict(text="Check account.lumina.com",
+             stop_at="scope", gap=38),
+    ])
+    snapshots += session(datetime(2026, 11, 19, 2, 20, tzinfo=utc), 30, [
+        dict(text="Review the source repository "
+                  "git@git.lumina.com:shop/mobile-app.git for security issues.",
+             signed_off=False),
+    ])
+    snapshots += session(datetime(2026, 11, 24, 2, 4, tzinfo=utc), showcase, [
+        dict(text="Assess https://www.lumina.com for web security issues."),
+    ])
 
-    # Runs for the edge cases (appended last: the sessions above keep their stamps):
-    #   2026-09-29  a login in the target URL (masked wherever it is kept), one finding of
-    #               every severity, a title with markup that must stay text, and a finding
-    #               triaged as a false positive; then a run with more than ten findings
-    #               (the Findings view's second page)
-    #   2026-10-01  two completed runs that found nothing, and one stopped at the scope gate
-    #               (no Scope Manifest, no plan, no findings: the Limitations of a report)
-    #   2026-10-02  a second repository review, its report in JSON (a finding two runs share)
-    #   2026-10-04  a run still Running in a session left open (the TUI is on it now)
-    snapshots += session(datetime(2026, 9, 29, 11, 20, tzinfo=utc), [
-        dict(text="Assess https://ops:hunter2@portal.lumina.com for web security issues.",
-             rows=NUCLEI_EDGE, after=triage_false_positive),
-        dict(text="Test the REST API at https://api.lumina.com/v2 for security issues.",
-             rows=NUCLEI_MANY, gap=9),
+    # Other clients' websites (stories in store/templates/companies.py), dated before the
+    # Lumina history. Played last so every file above stays exactly as it was (the fake
+    # clock's random steps are shared across sessions).
+    snapshots += session(datetime(2026, 9, 22, 6, 40, tzinfo=utc), 14, [
+        dict(text="Assess https://www.contoso.com for web security issues.", client="",
+             triage=(
+                 ("004", "fixed", "Uploads moved behind signed links."),
+                 ("006", "accepted", "Header removal scheduled with the IIS upgrade."))),
     ])
-    snapshots += session(datetime(2026, 10, 1, 8, 30, tzinfo=utc), [
-        dict(text="Assess https://blog.lumina.com for web security issues.", no_findings=True),
-        dict(text="Assess https://careers.lumina.com for web security issues.", no_findings=True,
-             gap=7),
-        dict(text="Check account.lumina.com", stop_at="scope", gap=5),
+    snapshots += session(datetime(2026, 9, 25, 2, 15, tzinfo=utc), 15, [
+        dict(text="Assess https://shop.fabrikam.com for web security issues.", client="",
+             triage=(
+                 ("005", "fixed", "Directory listing turned off on the media server."),)),
     ])
-    snapshots += session(datetime(2026, 10, 2, 13, 40, tzinfo=utc), [
-        dict(text="Review the source repository git@git.lumina.com:shop/checkout.git "
-                  "for security issues.", fmt="json"),
-    ])
-    snapshots += session(datetime(2026, 10, 4, 15, 0, tzinfo=utc), [
-        dict(text="Assess https://checkout.lumina.com for web security issues.", running_steps=12),
-    ], closed=False)
-    # The flagship showcase (newest, so the dashboard opens on it): the Lumina web app, with a
-    # finding of every severity, a title with markup kept as text, and one triaged false positive.
-    snapshots += session(datetime(2026, 10, 6, 9, 0, tzinfo=utc), [
-        dict(text="Assess https://www.lumina.com for web security issues.",
-             rows=NUCLEI_EDGE, after=triage_false_positive),
+    snapshots += session(datetime(2026, 10, 1, 8, 5, tzinfo=utc), 16, [
+        dict(text="Assess https://www.northwind.com for web security issues.", client="",
+             signed_off=False),
     ])
 
     for data in snapshots:

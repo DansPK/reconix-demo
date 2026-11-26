@@ -19,7 +19,7 @@ export interface OpenConversation {
 
 export const pageScope = (info: AssistantInfo): ScopeRef => ({ uid: info.scope.uid, label: info.scope.label });
 
-export function useOpenConversation(info: AssistantInfo, stream: Slot<AbortController>, onGone: (id: string) => void) {
+export function useOpenConversation(info: AssistantInfo, stream: Slot<AbortController>, onGone: (id: string) => void, onHalt?: () => void) {
   const [opened, setOpened] = useState<OpenConversation | null>(null); // null: a new chat
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [opening, setOpening] = useState(false);
@@ -29,9 +29,14 @@ export function useOpenConversation(info: AssistantInfo, stream: Slot<AbortContr
   const conversation = useMemo<OpenConversation>(() => opened ?? { id: null, title: "", scope: pageScope(info) }, [opened, info]);
 
   const halt = useCallback(() => {
-    stream.get()?.abort();
-    reading.current?.abort();
-  }, [stream]);
+    const active = stream.get();
+    stream.set(null);
+    active?.abort();
+    const activeRead = reading.current;
+    reading.current = null;
+    activeRead?.abort();
+    onHalt?.();
+  }, [onHalt, stream]);
 
   const newChat = useCallback(() => {
     halt();

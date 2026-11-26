@@ -15,6 +15,7 @@ export interface KnowledgeItem {
   addedAt: string; // ISO-8601, UTC
   source: KnowledgeOrigin; // the web page or the terminal's /add-on
   original: boolean; // its original is kept (encrypted), so Open can show it
+  ingested: boolean; // in the knowledge search; false: uploaded, waiting for Ingest
 }
 
 /** GET /api/knowledge. `state`: the folder is missing (nothing added yet), refused (it failed a

@@ -2,8 +2,17 @@
 
 from ...models import Finding, ScopeManifest, Template
 from ...models.parser import ParsedTarget
+from ..targets import is_lumina
+from . import lumina
 from .base import RunBundle, RunProfile, approval, build_rest, make_plan
 from ..scenario import card, log, say
+
+TOOLS = ["whatweb", "httpx", "Katana", "Nuclei", "testssl.sh", "ffuf", "nikto", "dalfox"]
+PHASE_TOOLS = {
+    'discovery': ('whatweb', 'Katana', 'ffuf'),
+    'scanning': ('Nuclei', 'testssl.sh', 'nikto'),
+    'validation': ('Nuclei', 'dalfox', 'testssl.sh', 'httpx'),
+}
 
 SPEC = Template("web_url", "Web URL", "Web application at a URL",
                 target_hint="the site's URL", example="https://shop.lumina.com")
@@ -15,8 +24,8 @@ def build_scope(parsed: ParsedTarget) -> ScopeManifest:
         allowed_actions=["Discovery", "vulnerability scanning", "limited validation"],
         allowed_methods=["GET", "POST"],
         excluded_paths=["/admin"],
-        time_limit_minutes=30,
-        tools=["Nuclei", "OWASP ZAP"],
+        time_limit_minutes=0,  # no limit unless the operator sets one
+        tools=list(TOOLS),
     )
 
 
@@ -41,15 +50,20 @@ _DUMP = (
 )
 _B = "•"   # the bullet used for masking across the demo
 _DB_NAME = "lumina_shop"
+# Another target's dump never names Lumina: a neutral database name and the last row's contact.
+_OTHER = {"lumina_shop": "shop", "admin@lumina.com": "vanna_prak@gmail.com",
+          "Lumina@2024": "Vanna@2024"}
 _TOTAL_ROWS = 48_215
 _COLUMNS = ("id", "name", "email", "phone", "card", "exp", "password")
 
 
-def _dump_cells(masked: bool) -> list:
+def _dump_cells(masked: bool, lumina: bool) -> list:
     """Per-column text for each sampled customer row — raw, or with the sensitive cells bulleted
     out. The brand rides with the raw card number; a masked card keeps only its last four."""
     rows = []
     for i, (name, email, phone, brand, card_no, exp, pw) in enumerate(_DUMP, 1):
+        if not lumina:
+            email, pw = _OTHER.get(email, email), _OTHER.get(pw, pw)
         if masked:
             email = email[0] + _B * 3 + "@" + email.split("@")[1]
             phone = " ".join(phone.split()[:2]) + " " + _B * 3
@@ -62,11 +76,11 @@ def _dump_cells(masked: bool) -> list:
     return rows
 
 
-def _dump_table(masked: bool) -> list:
+def _dump_table(masked: bool, lumina: bool) -> list:
     """A sampled SQL dump, boxed like sqlmap's --dump output (a Database/Table banner over ruled
     columns). Masked is what the saved report keeps; the raw table — full card and cracked
     password — appears only behind the detail screen's unmask."""
-    rows = _dump_cells(masked)
+    rows = _dump_cells(masked, lumina)
     widths = [max(len(_COLUMNS[c]), *(len(r[c]) for r in rows)) for c in range(len(_COLUMNS))]
     rule = "+" + "+".join("-" * (w + 2) for w in widths) + "+"
 
@@ -76,7 +90,8 @@ def _dump_table(masked: bool) -> list:
     tail = (f"... {_TOTAL_ROWS - len(rows):,} more rows · passwords were unsalted MD5, "
             "cracked offline in seconds")
     return [
-        f"Database: {_DB_NAME}   Table: customers   [{_TOTAL_ROWS:,} entries]",
+        f"Database: {_DB_NAME if lumina else _OTHER[_DB_NAME]}   Table: customers   "
+        f"[{_TOTAL_ROWS:,} entries]",
         rule, row(_COLUMNS), rule,
         *(row(r) for r in rows),
         rule, tail,
@@ -103,7 +118,7 @@ def _findings(url: str) -> list:
             remediation="Require authentication on the order endpoints and enforce a per-user "
                         "ownership check on every lookup; return 404 for orders the caller "
                         "does not own.",
-            tool="OWASP ZAP",
+            tool="Nuclei",
             references=["OWASP A01:2021", "OWASP API1:2023", "CWE-639"],
             cvss_score=7.5, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
             category="Web App",
@@ -129,7 +144,7 @@ def _findings(url: str) -> list:
             affected_url=f"{url}/login",
             impact="Weakens protection against cross-site request forgery.",
             remediation="Set SameSite=Lax (or Strict) on the session cookie.",
-            tool="OWASP ZAP", references=["OWASP A05:2021", "CWE-1275"],
+            tool="Nuclei", references=["OWASP A05:2021", "CWE-1275"],
             cvss_score=3.1, cvss_vector="CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:N/A:N",
             category="Web App",
             evidence=["Set-Cookie: session=••••••••; Secure; HttpOnly"],
@@ -154,8 +169,8 @@ def _findings(url: str) -> list:
             references=["OWASP A03:2021", "CWE-89"],
             cvss_score=9.8, cvss_vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
             category="Web App",
-            evidence=[*_PROBE, *_dump_table(masked=True)],
-            evidence_unmasked=[*_PROBE, *_dump_table(masked=False)],
+            evidence=[*_PROBE, *_dump_table(True, is_lumina(url))],
+            evidence_unmasked=[*_PROBE, *_dump_table(False, is_lumina(url))],
         ),
         Finding(
             "005", "HIGH", "Outdated JavaScript dependency with a known CVE",
@@ -182,7 +197,7 @@ def build_run(assessment) -> RunBundle:
     findings = _findings(url)
     profile = RunProfile(
         target_kind="web application", tools=scope.tools,
-        discovery_tool="OWASP ZAP",
+        discovery_tool="Katana",
         discovery_card=("Discovery · $tool",
                         (("Public pages", "18"), ("Forms", "4"), ("API endpoints", "6"))),
         discovery_requests=(312, 241),
@@ -220,13 +235,12 @@ def build_run(assessment) -> RunBundle:
         findings=findings,
         analysis_steps=("Correlating findings", "Mapping to OWASP & CWE",
                         "Masking sensitive evidence"),
-        # The reviewable plan shows only the assessment phases; the run still correlates findings
-        # and produces the report, but those are not steps the operator plans/approves.
-        plan=(("recon", "Reconnaissance"),
-              ("discovery", "Content discovery"),
-              ("scanning", "Vulnerability scanning"),
-              ("validation", "Finding validation")),
-        methodology=("OWASP WSTG", "OWASP Top 10 (2021)"),
+        plan=(("discovery", "Map the site"),
+              ("scanning", "Scan for weaknesses"),
+              ("validation", "Validate findings"),
+              ("analysis", "Correlate & dedupe findings"),
+              ("report", "Generate report")),
+        methodology=("Guided by OWASP WSTG", "OWASP Top 10 (2025)"),
         exploit_fid="004",
         exploit_beat=(
             say("SQL injection confirmed on /api/v1/products. The q parameter reaches the "
@@ -239,7 +253,8 @@ def build_run(assessment) -> RunBundle:
                  ("Sample pulled", "12"), ("Hashes cracked", "12/12")),
         ),
     )
+    profile = lumina.for_target("web_url", host, url, profile)
     return RunBundle(scope=scope, script=build_rest(profile),
-                     approvals=[profile.medium], findings=findings,
-                     login_2fa=profile.login_2fa, plan=make_plan(profile.plan),
+                     approvals=[profile.medium], findings=profile.findings,
+                     login_2fa=profile.login_2fa, plan=make_plan(profile.plan, PHASE_TOOLS),
                      methodology=list(profile.methodology))

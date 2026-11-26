@@ -6,6 +6,7 @@
 import { clock, day, hourMinute, minutesLimit, parseTime, shortDay } from "./format";
 import type { Assessment, Finding, TimelineEntry } from "./schema";
 import { effectiveSeverity, isConfirmed, isFalsePositive, isUnfinished, needsReview, waitingApproval } from "./stats";
+import { groupTimeline, liveStateOf } from "./thinking";
 import type {
   ApprovalView,
   AssessmentView,
@@ -17,7 +18,6 @@ import type {
   PhaseView,
   ScopeView,
 } from "./view-types";
-import { groupTimeline, liveStateOf } from "./thinking";
 
 // --- log ---------------------------------------------------------------------------------
 
@@ -59,21 +59,47 @@ function logLines(a: Assessment): { lines: LogLine[]; startMs: number; spanSec: 
 
 const REQUEST = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS|TCP|read)\b/;
 
-function evidenceTone(text: string): EvidenceLine["tone"] {
+export function evidenceTone(text: string): EvidenceLine["tone"] {
   if (/•|masked/i.test(text)) return "masked";
   return REQUEST.test(text) ? "request" : "response";
 }
 
+/** A finding's id as every view shows and links it: the TUI's `004` is `F-004`. */
+export const findingId = (id: string): string => (/^\d+$/.test(id) ? `F-${id}` : id);
+
 export function findingView(f: Finding): FindingView {
-  const score = f.cvss_score > 0 ? f.cvss_score : null;
+  const classified = f.finding_category != null;
+  // the demo's saved files carry no validated score at all (null is the API saying "unscored")
+  const score = classified && f.validated_cvss_score !== undefined ? f.validated_cvss_score : f.cvss_score > 0 ? f.cvss_score : null;
+  const vector = classified ? (f.validated_cvss_vector ?? f.cvss_vector) : "";
   return {
-    id: /^\d+$/.test(f.id) ? `F-${f.id}` : f.id,
+    id: findingId(f.id),
     title: f.title,
     severity: effectiveSeverity(f),
     target: f.affected_url || f.path || "—",
     tool: f.tool || "—",
     cwe: f.cwe[0] ?? f.references.find((r) => /^CWE-\d+$/.test(r)) ?? "—",
     category: f.category,
+    findingCategory: isFalsePositive(f) ? "FALSE_POSITIVE" : f.finding_category ?? "INSUFFICIENT_EVIDENCE",
+    confidenceLevel: f.confidence_level ?? "UNKNOWN",
+    evidenceQuality: f.evidence_quality ?? "UNKNOWN",
+    verificationStatus: f.effective_verification?.legacy
+      ? "legacy, not verified"
+      : f.effective_verification?.status
+        ? f.effective_verification.status
+        : (!f.effective_verification || !f.effective_verification.status) &&
+          ((isFalsePositive(f) ? "FALSE_POSITIVE" : f.finding_category ?? "INSUFFICIENT_EVIDENCE") === "CONFIRMED_VULNERABILITY" ||
+            f.verification_status === "CONFIRMED" ||
+            f.validation?.toUpperCase() === "CONFIRMED")
+          ? "legacy, not verified"
+          : f.verification_status ?? "UNKNOWN",
+    exploitability: f.exploitability ?? "UNKNOWN",
+    classificationUncertainty: f.classification_uncertainty ?? "",
+    validatedCvssVector: vector,
+    sourceClaims: f.source_claims,
+    reviewHistory: f.review_history,
+    evidenceSummary: f.evidence_summary || "",
+    triageNote: f.triage_note || "",
     score,
     rating: score === null ? "no CVSS" : `CVSS ${score.toFixed(1)}`,
     validation: f.validation || "UNCONFIRMED",
@@ -85,6 +111,17 @@ export function findingView(f: Finding): FindingView {
     impact: f.impact,
     evidence: f.evidence.map((text) => ({ text, tone: evidenceTone(text) })),
     evidenceUnmasked: f.evidence_unmasked.map((text) => ({ text, tone: evidenceTone(text) })),
+    effectiveVerification: f.effective_verification
+      ? {
+          status: f.effective_verification.status ?? null,
+          kind: f.effective_verification.kind ?? null,
+          subject: f.effective_verification.subject ?? null,
+          verifier: f.effective_verification.verifier ?? null,
+          proofLines: f.effective_verification.proof_lines ?? [],
+          legacy: Boolean(f.effective_verification.legacy),
+          reason: f.effective_verification.reason ?? null,
+        }
+      : undefined,
     remediation: f.remediation
       .split(/;\s+/)
       .map((r) => r.trim())
@@ -168,6 +205,7 @@ export function assessmentView(a: Assessment): AssessmentView {
   return {
     uid: a.uid,
     id: a.assessment_id || a.label || a.uid, // never empty: the RUN column and every run link name it
+    coreId: a.core_id || "",
     name: [a.client, a.template.name || "Reconix", "assessment"].filter(Boolean).join(" "),
     target: a.target,
     template: a.template.name || "—",
@@ -200,6 +238,7 @@ export function libraryItem(a: Assessment): LibraryItem {
   return {
     uid: a.uid,
     id: a.assessment_id || a.label || a.uid, // never empty: the RUN column and every run link name it
+    coreId: a.core_id || "",
     template: a.template.name || "—",
     target: a.target,
     status: a.status,

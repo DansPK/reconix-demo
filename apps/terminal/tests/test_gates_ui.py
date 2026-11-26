@@ -7,13 +7,14 @@ from textual.widgets import Input, Static
 from reconix import store
 from reconix.screens import ApprovalScreen, ChoiceScreen, ExecutionScreen, PlanScreen
 from reconix.screens.forms import LoginForm
+from reconix.store import lists
 from reconix.widgets import RunLog
 
 from .support import (
     SIZE, TEST_PASSWORD, auth_values, choose_by_keys, event_kinds, pass_gate, run_ui_to, settle,
 )
 
-API_REQUEST = "test the API at https://api.example.com/v1"   # the template that still signs in
+API_REQUEST = "test the API at https://api.example.com/v1 with Postman"   # the template that still signs in
 
 
 def screen_text(app) -> str:
@@ -207,7 +208,8 @@ async def test_approval_without_a_waiting_action_lists_the_decisions(app):
 async def test_scope_text_with_markup_is_shown_literally(app):
     async with app.run_test(size=SIZE) as pilot:
         await run_ui_to(app, pilot, "scope")
-        store.edit_scope(tools=["[/oops] ZAP", "[bold]x"])
+        # the store refuses unknown tools; the screen must still never read one as markup
+        lists.current().scope.tools = ["[/oops] ZAP", "[bold]x"]
         await pass_gate(app, pilot)                             # approve the scope
         await pass_gate(app, pilot)                             # review the test plan
         await pass_gate(app, pilot)                             # run the plan

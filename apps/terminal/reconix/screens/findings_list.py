@@ -14,7 +14,7 @@ from .base import ReconixScreen
 from .choice import ChoiceScreen
 from .. import store, theme
 from ..models import Choice
-from ..widgets import SeverityStrip
+from ..widgets import FindingPreview, SeverityStrip
 from ..wording import counted
 from ..widgets.findings import (
     for_display, reference_text, severity_text, triage_text, validation_text,
@@ -83,6 +83,7 @@ class FindingsListScreen(ReconixScreen):
         # One line at 80 columns: f / s / t / c are in the footer already
         yield Static(Text("↑/↓ select · ↵ open · ← back · → report · Shift+←/→ more columns",
                           style=theme.DIM), id="findings-hint", classes="muted")
+        yield FindingPreview(id="finding-preview", classes="panel")
 
     def on_mount(self) -> None:
         self._fill(keep=self.app.selected_finding)
@@ -119,7 +120,7 @@ class FindingsListScreen(ReconixScreen):
                 triage_text(d), validation_text(d), Text(d.path, style=theme.MUTED),
                 Text(d.tool, style=theme.TEAL), reference_text(d), key=f.fid,
             )
-        confirmed = sum(1 for f in findings if not f.needs_review)
+        confirmed = sum(1 for f in findings if f.confirmed)
         self.query_one("#findings-label", Static).update(Text.assemble(
             ("◆ reconix ", theme.CYAN),
             (f"{_status_label()} · {counted(len(findings), 'finding')} · {confirmed} confirmed",
@@ -130,6 +131,7 @@ class FindingsListScreen(ReconixScreen):
             ("  ·  sort: ", theme.DIM), (store.sort_label(self.app.findings_sort), theme.TEAL),
             (f"  ·  showing {len(rows)} of {len(findings)}", theme.DIM)))
         table.display = bool(rows)
+        self._show_preview()
         empty = self.query_one("#findings-empty", Static)
         empty.display = not rows
         if not findings:
@@ -213,6 +215,25 @@ class FindingsListScreen(ReconixScreen):
             except RowDoesNotExist:
                 continue
         table.move_cursor(row=0)
+
+    # --- preview ----------------------------------------------------------------------------
+    PREVIEW_MIN_HEIGHT = 28  # below this the table gets the room (80x24 shows no preview)
+
+    def _show_preview(self) -> None:
+        """Summarise the highlighted finding under the table, when there is room for it."""
+        preview = self.query_one("#finding-preview", FindingPreview)
+        key = self._cursor_key() if self.query_one("#findings-table", DataTable).display else None
+        finding = None
+        if key is not None:
+            try:
+                finding = store.get_finding(key)
+            except store.StoreValidationError:
+                finding = None
+        preview.display = finding is not None and self.size.height >= self.PREVIEW_MIN_HEIGHT
+        preview.show(finding)
+
+    def on_data_table_row_highlighted(self, _event: DataTable.RowHighlighted) -> None:
+        self._show_preview()
 
     # --- actions ----------------------------------------------------------------------------
     def action_open(self) -> None:

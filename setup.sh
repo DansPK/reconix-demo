@@ -49,11 +49,9 @@ case "${1:-}" in
   web)
     cd "$TUI/web"
     [ -d node_modules ] || npm install
-    # Serve the same runs the TUI's /web shows (~/.reconix/assessments by default, or
-    # $RECONIX_DATA_DIR if set), so both launch paths open the identical dashboard. It is empty
-    # until you have run an assessment in the TUI; those autosave here.
-    export RECONIX_DATA_DIR="${RECONIX_DATA_DIR:-$HOME/.reconix/assessments}"
-    exec npm run dev
+    # serve.mjs shows the prepared history (sample-data) unless RECONIX_DATA_DIR is set.
+    # `npm start` serves the fast production build (built first when missing or out of date).
+    exec npm start
     ;;
   site)
     cd "$SITE"

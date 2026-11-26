@@ -13,7 +13,7 @@ export function PolicyCard({ card }: { card: CardOf<"policy"> }) {
       {card.items.length === 0 ? (
         <div className="ai-card-row is-center">
           <StatusBadge meaning={POLICY_DECISION.allowed} label="Nothing blocked" />
-          <span className="text-caption text-muted-foreground">Every checked request was inside the approved scope.</span>
+          <span className="text-[12px] text-muted-foreground">Every checked request was inside the approved scope.</span>
         </div>
       ) : (
         <ul aria-label="Blocked requests">
@@ -25,7 +25,7 @@ export function PolicyCard({ card }: { card: CardOf<"policy"> }) {
                 <StatusBadge meaning={POLICY_DECISION.blocked} label="Blocked" />
                 <div className="ai-card-row-main">
                   <p className="ai-card-line">
-                    <span className="ai-mono text-caption">{split ? `${b.method} ${b.path}` : b.text}</span>
+                    <span className="ai-mono text-[12.5px]">{split ? `${b.method} ${b.path}` : b.text}</span>
                   </p>
                   {split && <p className="ai-card-sub text-foreground">Reason: {b.reason}</p>}
                   <p className="ai-card-sub">

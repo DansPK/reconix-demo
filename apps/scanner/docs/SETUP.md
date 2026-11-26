@@ -3,7 +3,7 @@
 > **Note:** the original scanner harness (Docker, SonarQube, LLM) has been **removed**.
 > The extension now uses a bundled **Reconix scanner server** — no Docker, no keys, no waiting.
 > Setup is just: `./setup.sh`, then `cd extension && npm run server`, then in
-> VS Code Reload Window → shield → "Scan with Reconix". The Docker/SonarQube/LLM steps below
+> VS Code Reload Window → Reconix icon → "Scan with Reconix". The Docker/SonarQube/LLM steps below
 > are historical.
 
 ## Quick way: `setup.sh`
@@ -162,9 +162,9 @@ For extension development, open `extension/` in VS Code and press **F5** instead
 ## 7. Connect VS Code
 
 1. Open Settings and set **`reconix.serverUrl`** to the harness URL, for example `http://localhost:8080`. It must match `HARNESS_PUBLIC_URL`.
-2. Run **Reconix: Set Token** from the Command Palette and paste the token from step 5. You can also paste it into the `reconix.token` setting. Either way, the extension moves it into VS Code's secure storage and clears the setting.
+2. Run **Reconix Code Scanner: Set Token** from the Command Palette and paste the token from step 5. You can also paste it into the `reconix.token` setting. Either way, the extension moves it into VS Code's secure storage and clears the setting.
 3. Reload the window (**Developer: Reload Window**).
-4. Open the **Reconix** view (the shield icon in the activity bar) and type `scan this project`.
+4. Open the **Reconix** view (the Reconix icon in the activity bar) and type `scan this project`.
 
 Findings appear as each scanner finishes. The LLM then reviews them one by one: with a 7B model, expect about 15 findings a minute.
 
@@ -194,7 +194,7 @@ Run `docker compose up -d harness`. In VS Code, change `reconix.serverUrl` to `h
 | Scan finishes, but the error says `sonarqube: …` | Wrong `SONAR_TOKEN`, or SonarQube is still starting. Check the token as in step 3, then run `docker compose up -d harness`. The other scanners' findings are kept. |
 | Every finding's verdict is `unsure`, or chat says "The LLM cannot be reached" | The harness cannot reach the LLM. Run the check in step 4. |
 | Chat replies are odd, but scan commands still work | Small models sometimes ignore instructions. When the LLM fails, scan commands fall back to keyword matching. A larger model gives better routing and reviews. |
-| Extension says "No token is set" | Run **Reconix: Set Token** again. Tokens are stored per VS Code profile. |
+| Extension says "No token is set" | Run **Reconix Code Scanner: Set Token** again. Tokens are stored per VS Code profile. |
 | Upload fails with HTTP 403 | The upload link expired or was signed with a different secret. Check that `HARNESS_PUBLIC_URL` matches the URL VS Code uses, then rescan. |
 | Logs show `Invalid HTTP request received` | Something is connecting with HTTPS, or isn't sending HTTP, to a plain-HTTP harness. Check that the `reconix.serverUrl` scheme matches the server. |
 

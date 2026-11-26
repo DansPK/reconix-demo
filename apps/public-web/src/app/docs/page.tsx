@@ -38,6 +38,10 @@ export default function DocsHome() {
           steps.
         </p>
         <p>
+          You can start an assessment by describing it in plain language: Reconix reads the target out of your sentence
+          and picks the matching template. See <DocLink href="/docs/interfaces/terminal">Terminal</DocLink>.
+        </p>
+        <p>
           It is built for two kinds of users: developers checking their own code and services, and security teams running
           assessments for others.
         </p>

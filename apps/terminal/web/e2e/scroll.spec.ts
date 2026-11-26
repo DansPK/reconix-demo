@@ -5,13 +5,14 @@
    run with motion on, because the old bug (Lenis taking the wheel on the dashboard) only existed
    with motion on. The assistant's own scroller is e2e/scroll-assistant.spec.ts (run on its own:
    it writes conversations).
-   The long view they scroll is the every-run Report: on the fixed frame the Findings view
+   The long view they scroll is the Report of the run with twelve findings (its findings table):
+   on the fixed frame the Findings view
    scrolls its list pane, not the content area (e2e/findings.spec.ts). */
 import { type CDPSession, type Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 
-import { frames, newest, sideways, signIn, sizeLabel as label } from "./support";
+import { frames, sideways, signIn, sizeLabel as label } from "./support";
 
 const SIZES = [
   { width: 1920, height: 1080 },
@@ -24,9 +25,20 @@ const SIZES = [
   { width: 390, height: 844 },
 ];
 const fixedFrame = (s: { width: number; height: number }) => s.width >= 1280 && s.height >= 760;
-const RUN = newest().uid; // Reports for one run, as well as for every run
-const VIEWS = ["overview", "findings", "assessments", "reports", `reports&uid=${RUN}`];
-const viewName = (v: string) => (v.includes("&uid=") ? `${v.split("&")[0]} (one run)` : v);
+/** The longest view: the Report of the run with twelve findings, whose findings table is longer
+    than a screen (the Report lists the assessment's findings, not its versions). */
+const LONG_RUN = "20260929-112000-8c51_RCX-002";
+type View = { name: string; path: string };
+const LONG_REPORT: View = { name: "reports (one assessment)", path: `/reports/${LONG_RUN}` };
+/* `/reports` opens the first assessment's Report (dashboard-page.tsx), so it is listed by the
+   address it is reached by. */
+const VIEWS: View[] = [
+  { name: "overview", path: "/" },
+  { name: "findings", path: "/findings" },
+  { name: "assessments", path: "/assessments" },
+  { name: "reports", path: "/reports" },
+  LONG_REPORT,
+];
 
 // the wheel and touch tests run with motion on (the project's default is reduced, for speed)
 test.use({ reducedMotion: "no-preference" });
@@ -62,8 +74,8 @@ async function settled(page: Page) {
     .toBe(true);
 }
 
-async function open(page: Page, view: string) {
-  await page.goto(`/?view=${view}`);
+async function open(page: Page, view: View) {
+  await page.goto(view.path);
   await expect(page.locator("main > :not([hidden])").first()).toBeVisible();
   await settled(page);
 }
@@ -162,13 +174,13 @@ for (const size of [SIZES[0], SIZES[2]]) {
   test.describe(`the owner's sizes, ${label(size)}`, () => {
     test.use({ viewport: size });
 
-    for (const view of ["overview", "reports"]) {
-      test(`the wheel scrolls the ${view} view to its end, in the content area`, async ({ page }) => {
+    for (const view of [VIEWS[0], LONG_REPORT]) {
+      test(`the wheel scrolls the ${view.name} view to its end, in the content area`, async ({ page }) => {
         await signIn(page);
         await open(page, view);
         const start = await scrollState(page);
         expect(start.kind).toBe("content"); // the fixed frame: the content area scrolls, not the page
-        if (view !== "overview") expect(start.range).toBeGreaterThan(200); // the sample's findings and runs don't fit
+        if (view !== VIEWS[0]) expect(start.range).toBeGreaterThan(200); // its twelve findings don't fit
         await wheelToEnd(page, size.width * 0.6, size.height * 0.6);
         expect(await page.evaluate(() => scrollY)).toBe(0);
       });
@@ -188,16 +200,16 @@ for (const size of SIZES) {
       for (const view of VIEWS) {
         await open(page, view);
         const s = await scrollState(page);
-        expect(s.kind, `${viewName(view)} scrolls the ${fixedFrame(size) ? "content area" : "window"}`).toBe(fixedFrame(size) ? "content" : "window");
-        const key = `${label(size)} ${viewName(view)}`;
+        expect(s.kind, `${view.name} scrolls the ${fixedFrame(size) ? "content area" : "window"}`).toBe(fixedFrame(size) ? "content" : "window");
+        const key = `${label(size)} ${view.name}`;
         const low = await overhang(page);
         if (KNOWN_OVERHANG.has(key)) expect(low.by, `${key} reaches its bottom now: remove this entry from KNOWN_OVERHANG`).toBeGreaterThanOrEqual(1);
-        else expect(low.by, `${viewName(view)}: ${low.what} hangs out of reach`).toBeLessThanOrEqual(1);
+        else expect(low.by, `${view.name}: ${low.what} hangs out of reach`).toBeLessThanOrEqual(1);
         const wide = await sideways(page);
-        expect(wide.page, `${viewName(view)}: the page scrolls sideways`).toBe(0);
+        expect(wide.page, `${view.name}: the page scrolls sideways`).toBe(0);
         // the content area clips sideways, so anything wider than it would be cut off unseen
         if (KNOWN_SIDEWAYS.has(key)) expect(wide.content, `${key} fits sideways now: remove this entry from KNOWN_SIDEWAYS`).toBeGreaterThan(0);
-        else expect(wide.content, `${viewName(view)}: content is cut off at the side`).toBe(0);
+        else expect(wide.content, `${view.name}: content is cut off at the side`).toBe(0);
       }
       expect(await unreachableRail(page), "sidebar links out of reach").toEqual([]);
       // the page itself never hides its overflow to "fix" scrolling
@@ -205,7 +217,7 @@ for (const size of SIZES) {
       expect(hidden).not.toContain("hidden");
 
       // the assistant: the composer is on screen without scrolling the page
-      await page.goto("/?view=assistant");
+      await page.goto("/assistant");
       const composer = page.getByRole("textbox", { name: /^Ask about/ }).last();
       await expect(composer).toBeVisible();
       const b = (await composer.boundingBox())!;
@@ -230,7 +242,7 @@ for (const size of SIZES) {
 
     test("scrolls the reports view to its end", async ({ page }) => {
       await signIn(page);
-      await open(page, "reports");
+      await open(page, LONG_REPORT);
       const end = await wheelToEnd(page, size.width * 0.6, size.height * 0.7);
       expect(end.kind).toBe(fixedFrame(size) ? "content" : "window");
       expect(end.range).toBeGreaterThan(0);
@@ -245,7 +257,7 @@ test.describe("on the fixed frame (1366×768)", () => {
 
   test("PageDown, Space, the arrows, End and Home scroll the content once it has focus", async ({ page }) => {
     await signIn(page);
-    await open(page, "reports"); // every run's Reports: more than a screen of range here; each key is tried from the top
+    await open(page, LONG_REPORT); // more than a screen of range here; each key is tried from the top
     await page.getByRole("heading", { name: "Report", level: 1 }).click(); // focus lands in the content
     const top = async () => (await scrollState(page)).top;
     for (const [key, least] of [["PageDown", 200], ["Space", 200], ["ArrowDown", 1]] as const) {
@@ -267,7 +279,7 @@ for (const size of [{ width: 1366, height: 768 }, { width: 390, height: 844 }]) 
 
     test("a swipe scrolls the reports view", async ({ page, context }) => {
       await signIn(page);
-      await open(page, "reports");
+      await open(page, LONG_REPORT);
       const cdp = await context.newCDPSession(page);
       await swipeUp(page, cdp, size.width * 0.6, size.height * 0.8, size.height * 0.3);
       await expect.poll(async () => (await scrollState(page)).top).toBeGreaterThan(100);
@@ -280,7 +292,7 @@ test.describe("on a tablet (1024×768) the page scrolls", () => {
 
   test("and the sidebar stays in reach at the bottom of a long view", async ({ page }) => {
     await signIn(page);
-    await open(page, "findings");
+    await open(page, VIEWS[1]);
     await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
     const overview = page.locator('nav[aria-label="Views"] button[aria-label="Overview"]');
     const box = await overview.boundingBox();
@@ -310,6 +322,7 @@ test.describe("the docs", () => {
     const hash = (await target.getAttribute("href"))!;
     expect(hash).toBe("#installation");
     await target.click();
+    // nosemgrep: detect-non-literal-regexp
     await expect(page).toHaveURL(new RegExp(`${hash}$`));
     // the heading lands near the top of the content area (below the top bar), at its scroll-margin-top
     const top = async () =>
@@ -321,8 +334,8 @@ test.describe("the docs", () => {
     expect(await top(), "the heading is inside the content area").toBeGreaterThanOrEqual(0);
 
     await page.locator('nav[aria-label="Views"] a[aria-label="Reports"]').click();
-    await page.waitForURL((url) => url.pathname === "/");
-    await settled(page);
+    await page.waitForURL((url) => url.pathname.startsWith("/reports/"));
+    await open(page, LONG_REPORT); // the first assessment's Report is short: scroll the long one
     const end = await wheelToEnd(page, 900, 600);
     expect(end.range).toBeGreaterThan(0);
   });

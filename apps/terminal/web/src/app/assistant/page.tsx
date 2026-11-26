@@ -1,9 +1,7 @@
-/* A short address for the AI Assistant, which lives on the dashboard page (`?view=assistant`).
-   Anyone signed in may open it (src/proxy.ts checks the session first, this page again). */
-import { redirect } from "next/navigation";
+import { type DashboardSearchParams, renderDashboardPage } from "@/components/dashboard/dashboard-page";
 
-import { ASSISTANT_VIEW } from "@/lib/assistant/paths";
+type Props = { searchParams: DashboardSearchParams };
 
-export default async function AssistantPage() {
-  redirect(ASSISTANT_VIEW);
+export default async function AssistantPage({ searchParams }: Props) {
+  return renderDashboardPage(searchParams, "assistant");
 }

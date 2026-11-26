@@ -27,7 +27,7 @@ export default async function DocPage({ params }: { params: Params }) {
   const content = DOCS_CONTENT[group]?.[page];
   if (!content || !findDoc(href)) notFound();
   return (
-    <DocsLayout href={href} lede={content.lede} draft={content.draft}>
+    <DocsLayout href={href} lede={content.lede} draft={content.draft} notice={content.notice}>
       {content.body}
     </DocsLayout>
   );

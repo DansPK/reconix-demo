@@ -9,6 +9,9 @@ from ..models import ActivityEntry, Assessment, ChatEntry, HistoryEntry
 from . import lists
 
 ASSESSMENT_PREFIX = "RCX"
+# The prepared history (web/sample-data) ends with RCX-031, the www.lumina.com assessment: the
+# scan you run is that one.
+FIRST_NUMBER = 31
 TARGET = "www.lumina.com"
 TARGET_URL = f"https://{TARGET}"
 DEMO_REQUEST = f"Assess {TARGET_URL} for web security issues."
@@ -18,7 +21,7 @@ WELCOME = ("Welcome to Reconix. Type a target — a URL, an IPv4 address or rang
 
 
 def _next_planned_id() -> str:
-    return f"{ASSESSMENT_PREFIX}-{len(lists.ASSESSMENTS) + 1:03d}"
+    return f"{ASSESSMENT_PREFIX}-{len(lists.ASSESSMENTS) + FIRST_NUMBER:03d}"
 
 
 def build_assessment() -> Assessment:

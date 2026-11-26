@@ -125,7 +125,7 @@ def test_docx_report_has_every_section(reports_dir, monkeypatch):
     assert [row[0] for row in summary[1:]] == ["003", "004", "001", "005", "002"]
     scope = dict(next(t for t in tables if t[0][0] == "Approval status"))
     assert scope["Approval status"] == "Approved" and scope["Excluded paths"] == "/admin"
-    assert scope["Standards"] == "OWASP WSTG · OWASP Top 10 (2021)"
+    assert scope["Standards"] == "Guided by OWASP WSTG · OWASP Top 10 (2025)"
     approvals = next(t for t in tables if t[0][0] == "Risk")
     assert [row[0] for row in approvals[1:]] == ["Medium"]   # web_url's HIGH is out of the plan
     assert "•••" in _docx_text(reports_dir / "RCX-001.docx")      # evidence stays masked
@@ -163,7 +163,7 @@ def test_report_data_carries_cvss_category_and_engagement_metadata():
     data = store.report_data()
     assert data["client"] == "Lumina"                    # derived from www.lumina.com
     assert data["mode"] == "Grey-box, Authorized"
-    assert data["methodology"] == ["OWASP WSTG", "OWASP Top 10 (2021)"]
+    assert data["methodology"] == ["Guided by OWASP WSTG", "OWASP Top 10 (2025)"]
     assert data["window"]["started"] and data["window"]["finished"]
     first = next(f for f in data["findings"] if f["id"] == "001")
     assert first["cvss_score"] == 7.5
@@ -238,12 +238,13 @@ def test_a_network_report_lists_the_approved_ports(reports_dir):
     run_to(None, "port scan 192.0.2.10")
     scope = store.report_data()["scope"]
     assert scope["kind"] == "network"
-    assert scope["allowed_ports"] == [22, 80, 443, 8080, 8443]
+    from reconix.store.templates.network import ALLOWED_PORTS
+    assert scope["allowed_ports"] == ALLOWED_PORTS
     assert "<dt>Allowed ports</dt>" in render_html(store.report_data())
     if report.HAS_DOCX:
         store.generate_report("docx")
         text = _docx_text(reports_dir / "RCX-001.docx")
-        assert "Allowed ports" in text and "22, 80, 443, 8080, 8443" in text
+        assert "Allowed ports" in text and ", ".join(str(port) for port in ALLOWED_PORTS) in text
 
 
 def test_a_web_report_has_no_ports_line(reports_dir):

@@ -10,14 +10,6 @@ import { SHOWCASE } from "@/components/showcase-data";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-/**
- * Pinned feature showcase. The outer section is tall; the inner panel sticks
- * for the whole scroll while ScrollTrigger maps progress to the active item.
- * Odd items sit on the right, even on the left. Nothing moves between steps:
- * the two dark shades crossfade, the old text fades out in its own column and
- * the new text wipes in left to right (`.wipe` in globals.css), and the node
- * map's camera and focus glide (node-graph.js).
- */
 export function Showcase({ banners }: { banners: React.ReactNode[] }) {
   const ref = useRef<HTMLElement>(null);
   const graph = useRef<GraphControls | null>(null);

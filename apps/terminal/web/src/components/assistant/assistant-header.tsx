@@ -21,7 +21,7 @@ export function AssistantHeader({ onMinimize }: { onMinimize: () => void }) {
   return (
     <header data-assistant-piece className="ai-header">
       <div className="ai-brand">
-        <ReconixMark size={26} className="shrink-0" />
+        <ReconixMark size={26} variant="bot" className="shrink-0" />
         <h1 className="ai-title">Reconix AI Assistant</h1>
         {/* the dashboard cards' own help, so this view explains itself too (QAL-009) */}
         <DashCardHelp title="the AI Assistant" docsHref={DOCS.panelAssistant} />

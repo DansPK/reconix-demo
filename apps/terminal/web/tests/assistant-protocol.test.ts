@@ -5,9 +5,8 @@ import { describe, expect, it } from "vitest";
 
 import { NOTICES, pickCards } from "@/lib/assistant/cards";
 import { cleanTitle } from "@/lib/assistant/history-schema";
-import { fenceTag, systemPrompt } from "@/lib/assistant/prompt";
 import { CardSchema, createFrameReader, encodeFrame, type Frame, isConversationId, parseFrame } from "@/lib/assistant/protocol";
-import { MASK } from "@/lib/assistant/redact";
+import { HIDDEN_LINE, MASK } from "@/lib/assistant/redact";
 
 import { sampleAssessments } from "./fixtures";
 
@@ -18,6 +17,7 @@ const frames: Frame[] = [
   ...pickCards(samples, null, "Analyze the findings, the progress and what waits on my approval").map((card) => ({ t: "card" as const, card })),
   { t: "text", delta: "Here is what " },
   { t: "text", delta: "the data says: ünïcode ✓\nnext line" },
+  { t: "sources", items: [{ ref_id: "CVE-2021-44228", title: "Apache Log4j2 remote code execution", url: "https://nvd.nist.gov/vuln/detail/CVE-2021-44228", source: "CVE", section: "Description" }] },
   { t: "error", detail: "The AI model stopped answering." },
   { t: "done" },
 ];
@@ -54,8 +54,17 @@ describe("frames", () => {
     ["a card counting INFO", JSON.stringify({ t: "card", card: { kind: "findings", total: 0, counts: { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, INFO: 0 }, items: [], runs: 0 } })],
     ["a card listing an INFO finding", JSON.stringify({ t: "card", card: { kind: "finding", item: { id: "F", title: "t", severity: "INFO", cvss: null, target: "t", review: "review", run: { uid: samples[0].uid, label: "x", when: "y" } }, cwe: "—", tool: "—", description: "", impact: "", remediation: [] } })],
     ["a notice with an action that does something", JSON.stringify({ t: "card", card: { ...NOTICES.act, action: "approve" } })],
+    ["sources with an empty list", JSON.stringify({ t: "sources", items: [] })],
+    ["a citation holding an extra field", JSON.stringify({ t: "sources", items: [{ ref_id: "A", title: "t", url: "", source: "CVE", section: "", onclick: "alert(1)" }] })],
+    ["a citation whose url is not a string", JSON.stringify({ t: "sources", items: [{ ref_id: "A", title: "t", url: { toString: 1 }, source: "CVE", section: "" }] })],
   ])("skip %s", (_name, line) => {
     expect(parseFrame(line)).toBeNull();
+  });
+  it("reads a findings card saved while the scale had only the four levels, the unrated ones at 0", () => {
+    const card = pickCards(samples, null, "Analyze the findings").find((c) => c.kind === "findings")!;
+    const four = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+    const parsed = CardSchema.safeParse({ ...card, counts: four });
+    expect(parsed.success && parsed.data.kind === "findings" && parsed.data.counts).toEqual({ ...four, UNKNOWN: 0, NONE: 0 });
   });
   it("names conversations by random v4 UUIDs only", () => {
     expect(isConversationId(ID)).toBe(true);
@@ -88,26 +97,13 @@ describe("frames", () => {
 
 describe("titles", () => {
   it("are masked, one line, without invisible characters, and cut", () => {
-    expect(cleanTitle("  Why\nis​ token=abc123 ‮odd  ")).toBe(`Why is token=${MASK} odd`);
+    expect(cleanTitle("  Why\nis​ the ‮odd  ")).toBe("Why is the odd");
+    expect(cleanTitle("  Why\nis token=abc123 odd  ")).toBe(`Why is token=${MASK} odd`);
+    // a line hiding a secret behind invisible characters is hidden whole (redact's HIDDEN_LINE)
+    expect(cleanTitle("Why\nis​ token=abc123 ‮odd")).toBe(`Why ${HIDDEN_LINE}`);
     const long = cleanTitle("word ".repeat(40), 60);
     expect(long.length).toBeLessThanOrEqual(60);
     expect(long.endsWith("…")).toBe(true);
     expect(cleanTitle(" \u0007 ")).toBe("");
-  });
-});
-
-describe("systemPrompt notes", () => {
-  it("says which verified cards are shown and not to restate or invent them", () => {
-    const tag = fenceTag();
-    const prompt = systemPrompt("x", "data", tag, { cards: ["a findings card (severity counts and the worst findings)"] });
-    expect(prompt).toContain("Shown with this answer");
-    expect(prompt).toContain("Do not repeat their numbers");
-    expect(prompt).toMatch(/never make up numbers/i);
-    expect(prompt.split(`</${tag}>`)).toHaveLength(3);
-  });
-  it("tells the model it cannot plan or start an assessment when asked to", () => {
-    const prompt = systemPrompt("x", "data", fenceTag(), { planning: true });
-    expect(prompt).toContain("no plan has been created");
-    expect(systemPrompt("x", "data", fenceTag())).not.toContain("no plan has been created");
   });
 });

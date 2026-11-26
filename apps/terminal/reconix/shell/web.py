@@ -1,7 +1,7 @@
 """/web: open the web dashboard, starting it first if it isn't running.
 
-The first /web of a session starts `npm run dev` in web/ in the background (and installs
-its packages if they're missing); the dashboard opens the browser itself once it's
+The first /web of a session starts `npm start` in web/ in the background (and installs
+its packages if they're missing, and builds it when the build is missing or out of date); the dashboard opens the browser itself once it's
 ready. Later /web calls just open it. A dashboard this TUI started stops when it quits.
 """
 
@@ -11,7 +11,7 @@ from typing import Optional, Tuple
 from .. import browser, store, web_server
 from ..store import persist
 
-READY_TIMEOUT = 180.0      # seconds: a first `next dev` compile (or an install) is slow
+READY_TIMEOUT = 420.0      # seconds: a first build (or an install) is slow; later starts are quick
 POLL_EVERY = 0.5
 
 Note = Tuple[str, str]     # (message, severity)

@@ -1,4 +1,5 @@
 import { SITE_TAGLINE } from "@/lib/site";
+import { BackgroundBeams, BackgroundGrid, Spotlight } from "@/components/ui/aceternity";
 import { Globe } from "@/components/dashboard/globe";
 import { ActivityTimeline } from "@/components/dashboard/activity-timeline";
 import { AskBar } from "@/components/dashboard/ask-bar";
@@ -16,13 +17,16 @@ export function OverviewView({ cards }: { cards: OverviewCards }) {
     <div className="dash-overview" data-mode={cards.mode}>
       <SummaryStrip data={cards.summary} />
 
-      <section aria-label="Assessment overview" className="dash-hero" data-motion="hero">
+      <section aria-label="Assessment overview" className="dash-hero relative" data-motion="hero">
+        <BackgroundGrid />
+        <BackgroundBeams />
+        <Spotlight />
         <Globe />
-        <div className="dash-hero-title" data-motion="fade">
-          <h1 className="dash-reveal text-[26px] font-medium leading-[1.15] tracking-[-0.01em] text-foreground">
+        <div className="dash-hero-title relative z-[1]" data-motion="fade">
+          <h1 className="dash-reveal ac-hero-text text-[26px] font-medium leading-[1.15] tracking-[-0.01em]">
             Assessment Operations Center
           </h1>
-          <p className="dash-reveal mt-1 text-small text-muted-foreground">{SITE_TAGLINE}</p>
+          <p className="dash-reveal mt-1 text-[13px] text-muted-foreground">{SITE_TAGLINE}</p>
         </div>
         <AskBar data={cards.ask} />
       </section>

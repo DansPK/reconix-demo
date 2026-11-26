@@ -2,8 +2,9 @@
 import { describe, expect, it } from "vitest";
 
 import { deriveDashboard } from "@/components/dashboard/derive";
-import { SEVERITY_ORDER, countBy, findingMatches, list, reviewLabel, runMatches, sortFindings, validationOf } from "@/components/dashboard/filters";
+import { SEVERITY_ORDER, countBy, findingMatches, list, parseFindingFilter, reviewLabel, runMatches, sortFindings, validationOf } from "@/components/dashboard/filters";
 import { assessmentView, libraryItem } from "@/lib/data/adapt";
+import { cleanSearchQuery, MAX_SEARCH_QUERY } from "@/lib/search";
 
 import { sampleAssessments } from "./fixtures";
 
@@ -43,7 +44,7 @@ describe("findingMatches", () => {
     expect(reviewLabel({ ...open, needsReview: false, confirmed: false, status: "fixed" })).toBe("Fixed");
     expect(reviewLabel({ ...open, needsReview: false, confirmed: false, status: "accepted" })).toBe("Accepted");
     expect(reviewLabel({ ...open, needsReview: false, confirmed: false, falsePositive: true, status: "false-positive" })).toBe("False positive");
-    expect(reviewLabel({ ...open, needsReview: false, confirmed: true })).toBe("Confirmed");
+    expect(reviewLabel({ ...open, needsReview: false, confirmed: true })).toBe("Confirmed vulnerability");
   });
   it("never reads a closed reason off Object's own names", () => {
     const open = findings.find((f) => f.needsReview)!;
@@ -52,10 +53,10 @@ describe("findingMatches", () => {
     }
   });
   it("searches the run's label and the references too", () => {
-    const withRun = { ...findings[0], run: { uid: "run-1", label: "RCX-009 · 1 Jan 00:00" }, references: ["OWASP A07:2021", "CWE-798"] };
-    expect(findingMatches(withRun, { ...none, q: "rcx-009" })).toBe(true);
+    const withRun = { ...findings[0], run: { uid: "run-1", label: "RCX-DEMO-009 · 1 Jan 00:00" }, references: ["OWASP A07:2021", "CWE-798"] };
+    expect(findingMatches(withRun, { ...none, q: "demo-009" })).toBe(true);
     expect(findingMatches(withRun, { ...none, q: "a07:2021" })).toBe(true);
-    expect(findingMatches({ ...withRun, run: null, references: [] }, { ...none, q: "rcx-009" })).toBe(false);
+    expect(findingMatches({ ...withRun, run: null, references: [] }, { ...none, q: "demo-009" })).toBe(false);
   });
   it("buckets every finding once", () => {
     expect(findings.every((f) => ["confirmed", "review", "closed"].includes(validationOf(f)))).toBe(true);
@@ -104,5 +105,18 @@ describe("runMatches", () => {
     expect(items.filter((i) => runMatches(i, "waiting for you")).every((i) => i.status === "Awaiting input")).toBe(true);
     expect(runMatches(waiting, "")).toBe(true);
     expect(runMatches(waiting, "no-such-run-zzz")).toBe(false);
+  });
+});
+
+describe("cleanSearchQuery and parseFindingFilter", () => {
+  it("strips ASCII control characters and caps length at MAX_SEARCH_QUERY", () => {
+    const raw = `\x00sql\n\t${"x".repeat(MAX_SEARCH_QUERY + 50)}\x7f`;
+    const cleaned = cleanSearchQuery(raw);
+    expect(cleaned).toBe(`sql${"x".repeat(MAX_SEARCH_QUERY - 3)}`);
+    expect(cleaned.length).toBe(MAX_SEARCH_QUERY);
+    expect(cleanSearchQuery("CVE-2024-1234 <script>")).toBe("CVE-2024-1234 <script>");
+
+    const parsed = parseFindingFilter({ sev: "", val: "", q: raw });
+    expect(parsed.q).toBe(cleaned);
   });
 });

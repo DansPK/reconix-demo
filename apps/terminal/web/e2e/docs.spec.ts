@@ -28,8 +28,8 @@ test("the docs open in the dashboard's frame, with Documentation marked and no C
   await page.goto("/docs/commands");
   const views = page.getByRole("navigation", { name: "Views" });
   await expect(views.getByRole("link", { name: "Overview" })).toHaveAttribute("href", "/");
-  await expect(views.getByRole("link", { name: "Findings" })).toHaveAttribute("href", "/?view=findings");
-  // the dashboard's views, without the removed Scope and Terminal views
+  await expect(views.getByRole("link", { name: "Findings" })).toHaveAttribute("href", "/findings");
+  // the dashboard's views, without the removed Scope, Run log and Terminal views
   expect(await views.getByRole("link").evaluateAll((els) => els.map((e) => e.getAttribute("data-view")))).toEqual([
     "overview",
     "assistant",
@@ -44,7 +44,7 @@ test("the docs open in the dashboard's frame, with Documentation marked and no C
   await expect(page.locator(".dash-sidebar").getByText("Configuration")).toHaveCount(0);
   await expect(page.locator(".dash-frame .dash-content h1")).toHaveText("Commands");
   await views.getByRole("link", { name: "Findings" }).click();
-  await page.waitForURL((url) => url.pathname === "/" && url.searchParams.get("view") === "findings");
+  await page.waitForURL((url) => url.pathname === "/findings");
   await expect(page.locator('nav[aria-label="Views"] button[aria-label="Findings"]')).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".dash-sidebar").getByRole("link", { name: "Configuration" })).toHaveCount(0);
   await expect(page.locator(".dash-sidebar").getByText("Configuration")).toHaveCount(0);
@@ -76,7 +76,8 @@ test("a group page shows its pages' text in place, as titled parts", async ({ pa
     expect(await content.getByRole("heading", { level: 2 }).allTextContents()).toEqual(["Introduction", "Requirements", "Installation", "Launching", "First steps"]);
     await expect(part(page, "introduction").getByRole("heading", { level: 3, name: "What Reconix does" })).toBeAttached();
     await expect(part(page, "introduction")).toContainText("keyboard-first terminal application");
-    await expect(part(page, "launching").locator("pre").first()).toContainText("python -m reconix");
+    await expect(part(page, "launching").locator("pre").first()).toContainText("setup.ps1 web");
+    await expect(part(page, "launching").locator("pre").first()).toContainText("./setup.sh web");
     await expect(page.getByText("Start here")).toHaveCount(0);
   }
   // the Commands page: every command, each with its facts and sections
@@ -124,7 +125,7 @@ test("every code block has a Copy button that copies its text", async ({ page, c
   await part(page, "launching").getByRole("button", { name: "Copy code" }).first().click();
   await expect(page.getByRole("button", { name: "Copied" })).toBeVisible(); // the label follows the state
   const copied = await page.evaluate(() => navigator.clipboard.readText());
-  expect(copied).toContain("python -m reconix");
+  expect(copied).toContain("./setup.sh web");
 });
 
 test("the search looks through the group shown and jumps within the page", async ({ page }) => {
@@ -142,8 +143,8 @@ test("the search looks through the group shown and jumps within the page", async
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Commands");
   expect(await marked(page), "the same page, never another").toBe(7);
   // an alias finds its command
-  await box.fill("/agent");
-  await expect(results.getByRole("option").first()).toContainText("/assess");
+  await box.fill("/execution");
+  await expect(results.getByRole("option").first()).toContainText("/status");
   // another group's sections are not searched here
   await box.fill("double check");
   await expect(box).toHaveAttribute("aria-expanded", "false");
@@ -216,7 +217,7 @@ test("the box names the active result, keeps it in range when the hits shrink, j
   const box = searchBox(page);
   const options = page.getByRole("listbox", { name: "Search results" }).getByRole("option");
   const activeId = async () => (await box.getAttribute("aria-activedescendant"))!;
-  await box.fill("model");
+  await box.fill("assessment");
   const many = await options.count();
   expect(many).toBeGreaterThan(2);
   expect(await activeId()).toBe(await options.nth(0).getAttribute("id"));
@@ -227,7 +228,7 @@ test("the box names the active result, keeps it in range when the hits shrink, j
   await box.press("ArrowUp");
   expect(await activeId()).toBe(await options.nth(many - 2).getAttribute("id"));
   // fewer hits: the active one is clamped to one that exists, and it is the one marked
-  await box.fill("/model");
+  await box.fill("/assessments");
   const few = await options.count();
   expect(few).toBeLessThan(many);
   const markedOption = page.getByRole("listbox", { name: "Search results" }).getByRole("option", { selected: true });

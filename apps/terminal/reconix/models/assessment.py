@@ -45,6 +45,9 @@ class Assessment:
     mode: str = "Grey-box, Authorized"  # the engagement type
     methodology: List[str] = field(default_factory=list)   # e.g. ["OWASP WSTG", …]
     report_version: str = "1.0"
+    report_signed_off: bool = False
+    report_generation: int = 0
+    report_generated_at: Optional[datetime] = None
 
     # per-assessment state
     scope: Optional[ScopeManifest] = None

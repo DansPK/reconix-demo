@@ -1,7 +1,7 @@
 """Frame 04 — Human approval gate (MEDIUM: one decision; HIGH: a double check).
 
 The run stops here when it reaches a gated action. The store is the authority: it re-checks
-the command hash and, for HIGH risk, the single-use confirmation token; the screen only asks.
+the command hash and, for HIGH risk, a single-use token and the typed target; the screen asks.
 When nothing is waiting, the screen lists the decisions made and the actions still ahead.
 """
 
@@ -17,6 +17,7 @@ from textual.widgets import Static
 
 from .base import Decision, ReconixScreen
 from .choice import ChoiceScreen, details_body
+from .forms.typed_target import TypedTargetForm
 from .. import store, theme
 from ..models import GATE_APPROVAL_PREFIX, ApprovalRequest, Choice
 from ..store.approvals import approval_text
@@ -211,7 +212,14 @@ class ApprovalScreen(ReconixScreen):
 
     def _confirmed(self, answer: Optional[str], token: str) -> None:
         if answer == "yes":
-            self._approve(token)
+            self.app.open_dialog(TypedTargetForm(self._request.request_id, token),
+                                 self._target_confirmed)
+        else:
+            store.decline_confirmation(self._request.request_id)
+
+    def _target_confirmed(self, result: Optional[str]) -> None:
+        if result == "approved":
+            self.app.gate_decided("execution")
         else:
             store.decline_confirmation(self._request.request_id)
 

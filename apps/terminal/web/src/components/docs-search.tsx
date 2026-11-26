@@ -4,12 +4,13 @@ import { useId, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import type { DocsSearchEntry } from "@/lib/docs-search-index";
 import { revealTop } from "@/lib/scroll";
+import { cleanSearchQuery, MAX_SEARCH_QUERY } from "@/lib/search";
 import { cn } from "@/lib/utils";
 
 /** One result: the page, and the anchor on this page it jumps to (the page's, or a section's). */
 type Hit = { entry: DocsSearchEntry; anchor: string; heading?: string; score: number };
 
-const normalise = (s: string) => s.trim().toLowerCase();
+const normalise = (s: string) => cleanSearchQuery(s).trim().toLowerCase();
 
 /** Rank one page against the query: the title first, then a command alias, a heading, the description. */
 function match(entry: DocsSearchEntry, q: string): Hit | null {
@@ -99,9 +100,10 @@ export function DocsSearch({ index }: { index: DocsSearchEntry[] }) {
       <input
         type="search"
         value={q}
+        maxLength={MAX_SEARCH_QUERY}
         onChange={(e) => {
           keepOpen();
-          setQ(e.target.value);
+          setQ(cleanSearchQuery(e.target.value));
           setActive(0);
           setOpen(true);
         }}
@@ -132,8 +134,8 @@ export function DocsSearch({ index }: { index: DocsSearchEntry[] }) {
         className="docs-search-list absolute left-0 right-0 top-[calc(100%+6px)] z-40 max-h-80 overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-lg"
       >
         {/* each option is itself the thing to click (no control inside it: the box keeps the
-            keyboard, aria-activedescendant names the active one); the active one's fill is 6 %
-            of the primary, light enough for its muted line to read at 4.5:1 */}
+            keyboard, aria-activedescendant names the active one); the active one's fill is 5 %
+            of the primary, light enough for its muted line to read at 4.5:1 (6 % gave 4.49:1) */}
         {hits.map((h, i) => (
           <li
             key={h.anchor}
@@ -143,10 +145,10 @@ export function DocsSearch({ index }: { index: DocsSearchEntry[] }) {
             onMouseEnter={() => setActive(i)}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => go(h.anchor)}
-            className={cn("flex cursor-pointer flex-col gap-0.5 rounded-md px-2.5 py-1.5 text-left", i === current && "bg-primary/6")}
+            className={cn("flex cursor-pointer flex-col gap-0.5 rounded-md px-2.5 py-1.5 text-left", i === current && "bg-primary/5")}
           >
             <span className="text-sm text-foreground">{h.entry.title}</span>
-            <span className="truncate text-micro text-muted-foreground">{h.heading ?? h.entry.description}</span>
+            <span className="truncate text-[11px] text-muted-foreground">{h.heading ?? h.entry.description}</span>
           </li>
         ))}
       </ul>

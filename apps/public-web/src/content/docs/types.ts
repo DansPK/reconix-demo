@@ -5,6 +5,8 @@ export type DocContent = {
   lede: string;
   /** not enough source material yet: the page shows the "Draft: content pending" callout */
   draft?: boolean;
+  /** the page's content is still under review: shows the amber DocumentationNotice above the body */
+  notice?: string;
   body: ReactNode;
 };
 

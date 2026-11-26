@@ -1,7 +1,7 @@
 """A Claude Code-style tick list: Space ticks a row, Enter saves, Esc cancels.
 
 Used by the step chat for the scope's ports and tools. The rows and what starts ticked come
-from the store (`replies.answer_scope_change`); this widget only reports what the operator ticked.
+from the store (`answer_scope_change`); this widget only reports what the operator ticked.
 """
 
 from typing import List, Mapping, Optional, Sequence, Tuple

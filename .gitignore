@@ -31,6 +31,7 @@
 # artifacts
 *.vsix
 **/reports/
+!apps/terminal/web/src/app/reports/
 **/playwright-report/
 **/test-results/
 **/.vscode-test/
@@ -47,4 +48,3 @@ demo-script.md
 # Lumina storefront: the scan target, edited during the VS Code demo (apply fix / reset).
 # Pristine copy lives in apps/lumina-site.zip; restore with ./setup.sh reset.
 apps/lumina-site/
-

@@ -14,10 +14,10 @@ import { AssessmentsRows } from "@/components/dashboard/assessments-rows";
 import type { AssessmentsCards } from "@/components/dashboard/report-types";
 import { ViewHeader } from "@/components/dashboard/view-header";
 import { useQueryParams } from "@/components/dashboard/view-url";
+import { DOCS } from "@/lib/docs-nav";
 import { EmptyNote } from "@/components/ui/empty-note";
 import { Pagination } from "@/components/ui/pagination";
 import { paginate, slicePage } from "@/lib/paging";
-import { DOCS } from "@/lib/docs-nav";
 
 export function AssessmentsView({ data }: { data: AssessmentsCards }) {
   const { rows } = data;

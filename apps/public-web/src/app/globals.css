@@ -140,39 +140,41 @@ h1, h2, h3, h4 {
 }
 @media (min-width: 1024px) { .ascii-banner--section { font-size: clamp(6px, 0.62vw, 9.5px); } }
 
-/* Hero wordmark (ANSI Shadow): 54 cols x ~0.6em advance = 32.4em wide
-   -> ~310px at 375px viewports, ~620px cap on desktop.
-   Each row is filled with a left -> right teal gradient (background-clip: text, so
-   every row shows the same sweep) and the glow is a soft drop-shadow on the block:
-   text-shadow would paint over a clipped background. */
-.ascii-banner--hero {
-  font-size: clamp(6px, 2.55vw, 1.2rem);
-  --hero-glow: drop-shadow(0 0 0.4em color-mix(in oklab, var(--primary) 32%, transparent));
-  filter: brightness(1) saturate(1) var(--hero-glow);
-  animation: ascii-settle 900ms ease-out 1.3s backwards;
+/* START banner: the Figma export (StartWordmark). Its letterforms, flat teal and the
+   two-pass glow all live in the asset, so CSS only sizes it. The art is inset in the
+   282x109 viewBox -- the rest is blur room -- so the padding is pulled back off the
+   layout box, leaving the glow to bleed like the text-shadow on the other banners. */
+.start-wordmark {
+  --w: clamp(160px, 20vw, 300px);
+  display: block;
+  width: var(--w);
+  height: auto;
+  margin-block: calc(var(--w) * -0.0993) calc(var(--w) * -0.1021);
 }
-.ascii-banner--hero .ascii-line {
-  color: transparent;
-  background: linear-gradient(
-    90deg,
-    color-mix(in oklab, var(--primary) 55%, var(--foreground)) 0%,
-    var(--primary) 45%,
-    color-mix(in oklab, var(--primary) 75%, #38bdf8) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  /* rows boot in top -> bottom, one cell per step; `backwards` releases the clip
-     once done so the glow is not cropped to the row box */
-  animation: ascii-boot 420ms steps(54, end) backwards;
-  animation-delay: calc(180ms + var(--i, 0) * 160ms);
+
+/* The Figma wordmark export (ReconixWordmark). Its gradient, nested outlines and glow all
+   live in the asset, so CSS only sizes it -- the 635:128 viewBox keeps the proportion, so
+   width alone drives the size. The base rule stays size-free: the nav and footer set their
+   own width, only the hero wants the full-bleed size and the entrance animation. */
+.reconix-wordmark {
+  display: block;
+  height: auto;
 }
+.reconix-wordmark--hero {
+  width: clamp(300px, 86vw, 635px);
+  /* wipes in left -> right, then settles out of the overbright flash */
+  animation:
+    ascii-boot 760ms ease-out 180ms backwards,
+    ascii-settle 900ms ease-out 940ms backwards;
+}
+
 @keyframes ascii-boot {
   from { clip-path: inset(0 100% 0 0); opacity: 0.4; }
   to { clip-path: inset(0); opacity: 1; }
 }
 @keyframes ascii-settle {
-  from { filter: brightness(1.7) saturate(1.3) var(--hero-glow); }
-  to { filter: brightness(1) saturate(1) var(--hero-glow); }
+  from { filter: brightness(1.7) saturate(1.3); }
+  to { filter: brightness(1) saturate(1); }
 }
 
 /* ---- Nav CTA (NavCta): on the landing page it stays out of the way while the hero,
@@ -537,8 +539,7 @@ h1, h2, h3, h4 {
 @media (prefers-reduced-motion: reduce) {
   .cursor,
   .hero-scan::after,
-  .ascii-banner--hero,
-  .ascii-banner--hero .ascii-line,
+  .reconix-wordmark,
   .backdrop-drift::before { animation: none; }
   .wipe > *,
   .nav-cta,

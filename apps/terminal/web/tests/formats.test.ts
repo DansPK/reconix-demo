@@ -1,5 +1,5 @@
 /* The export format registry and the renderers the downloads, the assistant and the route share:
-   PDF (printed by a headless Chrome), JSON and DOCX. */
+   PDF, JSON and DOCX only (the TUI saves the same three). */
 import { describe, expect, it } from "vitest";
 
 import { EXPORT_FORMATS, NO_PRINTER, downloadHref, exportFileName, isExportFormat } from "@/lib/report/formats";
@@ -23,7 +23,7 @@ describe("export formats", () => {
   });
 
   it("builds the file name and the download link from the uid", () => {
-    expect(exportFileName("20261005-140300-9f76_RCX-001", "docx")).toBe("20261005-140300-9f76_RCX-001.docx");
+    expect(exportFileName("20261005-140300-9f76_RCX-DEMO-001", "docx")).toBe("20261005-140300-9f76_RCX-DEMO-001.docx");
     expect(downloadHref("u1", "json")).toBe("/api/assessments/u1/export?format=json");
     expect(downloadHref("a b/c", "docx")).toBe("/api/assessments/a%20b%2Fc/export?format=docx");
   });

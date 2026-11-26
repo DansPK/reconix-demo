@@ -1,0 +1,480 @@
+/* Aceternity UI–inspired visual system (Spotlight, Background Beams, Moving Border, Glowing
+   Cards, Hover Effect, Shimmer Buttons, Glass Chrome) using Reconix CSS tokens + pure CSS. */
+
+@property --ac-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes ac-spotlight-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -8%) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0%) scale(1);
+  }
+}
+
+@keyframes ac-border-spin {
+  to {
+    --ac-angle: 360deg;
+  }
+}
+
+@keyframes ac-beam-flow {
+  0% {
+    stroke-dashoffset: 320;
+    opacity: 0.18;
+  }
+  50% {
+    opacity: 0.65;
+  }
+  100% {
+    stroke-dashoffset: -320;
+    opacity: 0.18;
+  }
+}
+
+@keyframes ac-list-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ---- Animated List (staggered spring entrance for Findings, Assessments, Prompts, Docs) ----- */
+.ac-list-item {
+  animation: ac-list-in 0.38s var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 38ms);
+}
+
+/* ---- Spotlight, Beams & Background Grid ----------------------------------------------------- */
+.ac-spotlight {
+  animation: ac-spotlight-in 1.2s var(--ease-out-expo) 0.1s forwards;
+  mask-image: radial-gradient(ellipse 70% 65% at 50% 45%, black 15%, transparent 78%);
+}
+
+.ac-bg-grid {
+  background-image: radial-gradient(color-mix(in oklab, var(--primary) 26%, transparent) 1px, transparent 1px);
+  background-size: 20px 20px;
+  mask-image: radial-gradient(ellipse 72% 62% at 50% 44%, black 20%, transparent 82%);
+  opacity: 0.55;
+}
+
+.ac-beams {
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 45%, black 25%, transparent 88%);
+}
+
+.ac-beam-line {
+  stroke-dasharray: 160 220;
+  animation: ac-beam-flow 9s ease-in-out infinite;
+}
+
+.ac-beam-2 {
+  animation-delay: -3s;
+  animation-duration: 11s;
+}
+
+.ac-beam-3 {
+  animation-delay: -6s;
+  animation-duration: 13s;
+}
+
+/* ---- Gradient hero text --------------------------------------------------------------------- */
+.ac-hero-text {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    color-mix(in oklab, var(--foreground) 80%, var(--globe-glow)) 62%,
+    color-mix(in oklab, var(--primary) 65%, var(--foreground)) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 22px color-mix(in oklab, var(--primary) 22%, transparent));
+}
+
+/* ---- Glass TopBar & Glowing Sidebar Rail ---------------------------------------------------- */
+.dash-topbar {
+  background: color-mix(in oklab, var(--page) 78%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* `position` at no specificity: frame.css makes the rail sticky on a tablet (768–1279 wide), and a
+   plain `.dash-sidebar` here, loaded later, would win and let the views scroll out of reach */
+:where(.dash-sidebar) {
+  position: relative;
+}
+.dash-sidebar {
+  z-index: 40;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--card) 72%, transparent),
+    color-mix(in oklab, var(--page) 88%, transparent)
+  );
+}
+
+.dash-navbtn {
+  position: relative;
+  transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.22s ease, transform 0.16s ease;
+}
+
+.dash-navbtn:hover {
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 28%, transparent);
+}
+
+.dash-navbtn[aria-current="page"] {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--primary) 22%, var(--surface)),
+    color-mix(in oklab, var(--primary) 9%, var(--card))
+  );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--primary) 48%, transparent),
+    0 0 18px -4px color-mix(in oklab, var(--primary) 50%, transparent);
+}
+
+/* ---- Moving Border (AskBar, AI Composer) ---------------------------------------------------- */
+.ac-moving-border {
+  position: relative;
+  border-radius: 17px;
+  padding: 1.5px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--primary) 34%, var(--border)),
+    color-mix(in oklab, var(--border) 90%, transparent)
+  );
+  box-shadow: 0 14px 36px -20px color-mix(in oklab, var(--primary) 38%, transparent);
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.ac-moving-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--ac-angle),
+    transparent 0deg,
+    transparent 245deg,
+    color-mix(in oklab, var(--primary) 80%, transparent) 295deg,
+    var(--globe-glow) 338deg,
+    #ffffff 352deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.62;
+  animation: ac-border-spin 5.5s linear infinite;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.ac-moving-border:hover::before,
+.ac-moving-border:focus-within::before {
+  opacity: 1;
+}
+
+.ac-moving-border:focus-within {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--primary) 35%, transparent),
+    0 0 34px -8px color-mix(in oklab, var(--primary) 55%, transparent);
+}
+
+.ac-moving-border-inner {
+  position: relative;
+  z-index: 1;
+  border-radius: 15.5px;
+  background: var(--card);
+}
+
+/* ---- Glowing Effect Card (DashCard, Bento StatCard across all pages) ------------------------ */
+.ac-glow-card {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.22s ease, box-shadow 0.25s ease, transform 0.2s var(--ease-out-quart);
+}
+
+.ac-glow-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    280px circle at var(--mx, 50%) var(--my, 0%),
+    color-mix(in oklab, var(--globe-glow) 78%, transparent),
+    color-mix(in oklab, var(--primary) 35%, transparent) 42%,
+    transparent 74%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.ac-glow-card:hover::after {
+  opacity: 1;
+}
+
+.ac-glow-card:hover {
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--globe-glow) 22%, transparent),
+    0 16px 36px -18px color-mix(in oklab, var(--primary) 36%, transparent);
+}
+
+.dash-overview {
+  padding-top: 12px;
+}
+
+.dash-stat.ac-glow-card {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--primary) 5%, var(--card)),
+    var(--card-2)
+  );
+}
+
+.ac-stat-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 14%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 28%, transparent);
+}
+
+/* ---- Aceternity Hover Effect on List Rows (Findings, Assessments, Reports) ------------------ */
+.ui-row {
+  overflow: hidden;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.22s ease, transform 0.18s var(--ease-out-quart);
+}
+
+.ui-row:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--primary) 48%, var(--border));
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--globe-glow) 16%, transparent),
+    0 10px 24px -16px color-mix(in oklab, var(--primary) 55%, transparent);
+}
+
+.ui-row[aria-current="true"] {
+  border-color: color-mix(in oklab, var(--primary) 58%, var(--border));
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--primary) 14%, var(--card)),
+    color-mix(in oklab, var(--primary) 4%, var(--card-2))
+  );
+  box-shadow:
+    inset 3px 0 0 var(--primary),
+    0 8px 24px -16px color-mix(in oklab, var(--primary) 55%, transparent);
+}
+
+/* ---- Aceternity Hover Effect on AI Prompt Cards --------------------------------------------- */
+.ac-prompt-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--card) 92%, var(--surface)),
+    var(--card-2)
+  );
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s var(--ease-out-quart), box-shadow 0.22s ease;
+}
+
+.ac-prompt-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    240px circle at 18% 0%,
+    color-mix(in oklab, var(--globe-glow) 18%, transparent),
+    transparent 70%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.ac-prompt-card:hover:not(:disabled)::before {
+  opacity: 1;
+}
+
+.ac-prompt-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--primary) 56%, var(--border));
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--globe-glow) 22%, transparent),
+    0 12px 28px -14px color-mix(in oklab, var(--primary) 48%, transparent);
+}
+
+.ac-prompt-card .ai-prompt-icon {
+  background: color-mix(in oklab, var(--primary) 14%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 26%, transparent);
+}
+
+/* ---- Aceternity Shimmer Button Sheen -------------------------------------------------------- */
+.ai-send,
+.ai-btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-send:hover:not(:disabled),
+.ai-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 0 20px -4px color-mix(in oklab, var(--primary) 70%, transparent);
+}
+
+/* ---- Full Reconix Logo Splash --------------------------------------------------------------- */
+@keyframes ac-splash-logo-in {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+    filter: blur(8px) drop-shadow(0 0 0 transparent);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0) drop-shadow(0 0 26px color-mix(in oklab, var(--globe-glow) 55%, transparent));
+  }
+}
+
+@keyframes ac-splash-line-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes ac-splash-shimmer {
+  0% {
+    background-position: 140% 50%;
+  }
+  100% {
+    background-position: -40% 50%;
+  }
+}
+
+@keyframes ac-splash-tag-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ac-splash-logo-exit {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  84% {
+    opacity: 1;
+    transform: translate3d(var(--ac-dx, -40vw), var(--ac-dy, -44vh), 0) scale(var(--ac-scale, 0.24));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--ac-dx, -40vw), var(--ac-dy, -44vh), 0) scale(var(--ac-scale, 0.24));
+  }
+}
+
+.ac-splash {
+  transition: background-color 0.45s var(--ease-out-expo);
+}
+
+.ac-splash[data-phase="exit"] {
+  background-color: transparent;
+  pointer-events: none;
+}
+
+.ac-splash-glow {
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in oklab, var(--primary) 24%, transparent) 0%,
+    color-mix(in oklab, var(--globe-glow) 8%, transparent) 42%,
+    transparent 72%
+  );
+  filter: blur(36px);
+  transition: opacity 0.38s var(--ease-out-expo);
+}
+
+.ac-splash[data-phase="exit"] .ac-splash-glow {
+  opacity: 0;
+}
+
+.ac-splash-logo {
+  animation: ac-splash-logo-in 0.65s var(--ease-out-expo) both;
+  will-change: transform, opacity;
+}
+
+.ac-splash-line {
+  animation: ac-splash-line-in 0.42s var(--ease-out-expo) calc(var(--i, 0) * 45ms) both;
+}
+
+.ac-splash[data-phase="exit"] .ac-splash-logo {
+  animation: ac-splash-logo-exit 0.56s var(--ease-out-expo) forwards;
+}
+
+[data-reconix-header-logo] {
+  transition: opacity 0.12s ease;
+}
+
+html[data-reconix-splash="active"] [data-reconix-header-logo] {
+  opacity: 0;
+}
+
+.ac-splash-tag {
+  animation: ac-splash-tag-in 0.55s var(--ease-out-expo) 0.14s both;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.ac-splash[data-phase="exit"] .ac-splash-tag {
+  animation: none;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+/* ---- Reduced motion ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .ac-spotlight {
+    animation: none;
+    opacity: 0.7;
+    transform: translate(-50%, 0%) scale(1);
+  }
+  .ac-moving-border::before,
+  .ac-beam-line,
+  .ac-list-item,
+  .ac-splash-line {
+    animation: none;
+  }
+  .ac-prompt-card:hover:not(:disabled),
+  .ui-row:hover {
+    transform: none;
+  }
+}

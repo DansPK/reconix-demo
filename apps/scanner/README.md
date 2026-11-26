@@ -33,7 +33,7 @@ Then in VS Code:
 
 1. **Developer: Reload Window** (Command Palette).
 2. Open a folder to scan — [`apps/lumina-site/`](../lumina-site/) (planted issues in `server/`).
-3. Click the **shield icon** in the activity bar, or right-click a file/folder → **Scan with Reconix**.
+3. Click the **Reconix icon** in the activity bar, or right-click a file/folder → **Scan with Reconix**.
 
 Findings appear in the panel, as squiggles in the code, and in the Problems panel. Click one
 to jump to its line.
@@ -51,6 +51,10 @@ set `reconix.serverUrl`/token yourself.
   matters, and a suggested fix. They're grouped by severity, then by file.
 - **Get a summary.** After a scan, a card shows the counts, the most affected files, and the
   top things to fix first.
+- **Scan a GitHub repository.** Scripted: only Lumina's, `https://github.com/lumina-store/lumina-site`,
+  is available, and nothing is cloned.
+- **Switch models.** Add, test and switch AI models. Scripted and in memory: only the last 4
+  characters of a key are kept, and nothing is sent.
 - **Fix with the agent.** Click **Fix** or **Fix all**, or type "fix all high findings". You
   see every change as a diff and nothing is saved until you click **Apply**.
 - **Ask questions.** "why is this a problem?", "how do I fix finding abc123?".

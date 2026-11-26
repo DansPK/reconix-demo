@@ -51,7 +51,7 @@ export function DocsSidebar({ groupId, index }: { groupId: string; index: DocsSe
           !mobileOpen && "hidden"
         )}
       >
-        <p className="mb-3 hidden px-2 font-mono text-micro uppercase tracking-[0.18em] text-muted-foreground lg:block">
+        <p className="mb-3 hidden px-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground lg:block">
           Documentation
         </p>
         <ul className="space-y-1" data-docs-groups="">

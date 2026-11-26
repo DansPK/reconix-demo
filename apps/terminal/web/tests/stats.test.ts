@@ -48,7 +48,7 @@ describe("overview", () => {
     expect(stats.assessments).toBe(list.length);
     expect(stats.findings).toBe(findings.length);
     expect(stats.confirmed + stats.review).toBe(findings.length);
-    expect(stats.confirmed).toBe(findings.filter((f) => f.validation === "CONFIRMED").length);
+    expect(stats.confirmed).toBe(findings.filter((f) => f.finding_category === "CONFIRMED_VULNERABILITY").length);
     expect(stats.checks).toBe(list.reduce((n, a) => n + a.verdicts.length, 0));
     expect(stats.blocked).toBe(list.flatMap((a) => a.verdicts).filter((v) => !v.allowed).length);
     expect(stats.requests).toBe(list.reduce((n, a) => n + a.run.requests, 0));
@@ -149,7 +149,7 @@ describe("attentionItems", () => {
       run(base, "c1", "Completed"),
     ];
     const { items, runs } = attentionItems(many);
-    const review = many.flatMap((a) => a.findings).filter((f) => f.validation !== "CONFIRMED").length;
+    const review = many.flatMap((a) => a.findings).filter(needsReview).length;
     expect(runs).toBe(5);
     const order = items.map((i) => (i.kind === "review" ? "review" : i.assessment.uid));
     expect(order).toEqual(review ? ["w1", "review", "s1", "i1", "w2", "w3"] : ["w1", "s1", "i1", "w2", "w3"]);
@@ -157,13 +157,17 @@ describe("attentionItems", () => {
 
   it("counts the findings still for review", () => {
     const item = attentionItems(list).items.find((i) => i.kind === "review");
-    const review = findings.filter((f) => f.validation !== "CONFIRMED");
+    const review = findings.filter(needsReview);
     if (!review.length) expect(item).toBeUndefined();
     else expect(item).toMatchObject({ kind: "review", count: review.length });
   });
 
   it("is empty when nothing needs attention", () => {
-    const calm = list.map((a) => ({ ...a, status: "Completed" as const, findings: a.findings.filter((f) => f.validation === "CONFIRMED") }));
+    const calm = list.map((a) => ({
+      ...a,
+      status: "Completed" as const,
+      findings: a.findings.map((f) => ({ ...f, finding_category: "CONFIRMED_VULNERABILITY" })),
+    }));
     expect(attentionItems(calm)).toEqual({ items: [], runs: 0 });
   });
 });
@@ -260,7 +264,14 @@ describe("analyst triage", () => {
   it("leaves triaged findings out of review", () => {
     expect(needsReview({ ...fp, validation: "UNCONFIRMED", status: "fixed" })).toBe(false);
     expect(needsReview({ ...fp, validation: "UNCONFIRMED", status: "open" })).toBe(true);
-    expect(needsReview({ ...fp, validation: "CONFIRMED", status: "open" })).toBe(false);
+    expect(needsReview({ ...fp, validation: "CONFIRMED", status: "open" })).toBe(true);
+    expect(isConfirmed({ ...fp, validation: "CONFIRMED", status: "open" })).toBe(false);
+    expect(needsReview({
+      ...fp,
+      finding_category: "CONFIRMED_VULNERABILITY",
+      validation: "UNCONFIRMED",
+      status: "open",
+    })).toBe(false);
   });
 
   it("overview: false positives left out, review and CVSS from open findings", () => {
@@ -269,7 +280,7 @@ describe("analyst triage", () => {
     expect(stats.findings).toBe(findings.length - 1);
     expect(stats.confirmed).toBe(all.filter((f) => f.status !== "false-positive" && isConfirmed(f)).length);
     expect(stats.open).toBe(findings.length - 3);
-    expect(stats.review).toBe(open.filter((f) => !isConfirmed(f)).length);
+    expect(stats.review).toBe(open.filter(needsReview).length);
     expect(stats.cvss).toEqual(cvssSummary(open));
   });
 

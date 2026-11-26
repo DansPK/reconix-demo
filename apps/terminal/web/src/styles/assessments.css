@@ -27,17 +27,17 @@
   align-items: center;
   height: 100%;
   padding: 10px 12px;
-  font-size: var(--text-caption);
+  font-size: 12px;
   text-decoration: none;
 }
 .asm-cell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .asm-run { grid-area: run; }
 .asm-target { grid-area: target; }
-.asm-status { grid-area: status; }
+.asm-status { grid-area: status; align-items: flex-start; }
 .asm-findings { grid-area: findings; }
 .asm-plan { grid-area: plan; align-items: flex-end; }
 /* the label of a cell on a card */
-.asm-k { font-size: var(--text-micro); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted-foreground); }
+.asm-k { font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted-foreground); }
 .asm-run .asm-k, .asm-status .asm-k { display: none; }
 
 @media (min-width: 640px) {
@@ -47,14 +47,14 @@
 /* a table-like row: one grid for the header and every row, so the columns line up */
 @media (min-width: 1024px) {
   .asm-head, .asm-row {
-    grid-template-columns: minmax(170px, 1.3fr) minmax(150px, 1fr) 140px 120px 48px;
+    grid-template-columns: minmax(190px, 1.35fr) minmax(180px, 1.1fr) minmax(144px, 0.55fr) minmax(120px, 0.45fr) minmax(56px, 0.2fr);
     grid-template-areas: "run target status findings plan";
-    column-gap: 14px;
+    column-gap: 16px;
   }
   .asm-head {
     display: grid;
-    padding: 0 12px 7px;
-    font-size: var(--text-micro);
+    padding: 0 14px 7px;
+    font-size: 11px;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--muted-foreground);
@@ -65,7 +65,7 @@
   .asm-list > li:first-child .asm-row { border-radius: 10px 10px 0 0; }
   .asm-list > li:last-child .asm-row { border-radius: 0 0 10px 10px; }
   .asm-list > li:only-child .asm-row { border-radius: 10px; }
-  .asm-row { padding: 8px 12px; }
+  .asm-row { padding: 9px 14px; }
   .asm-row:hover, .asm-row:focus-visible { position: relative; z-index: 1; }
   /* the cells' labels: for screen readers only (the header row carries them) */
   .asm-cell { position: relative; }

@@ -1,109 +1,104 @@
 /**
- * Sample data for the "See Reconix in action" previews (sections/product-preview.tsx).
- * One fictional Web URL assessment threads through every screen, so the counts in
- * the dashboard, findings list and report agree. Rules:
- * - hosts use the reserved `.example` TLD and RFC 5737 addresses only;
- * - tools are only the ones the product copy claims (integrations-data.ts);
- * - behaviour (scope approval, risk gates, NEEDS_REVIEW below 0.80, UNKNOWN severity,
- *   masking) must match docs/architecture and showcase-data.ts.
+ * Data for the "See Reconix in action" previews (sections/product-preview.tsx): the www.lumina.com
+ * Web URL run, as scripted in apps/terminal (store/templates/web_url.py). Keep findings, evidence,
+ * log lines and counts equal to that run. Evidence stays masked here.
  */
 
 export type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
-export type Risk = "LOW" | "MEDIUM" | "HIGH";
-export type LogKind = "scope" | "policy" | "tool" | "finding" | "mask" | "gate" | "info";
+export type LogTone = "default" | "ok" | "warn" | "block";
 
 export const ASSESSMENT = {
-  id: "ASM-0142",
-  name: "Lumina Web Security Assessment",
+  id: "RCX-001",
+  name: "Lumina web application",
   target: "www.lumina.com",
   template: "Web URL",
-  type: "Web application",
-  status: "Running",
-  progress: 68,
-  started: "10:42",
-  date: "14 Oct 2026",
-  duration: "18m 27s",
-  approvedBy: "j.lee",
+  status: "Completed",
+  date: "6 Oct 2026",
+  duration: "3m 55s",
+  requests: "1,202",
+  approvedBy: "analyst",
 };
 
-export const SEVERITY: { level: Severity; count: number }[] = [
-  { level: "CRITICAL", count: 1 },
-  { level: "HIGH", count: 3 },
-  { level: "MEDIUM", count: 7 },
-  { level: "LOW", count: 4 },
+/** The run's plan, with the tools each step used. */
+export const PLAN = [
+  { step: "Map the site", tools: "whatweb, Katana, ffuf" },
+  { step: "Scan for weaknesses", tools: "Nuclei, testssl.sh, nikto" },
+  { step: "Validate findings", tools: "Nuclei, dalfox, testssl.sh, httpx" },
+  { step: "Correlate & dedupe findings", tools: "" },
+  { step: "Generate report", tools: "" },
 ];
-export const FINDING_TOTAL = SEVERITY.reduce((n, s) => n + s.count, 0);
 
 export const SCOPE = {
-  target: "www.lumina.com",
-  include: ["www.lumina.com", "api.lumina.com", "*.lumina.com", "10.0.0.24"],
-  exclude: ["admin.lumina.com", "/billing/*"],
-  actions: [
-    { name: "Service discovery", tool: "Nmap", risk: "LOW" as Risk },
-    { name: "Template checks", tool: "Nuclei", risk: "LOW" as Risk },
-    { name: "Passive web scan", tool: "OWASP ZAP", risk: "LOW" as Risk },
-    { name: "Active web scan", tool: "OWASP ZAP", risk: "MEDIUM" as Risk },
+  permitted: [
+    "Discover pages and endpoints",
+    "Scan for known vulnerabilities",
+    "Carefully confirm what it finds",
+    "Send only GET and POST requests",
   ],
-  limits: [
-    { label: "Rate", value: "5 req/s" },
-    { label: "Tool calls", value: "40" },
-    { label: "Window", value: "2 h" },
-  ],
+  excluded: ["/admin"],
+  tools: "whatweb, httpx, Katana, Nuclei, testssl.sh, ffuf, nikto, dalfox",
 };
 
-export type LogLine = { t: string; kind: LogKind; text: string };
+export type LogLine = { t: string; who: "reconix" | "you" | "policy" | "tool"; text: string; tone?: LogTone };
 
 export const LOG: LogLine[] = [
-  { t: "10:42:01", kind: "info", text: "Assessment ASM-0142 started" },
-  { t: "10:42:04", kind: "scope", text: "Target scope validated against Scope Manifest v1" },
-  { t: "10:42:08", kind: "policy", text: "nmap -sV www.lumina.com · risk LOW · auto-run" },
-  { t: "10:42:15", kind: "tool", text: "Discovered 4 hosts, 9 open services" },
-  { t: "10:42:17", kind: "policy", text: "admin.lumina.com blocked · excluded target" },
-  { t: "10:42:21", kind: "tool", text: "Starting HTTP analysis · OWASP ZAP passive scan" },
-  { t: "10:42:29", kind: "tool", text: "Running vulnerability checks · Nuclei templates" },
-  { t: "10:42:31", kind: "mask", text: "1 session token masked in tool output" },
-  { t: "10:42:35", kind: "finding", text: "Finding detected: Missing security headers" },
-  { t: "10:42:38", kind: "finding", text: "Finding detected: SQL injection on /search" },
-  { t: "10:42:41", kind: "gate", text: "Active web scan · risk MEDIUM · awaiting approval" },
+  { t: "09:01:32", who: "you", text: "Scope approved", tone: "ok" },
+  { t: "09:01:58", who: "you", text: "Plan approved · testing starts", tone: "ok" },
+  { t: "09:02:13", who: "policy", text: "Scope check: passed", tone: "ok" },
+  { t: "09:02:19", who: "tool", text: "Executing permitted scan · Katana" },
+  { t: "09:02:29", who: "tool", text: "Crawled 24 pages · 6 API endpoints mapped" },
+  { t: "09:02:31", who: "tool", text: "Technology fingerprint: nginx · MySQL · lodash" },
+  { t: "09:02:42", who: "tool", text: "Nuclei: checks on the permitted surface" },
+  { t: "09:02:45", who: "reconix", text: "Proposed request: GET /admin", tone: "warn" },
+  { t: "09:03:05", who: "policy", text: "Blocked: GET /admin · Path outside approved scope. Not executed.", tone: "block" },
+  { t: "09:03:08", who: "tool", text: "Continuing on permitted targets" },
+  { t: "09:03:21", who: "reconix", text: "Candidate F-004 · SQL injection", tone: "warn" },
+  { t: "09:03:27", who: "policy", text: "Risk: MEDIUM · approval required", tone: "warn" },
 ];
-
-/** Shorter feed for the dashboard's "Recent activity" card. */
-export const RECENT = [LOG[10], LOG[9], LOG[8], LOG[4]];
 
 export type Finding = {
   id: string;
   title: string;
   severity: Severity;
-  target: string;
-  tool: string;
-  cwe: string;
-  rating: string;
+  path: string;
+  cvss: string;
+  state: "Confirmed" | "Needs review";
 };
 
 export const FINDINGS: Finding[] = [
-  { id: "F-001", title: "SQL injection in catalog search", severity: "CRITICAL", target: "www.lumina.com/api/v1/products?q=", tool: "OWASP ZAP", cwe: "CWE-89", rating: "CVSS 9.8" },
-  { id: "F-002", title: "Reflected cross-site scripting", severity: "HIGH", target: "www.lumina.com/profile?name=", tool: "OWASP ZAP", cwe: "CWE-79", rating: "CVSS 7.4" },
-  { id: "F-003", title: "Exposed Redis service", severity: "HIGH", target: "10.0.0.24:6379", tool: "Nmap", cwe: "CWE-284", rating: "CVSS 8.6" },
-  { id: "F-004", title: "Weak TLS configuration (TLS 1.0 enabled)", severity: "MEDIUM", target: "api.lumina.com:443", tool: "Nuclei", cwe: "CWE-326", rating: "scanner" },
-  { id: "F-005", title: "Missing security headers", severity: "LOW", target: "www.lumina.com", tool: "Nuclei", cwe: "CWE-693", rating: "scanner" },
+  { id: "F-004", title: "SQL injection in catalog search", severity: "CRITICAL", path: "/api/v1/products", cvss: "9.8", state: "Confirmed" },
+  { id: "F-005", title: "Outdated JavaScript dependency with a known CVE", severity: "HIGH", path: "/assets/js/vendor.min.js", cvss: "8.1", state: "Needs review" },
+  { id: "F-001", title: "Unauthenticated access to order records", severity: "HIGH", path: "/api/orders/{id}", cvss: "7.5", state: "Confirmed" },
+  { id: "F-002", title: "Reflected input in search page", severity: "MEDIUM", path: "/search", cvss: "6.1", state: "Needs review" },
+  { id: "F-003", title: "Session cookie missing SameSite", severity: "LOW", path: "/login", cvss: "3.1", state: "Needs review" },
 ];
+
+export const FINDING_TOTAL = FINDINGS.length;
+export const CONFIRMED = FINDINGS.filter((f) => f.state === "Confirmed").length;
+export const SEVERITY = (["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const).map((level) => ({
+  level,
+  count: FINDINGS.filter((f) => f.severity === level).length,
+}));
 
 /** The finding opened in the detail pane and quoted in the report. */
 export const FEATURED = {
   ...FINDINGS[0],
+  target: "https://www.lumina.com/api/v1/products?q=",
+  tool: "Nuclei",
+  cwe: "CWE-89",
   description:
-    "The q parameter is concatenated into a SQL query. A crafted value changes the query and returns rows from other tables.",
-  impact: "Read access to customer records; possible data modification.",
+    "The catalog search needs no sign-in, and the q parameter is concatenated straight into a SQL query. A single always-true payload returned every row.",
+  impact:
+    "An unauthenticated attacker can read the entire customer database: names, emails, phone numbers, saved cards and password hashes.",
   evidence: [
-    { text: "GET /search?q=shoes'+OR+'1'='1 HTTP/1.1", tone: "request" },
-    { text: "HTTP/1.1 200 OK  · 1,284 rows (expected 12)", tone: "response" },
-    { text: "Cookie: session=••••••••••••a91f", tone: "masked" },
-  ] as const,
+    "GET /api/v1/products?q=cotton' OR '1'='1-- -",
+    "HTTP 200 · all 48,215 rows (no auth)",
+    "1 | Sophea Chan | s•••@gmail.com | +855 12 ••• | •••• 5466",
+  ],
   remediation: [
     "Use parameterized queries for every database call",
-    "Validate q against an allow-list of characters",
-    "Run the database user with read-only rights",
+    "Run the app with a least-privilege database account",
+    "Store passwords with a slow salted hash",
   ],
   references: ["CWE-89", "OWASP A03:2021"],
-  confidence: 0.96,
 };

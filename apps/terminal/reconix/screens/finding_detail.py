@@ -11,6 +11,7 @@ from textual.widgets import Static
 from .base import ReconixScreen
 from .. import store, theme
 from ..models import Finding
+from ..wording import counted
 from ..widgets.findings import (
     cvss_text, for_display, mask, severity_text, triage_text, validation_text,
 )
@@ -57,6 +58,19 @@ class FindingDetailScreen(ReconixScreen):
         return ((f.fid, f.status, f.effective_severity, f.triage_note,
                  self.app.finding_unmasked) if f else None)
 
+    @staticmethod
+    def _empty_state() -> Text:
+        """What to do on a detail screen with no finding open: how many there are, and how
+        to get to one."""
+        count = len(store.list_findings())
+        if not count:
+            return Text("No findings yet — they show up here as the assessment finds them.",
+                        style=theme.MUTED)
+        return Text.assemble(
+            (f"{counted(count, 'finding')} to look at — press ", theme.MUTED),
+            ("←", f"bold {theme.TEXT}"), (" for the list, then ", theme.MUTED),
+            ("↵", f"bold {theme.TEXT}"), (" to open one.", theme.MUTED))
+
     def compose_body(self) -> ComposeResult:
         f = self._finding()
         if f is None:
@@ -64,6 +78,7 @@ class FindingDetailScreen(ReconixScreen):
                                                                     "open one from the list",
                                                                     theme.DIM)),
                          id="breadcrumb")
+            yield Static(self._empty_state(), id="detail-empty", classes="panel-note")
             return
         order, inside = self._order()
         position = order.index(f.fid) + 1
@@ -77,10 +92,16 @@ class FindingDetailScreen(ReconixScreen):
         with Vertical(classes="panel", id="detail-header"):
             yield Static(Text.assemble(severity_text(d), "   ", (d.title, f"bold {theme.TEXT}"),
                                        "      ", validation_text(d), "   ", triage_text(d)))
-            refs = " · ".join(d.cve + d.cwe + d.owasp) or "—"
+            ids = " · ".join(d.cve + d.cwe + d.owasp)
+            tail = Text()
+            if d.cvss_score:
+                tail.append(f"CVSS {cvss_text(d)}", style=theme.KEY)
+            if ids:
+                tail.append(" · " if tail else "", style=theme.DIM)
+                tail.append(ids, style=theme.KEY)
             yield Static(Text.assemble(
-                (f"{d.fid} · {d.path} · detected by {d.tool}", theme.MUTED), "    ",
-                (f"CVSS {cvss_text(d)} · {refs}", theme.KEY)))
+                (f"{d.fid} · {d.path} · detected by ", theme.MUTED), (d.tool, theme.TEAL),
+                ("    " if tail else "", ""), tail))
         with Horizontal(id="detail-cols"):
             with Vertical(classes="panel") as evidence:
                 evidence.border_title = "▤ EVIDENCE"
@@ -98,12 +119,21 @@ class FindingDetailScreen(ReconixScreen):
                 for line in lines:
                     yield _para(line, theme.STRING)
                 yield Static("")
+                yield _heading("Verification", theme.TEXT)
+                status = (d.effective_verification or {}).get("status", "UNVERIFIED")
+                yield _para(f"{status} · {d.validation_method or 'not independently tested'}")
+                yield _para(d.validation_reason)
+                for line in d.validation_proof:
+                    yield _para(line, theme.STRING)
+                yield Static("")
                 if d.needs_review:
                     note = (f"○ {d.validation.title()} — needs analyst review. Press t to set "
                             "its status.", theme.MEDIUM)
+                elif d.confirmed:
+                    note = ("✓ Classified vulnerability · recorded proof shown above.", theme.TEAL)
                 else:
-                    note = ("✓ Confirmed during the run by the limited validation you "
-                            "approved.", theme.TEAL)
+                    state = "false-positive" if d.false_positive else d.status
+                    note = (f"Triage: {state}. No verified vulnerability is claimed.", theme.DIM)
                 yield Static(Text(*note), classes="panel-note")
             with Vertical(classes="panel") as analysis:
                 analysis.border_title = "✦ AI ANALYSIS"
@@ -118,7 +148,15 @@ class FindingDetailScreen(ReconixScreen):
                 yield _para(d.remediation)
                 yield Static("")
                 yield _heading("Classification", theme.LOW)
+                yield _para(d.display_category.replace("_", " ").title())
+                yield _para(f"Confidence: {d.confidence_level} · Evidence: {d.evidence_quality}")
+                yield _para(f"Exploitability: {d.exploitability}")
+                if d.classification_uncertainty:
+                    yield _para(d.classification_uncertainty)
                 yield _para(f"{d.category or '—'} · {d.cvss_vector or 'not scored'}")
+                yield _heading("Scanner claims", theme.DIM)
+                for claim in d.source_claims:
+                    yield _para(claim)
                 for ref in d.references:
                     yield Static(Text.assemble(("• ", theme.DIM), (ref, theme.KEY)))
                 if d.triage_note:

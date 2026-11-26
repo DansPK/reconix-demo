@@ -112,7 +112,12 @@ def report_data() -> Dict[str, Any]:
         "findings": [
             {
                 "id": f.fid, "severity": f.severity, "title": f.title, "path": f.path,
-                "validation": f.validation, "description": f.description,
+                "validation": f.verification_status if f.verification_status != "UNKNOWN" else "UNCONFIRMED",
+                "finding_category": f.finding_category,
+                "confidence_level": f.confidence_level, "evidence_quality": f.evidence_quality,
+                "effective_verification": f.effective_verification,
+                "validation_proof": list(f.validation_proof),
+                "description": f.description,
                 "affected_url": f.affected_url, "evidence": list(f.evidence),
                 "impact": f.impact, "references": list(f.references),
                 "remediation": f.remediation, "tool": f.tool,
@@ -155,6 +160,7 @@ def generate_report(format_id: str) -> str:
         raise StoreValidationError("The report is available once the assessment is complete.")
     fmt = _format(format_id)
     data = report_data()
+    data["report_version"] = f"{lists.current().report_generation + 1}.0"
     path = _report_path(data["assessment_id"], fmt.extension)
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     if fmt.id in BINARY_FORMATS:
@@ -163,12 +169,27 @@ def generate_report(format_id: str) -> str:
         path.write_text(_render_json(data), encoding="utf-8")
     shown = _display_path(path)
     run.report_path = shown
+    lists.current().report_generation += 1
+    lists.current().report_version = data["report_version"]
+    lists.current().report_generated_at = utc_now()
+    lists.current().report_signed_off = False  # every new build needs its own review
     run.progress["report"] = 100
     add_activity("USER", f"Report format: {fmt.name}")
     add_activity("SYS", f"Report saved · {shown}", tone="ok")
     add_chat("text", "reconix", f"Report saved: {shown}.", tone="ok")
     log_event("report.generated", shown)
     return shown
+
+
+def sign_off_report() -> None:
+    """Approve the built report for dashboard download; no service is contacted."""
+    assessment = lists.current()
+    if not assessment.run.completed or not assessment.run.report_path:
+        raise StoreValidationError("Generate a completed report before signing it off.")
+    assessment.report_signed_off = True
+    add_activity("USER", f"Report v{assessment.report_generation} review approved; downloads unlocked",
+                 tone="ok")
+    log_event("report.review_approved", assessment.assessment_id)
 
 
 def assessment_summary() -> AssessmentSummary:

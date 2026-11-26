@@ -36,7 +36,7 @@ const PAGES = Math.ceil(TOTAL / PER_PAGE);
 test.beforeAll(() => expect(PAGES, "the sample data needs more than one page of findings").toBeGreaterThan(1));
 
 test("ten findings a page, with Previous and Next under the list", async ({ page }) => {
-  await go(page, "/?view=findings");
+  await go(page, "/findings");
   await expect(rows(page)).toHaveCount(PER_PAGE);
   await expect(pager(page)).toContainText(`Page 1 of ${PAGES} · ${TOTAL} results`);
   await expect(pager(page).getByRole("button", { name: "Previous page" })).toBeDisabled();
@@ -57,14 +57,14 @@ test("ten findings a page, with Previous and Next under the list", async ({ page
 });
 
 test("a deep link opens the page that holds its finding, and the selection stays while it is on the page", async ({ page }) => {
-  await go(page, "/?view=findings&page=2");
+  await go(page, "/findings?page=2");
   await rows(page).nth(1).locator("button").click(); // the second row of page 2
   const key = param(page, "finding")!;
   expect(key).toContain("~"); // every run's list: keyed by run
   await expect(selected(page)).toHaveCount(1);
 
   // the link alone, and with the wrong page: both land on page 2 with the row selected
-  for (const url of [`/?view=findings&finding=${encodeURIComponent(key)}`, `/?view=findings&page=1&finding=${encodeURIComponent(key)}`]) {
+  for (const url of [`/findings?finding=${encodeURIComponent(key)}`, `/findings?page=1&finding=${encodeURIComponent(key)}`]) {
     await go(page, url);
     await expect(pager(page)).toContainText(`Page 2 of ${PAGES}`);
     await expect(selected(page)).toHaveCount(1);
@@ -78,10 +78,12 @@ test("a deep link opens the page that holds its finding, and the selection stays
 });
 
 test("a filter goes back to the first page; Previous and Next finding cross the page end", async ({ page }) => {
-  await go(page, "/?view=findings&page=2");
+  await go(page, "/findings?page=2");
   await expect(pager(page)).toContainText("Page 2 of");
   const sev = await rowSeverity(page, 0);
+  // nosemgrep: detect-non-literal-regexp
   await page.getByRole("group", { name: "Severity" }).getByRole("button", { name: new RegExp(`^${sev.toLowerCase()}`) }).click();
+  // nosemgrep: detect-non-literal-regexp
   await expect(page).toHaveURL(new RegExp(`sev=${sev}`));
   await expect(page).not.toHaveURL(/page=/);
   await page.getByRole("button", { name: "Clear filters" }).click();
@@ -100,14 +102,14 @@ test("a filter goes back to the first page; Previous and Next finding cross the 
   expect(param(page, "finding")).toBe(last);
   await expect(detail(page)).toContainText(`${PER_PAGE} of ${TOTAL}`);
   // the ends are disabled, not dead
-  await go(page, "/?view=findings");
+  await go(page, "/findings");
   await expect(detail(page).getByRole("button", { name: "Previous finding" })).toBeDisabled();
 });
 
 test("a finding the address names but the list lacks falls back to the first row, with a way out", async ({ page }) => {
   await signIn(page);
   // unknown: nothing by that name in any run
-  await go(page, "/?view=findings&finding=no-such-finding");
+  await go(page, "/findings?finding=no-such-finding");
   await expect(notice(page)).toContainText("No finding no-such-finding");
   await expect(selected(page)).toHaveCount(1);
   await expect(detail(page)).toBeVisible();
@@ -116,20 +118,21 @@ test("a finding the address names but the list lacks falls back to the first row
 
   // hidden by a filter: Show it clears the filters and keeps it selected
   const a = sample().find((x) => new Set(x.findings.map((f) => f.severity)).size > 1)!;
-  await go(page, `/?uid=${a.uid}&view=findings`);
+  await go(page, `/findings/${a.uid}`);
   const fid = await rowId(page, 0);
   const sev = await rowSeverity(page, 0);
   const other = a.findings.find((x) => x.severity !== sev)!.severity;
-  await go(page, `/?uid=${a.uid}&view=findings&sev=${other}&finding=${fid}`);
+  await go(page, `/findings/${a.uid}?sev=${other}&finding=${fid}`);
   await expect(notice(page)).toContainText(`${fid} is hidden by the filters`);
   await page.getByRole("button", { name: "Show it" }).click();
   await expect(page).not.toHaveURL(/sev=/);
+  // nosemgrep: detect-non-literal-regexp
   await expect(page).toHaveURL(new RegExp(`finding=${fid}`));
   await expect(selected(page)).toContainText(fid);
   await expect(notice(page)).toHaveCount(0);
 
   // a value that is no key is never repeated
-  await go(page, `/?uid=${a.uid}&view=findings&finding=${encodeURIComponent("<b>x</b> y")}`);
+  await go(page, `/findings/${a.uid}?finding=${encodeURIComponent("<b>x</b> y")}`);
   await expect(notice(page)).toHaveText(/This link names a finding that isn't here\./);
   await expect(notice(page)).not.toContainText("<b>");
 });
@@ -143,11 +146,11 @@ test("a run with no findings says so: no list, no filters, no pager", async ({ p
   const run = sample().find((a) => a.uid === NO_FINDINGS)!;
   expect(run.findings).toHaveLength(0);
   expect(run.status).toBe("Completed");
-  await go(page, `/?uid=${NO_FINDINGS}&view=findings`);
+  await go(page, `/findings/${NO_FINDINGS}`);
   await expect(page.getByRole("heading", { name: "Findings", level: 1 })).toBeVisible();
   const view = page.locator("main > :not([hidden])"); // the Report view (hidden) says it too
   await expect(view.getByText("No findings in this assessment yet.")).toBeVisible();
-  await expect(view.getByText("Findings appear here once this assessment's run records some.")).toBeVisible();
+  await expect(view.getByText("This assessment has no findings yet.")).toBeVisible();
   await expect(list(page)).toHaveCount(0);
   await expect(page.getByRole("searchbox", { name: "Search findings" })).toHaveCount(0);
   await expect(pager(page)).toHaveCount(0);
@@ -157,7 +160,7 @@ test("a run with no findings says so: no list, no filters, no pager", async ({ p
 test("one run with more than ten findings pages at ten, and its last page holds the rest", async ({ page }) => {
   const run = MOST;
   test.skip(counted(run).length <= PER_PAGE, "no sample run lists more than ten findings (Info ones are not listed)");
-  await go(page, `/?uid=${run.uid}&view=findings`);
+  await go(page, `/findings/${run.uid}`);
   await expect(rows(page)).toHaveCount(PER_PAGE);
   await expect(pager(page)).toContainText(`Page 1 of 2 · ${counted(run).length} results`);
   await pager(page).getByRole("button", { name: "Next page" }).click();
@@ -170,14 +173,14 @@ test("one run with more than ten findings pages at ten, and its last page holds 
 
 test("a run that fits one page shows no pager", async ({ page }) => {
   const one = sample().find((a) => counted(a).length > 1 && counted(a).length <= PER_PAGE)!;
-  await go(page, `/?uid=${one.uid}&view=findings`);
+  await go(page, `/findings/${one.uid}`);
   await expect(rows(page)).toHaveCount(counted(one).length);
   await expect(pager(page)).toHaveCount(0);
 });
 
 test("a critical finding shows its badge first, there is no Info level, and titles stay text", async ({ page }) => {
   const uid = "20260929-112000-8c51_RCX-001";
-  await go(page, `/?uid=${uid}&view=findings`);
+  await go(page, `/findings/${uid}`);
   await expect(rows(page).first().locator("button")).toHaveAttribute("data-severity", "CRITICAL");
   const severity = page.getByRole("group", { name: "Severity" });
   await expect(severity.getByRole("button", { name: /^critical/ })).toBeVisible();
@@ -202,7 +205,7 @@ test("a false positive is left out until Show lists it as closed, and its analys
   test.skip(!run, "the sample data holds no false positive with a note (an Info one is not listed)");
   const fp = run!.findings.find((f) => f.status === "false-positive" && f.triage_note)!;
   const n = counted(run!).length;
-  await go(page, `/?uid=${run!.uid}&view=findings`);
+  await go(page, `/findings/${run!.uid}`);
   // left out: the list, the headline and the summary count what the Overview counts
   await expect(rows(page)).toHaveCount(Math.min(PER_PAGE, n));
   await expect(rows(page).filter({ hasText: fp.title })).toHaveCount(0);
@@ -219,7 +222,7 @@ test("a false positive is left out until Show lists it as closed, and its analys
   await expect(page).not.toHaveURL(/fp=/);
   await expect(rows(page).filter({ hasText: fp.title })).toHaveCount(0);
   // a link naming it says why it isn't listed, and Show it lists and selects it
-  await go(page, `/?uid=${run!.uid}&view=findings&finding=${fp.id}`);
+  await go(page, `/findings/${run!.uid}?finding=${fp.id}`);
   await expect(notice(page)).toContainText(`${fp.id} is marked as a false positive, and false positives are hidden.`);
   await page.getByRole("button", { name: "Show it" }).click();
   await expect(page).toHaveURL(/fp=1/);
@@ -235,13 +238,13 @@ test("a false positive is left out until Show lists it as closed, and its analys
 const MASKED_RUN = "20260929-112000-8c51_RCX-001";
 
 test("a login in a target is masked in the finding's detail and in the Word export", async ({ page }) => {
-  await go(page, `/?uid=${MASKED_RUN}&view=findings&finding=IMP-001`);
-  await expect(detail(page)).toContainText("••••@portal.lumina.com");
+  await go(page, `/findings/${MASKED_RUN}?finding=IMP-001`);
+  await expect(detail(page)).toContainText("••••@portal.example.com");
   await expect(detail(page)).not.toContainText("hunter2");
   const res = await page.request.get(`/api/assessments/${MASKED_RUN}/export?format=docx`);
   expect(res.status()).toBe(200);
   const doc = unzip(await res.body()).get("word/document.xml") ?? "";
-  expect(doc).toContain("••••@portal.lumina.com");
+  expect(doc).toContain("••••@portal.example.com");
   expect(doc).not.toContain("hunter2");
 });
 
@@ -249,7 +252,7 @@ test.describe("on the fixed frame (1366×768)", () => {
   test.use({ viewport: { width: 1366, height: 768 } });
 
   test("the list pane scrolls on its own, the page does not, and the detail keeps its header", async ({ page }) => {
-    await go(page, "/?view=findings");
+    await go(page, "/findings");
     await expect(rows(page)).toHaveCount(PER_PAGE);
     const main = page.locator("main.dash-content");
     const state = () =>
@@ -306,7 +309,7 @@ test.describe("on the fixed frame (1366×768)", () => {
   });
 
   test("the list pane hides its scrollbars, down the side and along the bottom, and still scrolls", async ({ page }) => {
-    await go(page, "/?view=findings");
+    await go(page, "/findings");
     await expect(rows(page)).toHaveCount(PER_PAGE);
     const bars = () =>
       page.evaluate(() => {
@@ -350,11 +353,59 @@ test.describe("on the fixed frame (1366×768)", () => {
   });
 });
 
+for (const viewport of [{ width: 1100, height: 800 }, { width: 1440, height: 700 }]) {
+  test.describe(`two panes on the window-scrolling frame (${viewport.width}×${viewport.height})`, () => {
+    test.use({ viewport });
+
+    test("the list pane sticks, one screen tall, and its rows scroll on their own", async ({ page }) => {
+      await go(page, "/findings");
+      await expect(rows(page)).toHaveCount(PER_PAGE);
+      const state = () =>
+        page.evaluate(() => {
+          const ul = document.querySelector<HTMLElement>('ul[aria-label="Findings"]')!;
+          return { list: ul.scrollTop, listRange: ul.scrollHeight - ul.clientHeight, win: scrollY };
+        });
+      expect((await state()).listRange, "ten rows do not fit a screen: the rows must scroll").toBeGreaterThan(100);
+
+      // the wheel over the rows scrolls them, not the window
+      const win = (await state()).win;
+      const box = (await list(page).boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.wheel(0, 200);
+      await expect.poll(async () => (await state()).list).toBeGreaterThan(100);
+      expect((await state()).win).toBe(win);
+
+      // the keys scroll the rows once one has focus
+      await row(page, 0).focus();
+      await page.keyboard.press("Home");
+      await expect.poll(async () => (await state()).list).toBe(0);
+      await page.keyboard.press("End");
+      await expect.poll(async () => (await state()).list).toBeGreaterThan(100);
+
+      // a detail taller than the screen: the window scrolls it while the list pane stays at the top
+      // of the window, the pager in reach. No sample finding is that tall, so the pane is made so.
+      await page.locator(".dash-findings .ui-split-detail").evaluate((el) => (el.style.minHeight = "2000px"));
+      // past where the pane would scroll off (its own top less the 16px gutter), not to the end,
+      // where the footnote under the split takes the pane up with it
+      await page.evaluate(() => {
+        const top = document.querySelector(".dash-findings .ui-split-list")!.getBoundingClientRect().top + scrollY;
+        scrollTo(0, top - 16 + 50);
+      });
+      await expect.poll(async () => (await state()).win).toBeGreaterThan(win);
+      const pane = (await page.locator(".dash-findings .ui-split-list").boundingBox())!;
+      expect(pane.y, "the list pane sticks to the top of the window").toBeGreaterThanOrEqual(0);
+      expect(pane.y + pane.height).toBeLessThanOrEqual(viewport.height);
+      const pagerBox = (await pager(page).boundingBox())!;
+      expect(pagerBox.y + pagerBox.height, "the pager stays in reach").toBeLessThanOrEqual(viewport.height);
+    });
+  });
+}
+
 test.describe("on a phone (390×844)", () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
   test("the list first; a row opens the detail with Back, and the browser's Back returns to the list", async ({ page }) => {
-    await go(page, "/?view=findings");
+    await go(page, "/findings");
     await expect(list(page)).toBeVisible();
     await expect(detail(page)).toBeHidden();
     const back = page.getByRole("button", { name: "Back to the findings" });
@@ -393,7 +444,7 @@ test.describe("on a phone (390×844)", () => {
   });
 
   test("the detail takes focus; Back returns to the opened row, highlighted and focused; Forward keeps a Back", async ({ page }) => {
-    await go(page, "/?view=findings");
+    await go(page, "/findings");
     const back = page.getByRole("button", { name: "Back to the findings" });
     const focusedKey = () => page.evaluate(() => (document.activeElement as HTMLElement | null)?.closest<HTMLElement>("[data-finding-key], article")?.getAttribute("data-finding-key") ?? document.activeElement?.tagName);
     const eighth = (await row(page, 7).getAttribute("data-finding-key"))!;
@@ -429,7 +480,7 @@ test.describe("on a phone (390×844)", () => {
   });
 
   test("the detail's evidence scrolls sideways inside a tab stop named Evidence", async ({ page }) => {
-    await go(page, "/?view=findings");
+    await go(page, "/findings");
     await row(page, 2).tap();
     await expect(detail(page)).toBeVisible();
     const evidence = detail(page).getByRole("region", { name: "Evidence" });

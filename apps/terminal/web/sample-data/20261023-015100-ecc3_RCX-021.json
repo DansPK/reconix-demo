@@ -1,0 +1,988 @@
+{
+  "schema": "reconix.assessment/v1",
+  "uid": "20261023-015100-ecc3_RCX-021",
+  "session": "20261023-015100-ecc3",
+  "label": "RCX-021",
+  "assessment_id": "RCX-021",
+  "target": "inventory.lumina.com",
+  "target_url": "https://inventory.lumina.com",
+  "target_kind": "API service",
+  "template": {
+    "id": "api",
+    "name": "API",
+    "confirmed": true
+  },
+  "api_spec": null,
+  "operator": "analyst",
+  "client": "Lumina",
+  "mode": "Grey-box, Authorized",
+  "methodology": [
+    "OWASP API Security Top 10 (2023)",
+    "OWASP WSTG"
+  ],
+  "report_version": "1.0",
+  "created_at": "2026-10-23T01:51:24+00:00",
+  "status": "Completed",
+  "waiting_gate": "",
+  "waiting_request_id": "",
+  "waiting_for": "",
+  "stopped_reason": "",
+  "session_closed": true,
+  "run": {
+    "phase": "completed",
+    "started_at": "2026-10-23T01:52:17+00:00",
+    "finished_at": "2026-10-23T01:56:31+00:00",
+    "completed": true,
+    "requests": 556,
+    "progress": {
+      "recon": 100,
+      "discovery": 100,
+      "scanning": 100,
+      "validation": 100,
+      "analysis": 100,
+      "report": 100
+    },
+    "report_path": "./reports/RCX-021.docx"
+  },
+  "login": {
+    "kind": "",
+    "provided": false
+  },
+  "plan": [
+    {
+      "key": "discovery",
+      "label": "Map API surface",
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "httpx",
+        "Katana",
+        "ffuf"
+      ]
+    },
+    {
+      "key": "scanning",
+      "label": "Scan endpoints",
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "Nuclei",
+        "schemathesis"
+      ]
+    },
+    {
+      "key": "validation",
+      "label": "Validate authz & inputs",
+      "status": "done",
+      "detail": "",
+      "tools": [
+        "Nuclei",
+        "schemathesis",
+        "dalfox",
+        "testssl.sh",
+        "httpx"
+      ]
+    },
+    {
+      "key": "analysis",
+      "label": "Correlate & dedupe findings",
+      "status": "done",
+      "detail": "",
+      "tools": []
+    },
+    {
+      "key": "report",
+      "label": "Generate report",
+      "status": "done",
+      "detail": "",
+      "tools": []
+    }
+  ],
+  "scope": {
+    "kind": "api",
+    "target_url": "https://inventory.lumina.com",
+    "assessment_type": "API",
+    "status": "APPROVED",
+    "allowed_actions": [
+      "Endpoint discovery",
+      "auth checks",
+      "limited validation"
+    ],
+    "allowed_methods": [
+      "GET",
+      "POST"
+    ],
+    "excluded_paths": [
+      "/internal",
+      "/admin"
+    ],
+    "allowed_ports": [],
+    "time_limit_minutes": 0,
+    "tools": [
+      "httpx",
+      "Katana",
+      "ffuf",
+      "Nuclei",
+      "schemathesis",
+      "dalfox",
+      "testssl.sh"
+    ]
+  },
+  "verdicts": [
+    {
+      "method": "GET",
+      "path": "/internal/metrics",
+      "allowed": false,
+      "reason": "Path outside approved scope",
+      "at": "2026-10-23T01:53:40+00:00"
+    },
+    {
+      "method": "GET",
+      "path": "/v2/items/LUM-TEST-01",
+      "allowed": true,
+      "reason": "Within approved scope",
+      "at": "2026-10-23T01:54:23+00:00"
+    },
+    {
+      "method": "GET",
+      "path": "/v2/items/LUM-TEST-01",
+      "allowed": true,
+      "reason": "Within approved scope",
+      "at": "2026-10-23T01:54:31+00:00"
+    },
+    {
+      "method": "POST",
+      "path": "/v2/stock/adjust",
+      "allowed": true,
+      "reason": "Within approved scope",
+      "at": "2026-10-23T01:55:09+00:00"
+    },
+    {
+      "method": "POST",
+      "path": "/v2/stock/adjust",
+      "allowed": true,
+      "reason": "Within approved scope",
+      "at": "2026-10-23T01:55:26+00:00"
+    }
+  ],
+  "approvals": [
+    {
+      "request_id": "approval-001",
+      "risk": "MEDIUM",
+      "action": "Baseline request (read-only)",
+      "target": "GET /v2/items/LUM-TEST-01 (test token)",
+      "method": "GET",
+      "path": "/v2/items/LUM-TEST-01",
+      "purpose": "Record the documented response",
+      "impact": "Low. One read request",
+      "command": "GET https://inventory.lumina.com/v2/items/LUM-TEST-01 as test token",
+      "command_hash": "sha256:c2ba34dcd3b9c9b948f457b0eca0e6beff050df10c8de2754769cc050c263082"
+    },
+    {
+      "request_id": "approval-002",
+      "risk": "HIGH",
+      "action": "access_check",
+      "target": "POST /v2/stock/adjust",
+      "method": "POST",
+      "path": "/v2/stock/adjust",
+      "purpose": "Check whether the endpoint accepts a request without credentials",
+      "impact": "Uses a test item and changes nothing. 1 request",
+      "command": "POST https://inventory.lumina.com/v2/stock/adjust (no credentials, test item)",
+      "command_hash": "sha256:188e6edc41926c6faa43309e636ecb0f06e1f9950bf7c6fb2689cc9a9ede8b63"
+    }
+  ],
+  "decisions": [
+    {
+      "request_id": "approval-001",
+      "decision": "APPROVED",
+      "operator": "analyst",
+      "reason": "",
+      "command_hash": "sha256:c2ba34dcd3b9c9b948f457b0eca0e6beff050df10c8de2754769cc050c263082",
+      "at": "2026-10-23T01:54:37+00:00"
+    },
+    {
+      "request_id": "approval-002",
+      "decision": "APPROVED",
+      "operator": "analyst",
+      "reason": "",
+      "command_hash": "sha256:188e6edc41926c6faa43309e636ecb0f06e1f9950bf7c6fb2689cc9a9ede8b63",
+      "at": "2026-10-23T01:55:30+00:00"
+    }
+  ],
+  "findings": [
+    {
+      "id": "001",
+      "severity": "HIGH",
+      "title": "Stock adjustment endpoint needs no login",
+      "path": "/v2/stock/adjust",
+      "validation": "CONFIRMED",
+      "description": "The adjustment endpoint accepts requests with no credentials.",
+      "affected_url": "https://inventory.lumina.com/v2/stock/adjust",
+      "impact": "Anyone who can reach the API could change stock levels.",
+      "remediation": "Require the warehouse service identity on every write.",
+      "tool": "schemathesis",
+      "references": [
+        "OWASP API5:2023",
+        "CWE-306"
+      ],
+      "evidence": [
+        "POST /v2/stock/adjust (test SKU, +0) without credentials → HTTP 200",
+        "response: sku LUM-TEST-01 · quantity unchanged"
+      ],
+      "evidence_unmasked": [],
+      "cvss_score": 7.5,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+      "category": "API",
+      "cwe": [
+        "CWE-306"
+      ],
+      "owasp": [
+        "OWASP API5:2023"
+      ],
+      "cve": [],
+      "status": "open",
+      "severity_override": "",
+      "effective_severity": "HIGH",
+      "triage_note": "",
+      "finding_category": "CONFIRMED_VULNERABILITY",
+      "confidence_level": "HIGH",
+      "evidence_quality": "HIGH",
+      "verification_status": "CONFIRMED",
+      "effective_verification": {
+        "status": "VERIFIED",
+        "verifier": "manual_review",
+        "subject": {
+          "label": "/v2/stock/adjust"
+        },
+        "proof_lines": [
+          "POST /v2/stock/adjust (test SKU, +0) without credentials → HTTP 200",
+          "response: sku LUM-TEST-01 · quantity unchanged"
+        ],
+        "legacy": false
+      },
+      "exploitability": "DEMONSTRATED",
+      "classification_uncertainty": "",
+      "validation_method": "manual_review",
+      "validation_reason": "The recorded comparison demonstrates the reported behavior.",
+      "validation_proof": [
+        "POST /v2/stock/adjust (test SKU, +0) without credentials → HTTP 200",
+        "response: sku LUM-TEST-01 · quantity unchanged"
+      ],
+      "source_claims": [
+        "schemathesis: Stock adjustment endpoint needs no login"
+      ]
+    },
+    {
+      "id": "002",
+      "severity": "MEDIUM",
+      "title": "Supplier cost prices returned to store staff",
+      "path": "/v2/items/{sku}",
+      "validation": "UNCONFIRMED",
+      "description": "Item details include the purchase cost for every caller.",
+      "affected_url": "https://inventory.lumina.com/v2/items/{sku}",
+      "impact": "Store staff can see margins meant for buyers.",
+      "remediation": "Return cost fields to the buyer role only.",
+      "tool": "Nuclei",
+      "references": [
+        "OWASP API3:2023",
+        "CWE-213"
+      ],
+      "evidence": [
+        "GET /v2/items/LUM-SOCK-014 as store staff → cost field present"
+      ],
+      "evidence_unmasked": [],
+      "cvss_score": 6.5,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
+      "category": "API",
+      "cwe": [
+        "CWE-213"
+      ],
+      "owasp": [
+        "OWASP API3:2023"
+      ],
+      "cve": [],
+      "status": "open",
+      "severity_override": "",
+      "effective_severity": "MEDIUM",
+      "triage_note": "",
+      "finding_category": "POTENTIAL_VULNERABILITY",
+      "confidence_level": "MEDIUM",
+      "evidence_quality": "MEDIUM",
+      "verification_status": "UNCONFIRMED",
+      "effective_verification": {
+        "status": "UNVERIFIED",
+        "reason": "The scanner observation requires an independent validation step.",
+        "proof_lines": [],
+        "legacy": false
+      },
+      "exploitability": "PLAUSIBLE",
+      "classification_uncertainty": "The scanner observation requires an independent validation step.",
+      "validation_method": "",
+      "validation_reason": "The scanner observation requires an independent validation step.",
+      "validation_proof": [],
+      "source_claims": [
+        "Nuclei: Supplier cost prices returned to store staff"
+      ]
+    },
+    {
+      "id": "003",
+      "severity": "MEDIUM",
+      "title": "Old API version still answers",
+      "path": "/v1/items",
+      "validation": "UNCONFIRMED",
+      "description": "Version 1 was retired in March but still responds.",
+      "affected_url": "https://inventory.lumina.com/v1/items",
+      "impact": "Fixes made in version 2 can be bypassed through it.",
+      "remediation": "Switch version 1 off at the gateway.",
+      "tool": "httpx",
+      "references": [
+        "OWASP API9:2023",
+        "CWE-1059"
+      ],
+      "evidence": [
+        "GET /v1/items → HTTP 200 · 2,140 items"
+      ],
+      "evidence_unmasked": [],
+      "cvss_score": 5.3,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+      "category": "API",
+      "cwe": [
+        "CWE-1059"
+      ],
+      "owasp": [
+        "OWASP API9:2023"
+      ],
+      "cve": [],
+      "status": "accepted",
+      "severity_override": "",
+      "effective_severity": "MEDIUM",
+      "triage_note": "Version 1 is switched off with the November release.",
+      "finding_category": "POTENTIAL_VULNERABILITY",
+      "confidence_level": "MEDIUM",
+      "evidence_quality": "MEDIUM",
+      "verification_status": "UNCONFIRMED",
+      "effective_verification": {
+        "status": "UNVERIFIED",
+        "reason": "The scanner observation requires an independent validation step.",
+        "proof_lines": [],
+        "legacy": false
+      },
+      "exploitability": "PLAUSIBLE",
+      "classification_uncertainty": "The scanner observation requires an independent validation step.",
+      "validation_method": "",
+      "validation_reason": "The scanner observation requires an independent validation step.",
+      "validation_proof": [],
+      "source_claims": [
+        "httpx: Old API version still answers"
+      ]
+    },
+    {
+      "id": "004",
+      "severity": "LOW",
+      "title": "Clock skew allows reused request signatures",
+      "path": "/v2",
+      "validation": "INCONCLUSIVE",
+      "description": "Signed requests are accepted for fifteen minutes.",
+      "affected_url": "https://inventory.lumina.com/v2",
+      "impact": "A captured request stays usable for longer than needed.",
+      "remediation": "Shorten the window to one minute and track request ids.",
+      "tool": "httpx",
+      "references": [
+        "OWASP API2:2023",
+        "CWE-294"
+      ],
+      "evidence": [
+        "request signed 14 min earlier → HTTP 200"
+      ],
+      "evidence_unmasked": [],
+      "cvss_score": 3.7,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+      "category": "API",
+      "cwe": [
+        "CWE-294"
+      ],
+      "owasp": [
+        "OWASP API2:2023"
+      ],
+      "cve": [],
+      "status": "open",
+      "severity_override": "",
+      "effective_severity": "LOW",
+      "triage_note": "",
+      "finding_category": "POTENTIAL_VULNERABILITY",
+      "confidence_level": "MEDIUM",
+      "evidence_quality": "MEDIUM",
+      "verification_status": "UNCONFIRMED",
+      "effective_verification": {
+        "status": "UNVERIFIED",
+        "reason": "The scanner observation requires an independent validation step.",
+        "proof_lines": [],
+        "legacy": false
+      },
+      "exploitability": "PLAUSIBLE",
+      "classification_uncertainty": "The scanner observation requires an independent validation step.",
+      "validation_method": "",
+      "validation_reason": "The scanner observation requires an independent validation step.",
+      "validation_proof": [],
+      "source_claims": [
+        "httpx: Clock skew allows reused request signatures"
+      ]
+    }
+  ],
+  "reports": [
+    {
+      "report_id": "20261023-015100-ecc3_RCX-021-v1",
+      "version": 1,
+      "report_status": "READY",
+      "review_status": "APPROVED",
+      "signed_off": true,
+      "formats": [
+        "PDF",
+        "DOCX",
+        "JSON"
+      ],
+      "generated_at": "2026-10-23T01:59:02+00:00"
+    }
+  ],
+  "timeline": [
+    {
+      "seq": 1,
+      "at": "2026-10-23T01:51:09+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Welcome to Reconix. Type a target — a URL, an IPv4 address or range, or a git repo or local path — or /template to pick a template.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 2,
+      "at": "2026-10-23T01:51:17+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Session started · policy engine ready",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 3,
+      "at": "2026-10-23T01:51:38+00:00",
+      "type": "chat",
+      "who": "you",
+      "kind": "text",
+      "text": "Test the REST API at https://inventory.lumina.com/v2 for security issues.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 4,
+      "at": "2026-10-23T01:51:50+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Target parsed: inventory.lumina.com",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 5,
+      "at": "2026-10-23T01:51:57+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Target identified: inventory.lumina.com (API service).",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 6,
+      "at": "2026-10-23T01:51:59+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Template auto-selected: API (matched to the target)",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 7,
+      "at": "2026-10-23T01:52:05+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Template auto-selected: API. Drafting a Scope Manifest…",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 8,
+      "at": "2026-10-23T01:52:10+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Scope Manifest drafted · pending approval",
+      "tone": "warn",
+      "rows": []
+    },
+    {
+      "seq": 9,
+      "at": "2026-10-23T01:52:12+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Draft Scope Manifest ready. Testing stays paused until you approve it.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 10,
+      "at": "2026-10-23T01:52:23+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Scope approved",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 11,
+      "at": "2026-10-23T01:52:28+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Assessment RCX-021 created",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 12,
+      "at": "2026-10-23T01:52:39+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Scope approved. Assessment RCX-021 created.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 13,
+      "at": "2026-10-23T01:52:46+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Test plan ready. Review it, then run it; risky steps still ask you first.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 14,
+      "at": "2026-10-23T01:52:53+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Plan approved · testing starts",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 15,
+      "at": "2026-10-23T01:53:00+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Plan approved. Starting the permitted checks.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 16,
+      "at": "2026-10-23T01:53:03+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Selected tools: httpx, Katana, ffuf, Nuclei, schemathesis, dalfox and testssl.sh. Preparing requests with test data. Public surface first.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 17,
+      "at": "2026-10-23T01:53:10+00:00",
+      "type": "activity",
+      "who": "POLICY",
+      "kind": "line",
+      "text": "Scope check: passed",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 18,
+      "at": "2026-10-23T01:53:14+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Executing permitted scan · Katana",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 19,
+      "at": "2026-10-23T01:53:17+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Profiling the target: hosts, technology and exposed paths",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 20,
+      "at": "2026-10-23T01:53:22+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "card",
+      "text": "Discovery · API",
+      "tone": "default",
+      "rows": [
+        [
+          "Endpoints",
+          "31"
+        ],
+        [
+          "Auth scheme",
+          "Bearer"
+        ],
+        [
+          "GraphQL",
+          "no"
+        ]
+      ]
+    },
+    {
+      "seq": 21,
+      "at": "2026-10-23T01:53:29+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Nuclei: checks on the permitted surface",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 22,
+      "at": "2026-10-23T01:53:36+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Proposed request: GET /internal/metrics",
+      "tone": "warn",
+      "rows": []
+    },
+    {
+      "seq": 23,
+      "at": "2026-10-23T01:53:51+00:00",
+      "type": "activity",
+      "who": "POLICY",
+      "kind": "line",
+      "text": "Blocked: Path outside approved scope",
+      "tone": "block",
+      "rows": []
+    },
+    {
+      "seq": 24,
+      "at": "2026-10-23T01:53:57+00:00",
+      "type": "chat",
+      "who": "policy",
+      "kind": "banner",
+      "text": "Blocked: GET /internal/metrics · Path outside approved scope. Not executed.",
+      "tone": "block",
+      "rows": []
+    },
+    {
+      "seq": 25,
+      "at": "2026-10-23T01:54:03+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Continuing on permitted targets",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 26,
+      "at": "2026-10-23T01:54:06+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "card",
+      "text": "Scan · httpx, Katana, ffuf, Nuclei, schemathesis, dalfox and testssl.sh",
+      "tone": "default",
+      "rows": [
+        [
+          "Potential issues",
+          "4"
+        ],
+        [
+          "Needs token",
+          "/v2/stock/adjust"
+        ]
+      ]
+    },
+    {
+      "seq": 27,
+      "at": "2026-10-23T01:54:09+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "The stock adjustment endpoint may accept requests without credentials. Proposing limited validation.",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 28,
+      "at": "2026-10-23T01:54:15+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Candidate F-001 · stock adjustment",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 29,
+      "at": "2026-10-23T01:54:20+00:00",
+      "type": "activity",
+      "who": "POLICY",
+      "kind": "line",
+      "text": "Risk: MEDIUM · approval required",
+      "tone": "warn",
+      "rows": []
+    },
+    {
+      "seq": 30,
+      "at": "2026-10-23T01:54:44+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Approved: Baseline request (read-only)",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 31,
+      "at": "2026-10-23T01:54:54+00:00",
+      "type": "chat",
+      "who": "policy",
+      "kind": "banner",
+      "text": "MEDIUM action approved by analyst.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 32,
+      "at": "2026-10-23T01:54:57+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Executing baseline request",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 33,
+      "at": "2026-10-23T01:55:04+00:00",
+      "type": "activity",
+      "who": "POLICY",
+      "kind": "line",
+      "text": "Risk: HIGH · needs a double check",
+      "tone": "warn",
+      "rows": []
+    },
+    {
+      "seq": 34,
+      "at": "2026-10-23T01:55:34+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Approved: access_check (double-checked)",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 35,
+      "at": "2026-10-23T01:55:43+00:00",
+      "type": "chat",
+      "who": "policy",
+      "kind": "banner",
+      "text": "HIGH action approved after a double check.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 36,
+      "at": "2026-10-23T01:55:46+00:00",
+      "type": "activity",
+      "who": "TOOL",
+      "kind": "line",
+      "text": "Running limited validation · 1 request",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 37,
+      "at": "2026-10-23T01:55:49+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Validation completed. Evidence recorded with sensitive values masked.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 38,
+      "at": "2026-10-23T01:55:52+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Evidence recorded (masked)",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 39,
+      "at": "2026-10-23T01:55:56+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "check",
+      "text": "Analyzing results",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 40,
+      "at": "2026-10-23T01:56:00+00:00",
+      "type": "chat",
+      "who": "",
+      "kind": "check",
+      "text": "Retrieving relevant OWASP API guidance",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 41,
+      "at": "2026-10-23T01:56:04+00:00",
+      "type": "chat",
+      "who": "",
+      "kind": "check",
+      "text": "Correlating duplicate findings",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 42,
+      "at": "2026-10-23T01:56:11+00:00",
+      "type": "chat",
+      "who": "",
+      "kind": "check",
+      "text": "Masking sensitive evidence",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 43,
+      "at": "2026-10-23T01:56:15+00:00",
+      "type": "activity",
+      "who": "AI",
+      "kind": "line",
+      "text": "Duplicates merged · 4 unique findings",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 44,
+      "at": "2026-10-23T01:56:20+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Assessment status: Completed",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 45,
+      "at": "2026-10-23T01:56:24+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Assessment completed. 4 findings: 1 confirmed, 3 marked for review.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 46,
+      "at": "2026-10-23T01:56:28+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Open the report (8 or /report) to export it.",
+      "tone": "muted",
+      "rows": []
+    },
+    {
+      "seq": 47,
+      "at": "2026-10-23T01:58:47+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Triage 003: Accepted risk",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 48,
+      "at": "2026-10-23T01:59:09+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Report format: DOCX",
+      "tone": "default",
+      "rows": []
+    },
+    {
+      "seq": 49,
+      "at": "2026-10-23T01:59:12+00:00",
+      "type": "activity",
+      "who": "SYS",
+      "kind": "line",
+      "text": "Report saved · ./reports/RCX-021.docx",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 50,
+      "at": "2026-10-23T01:59:19+00:00",
+      "type": "chat",
+      "who": "reconix",
+      "kind": "text",
+      "text": "Report saved: ./reports/RCX-021.docx.",
+      "tone": "ok",
+      "rows": []
+    },
+    {
+      "seq": 51,
+      "at": "2026-10-23T01:59:29+00:00",
+      "type": "activity",
+      "who": "USER",
+      "kind": "line",
+      "text": "Report v1 review approved; downloads unlocked",
+      "tone": "ok",
+      "rows": []
+    }
+  ],
+  "requests": [
+    {
+      "text": "Test the REST API at https://inventory.lumina.com/v2 for security issues.",
+      "at": "2026-10-23T01:51:28+00:00"
+    }
+  ],
+  "saved_at": "2026-10-23T01:59:41+00:00"
+}

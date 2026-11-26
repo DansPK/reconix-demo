@@ -3,7 +3,7 @@
    label, a status badge and its text masked again (lib/assistant/redact.ts). Pure. */
 import { redact } from "@/lib/assistant/redact";
 import { duration, stamp } from "@/lib/data/format";
-import type { AssessmentView, LogLine, Severity } from "@/lib/data/view-types";
+import type { AssessmentView, FindingSeverity, LogLine } from "@/lib/data/view-types";
 import { APPROVAL_STATE, toneColor } from "@/lib/status";
 
 import { cluster, ticksAt } from "./axis";
@@ -16,7 +16,7 @@ export function activityCard(v: AssessmentView, pos: (sec: number) => number, la
   const tools = v.scope?.tools ?? [];
   const lastGate = [...log].reverse().find((l) => l.kind === "gate");
   const lastTool = [...log].reverse().find((l) => l.kind === "tool");
-  const severityOf = (id: string): Severity | undefined => v.findings.find((f) => f.id === id)?.severity;
+  const severityOf = (id: string): FindingSeverity | undefined => v.findings.find((f) => f.id === id)?.severity;
   const event = (l: LogLine, i: number): ActivityEvent => {
     const ms = v.startMs + l.sec * 1000;
     return {

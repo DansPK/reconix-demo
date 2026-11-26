@@ -4,7 +4,7 @@
    model answered, it just wrote nothing. With cards it is "no explanation": the cards are the
    saved data, the model added no words about them. A reply that failed for another reason (the
    model unreachable, HTTP 500, the connection) keeps its detail. tests/assistant-empty.test.ts
-   drives the real replyStream, so a reword of the server's message fails there. */
+   drives the real replyStream (with an empty Core API DONE), so a reword of the server's message fails there. */
 import type { ChatMessage } from "./types";
 
 /** How reply.ts words an answer that held nothing. */

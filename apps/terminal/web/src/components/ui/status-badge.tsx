@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type IconName, type Meaning, SEVERITY_META, toneColor } from "@/lib/status";
-import type { Severity } from "@/lib/data/schema";
+import type { FindingSeverity } from "@/lib/data/view-types";
 
 const ICONS: Record<IconName, LucideIcon> = {
   new: Circle,
@@ -41,7 +41,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   severity: TriangleAlert,
 };
 
-const BADGE = "inline-flex h-[22px] shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1.5 text-micro font-medium leading-none";
+const BADGE = "inline-flex h-[22px] shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1.5 text-[11px] font-medium leading-none";
 
 function Badge({ color, icon, label, hint, className }: { color: string; icon: IconName; label: string; hint: string; className?: string }) {
   const Icon = ICONS[icon];
@@ -61,7 +61,7 @@ export function StatusBadge({ meaning, label, className }: { meaning: Meaning; l
   return <Badge color={toneColor(meaning.tone)} icon={meaning.icon} label={label ?? meaning.label} hint={meaning.hint} className={className} />;
 }
 
-export function SeverityBadge({ level, className }: { level: Severity; className?: string }) {
+export function SeverityBadge({ level, className }: { level: FindingSeverity; className?: string }) {
   const m = SEVERITY_META[level];
   return <Badge color={m.color} icon="severity" label={m.label} hint={`${m.label}: ${m.hint}`} className={className} />;
 }

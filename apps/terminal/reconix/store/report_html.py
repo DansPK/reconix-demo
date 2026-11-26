@@ -331,7 +331,7 @@ def _scope_block(data: Dict[str, Any]) -> str:
         f'<dt>Allowed methods</dt><dd><div class="chips">{methods}</div></dd>'
         f'<dt>Excluded paths</dt><dd><div class="chips">{excluded}</div></dd>'
         + ports_row +
-        f'<dt>Time limit</dt><dd>{esc(scope.get("time_limit_minutes", 0))} minutes</dd>'
+        f'<dt>Time limit</dt><dd>{esc(view.time_limit(scope.get("time_limit_minutes", 0)))}</dd>'
         f'<dt>Tools</dt><dd><div class="chips">{tools}</div></dd>'
         '</dl>'
     )

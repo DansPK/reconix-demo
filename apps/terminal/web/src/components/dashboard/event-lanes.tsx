@@ -31,13 +31,13 @@ function EventEntry({ e }: { e: ActivityEvent }) {
   return (
     <li className="flex flex-col gap-1 border-b border-border py-2 last:border-b-0">
       <div className="flex flex-wrap items-center gap-2">
-        <time className="font-mono text-micro text-foreground">{e.when}</time>
-        <span className="inline-flex items-center gap-1 text-micro text-muted-foreground">
+        <time className="font-mono text-[11px] text-foreground">{e.when}</time>
+        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
           <Icon className="size-3" aria-hidden /> {e.label}
         </span>
         <EventBadge badge={e.badge} />
       </div>
-      <p className="font-mono text-micro leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">{e.text}</p>
+      <p className="font-mono text-[11px] leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">{e.text}</p>
     </li>
   );
 }

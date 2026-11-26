@@ -5,6 +5,7 @@ from typing import List
 from ..models import AuditEvent, Feedback
 from . import lists
 from .errors import StoreValidationError
+from .redact import redact
 
 
 def current_operator() -> str:
@@ -29,8 +30,8 @@ MAX_FEEDBACK_LENGTH = 500
 
 
 def add_feedback(gate: str, text: str) -> Feedback:
-    """Save free text typed at a question (the "Type something." answer)."""
-    text = " ".join(text.split())
+    """Save free text typed at a question (the "Type something." answer), masked."""
+    text = redact(" ".join(text.split()))
     if not text:
         raise StoreValidationError("Type some feedback first.")
     if len(text) > MAX_FEEDBACK_LENGTH:

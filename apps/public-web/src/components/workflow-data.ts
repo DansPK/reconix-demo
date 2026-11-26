@@ -37,11 +37,6 @@ export type WorkflowStep = {
   note?: string;
 };
 
-/**
- * The seven steps of an assessment, shown by WorkflowStepper. Copy must stay in
- * step with showcase-data.ts and docs/architecture: no claims beyond those.
- * Preview data is illustrative only (lumina.com / RFC 5737 addresses).
- */
 export const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     id: "request",
@@ -68,7 +63,7 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
     label: "Template",
     icon: LayoutTemplate,
     title: "Choose a template",
-    body: "Automatic or pick manully one of four templates: Network, API, Source Code or Web URL.",
+    body: "Let Reconix match one, or pick from four templates: Network, API, Source Code or Web URL.",
     detail: [
       "Each template asks for the inputs it needs: hosts, endpoints, a repository or a URL",
       "Selecting a template never authorizes testing on its own",
@@ -188,18 +183,18 @@ detail: [
     "Every report includes the approved scope and assessment boundaries",
     "Findings include severity, evidence, validation status, impact, and remediation",
     "Known limitations and unresolved items are clearly documented",
-    "The local viewer provides access to findings, evidence, audit history, and generated reports",
+    "The local dashboard provides access to findings, evidence, and generated reports",
     "Reports can be exported for handoff, review, or compliance documentation",
   ],
    preview: {
       title: "report.pdf",
       lines: [
-        { text: "1  Scope", tone: "foreground" },
-        { text: "2  Findings", tone: "foreground", status: { label: "3", tone: "primary" } },
-        { text: "3  Evidence", tone: "foreground" },
-        { text: "4  Limitations", tone: "foreground" },
-        { text: "5  Recommended fixes", tone: "foreground" },
-        { text: "→ open in local viewer", tone: "primary" },
+        { text: "1  Executive summary", tone: "foreground" },
+        { text: "2  Findings summary", tone: "foreground", status: { label: "3", tone: "primary" } },
+        { text: "3  Approved scope & limitations", tone: "foreground" },
+        { text: "4  Detailed findings", tone: "foreground" },
+        { text: "5  Policy & governance", tone: "foreground" },
+        { text: "→ open in local dashboard", tone: "primary" },
       ],
     },
   },

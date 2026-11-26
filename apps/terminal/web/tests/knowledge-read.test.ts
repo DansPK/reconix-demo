@@ -48,7 +48,7 @@ const snapshot = () =>
 
 describe("knowledgeDir", () => {
   it("is RECONIX_KNOWLEDGE_DIR, else ~/.reconix/knowledge", () => {
-    expect(knowledgeDir({ RECONIX_KNOWLEDGE_DIR: "/srv/k" })).toBe("/srv/k");
+    expect(knowledgeDir({ RECONIX_KNOWLEDGE_DIR: "/srv/k" })).toBe(path.resolve("/srv/k"));
     expect(knowledgeDir({})).toMatch(/[/\\]\.reconix[/\\]knowledge$/);
     expect(knowledgeDir({ RECONIX_KNOWLEDGE_DIR: "~/k" })).toMatch(/[/\\]k$/);
   });

@@ -8,9 +8,14 @@ import { z } from "zod";
 
 /** The severity scale, worst first: these four, everywhere (the TUI's too). */
 export const SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const;
-/** What a saved finding's `severity` may hold: older TUIs also wrote INFO. Such a file still
-    loads, but its INFO findings are left out of every list, count, chart and report. */
-export const SAVED_SEVERITIES = [...SEVERITIES, "INFO"] as const;
+/** A finding's severity as the Core API records it: the four levels plus `UNKNOWN` (the tool gave
+    no rating) and `NONE` (informational). Both are shown, never dropped â€” the same six the TUI's
+    `store/findings.py` SEVERITY_ORDER holds, worst first, so an unrated finding sorts after LOW. */
+export const FINDING_SEVERITIES = [...SEVERITIES, "NONE", "UNKNOWN"] as const;
+/** What a saved finding's `severity` may hold: the six, plus INFO, which older TUIs wrote and the
+    reader drops (`withoutInfo`). Such a file still loads, but its INFO findings are left out of
+    every list, count, chart and report. */
+export const SAVED_SEVERITIES = [...FINDING_SEVERITIES, "INFO"] as const;
 export const STATUSES = ["New", "Running", "Awaiting input", "Completed", "Stopped", "Interrupted"] as const;
 /** Statuses of a run that has not ended (it can still move, unless its TUI is gone). */
 export const UNFINISHED: ReadonlySet<string> = new Set(["New", "Running", "Awaiting input"]);
@@ -31,10 +36,26 @@ export const FindingSchema = z.object({
   tool: text,
   references: z.array(text),
   evidence: z.array(text),
+  evidence_summary: text.default(""),
+  // Demo field: raw values behind the masked `evidence`, revealed by the detail
+  // screen's "Reveal attacker's view" toggle. Never exported (lib/report/mask.ts re-masks).
+  evidence_unmasked: z.array(text).default([]),
   // Enriched fields (older saved files predate them, so each has a default).
-  evidence_unmasked: z.array(text).default([]),   // raw values, revealed by the detail "unmask" toggle
   cvss_score: z.number().default(0),
   cvss_vector: text.default(""),
+  validated_severity_status: z.enum(FINDING_SEVERITIES).nullish(),
+  validated_cvss_score: z.number().nullish(),
+  validated_cvss_vector: text.nullish(),
+  validated_cwe_ids: z.array(text).nullish(),
+  validated_cve_ids: z.array(text).nullish(),
+  finding_category: text.nullish(),
+  confidence_level: text.optional(),
+  evidence_quality: text.optional(),
+  verification_status: text.optional(),
+  exploitability: text.optional(),
+  classification_uncertainty: text.optional(),
+  source_claims: z.array(text).optional(),
+  review_history: z.array(text).optional(),
   category: text.default(""),
   cwe: z.array(text).default([]),
   owasp: z.array(text).default([]),
@@ -43,6 +64,31 @@ export const FindingSchema = z.object({
   severity_override: text.default(""),
   effective_severity: text.default(""),
   triage_note: text.default(""),
+  effective_verification: z
+    .object({
+      status: text.nullable().optional(),
+      kind: text.nullable().optional(),
+      subject: z.record(z.string(), z.unknown()).nullable().optional(),
+      verifier: text.nullable().optional(),
+      proof_lines: z.array(text).optional(),
+      legacy: z.boolean().optional(),
+      reason: text.nullable().optional(),
+    })
+    .nullable().transform((value) => value ?? undefined).optional(),
+  ai_notes: z
+    .object({
+      schema_version: z.number().optional(),
+      explanation: text.optional().default(""),
+      impact: text.optional().default(""),
+      remediation: text.optional().default(""),
+      uncertainty: text.optional().default(""),
+      evidence_summary: text.optional().default(""),
+      suggested_category: text.nullable().optional(),
+      evidence_refs: z.array(text).optional().default([]),
+      model: text.nullable().optional(),
+    })
+    .passthrough()
+    .optional(),
 });
 
 const ScopeSchema = z.object({
@@ -68,7 +114,7 @@ const ApiSpecSchema = z.object({
   servers: z.array(text),
 });
 
-const TimelineEntrySchema = z.object({
+export const TimelineEntrySchema = z.object({
   seq: z.number(),
   at: isoTime.nullable(),
   type: z.enum(["chat", "activity"]),
@@ -103,6 +149,7 @@ const SavedAssessmentSchema = z.object({
   waiting_for: text,
   stopped_reason: text,
   session_closed: z.boolean().default(false),
+  core_id: text.default(""),
   run: z.object({
     phase: text,
     started_at: isoTime.nullable(),
@@ -113,6 +160,21 @@ const SavedAssessmentSchema = z.object({
     report_path: text,
   }),
   login: z.object({ kind: text, provided: z.boolean() }),
+  // Demo field: the saved run's report versions, which drive the Report view's version
+  // list and the signed-off check on the export route (formats render from saved data).
+  reports: z
+    .array(
+      z.object({
+        report_id: text,
+        version: z.number().int().positive(),
+        report_status: z.enum(["GENERATING", "READY", "FAILED"]),
+        review_status: text.nullable(),
+        signed_off: z.boolean(),
+        formats: z.array(z.enum(["PDF", "DOCX", "JSON"])),
+        generated_at: isoTime.nullable(),
+      }),
+    )
+    .default([]),
   plan: z.array(z.object({ key: text, label: text, status: z.enum(["pending", "active", "done"]) })),
   scope: ScopeSchema.nullable(),
   verdicts: z.array(z.object({ method: text, path: text, allowed: z.boolean(), reason: text, at: isoTime.nullable() })),
@@ -146,32 +208,35 @@ const SavedAssessmentSchema = z.object({
 });
 
 export type Severity = (typeof SEVERITIES)[number];
+/** A finding's severity on the whole scale, so an unrated one is still a severity the UI can show. */
+export type FindingSeverity = (typeof FINDING_SEVERITIES)[number];
 export type Status = (typeof STATUSES)[number];
 type SavedFinding = z.infer<typeof FindingSchema>;
-/** A finding as the dashboard reads it: every severity field on the four-level scale (the
-    analyst's two are "" when unset). */
+/** A finding as the dashboard reads it: its severity on the whole scale, the analyst's two on the
+    four levels ("" when unset). */
 export type Finding = Omit<SavedFinding, "severity" | "severity_override" | "effective_severity"> & {
-  severity: Severity;
+  severity: FindingSeverity;
   severity_override: Severity | "";
   effective_severity: Severity | "";
 };
 
 export const isSeverity = (value: string): value is Severity => (SEVERITIES as readonly string[]).includes(value);
+export const isFindingSeverity = (value: string): value is FindingSeverity => (FINDING_SEVERITIES as readonly string[]).includes(value);
 
 /** An informational finding from an older saved file: INFO (in any case) as its detected,
     overridden or effective severity. It is dropped, never remapped to another level. */
 export const isInfoFinding = (f: { severity: string; severity_override?: string; effective_severity?: string }) =>
   [f.severity, f.severity_override ?? "", f.effective_severity ?? ""].some((s) => s.trim().toUpperCase() === "INFO");
 
-/** The saved findings as the dashboard reads them: the informational ones dropped, and an
-    analyst's severity that is not one of the four read as unset. */
+/** The saved findings as the dashboard reads them: the informational (INFO) ones dropped, an
+    analyst's severity that is not one of the four read as unset, and UNKNOWN and NONE kept â€”
+    only INFO is ever dropped. */
 export function withoutInfo(findings: SavedFinding[]): Finding[] {
   const level = (s: string): Severity | "" => (isSeverity(s) ? s : "");
-  return findings.flatMap((f) =>
-    isInfoFinding(f) || !isSeverity(f.severity)
-      ? []
-      : [{ ...f, severity: f.severity, severity_override: level(f.severity_override), effective_severity: level(f.effective_severity) }],
-  );
+  return findings.flatMap((f): Finding[] => {
+    if (isInfoFinding(f) || !isFindingSeverity(f.severity)) return [];
+    return [{ ...f, severity: f.severity, severity_override: level(f.severity_override), effective_severity: level(f.effective_severity) }];
+  });
 }
 
 export const AssessmentSchema = SavedAssessmentSchema.transform((saved) => {

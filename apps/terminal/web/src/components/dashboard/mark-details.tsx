@@ -32,8 +32,8 @@ export function MarkDetails({
     >
       <header className="flex items-start justify-between gap-3 border-b border-border pb-2">
         <div className="min-w-0">
-          <p className="text-small font-medium text-foreground [overflow-wrap:anywhere]">{title}</p>
-          {subtitle && <p className="font-mono text-micro text-muted-foreground">{subtitle}</p>}
+          <p className="text-[13px] font-medium text-foreground [overflow-wrap:anywhere]">{title}</p>
+          {subtitle && <p className="font-mono text-[11px] text-muted-foreground">{subtitle}</p>}
         </div>
         <button
           ref={closeRef}

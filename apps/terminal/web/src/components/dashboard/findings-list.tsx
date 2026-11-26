@@ -9,7 +9,7 @@
    selection when its row is on that page). */
 import { useEffect, useRef } from "react";
 
-import type { FindingRow } from "@/components/dashboard/derive";
+import type { ListedFinding } from "@/components/dashboard/derive";
 import { FINDING_ICON } from "@/components/dashboard/finding-icon";
 import { Pagination } from "@/components/ui/pagination";
 import { SeverityBadge } from "@/components/ui/status-badge";
@@ -23,7 +23,7 @@ export function FindingsList({
   onOpen,
   onPage,
 }: {
-  rows: FindingRow[];
+  rows: ListedFinding[];
   currentKey: string | null; // the highlighted row (the selection, or the row a phone opened last)
   paging: Paging;
   onOpen: (key: string) => void;
@@ -43,10 +43,10 @@ export function FindingsList({
   return (
     <div className="dash-findings-list">
       <ul ref={list} className="dash-findings-rows" aria-label="Findings">
-        {rows.map((f) => {
+        {rows.map((f, i) => {
           const Icon = FINDING_ICON[f.icon];
           return (
-            <li key={f.key}>
+            <li key={f.key} className="ac-list-item" style={{ "--i": Math.min(i, 12) } as React.CSSProperties}>
               <button
                 type="button"
                 data-finding-key={f.key}
@@ -61,13 +61,13 @@ export function FindingsList({
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
-                    <span className="font-mono text-micro text-muted-foreground">{f.id}</span>
+                    <span className="font-mono text-[11px] text-muted-foreground">{f.id}</span>
                     <SeverityBadge level={f.severity} />
-                    {f.score != null && <span className="ml-auto font-mono text-micro tabnums text-foreground">{f.score.toFixed(1)}</span>}
+                    {f.score != null && <span className="ml-auto font-mono text-[11px] tabnums text-foreground">{f.score.toFixed(1)}</span>}
                   </span>
                   <span className="mt-1 block truncate text-sm text-foreground">{f.title}</span>
-                  <span className="mt-0.5 block truncate font-mono text-micro text-muted-foreground">{f.target}</span>
-                  {f.run && <span className="mt-0.5 block truncate font-mono text-micro text-primary">{f.run.label}</span>}
+                  <span className="mt-0.5 block truncate font-mono text-[11px] text-muted-foreground">{f.target}</span>
+                  {f.run && <span className="mt-0.5 block truncate font-mono text-[10px] text-primary">{f.run.label}</span>}
                 </span>
               </button>
             </li>

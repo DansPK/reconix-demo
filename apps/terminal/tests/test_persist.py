@@ -87,7 +87,7 @@ def test_no_secret_reaches_the_saved_file():
                 token = store.request_confirmation(request.request_id, request.command_hash)
                 tokens.append(token)
                 store.approve(request.request_id, command_hash=request.command_hash,
-                              confirmation_token=token)
+                              confirmation_token=token, typed_target=request.target)
             else:
                 store.approve(request.request_id, command_hash=request.command_hash)
         else:
@@ -239,8 +239,15 @@ def test_a_planted_symlink_is_never_followed(tmp_path, monkeypatch):
     assert victim.read_text() == "keep me"
 
 
-def test_web_dashboard_url_is_a_tokenless_loopback_url(monkeypatch):
+def test_web_dashboard_url_uses_only_the_current_local_link(monkeypatch, tmp_path):
+    link_file = tmp_path / "web.url"
+    monkeypatch.setattr(persist, "WEB_URL_FILE", link_file)
     monkeypatch.delenv("RECONIX_WEB_PORT", raising=False)
     assert store.web_dashboard_url() == "http://127.0.0.1:3100/"   # no sign-in, default port
     monkeypatch.setenv("RECONIX_WEB_PORT", "4200")
+    assert store.web_dashboard_url() == "http://127.0.0.1:4200/"
+    link = "http://127.0.0.1:4200/login#token=demo-session"
+    link_file.write_text(link, encoding="utf-8")
+    assert store.web_dashboard_url() == link
+    link_file.write_text("https://example.org/login#token=other", encoding="utf-8")
     assert store.web_dashboard_url() == "http://127.0.0.1:4200/"

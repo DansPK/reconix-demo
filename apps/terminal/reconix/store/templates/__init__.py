@@ -13,6 +13,7 @@ from ...models import GATE_SCOPE, GATE_TEMPLATE, RunStep, Template
 from .. import lists
 from ..activity import log_event
 from ..errors import StoreValidationError
+from ..finding_facts import classify_fixtures
 from ..scenario import log
 from ..tools import approved_tool
 from . import api, network, source, web_url
@@ -82,6 +83,7 @@ def apply_template(template_id: str, *, auto: bool = False) -> Template:
     assessment.scope = bundle.scope
     assessment.approvals = bundle.approvals
     assessment.findings = bundle.findings
+    classify_fixtures(template_id, assessment.findings, assessment.target)
     assessment.login_2fa = bundle.login_2fa
     assessment.plan = bundle.plan or []
     assessment.methodology = bundle.methodology or []
@@ -95,6 +97,18 @@ def apply_template(template_id: str, *, auto: bool = False) -> Template:
         log_event("template.selected", template_id)
     assessment.script.extend(_with_intent(assessment, bundle.script))
     return spec
+
+
+def rebuild_run(assessment) -> None:
+    """Draft the plan afresh from the template: its findings, gated requests, plan rows and the
+    steps after the scope gate. What was played up to the gate and the scope itself stay."""
+    from ..openapi import _refresh_run
+
+    bundle: RunBundle = MODULES[assessment.selected_template].build_run(assessment)
+    assessment.approvals = bundle.approvals
+    assessment.findings = bundle.findings
+    assessment.login_2fa = bundle.login_2fa
+    _refresh_run(assessment)
 
 
 def align_to_scope(assessment) -> None:
@@ -112,6 +126,14 @@ def align_to_scope(assessment) -> None:
         rebuild(assessment)
     for finding in assessment.findings:
         finding.tool = approved_tool(finding.tool, assessment.scope.tools)
+    approved = {tool.casefold() for tool in assessment.scope.tools}
+    planned = {tool.casefold() for task in assessment.plan for tool in task.tools}
+    added = tuple(t for t in assessment.scope.tools if t.casefold() not in planned)
+    for task in assessment.plan:
+        task.tools = tuple(tool for tool in task.tools if tool.casefold() in approved)
+        if task.key == "scanning":
+            task.tools += added             # a tool the operator added scans with the others
+    classify_fixtures(assessment.selected_template, assessment.findings, assessment.target)
 
 
 def _with_intent(assessment, script: List[RunStep]) -> List[RunStep]:
@@ -145,5 +167,5 @@ def template_name(template_id: str) -> str:
 
 __all__ = [
     "MODULES", "CATALOG_ORDER", "catalog", "list_templates", "get_template", "selected_template",
-    "select_template", "apply_template", "template_name", "RunBundle",
+    "select_template", "apply_template", "rebuild_run", "template_name", "RunBundle",
 ]

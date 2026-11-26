@@ -135,10 +135,9 @@ def _start(text: str, parsed: ParsedTarget, *, picked: bool) -> None:
         apply_template(parsed.template_id, auto=not picked)
 
 
-def say_operator_line(text: str) -> str:
-    """Record the operator's chat line and return it. Raises before any model is called."""
-    if not get_run().started:
-        raise StoreValidationError("Start an assessment first.")
+def refuse_at_login() -> None:
+    """Raise while the run waits (or stopped) at the target login: a typed line may be the
+    password, so it is refused before anything keeps or echoes it."""
     if get_run().waiting_gate in (GATE_ACCOUNT, GATE_CODE):
         # Don't record it: an operator may be pasting the login into the wrong place.
         raise StoreValidationError("Reconix is waiting for the target login. Press Enter on "
@@ -150,6 +149,13 @@ def say_operator_line(text: str) -> str:
         raise StoreValidationError("This run stopped at the target login. Use /new to start "
                                    "another assessment; never paste credentials into the "
                                    "chat.")
+
+
+def say_operator_line(text: str) -> str:
+    """Record the operator's chat line and return it. Raises before any model is called."""
+    if not get_run().started:
+        raise StoreValidationError("Start an assessment first.")
+    refuse_at_login()
     request = add_request(text)
     add_chat("text", "you", request.text)
     return request.text

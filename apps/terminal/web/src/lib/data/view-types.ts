@@ -1,10 +1,10 @@
 /* The shapes the dashboard reads: one saved assessment, mapped by adapt.ts into the terms the
    viewer uses (log lines with a kind, findings with display fields, the scope as lists).
    Types only, so client components may import them freely. */
-import type { Severity, Status } from "./schema";
+import type { FindingSeverity, Severity, Status } from "./schema";
 import type { StreamItem } from "./thinking";
 
-export type { Severity, Status };
+export type { FindingSeverity, Severity, Status };
 
 /** What a log line is about; it picks the line's chip, colour and chart height. */
 export type LogKind = "scope" | "policy" | "tool" | "finding" | "mask" | "gate" | "user" | "info";
@@ -25,11 +25,22 @@ export interface EvidenceLine {
 export interface FindingView {
   id: string; // "F-001"
   title: string;
-  severity: Severity;
+  severity: FindingSeverity;
   target: string;
   tool: string;
   cwe: string;
   category: string;
+  findingCategory?: string;
+  confidenceLevel?: string;
+  evidenceQuality?: string;
+  verificationStatus?: string;
+  exploitability?: string;
+  classificationUncertainty?: string;
+  validatedCvssVector?: string;
+  sourceClaims?: string[];
+  reviewHistory?: string[];
+  evidenceSummary?: string;
+  triageNote?: string;
   score: number | null; // CVSS, when the finding has one
   rating: string; // "CVSS 6.5" or "no CVSS"
   validation: string; // CONFIRMED, UNCONFIRMED, INCONCLUSIVE, …
@@ -40,9 +51,31 @@ export interface FindingView {
   description: string;
   impact: string;
   evidence: EvidenceLine[];
-  evidenceUnmasked: EvidenceLine[];   // raw values, shown when the detail view is unmasked (demo)
+  /** The raw values behind `evidence` (demo): swapped in by the detail screen's
+      "Reveal attacker's view" toggle. Empty when there is nothing more to reveal. */
+  evidenceUnmasked?: EvidenceLine[];
   remediation: string[];
   references: string[];
+  effectiveVerification?: {
+    status?: string | null;
+    kind?: string | null;
+    subject?: Record<string, unknown> | null;
+    verifier?: string | null;
+    proofLines?: string[];
+    legacy?: boolean;
+    reason?: string | null;
+  };
+  aiNotes?: {
+    schemaVersion?: number;
+    explanation?: string;
+    impact?: string;
+    remediation?: string;
+    uncertainty?: string;
+    evidenceSummary?: string;
+    suggestedCategory?: string | null;
+    evidenceRefs?: string[];
+    model?: string | null;
+  };
 }
 
 export type ApprovalState = "APPROVED" | "REJECTED" | "PENDING" | "NOT REACHED";
@@ -79,6 +112,7 @@ export interface PhaseView {
 export interface AssessmentView {
   uid: string;
   id: string;
+  coreId?: string;
   name: string;
   target: string;
   template: string;
@@ -107,11 +141,12 @@ export interface AssessmentView {
 export interface LibraryItem {
   uid: string;
   id: string;
+  coreId?: string;
   template: string;
   target: string;
   status: Status;
   when: string; // "5 Oct 14:23"
-  waiting: string; // what the run waits on ("HIGH approval for secret_validation"), or ""
+  waiting: string; // what the run waits on ("HIGH approval for Check the flagged credential once"), or ""
 }
 
 /** A saved file the dashboard could not read, and why (see store.ts). */

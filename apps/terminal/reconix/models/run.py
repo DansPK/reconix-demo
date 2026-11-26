@@ -67,6 +67,8 @@ class PlanTask:
     key: str
     label: str
     status: str = "pending"
+    detail: str = ""
+    tools: Tuple[str, ...] = ()
 
 
 @dataclass

@@ -20,10 +20,10 @@ export function DocsLayout({ group, children }: { group: DocGroup; children: Rea
       <DocsSidebar groupId={group.id} index={groupSearchIndex(group.id)} />
 
       <article className="min-w-0 max-w-3xl">
-        <p className="mb-4 font-mono text-micro uppercase tracking-[0.16em] text-muted-foreground">
+        <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
           Documentation · {group.pages.length} {group.pages.length === 1 ? "page" : "pages"}
         </p>
-        <h1 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl">{group.title}</h1>
+        <h1 className="break-words text-3xl font-semibold tracking-tight sm:text-[2rem]">{group.title}</h1>
         <p className="mt-3 text-base leading-relaxed text-muted-foreground sm:text-lg">{group.description}</p>
 
         {group.id === DOCS_HOME_GROUP && (

@@ -17,6 +17,7 @@ const item = (over: Partial<KnowledgeItem>): KnowledgeItem => ({
   addedAt: "2026-10-22T09:30:00Z",
   source: "web",
   original: true,
+  ingested: true,
   ...over,
 });
 

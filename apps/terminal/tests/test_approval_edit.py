@@ -17,7 +17,7 @@ TEMPLATES = [
     pytest.param("test the API at https://api.example.com/v1", "/v1/orders/9000",
                  ["/internal/metrics", "/admin"], "v1/orders/9000", id="api"),
     pytest.param("Assess 10.0.0.0/24", "10.0.0.9:443",
-                 ["10.0.0.9:3306", "198.51.100.9:8443", "10.0.0.0/24:8443"], "10.0.0.9",
+                 ["10.0.0.9:65534", "198.51.100.9:8443", "10.0.0.0/24:8443"], "10.0.0.9",
                  id="network"),
     pytest.param("review repo https://git.example.com/acme/app.git", "app/config/local.py",
                  [".git/config", "secrets/key.pem", "../../etc/passwd", "app/../../x"],
@@ -84,6 +84,7 @@ def test_a_value_of_the_wrong_shape_is_refused(request_text, good, blocked, wron
 # account gate) that this test uses; web_url is now an unauthenticated scan with no such gate.
 def test_edits_only_at_the_plan_or_the_actions_own_gate():
     run_to("scope", "test the API at https://api.example.com/v1")
+    store.edit_scope(tools=["Postman"])
     assert not store.can_edit(FIRST)
     with pytest.raises(store.StoreValidationError):
         store.edit_approval(FIRST, "/v1/orders/9000")        # the scope isn't approved yet
@@ -150,9 +151,9 @@ def test_an_edit_voids_an_open_high_confirmation():
     edited = store.edit_approval(SECOND, "/v1/orders/9000")
     assert edited.risk == "HIGH"                              # an edit never lowers the risk
     with pytest.raises(store.StoreValidationError):
-        store.approve(SECOND, command_hash=edited.command_hash, confirmation_token=token)
+        store.approve(SECOND, command_hash=edited.command_hash, confirmation_token=token, typed_target=edited.target)
     fresh = store.request_confirmation(SECOND, edited.command_hash)
-    store.approve(SECOND, command_hash=edited.command_hash, confirmation_token=fresh)
+    store.approve(SECOND, command_hash=edited.command_hash, confirmation_token=fresh, typed_target=edited.target)
     assert store.is_approved(SECOND)
 
 

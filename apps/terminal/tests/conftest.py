@@ -7,8 +7,10 @@ import pytest
 from reconix import browser, store, web_server
 from reconix.app import ReconixApp
 from reconix.flow import RunController
-from reconix.store import persist, report
-from reconix.widgets import ChoiceMenu
+from reconix.store import persist, report, seed
+from reconix.widgets import ChoiceMenu, motion
+
+seed.FIRST_NUMBER = 1          # tests number from RCX-001
 
 
 @pytest.fixture(autouse=True)
@@ -25,7 +27,9 @@ def instant_ui(monkeypatch, tmp_path):
     saved assessments and the web link live in temp."""
     monkeypatch.setattr(RunController, "SPEED", 0)
     monkeypatch.setattr(ChoiceMenu, "ARM_DELAY", 0)
+    monkeypatch.setattr(motion, "ENABLED", False)   # decoration only; tests opt in
     monkeypatch.setattr(report, "REPORTS_DIR", tmp_path / "reports")
+    monkeypatch.setattr(persist, "ENABLED", True)
     monkeypatch.setattr(persist, "DATA_DIR", tmp_path / "assessments")
     monkeypatch.setattr(persist, "WEB_URL_FILE", tmp_path / "web.url")
     # Fresh save bookkeeping per test; drain any queued background write so it can't land in the

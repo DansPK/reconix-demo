@@ -1,0 +1,95 @@
+[
+  {
+    "name": "messages stay; the steps between them fold into one block",
+    "live": "done",
+    "now": "2026-10-28T07:00:30+00:00",
+    "entries": [
+      {"seq": 1, "at": "2026-10-28T07:00:00+00:00", "type": "chat", "who": "you", "kind": "text", "text": "10.0.0.5", "tone": "default", "rows": []},
+      {"seq": 2, "at": "2026-10-28T07:00:01+00:00", "type": "activity", "who": "AI", "kind": "line", "text": "Target parsed: 10.0.0.5", "tone": "default", "rows": []},
+      {"seq": 3, "at": "2026-10-28T07:00:02+00:00", "type": "chat", "who": "reconix", "kind": "card", "text": "Discovery", "tone": "default", "rows": [["Live hosts", "6"]]},
+      {"seq": 4, "at": "2026-10-28T07:00:04+00:00", "type": "activity", "who": "TOOL", "kind": "line", "text": "Executing permitted scan", "tone": "default", "rows": []},
+      {"seq": 5, "at": "2026-10-28T07:00:05+00:00", "type": "activity", "who": "POLICY", "kind": "line", "text": "Blocked: Host outside approved scope", "tone": "block", "rows": []},
+      {"seq": 6, "at": "2026-10-28T07:00:08+00:00", "type": "chat", "who": "reconix", "kind": "text", "text": "Scan done.", "tone": "ok", "rows": []}
+    ],
+    "expected": [
+      {"type": "message", "seq": 1},
+      {"type": "block", "key": 2, "seqs": [2, 3, 4, 5], "state": "done", "verb": "Worked", "seconds": 7, "blocked": 1},
+      {"type": "message", "seq": 6}
+    ]
+  },
+  {
+    "name": "a block with no tool line is a thought; a banner is a message",
+    "live": "done",
+    "now": "2026-10-28T07:00:30+00:00",
+    "entries": [
+      {"seq": 1, "at": "2026-10-28T07:00:00+00:00", "type": "chat", "who": "reconix", "kind": "thought", "text": "The console may accept weak credentials.", "tone": "muted", "rows": []},
+      {"seq": 2, "at": "2026-10-28T07:00:03+00:00", "type": "activity", "who": "AI", "kind": "line", "text": "Candidate F-001", "tone": "default", "rows": []},
+      {"seq": 3, "at": "2026-10-28T07:00:03+00:00", "type": "chat", "who": "policy", "kind": "banner", "text": "MEDIUM action approved by analyst.", "tone": "ok", "rows": []}
+    ],
+    "expected": [
+      {"type": "block", "key": 1, "seqs": [1, 2], "state": "done", "verb": "Thought", "seconds": 3, "blocked": 0},
+      {"type": "message", "seq": 3}
+    ]
+  },
+  {
+    "name": "the last block runs until now",
+    "live": "running",
+    "now": "2026-10-28T07:00:30+00:00",
+    "entries": [
+      {"seq": 1, "at": "2026-10-28T07:00:00+00:00", "type": "chat", "who": "you", "kind": "text", "text": "Plan approved", "tone": "ok", "rows": []},
+      {"seq": 2, "at": "2026-10-28T07:00:10+00:00", "type": "activity", "who": "TOOL", "kind": "line", "text": "nmap: checks on the permitted surface", "tone": "default", "rows": []},
+      {"seq": 3, "at": "2026-10-28T07:00:12+00:00", "type": "chat", "who": "", "kind": "check", "text": "Correlated findings", "tone": "ok", "rows": []}
+    ],
+    "expected": [
+      {"type": "message", "seq": 1},
+      {"type": "block", "key": 2, "seqs": [2, 3], "state": "running", "verb": "Worked", "seconds": 20, "blocked": 0}
+    ]
+  },
+  {
+    "name": "a block paused at a gate keeps the time of its steps",
+    "live": "paused",
+    "now": "2026-10-28T07:00:30+00:00",
+    "entries": [
+      {"seq": 1, "at": "2026-10-28T07:00:10+00:00", "type": "activity", "who": "TOOL", "kind": "line", "text": "Executing baseline request", "tone": "default", "rows": []},
+      {"seq": 2, "at": "2026-10-28T07:00:12+00:00", "type": "activity", "who": "POLICY", "kind": "line", "text": "Risk: MEDIUM · approval required", "tone": "warn", "rows": []}
+    ],
+    "expected": [
+      {"type": "block", "key": 1, "seqs": [1, 2], "state": "paused", "verb": "Worked", "seconds": 2, "blocked": 0}
+    ]
+  },
+  {
+    "name": "a stopped run stops its last block; a block before a message is done",
+    "live": "stopped",
+    "now": "2026-10-28T07:00:30+00:00",
+    "entries": [
+      {"seq": 1, "at": "2026-10-28T07:00:00+00:00", "type": "activity", "who": "SYS", "kind": "line", "text": "Session started", "tone": "default", "rows": []},
+      {"seq": 2, "at": "2026-10-28T07:00:01+00:00", "type": "chat", "who": "reconix", "kind": "text", "text": "Welcome to Reconix.", "tone": "default", "rows": []},
+      {"seq": 3, "at": "2026-10-28T07:00:02+00:00", "type": "activity", "who": "USER", "kind": "line", "text": "Stop requested", "tone": "block", "rows": []}
+    ],
+    "expected": [
+      {"type": "block", "key": 1, "seqs": [1], "state": "done", "verb": "Thought", "seconds": 1, "blocked": 0},
+      {"type": "message", "seq": 2},
+      {"type": "block", "key": 3, "seqs": [3], "state": "stopped", "verb": "Thought", "seconds": 0, "blocked": 1}
+    ]
+  },
+  {
+    "name": "a line with no speaker continues the message above it",
+    "live": "done",
+    "now": "2026-10-28T07:00:30+00:00",
+    "entries": [
+      {"seq": 2, "at": "2026-10-28T07:00:01+00:00", "type": "chat", "who": "", "kind": "text", "text": "Use /status or /findings.", "tone": "muted", "rows": []},
+      {"seq": 1, "at": "2026-10-28T07:00:01+00:00", "type": "chat", "who": "reconix", "kind": "text", "text": "I can't take new instructions now.", "tone": "muted", "rows": []}
+    ],
+    "expected": [
+      {"type": "message", "seq": 1},
+      {"type": "message", "seq": 2}
+    ]
+  },
+  {
+    "name": "an empty stream has nothing to show",
+    "live": "running",
+    "now": "2026-10-28T07:00:30+00:00",
+    "entries": [],
+    "expected": []
+  }
+]

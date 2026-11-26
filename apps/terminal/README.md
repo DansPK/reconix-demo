@@ -70,7 +70,7 @@ Then, in the TUI:
 
 ```
 /provider set reconix     # enter the API key → test → REACHABLE
-/model reconix/<model>    # the top bar shows: llm: Reconix · <model> ●
+/model reconix/<model>    # the top bar shows: ● Reconix · <model>
 ```
 
 - **Chat** in natural language — just type a question; the agent answers (scrolls back).
@@ -85,7 +85,8 @@ Real scans need a reachable **Kali MCP server** (`DansPK/kali-mcp-server`); set 
 in `.env`. See `docs/FLEXIBLE_LLM_PLAN.md`, `docs/HARNESS_INTEGRATION_PLAN.md` and
 `docs/AGENT_FLOW_PARITY_PLAN.md` for the design, and `backend/README.md` for the harness.
 
-Web dashboard (Next.js, reads `~/.reconix/assessments`). Type `/web` in the TUI: the first
+Web dashboard (Next.js, reads the prepared history in `web/sample-data`; a scan is not
+saved unless `RECONIX_SAVE=1`, which uses `~/.reconix/assessments` instead). Type `/web` in the TUI: the first
 time it installs the dashboard's packages and starts it in the background (`npm run dev`,
 output in `~/.reconix/web.log`), then your browser opens on it. A dashboard the TUI
 started stops when you quit. To run it on its own (from the repository folder, with the
@@ -93,11 +94,11 @@ started stops when you quit. To run it on its own (from the repository folder, w
 
 ```bash
 cd web && npm install && npm run dev    # prints a sign-in link; /web opens the same one
-RECONIX_DATA_DIR=sample-data npm run dev   # or browse the bundled sample assessments
+RECONIX_DATA_DIR=~/.reconix/assessments npm run dev   # or browse runs saved with RECONIX_SAVE=1
 npm run dev -- --no-open                # don't open a browser
 ```
 
-On Windows (PowerShell) the sample data is `$env:RECONIX_DATA_DIR = "sample-data"; npm run dev`.
+On Windows (PowerShell) that is `$env:RECONIX_DATA_DIR = "~/.reconix/assessments"; npm run dev`.
 
 The dashboard has no terminal of its own: run assessments and decide their gates in the TUI
 (`python -m reconix`); what it saves shows up on the dashboard's pages
@@ -216,11 +217,18 @@ Type `/`, keep typing to filter, `↑`/`↓` to pick, `Tab` to complete, `Enter`
 
 `/scope` is now `/template`.
 
+**"Type something." at the Scope and Plan steps** reads your line with local rules (no model is
+called): a question is answered; `add sqlmap`, `exclude /checkout`, `only GET`, `time limit 30
+minutes` or `change target to <url>` changes the scope, all of it or nothing; `focus on TLS first`
+or `move 3b before 3a` re-drafts the plan. You still approve: a scope change at the Plan step
+re-opens the scope, and the plan is drafted again after you approve it. "Chat about this" only
+talks.
+
 ## LLM providers (flexible model integration)
 
 Chat lines typed **during and after a run** go to a real LLM; everything else stays scripted. Set a
 provider with `/provider`, test it, then `/model` to make one active — the top bar shows
-`llm: <provider> · <model> ●`. You can switch provider or model mid-run; the run, findings
+`● <provider> · <model>`. You can switch provider or model mid-run; the run, findings
 and approvals are unchanged, and the model never decides a gate. Reconix, Ollama and OpenAI
 work for real; Anthropic, DeepSeek and a custom OpenAI-compatible endpoint are wired through
 LiteLLM the same way. Cloud providers (OpenAI, Anthropic, DeepSeek) need **only an API key** —

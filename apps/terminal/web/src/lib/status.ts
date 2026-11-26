@@ -3,7 +3,8 @@
    never with colour alone (components/ui/status-badge.tsx draws them). Colours are token names
    from reconix/theme.py (WEB_TOKENS); severity uses the TUI's own scale. Pure data: server and
    client components both import it. */
-import type { Severity, Status } from "./data/schema";
+import type { Status } from "./data/schema";
+import type { FindingSeverity } from "./data/view-types";
 
 /** A meaning's colour: teal = AI activity / progress, green = done, amber = waiting or to
     review, red = errors and blocked, slate = informational or neutral. */
@@ -73,6 +74,22 @@ export const APPROVAL_STATE: Record<"APPROVED" | "REJECTED" | "PENDING" | "NOT R
   "NOT REACHED": { label: "Not reached", tone: "info", icon: "unreached", hint: "The run ended before it got here." },
 };
 
+/** A Core API report version (ReportStatus). */
+export const REPORT_STATUS: Record<"GENERATING" | "READY" | "FAILED", Meaning> = {
+  GENERATING: { label: "Generating", tone: "primary", icon: "running", hint: "The Core API is still building its files." },
+  READY: { label: "Ready", tone: "success", icon: "done", hint: "Its files are built." },
+  FAILED: { label: "Failed", tone: "danger", icon: "blocked", hint: "The Core API could not build it: make a new version in the TUI." },
+};
+
+/** A report's review sign-off (its review approval; none until someone asks for it in the TUI). */
+export const REPORT_REVIEW: Record<"NONE" | "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED", Meaning> = {
+  NONE: { label: "Not reviewed", tone: "info", icon: "unreached", hint: "No review was asked for yet: ask for it in the TUI." },
+  PENDING: { label: "Review pending", tone: "warning", icon: "pending", hint: "Waiting for a person to approve the review in the TUI." },
+  APPROVED: { label: "Signed off", tone: "success", icon: "approved", hint: "A person approved the review: its files can be downloaded." },
+  REJECTED: { label: "Review rejected", tone: "danger", icon: "rejected", hint: "The review was rejected: make a new version in the TUI." },
+  EXPIRED: { label: "Review expired", tone: "warning", icon: "interrupted", hint: "Nobody approved the review in time: ask again in the TUI." },
+};
+
 /** A policy (scope) check of one request. */
 export const POLICY_DECISION: Record<"allowed" | "blocked", Meaning> = {
   allowed: { label: "Allowed", tone: "success", icon: "allowed", hint: "Inside the approved scope." },
@@ -81,18 +98,30 @@ export const POLICY_DECISION: Record<"allowed" | "blocked", Meaning> = {
 
 /** A finding's review state. */
 export const FINDING_REVIEW: Record<"confirmed" | "review" | "closed", Meaning> = {
-  confirmed: { label: "Confirmed", tone: "success", icon: "confirmed", hint: "Validated with evidence." },
-  review: { label: "Needs review", tone: "warning", icon: "review", hint: "Open and not confirmed yet." },
+  confirmed: {
+    label: "Confirmed vulnerability",
+    tone: "success",
+    icon: "confirmed",
+    hint: "The API classified this as a confirmed vulnerability using validated evidence.",
+  },
+  review: {
+    label: "Needs review",
+    tone: "warning",
+    icon: "review",
+    hint: "Open and not classified as a confirmed vulnerability yet.",
+  },
   closed: { label: "Closed", tone: "info", icon: "closed", hint: "Fixed, accepted or a false positive." },
 };
 
 /** Severity, on the TUI's four-level scale (theme.SEVERITY): its own colours, always with its
     name. There is no Info level: an older file's informational findings are never shown. */
-export const SEVERITY_META: Record<Severity, { label: string; color: string; hint: string }> = {
+export const SEVERITY_META: Record<FindingSeverity, { label: string; color: string; hint: string }> = {
   CRITICAL: { label: "Critical", color: "var(--sev-critical)", hint: "Fix first: severe impact, easy to exploit." },
   HIGH: { label: "High", color: "var(--sev-high)", hint: "Serious: fix soon." },
   MEDIUM: { label: "Medium", color: "var(--sev-medium)", hint: "Worth fixing; limited impact or harder to exploit." },
   LOW: { label: "Low", color: "var(--sev-low)", hint: "Minor." },
+  UNKNOWN: { label: "Unknown", color: "var(--muted-foreground)", hint: "The tool gave no severity; review it." },
+  NONE: { label: "None", color: "var(--muted-foreground)", hint: "Informational: no direct impact." },
 };
 
 /** An approval's risk, as the TUI colours it (LOW green, MEDIUM amber, HIGH red). */

@@ -1,5 +1,5 @@
-/* A Word document (.docx, Office Open XML) from a small block model: the report builders
-   (report.ts, combined.ts) say what the document holds, this file writes the parts and zips them.
+/* A Word document (.docx, Office Open XML) from a small block model: the report builder
+   (report.ts) says what the document holds, this file writes the parts and zips them.
 
    Every value is XML-escaped and stripped of the characters XML 1.0 can't hold (control
    characters, lone surrogates), so tool output or an operator's text reads as text and can never

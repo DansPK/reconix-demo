@@ -21,6 +21,7 @@ from .. import store, theme
 from ..commands import COMMANDS
 from ..models import ChatEntry
 from ..widgets import ActivityStatus, PromptBox, UserMessage
+from ..widgets.motion import LogoShimmer, TypeLine
 from ..widgets.step_chat import speaker_label
 
 # Colored by `#logo` in reconix.tcss.
@@ -40,6 +41,8 @@ QUICKSTART = (
 
 PLACEHOLDER = "Type a target (URL, IPv4, repo, path), a question, or / commands"
 READING = "reconix is reading the target…"
+# An empty Enter runs the scripted demo request (see store.DEMO_REQUEST): the first-run
+# shortcut this demo is shown with.
 
 
 def length_error(text: str) -> str:
@@ -87,7 +90,7 @@ class StartScreen(ReconixScreen):
     scroll = False
 
     BINDINGS = [
-        Binding("enter", "begin", "continue"),
+        Binding("enter", "begin", "send", show=False),   # the prompt's own hint shows ↵
         Binding("question_mark", "help", "help", key_display="?"),
     ]
 
@@ -120,8 +123,8 @@ class StartScreen(ReconixScreen):
             # `align` centres the children as one group, and the full-width text
             # lines make that group full width, so fixed-width blocks get a Center.
             with Center():
-                yield Static(LOGO, id="logo", markup=False)
-            yield Static("AI-Powered Security Testing Assistant", id="tagline")
+                yield LogoShimmer(LOGO, id="logo")
+            yield TypeLine("AI-Powered Security Testing Assistant", delay=0.8, id="tagline")
             yield Static(
                 "v0.4.0  ·  terminal interface  ·  authorized assessments only",
                 id="version-line",

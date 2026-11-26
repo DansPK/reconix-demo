@@ -57,7 +57,7 @@ export const troubleshooting: GroupContent = {
         <DocSection title="No PDF">
           <p>
             The PDF button reads &quot;PDF (not installed)&quot; and <Mono>/export pdf</Mono> says &quot;PDF reports aren&apos;t
-            available.&quot; or &quot;PDF export needs WeasyPrint or a Chrome/Chromium browser.&quot;. Install one of the
+            in this demo.&quot; or &quot;PDF export needs WeasyPrint or a Chrome/Chromium browser.&quot;. Install one of the
             two:
           </p>
           <ul>
@@ -175,8 +175,9 @@ export const troubleshooting: GroupContent = {
         </DocSection>
         <DocSection title="Keys that seem dead">
           <p>
-            <Kbd>1</Kbd>…<Kbd>8</Kbd> jump between screens only when no menu has focus (in a menu they pick a numbered
-            choice); <Kbd>?</Kbd> on the Start prompt works only when it is empty; <Kbd>5</Kbd> and <Kbd>→</Kbd> skip
+            A bare <Kbd>1</Kbd>…<Kbd>9</Kbd> only picks a numbered menu choice (screens are <Kbd>Alt+1</Kbd>…<Kbd>Alt+8</Kbd>),
+            every choice has a number, and a red choice such as Reject is selected by its number and needs <Kbd>Enter</Kbd>;{" "}
+            <Kbd>?</Kbd> on the Start prompt works only when it is empty; <Kbd>Alt+5</Kbd> and <Kbd>→</Kbd> skip
             Execution until the plan has run. <Kbd>?</Kbd> lists what works right now.
           </p>
         </DocSection>
@@ -199,7 +200,7 @@ export const troubleshooting: GroupContent = {
               opens the &quot;Export the report as…&quot; menu instead.
             </li>
             <li>
-              <strong>&quot;&lt;Format&gt; reports aren&apos;t available.&quot;</strong> The format&apos;s engine is missing:
+              <strong>&quot;&lt;Format&gt; reports aren&apos;t in this demo.&quot;</strong> The format&apos;s engine is missing:
               see <DocRef>Missing tools</DocRef>.
             </li>
           </ul>
@@ -239,7 +240,7 @@ export const troubleshooting: GroupContent = {
         <DocSection title="What /web does">
           <p>
             The first <Mono>/web</Mono> of a session starts <Mono>npm run dev</Mono> in <Mono>web/</Mono> in the background
-            (after <Mono>npm install</Mono> if packages are missing, which takes a few minutes), waits up to three minutes
+            (after <Mono>npm install</Mono> if packages are missing or older than <Mono>package-lock.json</Mono> names, which takes a few minutes), waits up to three minutes
             for it to answer, and the dashboard opens your browser itself. Later calls open the running dashboard. Its
             output goes to <Mono>~/.reconix/web.log</Mono> (or <Mono>RECONIX_WEB_LOG</Mono>), never to the terminal.
           </p>
@@ -250,26 +251,27 @@ export const troubleshooting: GroupContent = {
             head={["Message", "What to do"]}
             rows={[
               { key: "The web dashboard folder (web/) isn't next to this install.", value: <>Run Reconix from the cloned repository, where <Mono>web/package.json</Mono> exists.</> },
-              { key: "The web dashboard needs Node.js (node and npm).", value: <>Install Node.js 20 or later so <Mono>node</Mono> and <Mono>npm</Mono> are on the PATH, or start it yourself: <Mono>cd web &amp;&amp; npm run dev</Mono>.</> },
+              { key: "The web dashboard needs Node.js (node and npm).", value: <>Install Node.js 20 or later so <Mono>node</Mono> and <Mono>npm</Mono> are on the PATH, or start it yourself: <Mono>cd apps/web &amp;&amp; npm run dev</Mono>.</> },
               { key: "Another web dashboard already uses its port on 127.0.0.1 (an older one left running?). Stop it, then run /web again.", value: <>The launcher exited with code 2: its port is taken, usually by a dashboard from an earlier session. Find it with <Mono>ss -ltnp</Mono> (or your OS&apos;s equivalent) and stop that process, then <Mono>/web</Mono> again.</> },
               { key: "Couldn't install the web dashboard's packages.", value: <><Mono>npm install</Mono> failed; the log has the reason (network, Node version).</> },
               { key: "The web dashboard stopped while starting.", value: "It exited for another reason; read the log." },
               { key: "The web dashboard is taking a while to start.", value: "Three minutes passed without an answer; a first compile can be slow. Wait, then /web again, or read the log." },
               { key: "The web dashboard is still starting. It opens in your browser when it's ready.", value: "Not an error: a start is in progress." },
-              { key: "Open it in your browser: http://127.0.0.1:…", value: "The dashboard runs but no browser could be launched here (for example over SSH): open the link yourself." },
+              { key: "Couldn't open a browser. The sign-in link is in …", value: "The dashboard runs but no browser could be launched here (for example over SSH): open the link from that file yourself (only you can read it; the TUI never shows the link, its token signs in)." },
             ]}
           />
         </DocSection>
         <DocSection title="Reading the log">
           <Code>{`tail -n 50 ~/.reconix/web.log`}</Code>
           <p>
-            The log is readable by your user only. It may mention the dashboard&apos;s address.
+            The log is readable by your user only. It may mention the dashboard&apos;s address; the sign-in link itself is
+            printed only to a terminal, never to the log.
           </p>
         </DocSection>
         <DocSection title="Running it yourself">
-          <Code>{`cd web && npm install && npm run dev       # /web starts the same dashboard
+          <Code>{`cd apps/web && npm install && npm run dev       # prints a sign-in link; /web opens the same one
 RECONIX_DATA_DIR=sample-data npm run dev    # browse the bundled sample assessments
-npm run dev -- --no-open                    # start it without opening a browser`}</Code>
+npm run dev -- --no-open                    # print the link without opening a browser`}</Code>
           <Callout>
             The dashboard binds to 127.0.0.1 only and refuses other Host headers. A dashboard the terminal started stops
             when the terminal quits; one you started yourself keeps running.

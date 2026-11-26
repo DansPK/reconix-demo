@@ -1,16 +1,18 @@
 /* What the Findings filters and the saved-run searches keep. Pure functions over the derived data (no I/O,
    no React), so the views and the unit tests share them. Filter values come from the address
    (`?sev=HIGH,LOW&val=review&q=sql`), so anything unknown is ignored rather than trusted. */
-import type { FindingRow } from "@/components/dashboard/derive";
-import { SEVERITIES } from "@/lib/data/schema";
-import type { LibraryItem, Severity } from "@/lib/data/view-types";
+import type { ListedFinding } from "@/components/dashboard/derive";
+import { FINDING_SEVERITIES } from "@/lib/data/schema";
+import type { FindingSeverity, LibraryItem } from "@/lib/data/view-types";
 import { type Paging, pageOf, paginate, slicePage } from "@/lib/paging";
+import { cleanSearchQuery } from "@/lib/search";
 import { FINDING_REVIEW, RUN_STATUS, SEVERITY_META, toneColor } from "@/lib/status";
 
 import { plural } from "./derive-shared";
 
-/** Worst first: the schema's four levels (lib/data/schema.ts); `?sev=INFO` is ignored. */
-export const SEVERITY_ORDER = SEVERITIES;
+/** Worst first: the schema's whole finding scale — the four levels, then the Core API's UNKNOWN
+    and NONE (lib/data/schema.ts); `?sev=INFO` is ignored. */
+export const SEVERITY_ORDER: readonly FindingSeverity[] = FINDING_SEVERITIES;
 
 /** Validation buckets: confirmed; open and not confirmed (to review); closed by triage. */
 export const VALIDATION = ["confirmed", "review", "closed"] as const;
@@ -20,7 +22,7 @@ export const list = (value: string): string[] => value.split(",").map((v) => v.t
 
 const has = (text: string, q: string) => text.toLowerCase().includes(q);
 
-export function validationOf(f: FindingRow): Validation {
+export function validationOf(f: ListedFinding): Validation {
   if (f.confirmed) return "confirmed";
   return f.needsReview ? "review" : "closed";
 }
@@ -29,7 +31,8 @@ export function validationOf(f: FindingRow): Validation {
 const CLOSED_AS: Record<string, string> = { fixed: "Fixed", accepted: "Accepted", "false-positive": "False positive" };
 
 /** A finding's review badge label: Confirmed, Needs review, or why it is closed. */
-export function reviewLabel(f: FindingRow): string {
+export function reviewLabel(f: ListedFinding): string {
+  if (f.falsePositive) return "False positive";
   const v = validationOf(f);
   // hasOwn: a saved status is data, and "constructor" must not find Object's
   return v === "closed" ? (Object.hasOwn(CLOSED_AS, f.status) ? CLOSED_AS[f.status] : FINDING_REVIEW.closed.label) : FINDING_REVIEW[v].label;
@@ -39,7 +42,7 @@ export function reviewLabel(f: FindingRow): string {
     across how many assessments when every run is shown. */
 export function findingsHeadline(total: number, across: number | null, falsePositives = 0): string {
   if (total === 0) {
-    const where = across !== null ? "any saved assessment" : "this assessment";
+    const where = across !== null ? "any Core API assessment" : "this assessment";
     return falsePositives ? `No findings in ${where}, only ${plural(falsePositives, "false positive")}.` : `No findings in ${where} yet.`;
   }
   const runs = across !== null ? ` across ${plural(across, "assessment")}` : "";
@@ -68,7 +71,7 @@ export function parseFindingFilter(p: { sev: string; val: string; q: string; fp?
   return {
     sev: list(p.sev).filter((s) => (SEVERITY_ORDER as readonly string[]).includes(s)),
     val: (VALIDATION as readonly string[]).includes(p.val) ? p.val : "",
-    q: p.q,
+    q: cleanSearchQuery(p.q),
     fp: p.fp === SHOW_FALSE_POSITIVES,
   };
 }
@@ -78,9 +81,9 @@ export const filterActive = (f: FindingFilter) => f.sev.length > 0 || f.val !== 
 
 /** The findings the chips and the summary count: every one but the false positives, unless they
     are listed. */
-export const listable = (findings: FindingRow[], fp: boolean) => (fp ? findings : findings.filter((f) => !f.falsePositive));
+export const listable = (findings: ListedFinding[], fp: boolean) => (fp ? findings : findings.filter((f) => !f.falsePositive));
 
-export function findingMatches(f: FindingRow, { sev, val, q, fp }: FindingFilter): boolean {
+export function findingMatches(f: ListedFinding, { sev, val, q, fp }: FindingFilter): boolean {
   if (f.falsePositive && !fp) return false;
   if (sev.length && !sev.includes(f.severity)) return false;
   if ((VALIDATION as readonly string[]).includes(val) && validationOf(f) !== val) return false;
@@ -90,8 +93,11 @@ export function findingMatches(f: FindingRow, { sev, val, q, fp }: FindingFilter
 }
 
 /** Highest severity first, then the highest CVSS. */
-export function sortFindings(findings: FindingRow[]): FindingRow[] {
-  const rank = (s: string) => SEVERITY_ORDER.indexOf(s as Severity);
+export function sortFindings<T extends ListedFinding>(findings: T[]): T[] {
+  const rank = (s: string) => {
+    const i = SEVERITY_ORDER.indexOf(s as FindingSeverity);
+    return i < 0 ? SEVERITY_ORDER.length : i;
+  };
   return [...findings].sort((a, b) => rank(a.severity) - rank(b.severity) || (b.score ?? 0) - (a.score ?? 0));
 }
 
@@ -107,17 +113,17 @@ export interface ChipOption {
 /** One chip per severity (lib/status.ts SEVERITY_META: Critical, High, Medium, Low), worst
     first; levels with no finding are left out unless they are selected (so a selection can
     always be undone). */
-export function severityChips(findings: FindingRow[], selected: readonly string[]): ChipOption[] {
+export function severityChips(findings: ListedFinding[], selected: readonly string[]): ChipOption[] {
   return countBy(findings, (f) => f.severity, SEVERITY_ORDER)
     .filter((c) => c.count > 0 || selected.includes(c.value))
     .map((c) => {
-      const meaning = SEVERITY_META[c.value as Severity];
+      const meaning = SEVERITY_META[c.value as FindingSeverity];
       return { ...c, label: c.value.toLowerCase(), color: meaning?.color, hint: meaning ? `${meaning.label}: ${meaning.hint}` : undefined };
     });
 }
 
 /** The one "False positives" chip: how many there are, on while they are listed. */
-export function falsePositiveChips(findings: FindingRow[]): ChipOption[] {
+export function falsePositiveChips(findings: ListedFinding[]): ChipOption[] {
   const meaning = FINDING_REVIEW.closed;
   return [
     {
@@ -125,13 +131,13 @@ export function falsePositiveChips(findings: FindingRow[]): ChipOption[] {
       label: "Show",
       count: findings.filter((f) => f.falsePositive).length,
       color: toneColor(meaning.tone),
-      hint: "Findings an analyst marked as false positives in the TUI: left out of every count. Show them to read why.",
+      hint: "Show findings classified or marked as false positives. Reports retain them in category totals.",
     },
   ];
 }
 
 /** One chip per validation bucket (lib/status.ts FINDING_REVIEW), every bucket listed. */
-export function validationChips(findings: FindingRow[]): ChipOption[] {
+export function validationChips(findings: ListedFinding[]): ChipOption[] {
   return countBy(findings, validationOf, VALIDATION).map((c) => {
     const meaning = FINDING_REVIEW[c.value as Validation];
     return { ...c, label: meaning.label, color: toneColor(meaning.tone), hint: meaning.hint };
@@ -159,8 +165,8 @@ export const runMatches = (item: LibraryItem, q: string) =>
 
 export interface FindingsPage {
   paging: Paging;
-  rows: FindingRow[]; // the page's rows, in order
-  current: FindingRow | null; // the selected finding (null only when `sorted` is empty)
+  rows: ListedFinding[]; // the page's rows, in order
+  current: ListedFinding | null; // the selected finding (null only when `sorted` is empty)
   index: number; // its index in `sorted`, or -1
   explicit: boolean; // the address named it and it is in the list
   /** The address named a finding that is not in the list: a false positive while they are
@@ -171,7 +177,7 @@ export interface FindingsPage {
 /** The page to show and the finding to select, for the filtered and sorted list. `all` is the
     unfiltered list (to tell a filtered-out finding from an unknown one); `fpShown`, whether the
     false positives are listed. */
-export function resolveFindingsPage(sorted: FindingRow[], all: FindingRow[], finding: string, page: string, fpShown = true): FindingsPage {
+export function resolveFindingsPage(sorted: ListedFinding[], all: ListedFinding[], finding: string, page: string, fpShown = true): FindingsPage {
   const index = finding ? sorted.findIndex((f) => f.key === finding) : -1;
   if (index >= 0) {
     const paging = paginate(sorted.length, pageOf(index));
@@ -190,7 +196,7 @@ export const pageParam = (page: number) => (page > 1 ? String(page) : "");
 
 /** What changes in the address when the pager opens `page`: the selection stays only if its row
     is on that page; otherwise the page's first row is selected (the finding is dropped). */
-export function pagePatch(sorted: FindingRow[], page: number, finding: string): { page: string; finding: string } {
+export function pagePatch(sorted: ListedFinding[], page: number, finding: string): { page: string; finding: string } {
   const paging = paginate(sorted.length, page);
   const keep = slicePage(sorted, paging).some((f) => f.key === finding);
   return { page: pageParam(paging.page), finding: keep ? finding : "" };
@@ -198,13 +204,13 @@ export function pagePatch(sorted: FindingRow[], page: number, finding: string): 
 
 /** What changes in the address when a filter changes: back to the first page, and the selection
     stays only while it still matches. */
-export function filterPatch(all: FindingRow[], filter: FindingFilter, finding: string): { page: string; finding: string } {
+export function filterPatch(all: ListedFinding[], filter: FindingFilter, finding: string): { page: string; finding: string } {
   const keep = finding !== "" && all.some((f) => f.key === finding && findingMatches(f, filter));
   return { page: "", finding: keep ? finding : "" };
 }
 
 /** The finding before and after `index` in the list (across pages), or null at each end. */
-export function neighbours(sorted: FindingRow[], index: number): { prev: FindingRow | null; next: FindingRow | null } {
+export function neighbours(sorted: ListedFinding[], index: number): { prev: ListedFinding | null; next: ListedFinding | null } {
   if (index < 0) return { prev: null, next: null };
   return { prev: sorted[index - 1] ?? null, next: sorted[index + 1] ?? null };
 }

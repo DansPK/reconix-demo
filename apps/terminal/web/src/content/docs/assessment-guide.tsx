@@ -28,9 +28,9 @@ export const assessmentGuide: GroupContent = {
             head={["Template (id)", "Target and default scope"]}
             rows={[
               { key: "Network · network", value: <>Hosts, ports and exposed services. An IPv4 address or range, or a hostname, e.g. <Mono>10.0.0.0/24</Mono>. The scope lists allowed ports (22, 80, 443, 8080, 8443 by default).</> },
-              { key: "API · api", value: <>REST and GraphQL endpoints. The API&apos;s base URL, e.g. <Mono>https://api.lumina.com/v1</Mono>.</> },
-              { key: "Source Code · source", value: <>Static review of a repository. A git repo URL or a local path, e.g. <Mono>https://git.lumina.com/lumina/app.git</Mono>. The scope excludes paths instead of URLs.</> },
-              { key: "Web URL · web_url", value: <>A web application at a URL, e.g. <Mono>https://shop.lumina.com</Mono>. Discovery, vulnerability scanning and limited validation; GET and POST; <Mono>/admin</Mono> excluded; 30 minutes; Nuclei and OWASP ZAP.</> },
+              { key: "API · api", value: <>REST and GraphQL endpoints. The API&apos;s base URL, e.g. <Mono>https://api.example.com/v1</Mono>.</> },
+              { key: "Source Code · source", value: <>Static review of a repository. A git repo URL or a local path, e.g. <Mono>https://git.example.com/acme/app.git</Mono>. The scope excludes paths instead of URLs.</> },
+              { key: "Web URL · web_url", value: <>A web application at a URL, e.g. <Mono>https://shop.example.com</Mono>. Discovery, vulnerability scanning and limited validation; GET and POST; <Mono>/admin</Mono> excluded; 30 minutes; Nuclei and OWASP ZAP.</> },
             ]}
           />
           <p>
@@ -49,7 +49,7 @@ export const assessmentGuide: GroupContent = {
               to start over.&quot;, is never reached from the prompt.)
             </li>
             <li>
-              Be empty or too long: &quot;Type a request first.&quot;, &quot;Keep the request under 500 characters.&quot;
+              Be empty or too long: &quot;Type a request first.&quot;, &quot;Keep the request to at most 500 characters.&quot;
             </li>
             <li>
               Name a malformed target: <Mono>10.0.0.300</Mono> or a range wider than /16 is refused with the reason.
@@ -67,6 +67,7 @@ export const assessmentGuide: GroupContent = {
   },
   scope: {
     lede: "The scope manifest says what will be tested, what may be done and what is never touched. Approving it locks it.",
+    notice: "Configuration details are under review and may change as development continues.",
     body: (
       <>
         <DocSection title="What the manifest holds">
@@ -122,7 +123,7 @@ export const assessmentGuide: GroupContent = {
             </li>
             <li>
               <strong>Reject</strong> discards the draft: nothing is tested, the assessment stops (&quot;Scope rejected.
-              Nothing was tested.&quot;) and a fresh one starts.
+              Nothing was tested.&quot;) and stays open, asking &quot;Start again?&quot;.
             </li>
           </ul>
           <Callout variant="warning" title="When the scope can change">
@@ -184,9 +185,9 @@ export const assessmentGuide: GroupContent = {
             caption="The gated steps of each template"
             head={["Template", "Steps"]}
             rows={[
-              { key: "Web URL, API", value: <><Badge variant="accent">MEDIUM</Badge> Baseline request (read-only) · <Badge variant="accent">HIGH</Badge> limited_validation</> },
-              { key: "Network", value: <><Badge variant="accent">MEDIUM</Badge> Banner and TLS check (read-only) · <Badge variant="accent">HIGH</Badge> single_login_probe</> },
-              { key: "Source Code", value: <><Badge variant="accent">MEDIUM</Badge> Read the flagged line (read-only) · <Badge variant="accent">HIGH</Badge> secret_validation</> },
+              { key: "Web URL, API", value: <><Badge variant="accent">MEDIUM</Badge> Baseline request (read-only) · <Badge variant="accent">HIGH</Badge> Cross-account read check</> },
+              { key: "Network", value: <><Badge variant="accent">MEDIUM</Badge> Banner and TLS check (read-only) · <Badge variant="accent">HIGH</Badge> Default login probe</> },
+              { key: "Source Code", value: <><Badge variant="accent">MEDIUM</Badge> Read the flagged line (read-only) · <Badge variant="accent">HIGH</Badge> Check the flagged credential once</> },
             ]}
           />
         </DocSection>
@@ -217,6 +218,7 @@ export const assessmentGuide: GroupContent = {
   },
   "policy-checks": {
     lede: "Every request the run proposes is checked against the approved scope before it runs. The rest is blocked.",
+    notice: "Configuration details are under review and may change as development continues.",
     body: (
       <>
         <DocSection title="How a request is checked">
@@ -302,7 +304,8 @@ export const assessmentGuide: GroupContent = {
           <p>
             <Badge variant="accent">MEDIUM</Badge> One decision. Approve &amp; run records the approval bound to the request&apos;s
             hash and the run continues (&quot;MEDIUM action approved by analyst.&quot;). Reject records the rejection and{" "}
-            <strong>stops the assessment</strong>: nothing else runs, the findings so far are kept.
+            <strong>skips that action</strong>: &quot;Not executed — the plan goes on with its next step.&quot; A later
+            gated action still asks for its own approval.
           </p>
         </DocSection>
         <DocSection title="HIGH risk: the double check">
@@ -371,7 +374,7 @@ export const assessmentGuide: GroupContent = {
           </ul>
           <p>
             The screen opens only after the plan has run; <Mono>/status</Mono> (alias <Mono>/execution</Mono>) and{" "}
-            <Kbd>5</Kbd> get there.
+            <Kbd>Alt+5</Kbd> get there.
           </p>
         </DocSection>
         <DocSection title="When the run pauses">
@@ -397,7 +400,7 @@ export const assessmentGuide: GroupContent = {
         <DocSection title="Stopping">
           <p>
             <Kbd>Ctrl+C</Kbd> on Execution asks &quot;Keep running&quot; or &quot;Stop now&quot; (nothing else runs; the
-            findings so far are kept). Rejecting the scope or a gated action also stops the run, and so does the scope&apos;s
+            findings so far are kept). Rejecting the scope also stops the run (a rejected gated action is only skipped), and so does the scope&apos;s
             time limit (&quot;Time limit reached. Testing stopped.&quot;). A stopped assessment
             cannot be resumed: <Mono>/new</Mono> starts another, and the stopped one keeps its partial findings under{" "}
             <Mono>/assessments</Mono>. With no run going, stopping says &quot;No assessment is running.&quot;
@@ -445,94 +448,12 @@ export const assessmentGuide: GroupContent = {
     ),
   },
   "ai-agent": {
-    lede: "With a model active and the backend harness installed, /assess hands a real assessment to an AI agent, behind the same scope gate.",
+    lede: "Follow a simulated assessment in the terminal.",
     body: (
       <>
-        <DocSection title="What you need">
-          <Steps>
-            <li>
-              The backend harness: <Mono>pip install -e backend</Mono> (it adds litellm, mcp and pyyaml, and needs{" "}
-              <strong>Python 3.10 or later</strong>, unlike the terminal&apos;s 3.9). Without it:
-              &quot;The harness backend isn&apos;t installed (pip install -e backend).&quot;
-            </li>
-            <li>
-              A reachable Kali MCP server, configured in <Mono>.env</Mono>: <Mono>KALI_MCP_TRANSPORT</Mono> (http, sse or
-              stdio), <Mono>KALI_MCP_URL</Mono> and <Mono>KALI_MCP_AUTH_TOKEN</Mono>, or for stdio{" "}
-              <Mono>KALI_MCP_SSH_HOST</Mono> and <Mono>KALI_MCP_REMOTE_CMD</Mono>. <Mono>HARNESS_DB_PATH</Mono> is the
-              agent&apos;s own SQLite database of targets, scans and findings.
-            </li>
-            <li>
-              An active model (<DocRef>/model</DocRef>). Without one: &quot;Pick a model
-              first with /model.&quot;
-            </li>
-          </Steps>
-          <Code>{`/provider set reconix        # or any other provider
-/provider test reconix
-/model reconix/<model>
-/assess https://www.lumina.com`}</Code>
-        </DocSection>
         <DocSection title="How it runs">
-          <Steps>
-            <li>
-              <Mono>/assess &lt;target&gt;</Mono> (alias <Mono>/agent</Mono>), or simply a target typed at the prompt while a
-              model is active, builds the run and its scope like the scripted flow and opens the Template screen. Text
-              that is not a target is refused: &quot;That doesn&apos;t look like a scan target (URL, host or repo).&quot;
-              A running assessment&apos;s playback pauses and it stays listed under <Mono>/assessments</Mono> (reopening it
-              resumes it); a fresh one starts.
-            </li>
-            <li>
-              The scope manifest lists the agent&apos;s whole tool set (the harness&apos;s scanners: gobuster, httpprobe,
-              nikto, nmap, nuclei, sqlmap, whatweb, zap), since the agent plans dynamically. <strong>Approving the scope
-              is the authorization</strong>: Reconix registers the approved target as authorized (the model does not
-              decide that), the agent is told the engagement is approved and starts at once.
-            </li>
-            <li>
-              The Execution screen shows the agent&apos;s own plan as task rows (updated as it revises them), its tool
-              calls in the live output and its reasoning as muted &quot;thinking…&quot; lines. Findings it records are
-              mapped into the store as <Mono>AI-NNN</Mono> findings, their evidence redacted, so <Mono>/findings</Mono>,
-              the report, <Mono>/summary</Mono> and the dashboard see them.
-            </li>
-            <li>
-              When the agent needs a decision it pops a dialog (&quot;AGENT NEEDS YOUR DECISION&quot;, Yes/No or its own
-              options); when it needs a login it pops the secure-input form. A username and password are exchanged
-              host-side for a session, so the raw password never reaches the model, but the <strong>session it mints
-              (a header with a bearer token or cookie)</strong>, like a <strong>token or cookie you type</strong>, is handed
-              back to the agent as the tool&apos;s result, so it does reach the model and its provider.
-            </li>
-            <li>
-              A line typed during the run continues the same agent (its history is kept). While a turn runs, chat waits:
-              &quot;The assessment is running — you can chat once it finishes.&quot; When the turn ends the run is marked
-              complete.
-            </li>
-          </Steps>
-        </DocSection>
-        <DocSection title="Switching models mid-assessment">
-          <p>
-            <Mono>/model</Mono> at any time repoints the agent at the new provider and model; its conversation, the
-            findings and the approvals are preserved. The model is set before every turn from the active provider, and
-            the API key is decrypted only for that call.
-          </p>
-        </DocSection>
-        <DocSection title="What is and is not enforced">
-          <Callout variant="warning" title="Real tools, scope checked on every call">
-            The agent runs real tools against the target you named. Only assess what you are authorized to test. In
-            agent mode Reconix checks <strong>every tool call</strong> against the scope you approved before it runs:
-            the target host (and, on a network scope, the port list), the allowed methods and excluded paths on a web
-            or API scope, the tool set and the time limit. A refused call is not executed; the agent is told why, and
-            the refusal appears as a policy line in the activity log, in the blocked count and in the audit trail.
-            Authorizing a target outside the scope is refused too, and a source-code scope refuses every network tool.
-            Two limits to know. The tool set is listed in full on the manifest before you approve, so it restricts the
-            agent only if you edit the tools down. And the check is on the call, not on the traffic inside it: a
-            scanner&apos;s own crawling or probing of an allowed target is not checked request by request, and a scan of
-            a bare host on a network scope is judged by host only (so nmap may then try every port). The per-action
-            approval gates (MEDIUM, and the HIGH double check) are <strong>not applied to the agent</strong>: it is
-            told the engagement is approved and not to ask for confirmation. A login request never follows redirects,
-            so credentials are not re-sent to another address. What also applies: the scope approval before anything
-            starts, the dialogs it opens for decisions and logins, the redaction of what it logs and the evidence it
-            records, and the audit trail. <Mono>/assess</Mono>, <Mono>/new</Mono>, opening another assessment and
-            quitting cancel a running agent turn; the run you leave is marked stopped. Without a model or the harness,
-            the scripted sample runs instead.
-          </Callout>
+          <p>The demo plays a local assessment scenario. The activity panel shows the current step, approvals and recorded findings.</p>
+          <p>Open <Mono>/assessments</Mono> to revisit a run, or <Mono>/web</Mono> to inspect its dashboard and report.</p>
         </DocSection>
       </>
     ),

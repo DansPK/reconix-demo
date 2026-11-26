@@ -10,9 +10,11 @@ const meterTone = (over: boolean): Tone => (over ? "danger" : "primary");
 
 export function StatCard({ label, icon: Icon, children }: { label: string; icon: LucideIcon; children: React.ReactNode }) {
   return (
-    <section aria-label={label} className="dash-card dash-stat">
-      <h2 className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Icon className="size-3.5" strokeWidth={1.8} aria-hidden />
+    <section aria-label={label} className="dash-card dash-stat ac-glow-card">
+      <h2 className="flex items-center gap-2 text-xs text-muted-foreground">
+        <span className="ac-stat-icon" aria-hidden>
+          <Icon className="size-3.5" strokeWidth={1.8} />
+        </span>
         {label}
       </h2>
       {children}

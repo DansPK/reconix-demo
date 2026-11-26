@@ -25,7 +25,7 @@ def test_a_secret_never_prints_itself():
 
 
 def test_the_stored_account_never_shows_the_password():
-    run_to(None, "test the API at https://api.example.com/v1")   # the API run stores a cookie
+    run_to(None, "test the API at https://api.example.com/v1 with Postman")   # the API run stores a cookie
     account = lists.current().vault[-1]
     assert TEST_PASSWORD not in repr(account)
     assert TEST_PASSWORD not in repr(dataclasses.asdict(account))
@@ -48,8 +48,8 @@ def test_only_the_newest_confirmation_token_works():
     first = store.request_confirmation(HIGH, request.command_hash)
     second = store.request_confirmation(HIGH, request.command_hash)
     with pytest.raises(store.StoreValidationError):
-        store.approve(HIGH, command_hash=request.command_hash, confirmation_token=first)
-    store.approve(HIGH, command_hash=request.command_hash, confirmation_token=second)
+        store.approve(HIGH, command_hash=request.command_hash, confirmation_token=first, typed_target=request.target)
+    store.approve(HIGH, command_hash=request.command_hash, confirmation_token=second, typed_target=request.target)
 
 
 def test_a_high_token_is_not_given_for_a_medium_action():
@@ -101,8 +101,9 @@ def _secrets_everywhere_a_report_prints() -> None:
     tools and excluded paths, and a private key stored one evidence entry per line."""
     store.start_run(store.DEMO_REQUEST)
     assert play_until_gate() == "scope"
-    store.edit_scope(tools=["Nuclei", f"api_key={TEST_PASSWORD}"],
-                     excluded_paths=["/admin", f"/backup?token={TEST_PASSWORD}"])
+    # the store refuses an unknown tool; a report must mask one all the same
+    lists.current().scope.tools = ["Nuclei", f"api_key={TEST_PASSWORD}"]
+    store.edit_scope(excluded_paths=["/admin", f"/backup?token={TEST_PASSWORD}"])
     store.approve_scope()
     run_to_end()
     current = lists.current()

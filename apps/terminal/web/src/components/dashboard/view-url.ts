@@ -1,50 +1,29 @@
-/* Which viewer view is open, and its filters, kept in the address bar (`?view=findings&sev=HIGH`)
-   so a reload, a live refresh or a link lands on the same place. Switching uses
-   history.replaceState, which Next.js syncs with useSearchParams without a server round trip.
-   Safe for the browser only (it touches window). */
-import { useSearchParams } from "next/navigation";
+/* Which viewer view is open (its pathname: `/`, `/assistant`, `/findings`, …) and its filters
+   in the query string (`?sev=HIGH`), so a reload, a live refresh or a link lands on the same
+   place. Switching uses history.replaceState/pushState, which Next.js syncs with usePathname
+   and useSearchParams without a server round trip. Safe for the browser only (touches window). */
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
-// (no "audit", "scope" or "terminal": the Audit log, Scope and Terminal views were removed; old
-// ?view=audit, ?view=scope and ?view=terminal links open the Overview). "knowledge" is the Security knowledge page, opened from
-// the AI Assistant's header (no sidebar item).
-export const VIEWS = ["overview", "assessments", "findings", "log", "reports", "assistant", "knowledge"] as const;
-export type View = (typeof VIEWS)[number];
+import { parseView, resolveView, runIdFromPath, viewPath, VIEWS, type View } from "@/components/dashboard/view-name";
+
+export { parseView, resolveView, runIdFromPath, viewPath, VIEWS, type View };
 
 /** The Assessments view's own address parameters (its filters, its page). */
 export const ASSESSMENT_KEYS = ["q", "status", "template", "page"] as const;
 /** The Findings view's own address parameters (its filters, the selected finding, its page). */
 export const FINDINGS_KEYS = ["sev", "val", "q", "fp", "finding", "page"] as const;
-/** The Report view's own address parameters: the every-run Targets card's page (`tpage`, a key
-    of its own, so it never meets a `page`; the runs table keeps its page in state). */
-export const REPORT_KEYS = ["tpage"] as const;
-
+/** The Security knowledge view's own address parameters (focused document, optional 1-based part). */
+export const KNOWLEDGE_KEYS = ["doc", "part"] as const;
 /** Each view's own filter parameters (cleared when a link opens that view with new ones). The
     one list per view: the views read their parameters from these same constants. */
 export const VIEW_FILTERS: Partial<Record<View, readonly string[]>> = {
   assessments: ASSESSMENT_KEYS,
   findings: FINDINGS_KEYS,
-  reports: REPORT_KEYS,
+  knowledge: KNOWLEDGE_KEYS,
 };
 
 export type ViewParams = Record<string, string | undefined>;
-
-/** Spellings a person may type for a view ("Run log" is `log`): they open that view, not the
-    Overview. */
-const VIEW_ALIASES: Record<string, View> = {
-  runlog: "log",
-  "run-log": "log",
-  logs: "log",
-  report: "reports",
-  finding: "findings",
-  assessment: "assessments",
-};
-
-export const parseView = (value: string | null | undefined): View => {
-  const name = (value ?? "").trim().toLowerCase();
-  if ((VIEWS as readonly string[]).includes(name)) return name as View;
-  return VIEW_ALIASES[name] ?? "overview";
-};
 
 /** Whether the page is interactive: viewer.tsx marks `html[data-hydrated]` once React has taken
     over. A click React replays from before that would change the address before the router
@@ -75,10 +54,17 @@ function flushWhenReady(): void {
  * Before hydration the write is queued (the last one asked for wins) and applied once the page
  * is interactive; the return says whether it was written now.
  */
-export function writeQuery(params: URLSearchParams, mode: "push" | "replace" = "replace", state: unknown = null, done?: () => void): boolean {
+export function writeQuery(
+  params: URLSearchParams,
+  mode: "push" | "replace" = "replace",
+  state: unknown = null,
+  done?: () => void,
+  pathname?: string,
+): boolean {
   const query = params.toString();
   const write = () => {
-    window.history[mode === "push" ? "pushState" : "replaceState"](state, "", query ? `?${query}` : window.location.pathname);
+    const base = pathname ?? window.location.pathname;
+    window.history[mode === "push" ? "pushState" : "replaceState"](state, "", query ? `${base}?${query}` : base);
     done?.();
   };
   if (routerReady()) {
@@ -90,24 +76,23 @@ export function writeQuery(params: URLSearchParams, mode: "push" | "replace" = "
   return false;
 }
 
-const write = (params: URLSearchParams): void => {
-  writeQuery(params);
+const write = (params: URLSearchParams, pathname?: string): void => {
+  writeQuery(params, "replace", null, undefined, pathname);
 };
 
-/** The address after opening `view` from the one `search` holds (pure; showView's rule). The
-    chosen assessment stays. Changing view drops the view left behind's own filters (and the
-    selected finding), so a `page` or `q` never leaks into another view that uses the same key.
-    With `filters`, the opened view's old filters are replaced by these (a drill-down); without,
-    they stay as they were (back to where you left). */
-export function viewSearch(search: string, view: View, filters?: ViewParams): string {
+/** The query string after opening `view` from the one `search` holds (pure). */
+export function viewSearch(search: string, view: View, filters?: ViewParams, currentPath?: string): string {
   const params = new URLSearchParams(search);
-  const from = parseView(params.get("view"));
+  const from = resolveView(currentPath, params.get("view"));
   if (from !== view) {
     for (const key of VIEW_FILTERS[from] ?? []) params.delete(key);
     params.delete("finding");
   }
-  if (view === "overview") params.delete("view");
-  else params.set("view", view);
+  if (view === "assessments") {
+    params.delete("uid");
+    params.delete("assessment");
+  }
+  params.delete("view");
   if (filters) {
     for (const key of VIEW_FILTERS[view] ?? []) params.delete(key);
     for (const [key, value] of Object.entries(filters)) if (value) params.set(key, value);
@@ -115,9 +100,61 @@ export function viewSearch(search: string, view: View, filters?: ViewParams): st
   return params.toString();
 }
 
-/** Open `view` (viewSearch) in place. */
+/** The canonical path + query URL for opening `view` from `(currentPath, search)`. */
+export function viewUrl(currentPath: string, search: string, view: View, filters?: ViewParams): string {
+  const params = new URLSearchParams(viewSearch(search, view, filters, currentPath));
+  const runId = view === "assessments" || view === "knowledge" ? null : (runIdFromPath(currentPath) ?? params.get("uid") ?? params.get("assessment"));
+  params.delete("uid");
+  params.delete("assessment");
+  const base = viewPath(view, runId);
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
+}
+
+type ViewNavigator = (href: string, mode: "push" | "replace") => void;
+let navigatorFn: ViewNavigator | null = null;
+
+/** Registers Next.js router navigation so programmatic view switches use real SSR routing. */
+export function registerViewNavigator(fn: ViewNavigator | null): void {
+  navigatorFn = fn;
+}
+
+/** The run the mounted views were rendered for (null: every run), set by the Viewer from each
+ *  server render. undefined until the Viewer has mounted. */
+let renderedRun: string | null | undefined;
+
+export function setRenderedRun(run: string | null): void {
+  renderedRun = run;
+}
+
+/** Open `view` at its clean path (`/findings/<id>`, `/reports/<id>`, `/assessments/<id>`, …).
+ *  Every view is already mounted with its data (loaded in the background), so a switch that keeps
+ *  the run the page was rendered for happens in place (history state, synced with usePathname):
+ *  nothing reloads. Only a switch to another run's data goes through Next.js SSR navigation. */
 export function showView(view: View, filters?: ViewParams): void {
-  write(new URLSearchParams(viewSearch(window.location.search, view, filters)));
+  const from = resolveView(window.location.pathname, new URLSearchParams(window.location.search).get("view"));
+  const params = new URLSearchParams(viewSearch(window.location.search, view, filters, window.location.pathname));
+  // Security knowledge's address names no run: leaving it returns to the run the views hold
+  const kept = from === "knowledge" ? (renderedRun ?? null) : null;
+  const runId = view === "assessments" || view === "knowledge" ? null : (runIdFromPath(window.location.pathname) ?? params.get("uid") ?? params.get("assessment") ?? kept);
+  params.delete("uid");
+  params.delete("assessment");
+  const base = viewPath(view, runId);
+  const query = params.toString();
+  const href = query ? `${base}?${query}` : base;
+  const sameData = renderedRun !== undefined && (view === "knowledge" || (runId ?? null) === renderedRun);
+  if (from !== view && !sameData && navigatorFn) {
+    navigatorFn(href, "push");
+    return;
+  }
+  writeQuery(params, from !== view ? "push" : "replace", null, undefined, base);
+}
+
+/** Current dashboard view from Next.js pathname (falling back to legacy `?view=`). */
+export function useCurrentView(): View {
+  const pathname = usePathname();
+  const search = useSearchParams();
+  return resolveView(pathname, search.get("view"));
 }
 
 /** The current value of some query parameters, and a setter that changes only those. */
@@ -136,32 +173,40 @@ export function useQueryParams<K extends string>(keys: readonly K[]): [Record<K,
 }
 
 /** The link that opens one saved run (`uid`), or every run (`null`), from the address `search`
-    (pure): the open view and its filters stay, but not the selected finding or a page (they
-    belong to what was left behind: another run has other findings and fewer or more pages, and
-    the Report's targets are paged only while every run is shown). */
-export function runHref(search: string, uid: string | null): string {
+    (pure): the open view and its filters stay, except when picking a specific run from the
+    Assessments list (`view=assessments`), which returns to that run's Overview. The selected
+    finding or page is dropped (they belong to what was left behind). */
+export function runHref(search: string, uid: string | null, pathname = "/"): string {
   const next = new URLSearchParams(search);
-  if (uid) next.set("uid", uid);
-  else next.delete("uid");
+  const currentView = resolveView(pathname, next.get("view"));
+  next.delete("view");
+  next.delete("uid");
   next.delete("finding");
   next.delete("page");
-  next.delete("tpage");
+  next.delete("assessment");
+  let targetView: View = currentView;
+  if (uid && currentView === "assessments") {
+    targetView = "overview";
+    for (const key of ASSESSMENT_KEYS) next.delete(key);
+  }
+  const base = viewPath(targetView, uid);
   const query = next.toString();
-  return query ? `/?${query}` : "/";
+  return query ? `${base}?${query}` : base;
 }
 
 /** runHref from the current address. */
 export function useRunHref(): (uid: string | null) => string {
+  const pathname = usePathname();
   const search = useSearchParams();
-  return (uid) => runHref(search.toString(), uid);
+  return (uid) => runHref(search.toString(), uid, pathname);
 }
 
 /** The Overview of one saved run, from anywhere (no filters carried). */
-export const runOverviewHref = (uid: string): string => `/?uid=${encodeURIComponent(uid)}`;
+export const runOverviewHref = (uid: string): string => viewPath("overview", uid);
 
 /** One finding opened in its own run's Findings view. */
 export const runFindingHref = (uid: string, findingId: string): string =>
-  `/?uid=${encodeURIComponent(uid)}&view=findings&finding=${encodeURIComponent(findingId)}`;
+  `${viewPath("findings", uid)}?finding=${encodeURIComponent(findingId)}`;
 
 // --- the AI Assistant's history entry ----------------------------------------------------
 // Opening the assistant pushes one entry (Back returns to where you were); opening it while it
@@ -170,42 +215,63 @@ export const runFindingHref = (uid: string, findingId: string): string =>
 
 let assistantPushed = false; // this page pushed the entry the assistant sits on
 let ownEntryLength = -1; // history.length right after that push (Forward lands on it again)
-let afterBack: View | null = null; // the view to open once that Back has landed
+let afterBack: { view: View; filters?: ViewParams } | null = null; // the view to open once that Back has landed
+let waitingBack = false; // history.back() is in flight, popstate hasn't landed yet
 
-const viewNow = (): View => parseView(new URLSearchParams(window.location.search).get("view"));
+const viewNow = (): View => resolveView(window.location.pathname, new URLSearchParams(window.location.search).get("view"));
 
 export function openAssistant(): void {
   if (viewNow() === "assistant") return;
   const params = new URLSearchParams(window.location.search);
-  params.set("view", "assistant");
-  // the bookkeeping follows the push itself (which may wait for hydration)
-  writeQuery(params, "push", null, () => {
-    assistantPushed = true;
-    ownEntryLength = window.history.length;
-  });
+  const runId = runIdFromPath(window.location.pathname) ?? params.get("uid") ?? params.get("assessment");
+  params.delete("view");
+  params.delete("uid");
+  params.delete("assessment");
+  const base = viewPath("assistant", runId);
+  // Keep the Viewer mounted (pushState, synced with Next.js usePathname) so AssistantStage plays
+  // its GSAP hero/globe open transition instead of remounting via SSR route navigation.
+  writeQuery(
+    params,
+    "push",
+    null,
+    () => {
+      assistantPushed = true;
+      ownEntryLength = window.history.length;
+    },
+    base,
+  );
 }
 
 /** Leave the assistant for `target`, or (no target) for wherever it was opened from. */
-export function leaveAssistant(target?: View): void {
-  if (viewNow() !== "assistant") return showView(target ?? "overview");
+export function leaveAssistant(target?: View, filters?: ViewParams): void {
+  if (viewNow() !== "assistant") return showView(target ?? "overview", filters);
+  const next = target ? { view: target, filters } : null;
+  if (waitingBack) {
+    afterBack = next;
+    return;
+  }
   if (assistantPushed) {
     assistantPushed = false;
-    afterBack = target ?? null;
+    waitingBack = true;
+    afterBack = next;
     window.history.back();
     return;
   }
-  showView(target ?? "overview"); // opened directly (a link or a reload): nothing to go back to
+  showView(target ?? "overview", filters); // opened directly (a link or a reload): nothing to go back to
 }
 
 /** Keeps the bookkeeping right when the browser moves through history (Back, Forward). */
 export function watchHistory(): () => void {
   const onPop = () => {
     const now = viewNow();
+    waitingBack = false;
     // Forward onto the entry this page pushed: leaving it may go Back again
     assistantPushed = now === "assistant" && window.history.length === ownEntryLength;
     const target = afterBack;
     afterBack = null;
-    if (target && target !== now) showView(target);
+    // after Next.js has handled this same popstate: a router push from inside it is overridden by
+    // the router restoring the entry it went back to, and the person would land on the Overview
+    if (target && (target.view !== now || target.filters)) window.setTimeout(() => showView(target.view, target.filters), 0);
   };
   window.addEventListener("popstate", onPop);
   return () => window.removeEventListener("popstate", onPop);

@@ -1,10 +1,4 @@
-/**
- * Reconix node graph: a canvas drawing of the platform's components and the
- * tools it orchestrates, with slow drift, pulses travelling along edges and an
- * optional "focus" hub that is lit while the rest dims.
- *
- * Framework-free on purpose: the React wrapper and the static preview both use it.
- */
+
 
 const HUBS = [
   { id: "reconix", label: "Reconix", x: 0.5, y: 0.5 },
@@ -13,7 +7,7 @@ const HUBS = [
   { id: "ai", label: "AI Service", x: 0.8, y: 0.34 },
   { id: "tools", label: "Tool Service", x: 0.24, y: 0.74 },
   { id: "knowledge", label: "Knowledge", x: 0.8, y: 0.7 },
-  { id: "viewer", label: "Local Viewer", x: 0.52, y: 0.84 },
+  { id: "viewer", label: "Local Dashboard", x: 0.52, y: 0.84 },
 ];
 
 const LEAVES = [
@@ -30,7 +24,7 @@ const LEAVES = [
   { hub: "ai", label: "classify", sub: "CWE · confidence" },
   { hub: "ai", label: "correlate" },
   { hub: "ai", label: "severity", sub: "CVSS" },
-  { hub: "ai", label: "vLLM", sub: "local LLM" },
+  { hub: "ai", label: "Ollama", sub: "local LLM" },
   // tools
   { hub: "tools", label: "Nmap", sub: "network" },
   { hub: "tools", label: "Nuclei", sub: "templates" },
@@ -221,15 +215,6 @@ const TAIL_HOLD = 0.5;
 const OVERVIEW_ZOOM = 0.84;
 const OVERVIEW_Y = 0.53;
 
-/**
- * Camera for the pinned showcase, scrubbed by scroll: `progress` 0..1 across
- * `hubIds.length` steps plus the tail. Between steps the camera glides from one
- * hub to the next and zooms out a little mid-way, so the whole map stays readable.
- * `side` (0..0.5, screen-width fraction) pushes the focused hub away from the
- * text column: odd steps have text on the right, so the hub sits on the left.
- * After the last hub it holds briefly, then pulls back until the whole map is in
- * view; `overview` (0..1) reports that pull-back so the text and shade can clear.
- */
 export function showcaseView(progress, hubIds, side = 0) {
   const n = hubIds.length;
   const tailLength = SHOWCASE_TAIL + 0.5; // half a step of lead-in at the start leaves this much after the last hub

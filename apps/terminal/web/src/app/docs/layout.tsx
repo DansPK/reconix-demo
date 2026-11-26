@@ -1,11 +1,13 @@
+import { CardCursorLight } from "@/components/dashboard/card-cursor-light";
 import { HydratedMark } from "@/components/dashboard/hydrated-mark";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { DocsTopBar } from "@/components/docs-top-bar";
+import { requireSignedIn } from "@/lib/auth/guard";
 
 /**
  * Chrome for every /docs/** route: the dashboard's own frame (the same sidebar, a top bar and
  * the content area), so the documentation is one more tab of the local viewer, not a separate
- * site. The sidebar's views link back to `/?view=…`; its Documentation item is the one marked.
+ * site. The sidebar's views link back to their paths (`/findings`, …); its Documentation item is the one marked.
  * The session check is the second lock behind src/proxy.ts, and it makes the docs render per
  * request, so they carry the proxy's CSP nonce like every other page. Server component.
  *
@@ -14,11 +16,13 @@ import { DocsTopBar } from "@/components/docs-top-bar";
  * intro reveal (the docs have no intro) and turns on smooth hash links (dashboard.css).
  */
 export default async function DocsLayout({ children }: { children: React.ReactNode }) {
+  await requireSignedIn();
   return (
     <div className="dash-page" data-docs="">
       <HydratedMark />
+      <CardCursorLight />
       <div className="dash-frame">
-        <Sidebar active={null} />
+        <Sidebar active={null} docsActive />
         <DocsTopBar />
         {/* tabIndex -1: focusable by script and click, so the keys scroll it (no tab stop) */}
         <main className="dash-content" tabIndex={-1}>

@@ -54,7 +54,7 @@ def decide(gate: str) -> None:
         if request.risk == "HIGH":
             token = store.request_confirmation(request.request_id, request.command_hash)
             store.approve(request.request_id, command_hash=request.command_hash,
-                          confirmation_token=token)
+                          confirmation_token=token, typed_target=request.target)
         else:
             store.approve(request.request_id, command_hash=request.command_hash)
     else:
@@ -184,6 +184,11 @@ async def pass_gate(app, pilot) -> str:
             await settle(pilot)
             assert isinstance(app.screen, ChoiceScreen)
             await pilot.press("down", "enter")                   # Yes (No is the default)
+            await settle(pilot)
+            from reconix.screens.forms.typed_target import TypedTargetForm
+            assert isinstance(app.screen, TypedTargetForm)
+            app.screen.query_one("#target", Input).value = request.target
+            app.screen.query_one("#submit").press()
         else:
             await pilot.press("1")
     else:

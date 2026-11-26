@@ -35,7 +35,7 @@ def finding_exists(fid: str) -> bool:
 
 
 def confirmed_count() -> int:
-    return sum(1 for f in list_findings() if not f.needs_review)
+    return sum(1 for f in list_findings() if f.confirmed)
 
 
 def review_count() -> int:
@@ -73,6 +73,11 @@ def triage_finding(fid: str, *, status: str = None, severity: str = None,
         finding.severity_override = "" if severity == finding.severity else severity
     if note:
         finding.triage_note = note
+    # Local reports render the current findings. A changed assessment must be built
+    # and reviewed again before the dashboard can offer a signed report download.
+    lists.current().report_signed_off = False
+    lists.current().run.report_path = ""
+    lists.current().run.progress["report"] = 0
     detail = TRIAGE_LABELS.get(finding.status, finding.status)
     if finding.severity_override:
         detail += f" · severity → {finding.severity_override}"
@@ -104,4 +109,8 @@ def ingest_external(findings, prefix: str = "AI") -> int:
         f.fid = f"{prefix}-{n:03d}"
         assessment.findings.append(f)
         assessment.run.revealed.append(f.fid)
+    if added:
+        assessment.report_signed_off = False
+        assessment.run.report_path = ""
+        assessment.run.progress["report"] = 0
     return added

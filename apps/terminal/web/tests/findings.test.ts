@@ -147,11 +147,11 @@ describe("findingsHeadline", () => {
     expect(findingsHeadline(1, 1)).toBe("1 finding across 1 assessment · select one to see its evidence and remediation.");
     expect(findingsHeadline(3, null)).toBe("3 findings · select one to see its evidence and remediation.");
     expect(findingsHeadline(0, null)).toBe("No findings in this assessment yet.");
-    expect(findingsHeadline(0, 4)).toBe("No findings in any saved assessment yet.");
+    expect(findingsHeadline(0, 4)).toBe("No findings in any Core API assessment yet.");
     // false positives are never in the count
     expect(findingsHeadline(3, null, 1)).toBe("3 findings · select one to see its evidence and remediation.");
     expect(findingsHeadline(0, null, 1)).toBe("No findings in this assessment, only 1 false positive.");
-    expect(findingsHeadline(0, 2, 2)).toBe("No findings in any saved assessment, only 2 false positives.");
+    expect(findingsHeadline(0, 2, 2)).toBe("No findings in any Core API assessment, only 2 false positives.");
   });
 });
 
@@ -159,7 +159,14 @@ describe("safeFindingKey", () => {
   it("accepts the keys the view hands out and nothing else", () => {
     expect(safeFindingKey("F-001")).toBe(true);
     expect(safeFindingKey("IMP-002")).toBe(true);
-    expect(safeFindingKey("20261005-140300-9f76_RCX-002~F-001")).toBe(true);
+    expect(safeFindingKey("20261005-140300-9f76_RCX-DEMO-002~F-001")).toBe(true);
     for (const bad of ["", "<script>", "F-001 ", "a~b~c", "x".repeat(49), "F-001?x=1", "run~F-001\n"]) expect(safeFindingKey(bad)).toBe(false);
+  });
+
+  it("sorts unrecognized severities last instead of before CRITICAL", () => {
+    const weird = { ...many[0], key: "weird", severity: "WEIRD" as unknown as (typeof many)[0]["severity"] };
+    const low = { ...many[0], key: "low", severity: "LOW" as const };
+    const crit = { ...many[0], key: "crit", severity: "CRITICAL" as const };
+    expect(sortFindings([weird, low, crit]).map((f) => f.key)).toEqual(["crit", "low", "weird"]);
   });
 });

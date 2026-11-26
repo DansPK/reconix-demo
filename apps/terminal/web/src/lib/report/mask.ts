@@ -4,7 +4,7 @@
    pattern matches them. Lists of strings are masked as one text and split back on the element
    boundaries, so a private key spread over several evidence lines is caught as one block while
    an element holding newlines of its own stays one element. Pure. */
-import { redact } from "@/lib/assistant/redact";
+import { maskPrepared, prepare, redact } from "@/lib/assistant/redact";
 import type { Assessment } from "@/lib/data/schema";
 
 const isStrings = (value: unknown[]): value is string[] => value.length > 0 && value.every((v) => typeof v === "string"); // [] stays []
@@ -15,7 +15,10 @@ const isStrings = (value: unknown[]): value is string[] => value.length > 0 && v
     and split back on it. When a match did run across elements (a key block, a quoted value), the
     elements it covered become one: masking them one by one instead would leave a key's middle
     lines bare, since the BEGIN line is a match on its own. */
-function maskStrings(list: string[]): string[] {
+function maskStrings(raw: string[]): string[] {
+  // Each element made ready first (its control characters a space, a line hiding a secret behind
+  // them hidden), as the TUI's redact_lines does: the NUL separator then survives the masking
+  const list = raw.map(prepare);
   // "\n\u0000<n>\u0000\n" for the first n whose core no element holds: the core then occurs only
   // inside a real separator (none of its characters is a newline, so it can't straddle one), so
   // the split is exact; the round trip is checked all the same
@@ -26,7 +29,7 @@ function maskStrings(list: string[]): string[] {
     return back.length === list.length && back.every((s, i) => s === list[i]);
   };
   while (list.some((s) => s.includes(`\u0000${n}\u0000`)) || !exact()) n++;
-  return redact(list.join(separator())).split(separator());
+  return maskPrepared(list.join(separator())).split(separator());
 }
 
 /** `value` with every string inside it masked (arrays and plain objects are walked). */
@@ -43,4 +46,4 @@ export function maskDeep<T>(value: T): T {
 }
 
 /** The assessment as a report may read it: masked again, field for field. */
-export const maskAssessment = (a: Assessment): Assessment => maskDeep(a);
+export const maskAssessment = (a: Assessment): Assessment => maskDeep({ ...a, findings: a.findings.map(finding => ({ ...finding, evidence_unmasked: [] })) });

@@ -8,7 +8,7 @@ from reconix.store import lists
 from .support import ASK_REQUEST, TEST_PASSWORD, event_kinds, run_to
 
 MEDIUM, HIGH = "approval-001", "approval-002"
-API_REQUEST = "test the API at https://api.example.com/v1"   # the template that still signs in
+API_REQUEST = "test the API at https://api.example.com/v1 with Postman"   # the template that still signs in
 
 
 # --- template and scope ------------------------------------------------------------------
@@ -126,7 +126,7 @@ def test_the_scope_tools_decide_the_login(tools, kind):
 
 def test_a_cookie_login_is_stored_for_the_api_host():
     from .support import play_until_gate as _p
-    store.start_run("test the API at https://api.example.com/v1")   # api → cookie
+    store.start_run("test the API at https://api.example.com/v1 with Postman")   # api → cookie
     assert _p() == "scope"                            # the URL picked the API template
     store.approve_scope()
     assert _p() == "plan"
@@ -192,7 +192,7 @@ def test_high_needs_the_double_check_but_no_reason(high):
     with pytest.raises(store.StoreValidationError):     # no second confirmation
         store.approve(HIGH, command_hash=high.command_hash)
     token = store.request_confirmation(HIGH, high.command_hash)
-    decision = store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token)
+    decision = store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token, typed_target=high.target)
     assert decision.reason == "" and store.is_approved(HIGH)
     assert "Approved: limited_validation (double-checked)" in [
         e.message for e in store.list_activity()]
@@ -203,17 +203,17 @@ def test_a_high_token_works_once_and_only_for_its_hash(high):
         store.request_confirmation(HIGH, "sha256:other")
     token = store.request_confirmation(HIGH, high.command_hash)
     with pytest.raises(store.StoreValidationError):
-        store.approve(HIGH, command_hash="sha256:other", confirmation_token=token)
-    store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token)
+        store.approve(HIGH, command_hash="sha256:other", confirmation_token=token, typed_target=high.target)
+    store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token, typed_target=high.target)
     with pytest.raises(store.StoreValidationError):
-        store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token)
+        store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token, typed_target=high.target)
 
 
 def test_declining_voids_the_token_and_is_audited(high):
     token = store.request_confirmation(HIGH, high.command_hash)
     store.decline_confirmation(HIGH)
     with pytest.raises(store.StoreValidationError):
-        store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token)
+        store.approve(HIGH, command_hash=high.command_hash, confirmation_token=token, typed_target=high.target)
     assert event_kinds()[-2:] == ["approval.confirmation_requested",
                                   "approval.confirmation_declined"]
 
@@ -237,7 +237,7 @@ def test_edit_scope_only_while_waiting_and_validates():
     assert scope.allowed_methods == ["GET", "POST"]        # upper-cased for HTTP
     assert scope.excluded_paths == ["/admin", "/billing"]
     assert scope.time_limit_minutes == 20
-    for bad in (dict(time_limit_minutes=0), dict(time_limit_minutes="x"),
+    for bad in (dict(time_limit_minutes=-1), dict(time_limit_minutes="x"),
                 dict(allowed_methods=[]), dict(allowed_methods=["FETCH"]),
                 dict(excluded_paths=["admin"]), dict(tools=[])):
         with _pytest.raises(store.StoreValidationError):

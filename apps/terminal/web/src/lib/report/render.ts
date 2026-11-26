@@ -6,6 +6,7 @@ import "server-only";
 import type { Assessment } from "@/lib/data/schema";
 
 import { renderReportDocx } from "./docx/report";
+import { reportCounts } from "./counts";
 import type { ExportFormat } from "./formats";
 
 export type FileFormat = Exclude<ExportFormat, "pdf">;
@@ -13,7 +14,7 @@ export type FileFormat = Exclude<ExportFormat, "pdf">;
 export function renderFile(format: FileFormat, assessment: Assessment): string | Uint8Array<ArrayBuffer> {
   switch (format) {
     case "json":
-      return `${JSON.stringify(assessment, null, 2)}\n`;
+      return `${JSON.stringify({ ...assessment, ...reportCounts(assessment.findings) }, null, 2)}\n`;
     case "docx":
       return renderReportDocx(assessment);
   }

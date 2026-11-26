@@ -1,9 +1,12 @@
 """Parsing a typed target, and each template's scope, run and policy."""
 
+from datetime import timedelta
+
 import pytest
 
 from reconix import store
 from reconix.store import lists
+from reconix.store.scope import time_limit_reached
 from reconix.store.parser import parse_request
 
 from .support import decide, play_until_gate
@@ -72,7 +75,7 @@ def test_network_blocks_other_hosts_and_ports_but_allows_in_range():
     decide(play_until_gate())            # scope (the range picked Network itself)
     assert store.check_request("TCP", "10.0.0.17:443").allowed
     assert not store.check_request("TCP", "10.9.9.9:443").allowed      # out of range
-    assert not store.check_request("TCP", "10.0.0.17:3306").allowed    # port not allowed
+    assert not store.check_request("TCP", "10.0.0.17:65534").allowed    # port not allowed
 
 
 def test_source_blocks_excluded_paths_but_allows_the_tree():
@@ -88,3 +91,16 @@ def test_suggested_template_follows_the_parsed_target():
     play_until_gate()
     suggested = [t for t in store.list_templates() if t.suggested]
     assert [t.id for t in suggested] == ["network"]
+
+
+@pytest.mark.parametrize("template_id", list(REQUESTS))
+def test_current_templates_default_to_no_limit_and_five_phases(template_id):
+    store.start_run(REQUESTS[template_id])
+    assert play_until_gate() == "scope"
+    assert store.get_scope().time_limit_minutes == 0
+    assert [t.key for t in store.plan_tasks()] == [
+        "discovery", "scanning", "validation", "analysis", "report"]
+    store.edit_scope(time_limit_minutes=0)
+    decide("scope")
+    lists.current().run.started_at -= timedelta(days=1)
+    assert not time_limit_reached()

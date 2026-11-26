@@ -1,7 +1,8 @@
 """Claude-Code-style selection menus: ↑/↓ or a number to pick, Enter to choose.
 
-A destructive choice (`tone="danger"`: Reject, Stop, Remove…) never gets a number: one stray
-digit must not be able to stop a run or reject a scope. It takes ↑/↓ and Enter.
+A destructive choice (`tone="danger"`: Reject, Stop, Remove…) is numbered too, but its digit
+only moves the highlight there: one stray digit must not be able to stop a run or reject a
+scope, so it still takes Enter to act.
 """
 
 import textwrap
@@ -32,7 +33,7 @@ class ChoiceMenu(OptionList):
 
         ❯ 1. Approve (Recommended)
              Accept the change and continue.
-             Reject                    (destructive: red, no number)
+             Reject                    (destructive: red; its digit only highlights)
           3. Type something.
         ─────────────────────
           4. Chat about this
@@ -74,10 +75,11 @@ class ChoiceMenu(OptionList):
     class TypedOut(Message):
         """A key typed on a `type_out` menu: it belongs in the input the menu stands in for."""
 
-        def __init__(self, menu: "ChoiceMenu", text: str) -> None:
+        def __init__(self, menu: "ChoiceMenu", text: str, pasted: bool = False) -> None:
             super().__init__()
             self.menu = menu
             self.text = text
+            self.pasted = pasted  # a paste, not a key: the input pastes it as it would its own
 
         @property
         def control(self) -> "ChoiceMenu":
@@ -167,11 +169,14 @@ class ChoiceMenu(OptionList):
         index = number - 1
         if not 0 <= index < len(self._choices):
             return
-        if self._choices[index].disabled or self._choices[index].tone == "danger":
-            self.app.bell()          # dead end, or destructive: never on a digit
+        choice = self._choices[index]
+        if choice.disabled:
+            self.app.bell()          # dead end
             return
         self.highlighted = index
-        if self._choices[index].kind != "input":   # the input row just takes the cursor
+        if choice.tone == "danger":
+            return  # destructive: the digit only highlights the row, Enter must act
+        if choice.kind != "input":   # the input row just takes the cursor
             self._activate(index)
 
     # --- rendering --------------------------------------------------------------------
@@ -195,12 +200,11 @@ class ChoiceMenu(OptionList):
             if choice.hint:
                 line.append(f"  {choice.hint}", style=theme.DIM)
             return line
-        number = f"{index + 1}. " if self._numbered else ""
-        if choice.tone == "danger":
-            number = " " * len(number)              # destructive: no digit picks it
+        number = f"{index + 1}. " if self._numbered else ""  # danger rows are numbered too
         if choice.disabled:                         # dead end: visible but not pickable
             line.append(number + choice.label, style=theme.DIM)
-            line.append(f"  ({choice.reason or 'not available'})", style=f"italic {theme.DIM}")
+            why = choice.reason or choice.hint or "unavailable"
+            line.append(f"  ({why})", style=f"italic {theme.DIM}")
             return line
         line.append(number, style=accent if highlighted else theme.DIM)
         if choice.kind == "input":
@@ -270,8 +274,13 @@ class ChoiceMenu(OptionList):
     def on_blur(self) -> None:
         self.call_later(self._move_pointer, self.highlighted)
 
+    def _on_input_row(self) -> bool:
+        choice = self._highlighted_choice()
+        return choice is not None and choice.kind == "input"
+
     def _on_key(self, event: events.Key) -> None:
-        if self._type_out and self._types_out(event):
+        # On a "Type something." row keys type there, even on a `type_out` menu.
+        if self._type_out and not self._on_input_row() and self._types_out(event):
             event.stop()
             event.prevent_default()  # digits too: they type, they don't pick
             self._typed_out = True
@@ -302,6 +311,27 @@ class ChoiceMenu(OptionList):
         event.stop()
         event.prevent_default()
         self._move_pointer(self.highlighted)
+
+    def _on_paste(self, event: events.Paste) -> None:
+        """A paste is text the person meant to type: a `type_out` menu sends it on to its
+        input; a menu with a "Type something." row takes it there as one line."""
+        text = event.text
+        if not text.strip():
+            return
+        if self._type_out and not self._on_input_row():
+            event.stop()
+            event.prevent_default()
+            self._typed_out = True
+            self.post_message(self.TypedOut(self, text, pasted=True))
+            return
+        row = next((i for i, c in enumerate(self._choices) if c.kind == "input"), None)
+        if row is None:
+            return
+        event.stop()
+        event.prevent_default()
+        self._draft += " ".join(text.split())  # one line: the row shows a single line
+        self.highlighted = row
+        self._move_pointer(row)
 
     def _types_out(self, event: events.Key) -> bool:
         """A printable key with no Ctrl/Alt (Alt+1…8 still jump screens). Space moves the

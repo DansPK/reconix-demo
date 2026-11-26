@@ -48,7 +48,7 @@ export function ReportCard({ card }: { card: CardOf<"report"> }) {
         <div className="ai-card-section">
           <div className="mb-2.5 flex items-center gap-2">
             <StatusBadge meaning={RUN_STATUS[status]} />
-            {status !== "Completed" && <span className="text-caption text-muted-foreground">The report covers what this run did so far.</span>}
+            {status !== "Completed" && <span className="text-[12px] text-muted-foreground">The report covers what this run did so far.</span>}
           </div>
           <Downloads run={run} />
         </div>
@@ -64,7 +64,7 @@ export function ReportCard({ card }: { card: CardOf<"report"> }) {
             <li key={run.uid} className="px-1.5">
               <button type="button" aria-expanded={open} onClick={() => setPicked(open ? null : run.uid)} className="ai-choice flex items-center gap-2.5 px-2.5 py-2">
                 <ChevronDown className={cn("size-3.5 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} aria-hidden />
-                <span className="min-w-0 flex-1 truncate text-small text-foreground">{runName(run)}</span>
+                <span className="min-w-0 flex-1 truncate text-[13px] text-foreground">{runName(run)}</span>
                 <StatusBadge meaning={RUN_STATUS[status]} />
               </button>
               {open && (

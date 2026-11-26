@@ -25,7 +25,7 @@ export function FindingsCard({ data, id = "findings-card" }: { data: FindingsSli
     >
       {/* the mix as one stacked bar (the rows below are its legend) */}
       <div role="img" aria-label={`Findings by severity: ${data.words}`} className="dash-stack">
-        {data.total ? (
+        {data.severity.some((s) => s.count > 0) ? (
           data.severity
             .filter((s) => s.count > 0)
             .map((s) => (
@@ -51,7 +51,7 @@ export function FindingsCard({ data, id = "findings-card" }: { data: FindingsSli
             <span key={s.count} className="text-right text-[15px] leading-none tabnums text-foreground" data-countup>
               {s.count}
             </span>
-            <span className="text-right font-mono text-micro tabnums text-muted-foreground">{s.share}%</span>
+            <span className="text-right font-mono text-[11px] tabnums text-muted-foreground">{s.share}%</span>
             {s.count > 0 && (
               <ViewLink
                 view="findings"
@@ -73,7 +73,7 @@ export function FindingsCard({ data, id = "findings-card" }: { data: FindingsSli
       </div>
 
       <div className="flex min-h-0 flex-col gap-1.5 border-t border-border pt-3">
-        <p className="text-caption font-medium text-foreground">Top findings · CVSS</p>
+        <p className="text-[12px] font-medium text-foreground">Top findings · CVSS</p>
         {data.top.length ? (
           <ol className="dash-top-findings">
             {data.top.map((f) => (
@@ -82,10 +82,10 @@ export function FindingsCard({ data, id = "findings-card" }: { data: FindingsSli
                   <span className="block truncate text-xs text-foreground" title={f.title}>
                     {f.title}
                   </span>
-                  <span className="block truncate font-mono text-micro text-muted-foreground">{[f.id, f.host, f.run].filter(Boolean).join(" · ")}</span>
+                  <span className="block truncate font-mono text-[10px] text-muted-foreground">{f.run ? `${f.id} · ${f.run}` : f.id}</span>
                 </span>
                 <SeverityBadge level={f.severity} />
-                <span className="w-8 text-right font-mono text-caption tabnums text-foreground" title={`CVSS ${f.score.toFixed(1)}`}>
+                <span className="w-8 text-right font-mono text-[12px] tabnums text-foreground" title={`CVSS ${f.score.toFixed(1)}`}>
                   {f.score.toFixed(1)}
                 </span>
                 <ViewLink

@@ -14,7 +14,9 @@ CASES = [
     ("Test the API at https://api.example.com/v1", "Reconix will test https://api.example.com",
      "Send only GET and POST requests", ["/internal", "/admin"]),
     ("scan 10.0.0.0/24", "Reconix will test 10.0.0.0/24 as a network.",
-     "Only connect to ports 22, 80, 443, 8080 and 8443, using TCP connect", []),
+     "Only connect to ports 21, 22, 23, 25, 53, 80, 110, 111, 135, 137, 139, "
+     "143, 161, 389, 443, 445, 993, 995, 1433, 1521, 2049, 3000, 3306, 3389, "
+     "5432, 5900, 6379, 8000, 8080, 8443, 9200 and 27017, using TCP connect", []),
     ("review github.com/acme/app", "Reconix will review github.com/acme/app as source code.",
      "Only read the files; nothing is run", [".git", "node_modules", "vendor", "secrets"]),
 ]
@@ -38,6 +40,15 @@ def test_an_edit_shows_up_in_the_words():
     store.edit_scope(allowed_methods=["GET", "HEAD", "POST"], excluded_paths=["/admin", "/ops"])
     summary = store.describe_scope(store.get_scope())
     assert "Send only GET, HEAD and POST requests" in summary.may_do
+    assert summary.never == ["/admin", "/ops"]
+
+
+def test_a_typed_edit_shows_up_in_the_words():
+    run_to("scope")
+    intent = store.ask_edit_intent("exclude /ops and only GET", "SCOPE")
+    store.apply_scope_changes(intent.scope_changes)
+    summary = store.describe_scope(store.get_scope())
+    assert "Send only GET requests" in summary.may_do
     assert summary.never == ["/admin", "/ops"]
 
 

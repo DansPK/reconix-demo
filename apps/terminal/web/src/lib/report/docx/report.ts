@@ -4,12 +4,35 @@
    assessment once more before it gets here (lib/report/mask.ts). */
 import "server-only";
 
-import { type Assessment, type Finding, SEVERITIES } from "@/lib/data/schema";
+import {
+  type Assessment,
+  type Finding,
+  FINDING_SEVERITIES as ALL_SEVERITIES,
+  SEVERITIES,
+} from "@/lib/data/schema";
 
-import { sevRank, shortDate, title } from "../html";
+import { counts, percents, sevRank, shortDate, title, validationLine } from "../html";
+import {
+  categoryLabel,
+  findingCategory,
+  identifiersForReport,
+  isClassifiedFinding,
+  isRatedSecurityFinding,
+  originalRatingClaim,
+  ratedSecurityCount,
+  reportCounts,
+  scoreForReport,
+  severityForReport,
+  vectorForReport,
+} from "../counts";
 import { type Block, docxFile } from "./ooxml";
 
-const cvss = (f: Finding) => (f.cvss_score ? f.cvss_score.toFixed(1) : "—");
+const cvss = (f: Finding) => {
+  const score = scoreForReport(f);
+  if (score === null) return "—";
+  const rating = score.toFixed(1);
+  return isClassifiedFinding(f) ? rating : `Claim ${rating}`;
+};
 const STATUS: Record<string, string> = { open: "Open", fixed: "Fixed", accepted: "Accepted", "false-positive": "False positive" };
 const statusOf = (s: string) => (Object.hasOwn(STATUS, s || "open") ? STATUS[s || "open"] : s);
 
@@ -20,37 +43,125 @@ function engagementWindow(a: Assessment): string {
   return start === end ? start : `${start} → ${end}`;
 }
 
-/** Findings per severity, worst first, only the severities present. */
-function severityLine(findings: Pick<Finding, "severity">[]): string {
-  const counts = SEVERITIES.map((s) => [s, findings.filter((f) => f.severity === s).length] as const).filter(([, n]) => n);
-  return counts.map(([s, n]) => `${n} ${title(s)}`).join(", ") || "no findings";
+/** Rated security findings per severity, worst first, only the severities present. */
+function severityLine(findings: Finding[]): string {
+  const counts = reportCounts(findings).severity_counts;
+  return SEVERITIES.filter((severity) => counts[severity])
+    .map((severity) => `${counts[severity]} ${title(severity)}`)
+    .join(", ") || "no rated security findings";
+}
+
+function categoryLine(findings: Finding[]): string {
+  const categories = reportCounts(findings).category_counts;
+  return Object.entries(categories)
+    .filter(([, count]) => count)
+    .map(([category, count]) => `${count} ${categoryLabel(category as keyof typeof categories)}`)
+    .join(" · ") || "none";
 }
 
 function findingBlocks(f: Finding): Block[] {
+  const isClassified = isClassifiedFinding(f);
+  const severity = severityForReport(f);
+  const score = scoreForReport(f);
+  const vector = vectorForReport(f);
+  const identifiers = identifiersForReport(f);
+  const ev = f.effective_verification;
+  let validationDisplay: string;
+  if (ev) {
+    if (ev.legacy) validationDisplay = "legacy, not verified";
+    else if (ev.status === "VERIFIED") {
+      const subject = ev.subject;
+      const subjectLabel =
+        subject && typeof subject === "object" && typeof (subject as Record<string, unknown>).label === "string"
+          ? ((subject as Record<string, unknown>).label as string)
+          : undefined;
+      const base = `Verified by ${(ev.verifier || f.tool || "VALIDATION").toUpperCase()}`;
+      validationDisplay = subjectLabel ? `${base} (${subjectLabel})` : base;
+    } else if (ev.status === "NOT_REPRODUCED") {
+      const subject = ev.subject;
+      const subjectLabel =
+        subject && typeof subject === "object" && typeof (subject as Record<string, unknown>).label === "string"
+          ? ((subject as Record<string, unknown>).label as string)
+          : undefined;
+      const base = `Not reproduced by ${(ev.verifier || f.tool || "VALIDATION").toUpperCase()}`;
+      validationDisplay = subjectLabel ? `${base} (${subjectLabel})` : base;
+    } else if (ev.status === "INCONCLUSIVE") validationDisplay = ev.reason ? `Inconclusive: ${ev.reason}` : "Inconclusive";
+    else if (ev.status === "DEFERRED") validationDisplay = ev.reason ? `Deferred: ${ev.reason}` : "Deferred";
+    else if (ev.status === "UNVERIFIED") validationDisplay = "Unverified";
+    else if (ev.status) validationDisplay = title(ev.status);
+    else if (
+      f.validation?.toUpperCase() === "CONFIRMED" ||
+      (isClassified && findingCategory(f) === "CONFIRMED_VULNERABILITY") ||
+      f.verification_status === "CONFIRMED"
+    ) {
+      validationDisplay = "legacy, not verified";
+    } else {
+      validationDisplay = title(f.validation);
+    }
+  } else if (
+    f.validation?.toUpperCase() === "CONFIRMED" ||
+    (isClassified && findingCategory(f) === "CONFIRMED_VULNERABILITY") ||
+    f.verification_status === "CONFIRMED"
+  ) {
+    validationDisplay = "legacy, not verified";
+  } else {
+    validationDisplay = title(f.validation);
+  }
   const rows: [string, string][] = [
-    ["Severity", `${title(f.severity)} · CVSS ${cvss(f)}`],
-    ["Validation", title(f.validation)],
+    ["Validated severity", severity],
+    ["Validation", validationDisplay],
     ["Status", statusOf(f.status)],
     ["Affected asset", f.affected_url || "—"],
     ["Location", f.path || "—"],
-    ["Category", f.category || "—"],
+    ["Finding category", categoryLabel(findingCategory(f))],
+    ["Confidence", f.confidence_level || "UNKNOWN"],
+    ["Evidence quality", f.evidence_quality || "UNKNOWN"],
+    ["Verification", f.verification_status || "UNKNOWN"],
+    ["Exploitability", f.exploitability || "UNKNOWN"],
     ["Detected by", f.tool || "—"],
-    ["Mapping", [...f.owasp, ...f.cwe, ...f.cve].join(", ") || "—"],
+    [isClassified ? "Validated identifiers" : "Scanner identifier claims (unvalidated)", identifiers.join(", ") || "—"],
   ];
-  if (f.cvss_vector) rows.push(["CVSS vector", f.cvss_vector]);
+  if (!isClassified) rows.push(["Original rating (scanner/legacy claim; unvalidated)", originalRatingClaim(f)]);
+  if (score !== null) rows.push([isClassified ? "Validated CVSS" : "Scanner CVSS claim (unvalidated)", score.toFixed(1)]);
+  if (vector) rows.push([isClassified ? "Validated CVSS vector" : "Scanner CVSS vector claim (unvalidated)", vector]);
+  if (f.classification_uncertainty) rows.push(["Uncertainty", f.classification_uncertainty]);
   const out: Block[] = [
     { kind: "heading", level: 2, text: `${f.id} · ${f.title}` },
     { kind: "kv", rows },
     { kind: "heading", level: 3, text: "Description" },
     { kind: "para", runs: [f.description || "—"] },
-    { kind: "heading", level: 3, text: "Evidence & validation (masked)" },
+  ];
+  const aiNotes = f.ai_notes;
+  if (aiNotes && (aiNotes.explanation || aiNotes.impact || aiNotes.remediation || aiNotes.uncertainty)) {
+    out.push({ kind: "heading", level: 3, text: "AI assessment (not verified)" });
+    if (aiNotes.explanation) out.push({ kind: "para", runs: [aiNotes.explanation] });
+    if (aiNotes.impact) out.push({ kind: "para", runs: [{ text: "Impact: ", bold: true }, aiNotes.impact] });
+    if (aiNotes.remediation) out.push({ kind: "para", runs: [{ text: "Remediation: ", bold: true }, aiNotes.remediation] });
+    if (aiNotes.uncertainty) out.push({ kind: "para", runs: [{ text: "Uncertainty: ", bold: true }, aiNotes.uncertainty] });
+  }
+  out.push({ kind: "heading", level: 3, text: "Evidence & validation (masked)" });
+  if (f.evidence_summary) out.push({ kind: "para", runs: [f.evidence_summary] });
+  const valLine = validationLine(f);
+  if (valLine) out.push({ kind: "para", runs: [valLine] });
+  out.push(
     { kind: "pre", lines: f.evidence },
     { kind: "heading", level: 3, text: "Impact" },
     { kind: "para", runs: [f.impact || "—"] },
     { kind: "heading", level: 3, text: "Remediation" },
     { kind: "para", runs: [f.remediation || "—"] },
-  ];
-  if (f.references.length) out.push({ kind: "para", runs: [{ text: "References: ", bold: true }, f.references.join(", ")] });
+  );
+  if (f.source_claims?.length) {
+    out.push({ kind: "para", runs: [{ text: "Original scanner claims (unvalidated): ", bold: true }, f.source_claims.join("\n")] });
+  }
+  if (f.review_history?.length) {
+    out.push({ kind: "para", runs: [{ text: "Analyst review history: ", bold: true }, f.review_history.join("\n")] });
+  }
+  if (identifiers.length) {
+    out.push({
+      kind: "para",
+      runs: [{ text: isClassified ? "References: " : "Scanner reference claims (unvalidated): ", bold: true }, identifiers.join(", ")],
+    });
+  }
   if (f.triage_note) out.push({ kind: "para", runs: [{ text: "Analyst note: ", bold: true }, f.triage_note] });
   return out;
 }
@@ -58,10 +169,17 @@ function findingBlocks(f: Finding): Block[] {
 /** The report's blocks, in the PDF's order. */
 function reportBlocks(a: Assessment, now: Date = new Date()): Block[] {
   const generated = now.toISOString();
-  const findings = [...a.findings].sort((x, y) => sevRank(x.severity) - sevRank(y.severity) || x.id.localeCompare(y.id));
+  const findings = [...a.findings].sort((x, y) => sevRank(severityForReport(x)) - sevRank(severityForReport(y)) || x.id.localeCompare(y.id));
   const blocked = a.verdicts.filter((v) => !v.allowed);
   const approved = a.decisions.filter((d) => d.decision === "APPROVED").length;
-  const highest = findings[0]?.severity ?? "NONE"; // no findings: "None"
+  const totals = reportCounts(findings);
+  const ratedSeverityCounts = totals.severity_counts;
+  const ratedTotal = ratedSecurityCount(ratedSeverityCounts);
+  const highest = SEVERITIES.find((severity) => ratedSeverityCounts[severity]) ?? "not rated";
+  const lead = findings.find((f) => isRatedSecurityFinding(f) && severityForReport(f) === highest);
+  const c = counts(findings);
+  const pct = percents(c);
+  const spread = ALL_SEVERITIES.filter((sv) => c[sv]).map((sv) => `${c[sv]} ${title(sv)} (${pct[sv]}%)`);
   const s = a.scope;
   return [
     { kind: "title", text: "Security Assessment Report" },
@@ -89,21 +207,24 @@ function reportBlocks(a: Assessment, now: Date = new Date()): Block[] {
       kind: "para",
       runs: [
         `Reconix performed an authorized assessment of ${a.target_url || a.target || "the target"} (${a.template.name || "assessment"}). ` +
-          `It recorded ${findings.length} finding(s) — ${severityLine(findings)}. The highest severity is ${title(highest)}` +
-          `${findings.length ? `, led by ${findings[0].title}` : ""}. ${blocked.length} out-of-scope request(s) were blocked by policy and ` +
+          `It recorded ${findings.length} finding(s). Vulnerability counts: ${totals.vulnerability_counts.CONFIRMED_VULNERABILITY} confirmed · ` +
+          `${totals.vulnerability_counts.POTENTIAL_VULNERABILITY} potential. Findings by category: ${categoryLine(findings)}. ` +
+          `Severity totals cover ${ratedTotal} rated security finding(s) — ${severityLine(findings)}. The highest rated severity is ${title(highest)}` +
+          `${lead ? `, led by ${lead.title}` : ""}. ${blocked.length} out-of-scope request(s) were blocked by policy and ` +
           `${approved} gated action(s) were approved by a human. Intrusive actions ran only after explicit, single-use approval.`,
       ],
     },
     {
       kind: "table",
-      head: [...SEVERITIES.map(title), "Total"],
-      rows: [[...SEVERITIES.map((sv) => String(findings.filter((f) => f.severity === sv).length)), String(findings.length)]],
+      head: [...ALL_SEVERITIES.map(title), "Total"],
+      rows: [[...ALL_SEVERITIES.map((sv) => String(c[sv])), String(findings.length)]],
     },
+    ...(spread.length ? [{ kind: "para" as const, runs: [`Severity distribution: ${spread.join(" · ")}`] }] : []),
     { kind: "heading", level: 1, text: "2 Findings summary" },
     {
       kind: "table",
-      head: ["ID", "Finding", "Severity", "CVSS", "Status", "Category"],
-      rows: findings.map((f) => [f.id, f.title, title(f.severity), cvss(f), statusOf(f.status), f.category || "—"]),
+      head: ["ID", "Finding", "Validated severity", "CVSS", "Status", "Category"],
+      rows: findings.map((f) => [f.id, f.title, title(severityForReport(f)), cvss(f), statusOf(f.status), categoryLabel(findingCategory(f))]),
       weights: [1.4, 5, 1.6, 1.1, 1.7, 2.6], // the title takes the widest share
       empty: "No findings were recorded.",
     },

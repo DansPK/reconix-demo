@@ -3,7 +3,7 @@
    timelines and Findings by Severity. Types only, so client components may import them.
    Every number is computed by the derive modules; positions are fractions of an axis (0–1). */
 import type { Meaning } from "@/lib/status";
-import type { LogKind, PhaseView, Severity, Status } from "@/lib/data/view-types";
+import type { FindingSeverity, LogKind, PhaseView, Severity, Status } from "@/lib/data/view-types";
 
 import type { Marker } from "./axis";
 import type { EventBadge } from "./event-kinds";
@@ -32,7 +32,7 @@ export type DrillDown = { view: "findings"; filters: Record<string, string>; lab
 export interface SummaryStrip {
   findings: {
     total: number;
-    worst: { level: Severity; count: number } | null; // the highest severity present
+    worst: { level: FindingSeverity; count: number } | null; // the highest severity present
     needsReview: number;
     link: DrillDown;
   };
@@ -184,12 +184,14 @@ export type ExecutionCard =
 
 /** One severity's count and its share of the card's total. */
 export type SeverityCount = { level: Severity; count: number; share: number; frac: number };
-export type TopFinding = { key: string; id: string; title: string; severity: Severity; score: number; run: string | null; host: string | null };
+export type TopFinding = { key: string; id: string; title: string; severity: FindingSeverity; score: number; run: string | null };
 
-/** Findings by Severity: CRITICAL, HIGH, MEDIUM and LOW (the whole scale), so its total is the
-    summary strip's and the Findings view's. */
+/** Findings by Severity: its total is the summary strip's and the Findings view's.
+    shortcut: the card still draws four rows (its docs, e2e test and `SeverityCount` say so), so on
+    a run with unrated findings the rows sum to less than `total` — they never drop the finding, its
+    own row is in the Findings view. A fifth and sixth row is the web owner's call (UNKNOWN, NONE). */
 export interface FindingsSlice {
-  total: number; // findings at the four levels (the card's count, the bar's whole)
+  total: number; // every finding but the false positives (the card's count, the bar's whole)
   severity: SeverityCount[]; // CRITICAL, HIGH, MEDIUM, LOW in that order, each even at 0
   words: string; // "0 critical, 3 high, 2 medium, 1 low" (the bar's accessible name)
   review: { confirmed: number; needsReview: number; closed: number }; // of those findings

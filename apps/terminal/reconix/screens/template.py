@@ -62,6 +62,7 @@ class TemplateScreen(ReconixScreen):
     def __init__(self) -> None:
         super().__init__()
         self._picked: Optional[str] = None     # "pick": the template chosen before the target
+        self._tried = False     # Enter was pressed on the target: errors now show in red
 
     # --- state -------------------------------------------------------------------------------
     @staticmethod
@@ -130,6 +131,10 @@ class TemplateScreen(ReconixScreen):
         yield from _request_message()
         yield _ai_label(f"{template.name} template {picked} · drafted a scope manifest for "
                         "your approval")
+        note = self.app.scope_change_note
+        if note:    # a change made at the Plan step: what changed, above the changed card
+            yield Static(Text(note, style=theme.MEDIUM), id="scope-change-note",
+                         classes="panel-note")
         yield from self._manifest_panel()
         decision = self._review_decision()
         yield Question(decision.chip, decision.question, decision.choices,
@@ -187,6 +192,7 @@ class TemplateScreen(ReconixScreen):
 
     # --- focus and live updates -----------------------------------------------------------------
     def on_mount(self) -> None:
+        self.app.scope_change_note = None      # shown once, by this screen's first draw
         preset = self.app.template_pick
         self.app.template_pick = None
         if self.state() == "pick" and preset:
@@ -248,21 +254,56 @@ class TemplateScreen(ReconixScreen):
             Text(f"Target ▸ {template.name} — {template.target_hint}"))
         target = self.query_one("#target", Input)
         target.placeholder = template.example
-        self.query_one("#target-error", Static).update("")
+        target.max_length = store.target_max_length(template.id)   # typing stops at the limit
+        self._tried = False
+        self._show_check(target.value)
         self.query_one("#target-row").display = True
         target.focus()
+
+    # --- the target field: checked as you type -------------------------------------------
+    def on_input_changed(self, event: Input.Changed) -> None:
+        if event.input.id == "target" and self._picked is not None:
+            event.stop()
+            self._show_check(event.value)
+
+    def _show_check(self, value: str) -> "store.FieldCheck":
+        """Say what the typed value reads as: ✓ a target, ! one to double-check, or (after
+        the first Enter, so half-typed values are not shouted at) ✕ why it is not one."""
+        field = self.query_one("#target", Input)
+        line = self.query_one("#target-error", Static)
+        check = store.check_field(self._picked, value)
+        field.set_class(check.level == "ok", "match")
+        field.set_class(check.level == "caution", "caution")
+        field.set_class(check.level == "error" and self._tried and bool(value), "nomatch")
+        limit = store.target_max_length(self._picked)
+        counter = Text("")
+        if len(value) >= limit * 0.8:    # only near the limit: amber once it is reached
+            counter = Text(f"   {len(value)}/{limit}",
+                           style=theme.MEDIUM if len(value) >= limit else theme.DIM)
+        if not value.strip() and not self._tried:
+            line.update("")
+        elif check.level == "ok":
+            line.update(Text.assemble(("✓ ", f"bold {theme.TEAL}"), (check.message, theme.MUTED),
+                                      counter))
+        elif check.level == "caution":
+            line.update(Text.assemble(("! ", f"bold {theme.MEDIUM}"),
+                                      (check.message, theme.MEDIUM), counter))
+        elif self._tried:
+            line.update(Text.assemble(("✕ ", f"bold {theme.CRITICAL}"),
+                                      (check.message, theme.CRITICAL), counter))
+        else:
+            hint = f"keep typing — {store.target_needs(self._picked)}"
+            line.update(Text.assemble((hint, theme.DIM), counter))
+        return check
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         event.stop()
         if self._picked is None:
             return
-        try:
-            store.check_target(self._picked, event.value)
-        except store.StoreValidationError as exc:
-            self.query_one("#target-error", Static).update(
-                Text(str(exc), style=theme.CRITICAL))
+        self._tried = True
+        if self._show_check(event.value).level == "error":
             return
-        self.app.start_with_template(event.value, self._picked)
+        self.app.start_with_template(event.value.strip(), self._picked)
 
     def action_back(self) -> None:
         rows = self.query("#target-row")

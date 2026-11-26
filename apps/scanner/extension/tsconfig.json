@@ -11,5 +11,5 @@
     "noUnusedLocals": true,
     "noImplicitReturns": true
   },
-  "include": ["src", "webview"]
+  "include": ["src", "webview", "server", "test"]
 }

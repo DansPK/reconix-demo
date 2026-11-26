@@ -1,6 +1,6 @@
 {
   "source": "reconix/commands/builtin.py",
-  "count": 19,
+  "count": 21,
   "groups": [
     {
       "id": "start",
@@ -165,7 +165,7 @@
     },
     {
       "id": "ai",
-      "title": "AI models & knowledge",
+      "title": "AI models",
       "commands": [
         {
           "name": "add-on",
@@ -216,6 +216,15 @@
           "ask": false,
           "question": "",
           "empty": ""
+        },
+        {
+          "name": "doctor",
+          "aliases": [],
+          "description": "Check the Reconix installation and local services",
+          "takes_argument": false,
+          "ask": false,
+          "question": "",
+          "empty": ""
         }
       ]
     },
@@ -223,6 +232,17 @@
       "id": "session",
       "title": "Session",
       "commands": [
+        {
+          "name": "tests",
+          "aliases": [
+            "test-guide"
+          ],
+          "description": "Evaluator checklist: every flow and case, mark Pass/Fail/Skip",
+          "takes_argument": false,
+          "ask": false,
+          "question": "",
+          "empty": ""
+        },
         {
           "name": "quit",
           "aliases": [

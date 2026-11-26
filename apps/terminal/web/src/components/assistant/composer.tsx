@@ -14,6 +14,7 @@ import { forwardRef, useId, useImperativeHandle, useRef } from "react";
 import { ArrowUp, Square } from "lucide-react";
 import { MAX_QUESTION } from "@/lib/assistant/request";
 import { useAssistant } from "./assistant-provider";
+import { ModelChip } from "./model-chip";
 import { useAutoResize } from "./use-auto-resize";
 
 const COUNT_FROM = MAX_QUESTION - 500;
@@ -35,7 +36,8 @@ export const Composer = forwardRef<HTMLTextAreaElement, { label: string; disable
   const tone = length >= MAX_QUESTION ? "danger" : length >= MAX_QUESTION - 100 ? "warning" : undefined;
 
   return (
-    <div className="ai-composer" data-disabled={disabled ? "" : undefined}>
+    <div className="ac-moving-border">
+      <div className="ac-moving-border-inner ai-composer border-0" data-disabled={disabled ? "" : undefined}>
       <form id={formId} onSubmit={send}>
         <textarea
           ref={field}
@@ -57,9 +59,21 @@ export const Composer = forwardRef<HTMLTextAreaElement, { label: string; disable
         />
       </form>
       <div className="ai-composer-bar">
-        <span />
+        <ModelChip />
         <span className="ai-composer-end">
-          {!disabled && <span className="ai-composer-hint">{busy ? "Esc to stop" : "Enter to send · Shift+Enter for new line"}</span>}
+          {!disabled && (
+            <span className="ai-composer-hint">
+              {busy ? (
+                <>
+                  <kbd className="ai-picker-kbd">Esc</kbd> to stop
+                </>
+              ) : (
+                <>
+                  <kbd className="ai-picker-kbd">Enter</kbd> to send · <kbd className="ai-picker-kbd">Shift+Enter</kbd> new line
+                </>
+              )}
+            </span>
+          )}
           {length >= COUNT_FROM && (
             <span className="ai-counter" data-tone={tone} aria-live="polite">
               {length.toLocaleString("en-US")} / {MAX_QUESTION.toLocaleString("en-US")}
@@ -82,6 +96,7 @@ export const Composer = forwardRef<HTMLTextAreaElement, { label: string; disable
             </button>
           )}
         </span>
+      </div>
       </div>
     </div>
   );

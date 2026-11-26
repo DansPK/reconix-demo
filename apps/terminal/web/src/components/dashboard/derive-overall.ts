@@ -163,7 +163,7 @@ export function deriveOverall(views: AssessmentView[]): Overall {
   const requests = views.reduce((s, v) => s + v.requests, 0);
   const totalSec = views.reduce((s, v) => s + v.durationSec, 0);
   const longest = views.reduce((a, b) => (b.durationSec > a.durationSec ? b : a));
-  const overLimit = views.filter((v) => v.scope && v.durationSec > v.scope.windowMinutes * 60).length;
+  const overLimit = views.filter((v) => v.scope && v.scope.windowMinutes > 0 && v.durationSec > v.scope.windowMinutes * 60).length;
   const unfinished = STATUSES.filter((s) => s !== "Completed")
     .map((status: Status) => ({ status, count: views.filter((v) => v.status === status).length }))
     .filter((s) => s.count > 0)

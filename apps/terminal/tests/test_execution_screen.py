@@ -12,7 +12,7 @@ from reconix.widgets.thinking_block import ThinkingBlock
 
 from .support import SIZE, decide, play_until_gate, settle, show
 
-STEP = re.compile(r"^\d\d:\d\d:\d\d UTC  (ai|policy|tool|you|system) +\S")
+STEP = re.compile(r"^\d\d:\d\d:\d\d  (ai|policy|tool|you|system) +\S")
 
 
 def _testing_at_first_approval() -> str:
@@ -115,3 +115,12 @@ async def test_scrolling_up_stops_following_until_end(app):
         await settle(pilot)
         assert log.following and log.unseen == 0 and log.is_vertical_scroll_end
         assert "End to follow" not in str(log.border_subtitle)
+
+
+def test_a_ready_report_row_is_not_drawn_as_still_working():
+    from reconix.models import PlanTask
+    from reconix.screens.execution import task_line
+
+    line = task_line(PlanTask("report", "Generate report", status="active"), "complete")
+    assert line.plain.startswith("● ")
+    assert "ready" in line.plain

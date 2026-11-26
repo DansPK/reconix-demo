@@ -26,7 +26,7 @@ export const guardrails: GroupContent = {
         <DocSection title="What is simulated">
           <p>
             Without a model and the backend harness, the run is simulated: no scanner runs and nothing is sent to the
-            target. Reconix uses reserved example domains and synthetic, masked evidence. See{" "}
+            target. The demo uses reserved example domains and fake, masked evidence. See{" "}
             <DocRef>Introduction</DocRef>.
           </p>
         </DocSection>
@@ -92,7 +92,7 @@ export const guardrails: GroupContent = {
             Each gated action carries a fixed risk. <Badge variant="accent">MEDIUM</Badge> needs one decision.{" "}
             <Badge variant="accent">HIGH</Badge> needs a double check: a confirmation step with a single-use token, a second
             dialog that defaults to &quot;No, go back&quot;, and the matching request hash. An approval is bound to the exact
-            request shown; if the request changes, the approval does not apply. Rejecting stops the assessment. No typed
+            request shown; if the request changes, the approval does not apply. Rejecting skips that action and the plan goes on. No typed
             reason is asked for. See <DocRef>Approval gates</DocRef>.
           </p>
           <p>
@@ -137,6 +137,10 @@ export const guardrails: GroupContent = {
               Every string in a report, the saved copies for the dashboard and the context sent to a model goes through
               redaction; reports never contain the test account.
             </li>
+            <li>
+              The dashboard&apos;s sign-in link is printed only to a terminal, never to{" "}
+              <Mono>~/.reconix/web.log</Mono>.
+            </li>
           </ul>
         </DocSection>
       </>
@@ -173,7 +177,9 @@ export const guardrails: GroupContent = {
           </Callout>
           <p>
             Chat lines and replies are kept in <Mono>~/.reconix/llm.db</Mono> (redacted). The dashboard&apos;s AI Assistant
-            answers from the saved files only, with no evidence, and masks questions before they are used.
+            is separate: you choose its model with the model chip, local or cloud (cloud providers are allowed by
+            default, and the assistant says when your questions go off this machine); it builds its context from the saved
+            files with no evidence, and masks the questions before they leave.
           </p>
         </DocSection>
         <DocSection title="What it never does">
@@ -197,7 +203,7 @@ export const guardrails: GroupContent = {
         <DocSection title="Known limitations">
           <ul>
             <li>
-              <strong>The scripted run is a simulation.</strong> Its findings are sample data for the template, not the state
+              <strong>The scripted run is a simulation.</strong> Its findings are demo data for the template, not the state
               of your target. Real findings come from the AI agent.
             </li>
             <li>
